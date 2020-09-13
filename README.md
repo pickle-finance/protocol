@@ -1,0 +1,6 @@
+# PickleJars
+
+
+```
+DAPP_TEST_TIMESTAMP=$(date +%s) DAPP_TEST_BALANCE_CREATE=10000000000000000000000000 dapp test --rpc-url https://mainnet.infura.io/v3/84842078b09946638c03157f83405213
+```
