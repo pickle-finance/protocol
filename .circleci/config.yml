@@ -1,0 +1,44 @@
+version: 2
+jobs:
+  install_dapptools:
+    docker:
+      - image: nixos/nix:2.3.6
+    working_directory: ~/protocol
+    steps:
+      - restore_cache:
+          keys:
+            - solc_0_6_12-dapptools_0_41_0
+      - run:
+          name: Install DappTools
+          command: |
+            nix-env -i cachix git
+            cachix use dapp
+            nix-env -iA dapp hevm seth solc -f https://api.github.com/repos/dapphub/dapptools/tarball/hevm/0.41.0
+      - save_cache:
+          key: solc_0_6_12-dapptools_0_41_0
+          paths:
+            - /nix
+  build_and_test:
+    working_directory: ~/protocol
+    docker:
+      - image: nixos/nix:2.3.6
+      - image: trufflesuite/ganache-cli
+        command: ganache-cli -f https://mainnet.infura.io/v3/58073b4a32df4105906c702f167b91d2 -d -e 10000000 --networkId 1 -l 90000000
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - solc_0_6_12-dapptools_0_41_0
+      - run:
+          name: build
+          command: |
+            dapp update
+            dapp build
+            DAPP_TEST_NUMBER=$(seth block-number) DAPP_TEST_TIMESTAMP=$(date +%s) DAPP_TEST_BALANCE_CREATE=10000000000000000000000000 dapp test --rpc-url http://localhost:8545 -v
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - install_dapptools
+      - build_and_test
