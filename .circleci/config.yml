@@ -32,8 +32,8 @@ jobs:
       - run:
           name: build
           command: |
-            dapp build
             dapp update
+            dapp build
             DAPP_TEST_NUMBER=$(seth block-number) DAPP_TEST_TIMESTAMP=$(date +%s) DAPP_TEST_BALANCE_CREATE=10000000000000000000000000 dapp test --rpc-url http://localhost:8545 -v
 
 workflows:
