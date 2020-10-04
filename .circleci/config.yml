@@ -1,0 +1,25 @@
+version: 2
+jobs:
+  checkout_and_install:
+    docker:
+      - image: nixos/nix:2.3.6
+    working_directory: ~/protocol
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - protocol-{{ .Environment.CIRCLE_SHA1 }}
+      - run:
+          name: Install DappTools
+          command: curl https://dapp.tools/install | sh
+      - save_cache:
+          key: protocol-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ~/protocol
+            - /nix
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - checkout_and_install
