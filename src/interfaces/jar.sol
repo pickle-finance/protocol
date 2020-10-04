@@ -13,4 +13,6 @@ interface IJar is IERC20 {
     function deposit(uint256) external;
 
     function withdraw(uint256) external;
+
+    function earn() external;
 }

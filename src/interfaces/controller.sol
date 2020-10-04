@@ -3,11 +3,13 @@
 pragma solidity ^0.6.0;
 
 interface IController {
-    function vaults(address) external view returns (address);
+    function jars(address) external view returns (address);
 
     function rewards() external view returns (address);
 
-    function want(address) external view returns (address); // NOTE: Only StrategyControllerV2 implements this
+    function devfund() external view returns (address);
+
+    function treasury() external view returns (address);
 
     function balanceOf(address) external view returns (uint256);
 

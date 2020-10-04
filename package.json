@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "chalk": "^4.1.0",
+    "ethers": "^5.0.14",
+    "inquirer": "^7.3.3",
+    "ora": "^5.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.10.0"
+  },
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "parserOptions": {
+      "ecmaVersion": 2018,
+      "sourceType": "module"
+    },
+    "env": {
+      "es6": true,
+      "node": true
+    },
+    "rules": {
+      "semi": "error"
+    }
+  }
+}

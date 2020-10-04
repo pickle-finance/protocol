@@ -18,9 +18,10 @@ contract PickleJar is ERC20 {
     uint256 public constant max = 10000;
 
     address public governance;
+    address public timelock;
     address public controller;
 
-    constructor(address _token, address _governance, address _controller)
+    constructor(address _token, address _governance, address _timelock, address _controller)
         public
         ERC20(
             string(abi.encodePacked("pickling ", ERC20(_token).name())),
@@ -30,6 +31,7 @@ contract PickleJar is ERC20 {
         _setupDecimals(ERC20(_token).decimals());
         token = IERC20(_token);
         governance = _governance;
+        timelock = _timelock;
         controller = _controller;
     }
 
@@ -50,12 +52,17 @@ contract PickleJar is ERC20 {
         governance = _governance;
     }
 
+    function setTimelock(address _timelock) public {
+        require(msg.sender == timelock, "!timelock");
+        timelock = _timelock;
+    }
+
     function setController(address _controller) public {
-        require(msg.sender == governance, "!governance");
+        require(msg.sender == timelock, "!timelock");
         controller = _controller;
     }
 
-    // Custom logic in here for how much the vault allows to be borrowed
+    // Custom logic in here for how much the jars allows to be borrowed
     // Sets minimum required on-hand to keep small withdrawals cheap
     function available() public view returns (uint256) {
         return token.balanceOf(address(this)).mul(min).div(max);

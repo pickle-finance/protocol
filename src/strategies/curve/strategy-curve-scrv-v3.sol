@@ -1,16 +1,20 @@
-// https://github.com/iearn-finance/contracts/blob/master/contracts/strategies/StrategyCurveYCRVVoter.sol
+// https://etherscan.io/address/0x594a198048501a304267e63b3bad0f0638da7628#code
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.2;
 
-import "../lib/erc20.sol";
-import "../lib/safe-math.sol";
+import "../../lib/erc20.sol";
+import "../../lib/safe-math.sol";
 
-import "../interfaces/curve.sol";
-import "../interfaces/onesplit.sol";
-import "../interfaces/controller.sol";
+import "./scrv-voter.sol";
+import "./crv-locker.sol";
 
-contract StrategyCurveSCRV {
+import "../../interfaces/jar.sol";
+import "../../interfaces/curve.sol";
+import "../../interfaces/uniswapv2.sol";
+import "../../interfaces/controller.sol";
+
+contract StrategyCurveSCRVv3 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -38,42 +42,46 @@ contract StrategyCurveSCRV {
     // pickle token
     address public constant pickle = 0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5;
 
+    // weth (for uniswapv2 xfers)
+    address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+
     // burn address
     address public constant burn = 0x000000000000000000000000000000000000dEaD;
 
     // dex
-    address public onesplit = 0xC586BeF4a0992C495Cf22e1aeEE4E446CECDee0E;
-    uint256 public parts = 2; // onesplit parts
+    address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
 
-    // Fees ~4.93% in total
-    // - 2.94%  performance fee
-    // - 1.5%   used to burn pickles
-    // - 0.5%   gas compensation fee (for caller)
+    // How much CRV tokens to keep
+    uint256 public keepCRV = 0;
+    uint256 public constant keepCRVMax = 10000;
 
-    // 3% of 98% = 2.94% of original 100%
-    uint256 public performanceFee = 300;
+    // Perfomance fee 4.5%
+    uint256 public performanceFee = 450;
     uint256 public constant performanceMax = 10000;
 
-    uint256 public burnFee = 150;
-    uint256 public constant burnMax = 10000;
+    // Withdrawal fee 0.5%
+    // - 0.375% to treasury
+    // - 0.125% to dev fund
+    uint256 public treasuryFee = 375;
+    uint256 public constant treasuryMax = 100000;
 
-    uint256 public callerFee = 50;
-    uint256 public constant callerMax = 10000;
-
-    uint256 public withdrawalFee = 50;
-    uint256 public constant withdrawalMax = 10000;
+    uint256 public devFundFee = 125;
+    uint256 public constant devFundMax = 100000;
 
     address public governance;
     address public controller;
+    address public timelock;
     address public strategist;
 
     constructor(
         address _governance,
         address _strategist,
+        address _timelock,
         address _controller
     ) public {
         governance = _governance;
         strategist = _strategist;
+        timelock = _timelock;
         controller = _controller;
     }
 
@@ -92,10 +100,14 @@ contract StrategyCurveSCRV {
     }
 
     function getName() external pure returns (string memory) {
-        return "StrategyCurveSCRV";
+        return "StrategyCurveSCRVv3";
     }
 
-    function getMostPremiumStablecoin() public returns (address, uint256) {
+    function getHarvestable() external returns (uint256) {
+        return ICurveGauge(gauge).claimable_tokens(address(this));
+    }
+
+    function getMostPremiumStablecoin() public view returns (address, uint256) {
         uint256[] memory balances = new uint256[](4);
         balances[0] = ICurveFi(curve).balances(0); // DAI
         balances[1] = ICurveFi(curve).balances(1).mul(10**12); // USDC
@@ -144,14 +156,14 @@ contract StrategyCurveSCRV {
 
     // **** Setters ****
 
-    function setStrategist(address _strategist) external {
+    function setDevFundFee(uint256 _devFundFee) external {
         require(msg.sender == governance, "!governance");
-        strategist = _strategist;
+        devFundFee = _devFundFee;
     }
 
-    function setWithdrawalFee(uint256 _withdrawalFee) external {
+    function setTreasuryFee(uint256 _treasuryFee) external {
         require(msg.sender == governance, "!governance");
-        withdrawalFee = _withdrawalFee;
+        treasuryFee = _treasuryFee;
     }
 
     function setPerformanceFee(uint256 _performanceFee) external {
@@ -159,24 +171,29 @@ contract StrategyCurveSCRV {
         performanceFee = _performanceFee;
     }
 
+    function setStrategist(address _strategist) external {
+        require(msg.sender == governance, "!governance");
+        strategist = _strategist;
+    }
+
     function setGovernance(address _governance) external {
         require(msg.sender == governance, "!governance");
         governance = _governance;
     }
 
+    function setTimelock(address _timelock) external {
+        require(msg.sender == timelock, "!timelock");
+        timelock = _timelock;
+    }
+
     function setController(address _controller) external {
-        require(msg.sender == governance, "!governance");
+        require(msg.sender == timelock, "!timelock");
         controller = _controller;
     }
 
-    function setOneSplit(address _onesplit) public {
+    function setKeepCRV(uint256 _keepCRV) external {
         require(msg.sender == governance, "!governance");
-        onesplit = _onesplit;
-    }
-
-    function setParts(uint256 _parts) public {
-        require(msg.sender == governance, "!governance");
-        parts = _parts;
+        keepCRV = _keepCRV;
     }
 
     // **** State Mutations ****
@@ -204,7 +221,7 @@ contract StrategyCurveSCRV {
         _asset.safeTransfer(controller, balance);
     }
 
-    // Withdraw partial funds, normally used with a vault withdrawal
+    // Withdraw partial funds, normally used with a jar withdrawal
     function withdraw(uint256 _amount) external {
         require(msg.sender == controller, "!controller");
         uint256 _balance = IERC20(want).balanceOf(address(this));
@@ -213,13 +230,19 @@ contract StrategyCurveSCRV {
             _amount = _amount.add(_balance);
         }
 
-        uint256 _fee = _amount.mul(withdrawalFee).div(withdrawalMax);
+        uint256 _feeDev = _amount.mul(devFundFee).div(devFundMax);
+        IERC20(want).safeTransfer(IController(controller).devfund(), _feeDev);
 
-        IERC20(want).safeTransfer(IController(controller).rewards(), _fee);
-        address _vault = IController(controller).vaults(address(want));
-        require(_vault != address(0), "!vault"); // additional protection so we don't burn the funds
+        uint256 _feeTreasury = _amount.mul(treasuryFee).div(treasuryMax);
+        IERC20(want).safeTransfer(
+            IController(controller).treasury(),
+            _feeTreasury
+        );
 
-        IERC20(want).safeTransfer(_vault, _amount.sub(_fee));
+        address _jar = IController(controller).jars(address(want));
+        require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
+
+        IERC20(want).safeTransfer(_jar, _amount.sub(_feeDev).sub(_feeTreasury));
     }
 
     // Withdraw all funds, normally used when migrating strategies
@@ -229,9 +252,9 @@ contract StrategyCurveSCRV {
 
         balance = IERC20(want).balanceOf(address(this));
 
-        address _vault = IController(controller).vaults(address(want));
-        require(_vault != address(0), "!vault"); // additional protection so we don't burn the funds
-        IERC20(want).safeTransfer(_vault, balance);
+        address _jar = IController(controller).jars(address(want));
+        require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
+        IERC20(want).safeTransfer(_jar, balance);
     }
 
     function _withdrawAll() internal {
@@ -245,8 +268,16 @@ contract StrategyCurveSCRV {
         return _amount;
     }
 
+    function brine() public {
+        harvest();
+    }
+
     function harvest() public {
-        // Anyone can harvest it
+        // Anyone can harvest it at any given time.
+        // I understand the possibility of being frontrun
+        // But ETH is a dark forest, and I wanna see how this plays out
+        // i.e. will be be heavily frontrunned?
+        //      if so, a new strategy will be deployed.
 
         // stablecoin we want to convert to
         (address to, uint256 toIndex) = getMostPremiumStablecoin();
@@ -256,6 +287,16 @@ contract StrategyCurveSCRV {
         ICurveMintr(mintr).mint(gauge);
         uint256 _crv = IERC20(crv).balanceOf(address(this));
         if (_crv > 0) {
+            // x% is sent back to the rewards holder
+            // to be used to lock up in as veCRV in a future date
+            uint256 _keepCRV = _crv.mul(keepCRV).div(keepCRVMax);
+            if (_keepCRV > 0) {
+                IERC20(crv).safeTransfer(
+                    IController(controller).treasury(),
+                    _keepCRV
+                );
+            }
+            _crv = _crv.sub(_keepCRV);
             _swap(crv, to, _crv);
         }
 
@@ -270,28 +311,6 @@ contract StrategyCurveSCRV {
         // to get back want (scrv)
         uint256 _to = IERC20(to).balanceOf(address(this));
         if (_to > 0) {
-            // Fees (in stablecoin)
-            // 0.5% sent to msg.sender to refund gas
-            uint256 _callerFee = _to.mul(callerFee).div(callerMax);
-            IERC20(to).safeTransfer(
-                msg.sender,
-                _callerFee
-            );
-            
-            // 1.5% used to buy and BURN pickles
-            uint256 _burnFee = _to.mul(burnFee).div(burnMax);
-            _swap(
-                to,
-                pickle,
-                _burnFee
-            );
-            IERC20(pickle).transfer(
-                burn,
-                IERC20(pickle).balanceOf(address(this))
-            );
-
-            // Supply to curve to get sCRV
-            _to = _to.sub(_callerFee).sub(_burnFee);
             IERC20(to).safeApprove(curve, 0);
             IERC20(to).safeApprove(curve, _to);
             uint256[4] memory liquidity;
@@ -302,13 +321,9 @@ contract StrategyCurveSCRV {
         // We want to get back sCRV
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            // Fees (in sCRV)
-            // 3% performance fee
-            // This 3% comes AFTER deducing 2%
-            // So in reality its actually around 2.94%
-            // 0.98 * 0.03 = 0.0294
+            // Fees 4.5% goes to treasury
             IERC20(want).safeTransfer(
-                IController(controller).rewards(),
+                IController(controller).treasury(),
                 _want.mul(performanceFee).div(performanceMax)
             );
 
@@ -321,27 +336,59 @@ contract StrategyCurveSCRV {
         address _to,
         uint256 _amount
     ) internal {
-        // Onesplit params
-        uint256 expected;
-        uint256[] memory distribution;
+        // Swap with uniswap
+        IERC20(_from).safeApprove(univ2Router2, 0);
+        IERC20(_from).safeApprove(univ2Router2, _amount);
 
-        IERC20(_from).safeApprove(onesplit, 0);
-        IERC20(_from).safeApprove(onesplit, _amount);
+        address[] memory path = new address[](3);
+        path[0] = _from;
+        path[1] = weth;
+        path[2] = _to;
 
-        (expected, distribution) = OneSplitAudit(onesplit).getExpectedReturn(
-            _from,
-            _to,
+        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
             _amount,
-            parts,
-            0
+            0,
+            path,
+            address(this),
+            now.add(60)
         );
-        OneSplitAudit(onesplit).swap(
-            _from,
-            _to,
-            _amount,
-            parts,
-            distribution,
-            0
-        );
+    }
+
+    // Proxy pattern
+    // Implementation is only settable by timelock
+    function execute(address _target, bytes memory _data)
+        public
+        payable
+        returns (bytes memory response)
+    {
+        require(msg.sender == timelock, "!timelock");
+        require(_target != address(0), "!target");
+
+        // call contract in current context
+        assembly {
+            let succeeded := delegatecall(
+                sub(gas(), 5000),
+                _target,
+                add(_data, 0x20),
+                mload(_data),
+                0,
+                0
+            )
+            let size := returndatasize()
+
+            response := mload(0x40)
+            mstore(
+                0x40,
+                add(response, and(add(add(size, 0x20), 0x1f), not(0x1f)))
+            )
+            mstore(response, size)
+            returndatacopy(add(response, 0x20), 0, size)
+
+            switch iszero(succeeded)
+                case 1 {
+                    // throw if delegatecall failed
+                    revert(add(response, 0x20), size)
+                }
+        }
     }
 }

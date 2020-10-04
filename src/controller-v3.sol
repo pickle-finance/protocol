@@ -1,4 +1,4 @@
-// https://github.com/iearn-finance/vaults/blob/master/contracts/controllers/StrategyControllerV1.sol
+// https://github.com/iearn-finance/jars/blob/master/contracts/controllers/StrategyControllerV1.sol
 
 pragma solidity ^0.6.7;
 
@@ -7,23 +7,30 @@ import "./interfaces/controller.sol";
 import "./lib/erc20.sol";
 import "./lib/safe-math.sol";
 
+import "./interfaces/jar.sol";
 import "./interfaces/onesplit.sol";
 import "./interfaces/strategy.sol";
 import "./interfaces/converter.sol";
+import "./interfaces/strategy-converter.sol";
 
-contract Controller {
+contract ControllerV3 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
 
+    address public constant burn = 0x000000000000000000000000000000000000dEaD;
+    address public onesplit = 0xC586BeF4a0992C495Cf22e1aeEE4E446CECDee0E;
+
     address public governance;
     address public strategist;
+    address public devfund;
+    address public treasury;
+    address public timelock;
 
-    address public onesplit = 0xC586BeF4a0992C495Cf22e1aeEE4E446CECDee0E;
-    address public rewards;
-    mapping(address => address) public vaults;
+    mapping(address => address) public jars;
     mapping(address => address) public strategies;
     mapping(address => mapping(address => address)) public converters;
+    mapping(address => mapping(address => address)) public strategyConverters;
 
     mapping(address => mapping(address => bool)) public approvedStrategies;
 
@@ -33,16 +40,25 @@ contract Controller {
     constructor(
         address _governance,
         address _strategist,
-        address _rewards // Rewards should be the multisig
+        address _timelock,
+        address _devfund,
+        address _treasury
     ) public {
         governance = _governance;
         strategist = _strategist;
-        rewards = _rewards;
+        timelock = _timelock;
+        devfund = _devfund;
+        treasury = _treasury;
     }
 
-    function setRewards(address _rewards) public {
+    function setDevFund(address _devfund) public {
         require(msg.sender == governance, "!governance");
-        rewards = _rewards;
+        devfund = _devfund;
+    }
+
+    function setTreasury(address _treasury) public {
+        require(msg.sender == governance, "!governance");
+        treasury = _treasury;
     }
 
     function setStrategist(address _strategist) public {
@@ -65,17 +81,22 @@ contract Controller {
         governance = _governance;
     }
 
-    function setVault(address _token, address _vault) public {
+    function setTimelock(address _timelock) public {
+        require(msg.sender == timelock, "!timelock");
+        timelock = _timelock;
+    }
+
+    function setJar(address _token, address _jar) public {
         require(
             msg.sender == strategist || msg.sender == governance,
             "!strategist"
         );
-        require(vaults[_token] == address(0), "vault");
-        vaults[_token] = _vault;
+        require(jars[_token] == address(0), "jar");
+        jars[_token] = _jar;
     }
 
     function approveStrategy(address _token, address _strategy) public {
-        require(msg.sender == governance, "!governance");
+        require(msg.sender == timelock, "!timelock");
         approvedStrategies[_token][_strategy] = true;
     }
 
@@ -205,15 +226,15 @@ contract Controller {
             _after = IERC20(_want).balanceOf(address(this));
             if (_after > _before) {
                 _amount = _after.sub(_before);
-                uint256 _reward = _amount.mul(split).div(max);
-                earn(_want, _amount.sub(_reward));
-                IERC20(_want).safeTransfer(rewards, _reward);
+                uint256 _treasury = _amount.mul(split).div(max);
+                earn(_want, _amount.sub(_treasury));
+                IERC20(_want).safeTransfer(treasury, _treasury);
             }
         }
     }
 
     function withdraw(address _token, uint256 _amount) public {
-        require(msg.sender == vaults[_token], "!vault");
+        require(msg.sender == jars[_token], "!jar");
         IStrategy(strategies[_token]).withdraw(_amount);
     }
 }
