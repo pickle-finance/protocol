@@ -23,7 +23,7 @@ jobs:
     docker:
       - image: nixos/nix:2.3.6
       - image: trufflesuite/ganache-cli
-        command: ganache-cli -f $RPC_URL -d -e 10000000 --networkId 1 -l 90000000
+        command: ganache-cli -f https://mainnet.infura.io/v3/58073b4a32df4105906c702f167b91d2 -d -e 10000000 --networkId 1 -l 90000000
     steps:
       - checkout
       - restore_cache:
@@ -33,6 +33,7 @@ jobs:
           name: build
           command: |
             dapp build
+            dapp update
             DAPP_TEST_NUMBER=$(seth block-number) DAPP_TEST_TIMESTAMP=$(date +%s) DAPP_TEST_BALANCE_CREATE=10000000000000000000000000 dapp test --rpc-url http://localhost:8545 -v
 
 workflows:
@@ -40,6 +41,4 @@ workflows:
   build:
     jobs:
       - install_dapptools
-      - build_and_test:
-          requires:
-              - install_dapptools
+      - build_and_test
