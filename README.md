@@ -1,10 +1,12 @@
 # Pickle Protocol
 
+[![circleci](https://badgen.net/circleci/github/pickle-finance/protocol)](https://badgen.net/circleci/github/pickle-finance/protocol)
+
 Solidity files relating to the PICKLE protocol.
 
 ## Getting Started
 
-We're using [dapp-tools](http://dapp.tools/) to compile, and test contracts. To get the dapp binary, you'll first need to [install Nix](curl -L https://nixos.org/nix/install | sh).
+We're using [dapp-tools](http://dapp.tools/) to compile, and test contracts. To get the dapp binary, you'll first need to [install Nix](https://nixos.org/guides/install-nix.html).
 
 ```bash
 # Install Nix
@@ -22,6 +24,7 @@ dapp build
 ```
 
 ## Dev
+
 ```bash
 # Using ganche as a caching layer
 ganache-cli -f https://mainnet.infura.io/v3/<URL>
@@ -35,8 +38,18 @@ DAPP_TEST_NUMBER=$(seth block-number) DAPP_TEST_TIMESTAMP=$(date +%s) DAPP_TEST_
 ```
 
 ## Deploy
+
+### Via Remix
+
 ```bash
-# DAPP runs the real tests in stateless mode :)
+# Flatten
+hevm flatten --source-file src/<sol> --json-file out/dapp.sol.json
+
+# Deploy file via remix
+```
+
+### Via JavaScript
+```bash
 export SOLC_FLAGS="--optimize --optimize-runs 200"
 
 dapp build
