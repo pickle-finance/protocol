@@ -8,14 +8,15 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - protocol-{{ .Environment.CIRCLE_SHA1 }}
+            - solc_0_6_12-dapptools_0_41_0
       - run:
           name: Install DappTools
-          command: curl https://dapp.tools/install | sh
+          command: |
+            nix-env -i git
+            nix-env -iA solc-versions.solc_0_6_12 -if https://github.com/dapphub/dapptools/tarball/hevm/0.41.0
       - save_cache:
-          key: protocol-{{ .Environment.CIRCLE_SHA1 }}
+          key: solc_0_6_12-dapptools_0_41_0
           paths:
-            - ~/protocol
             - /nix
 
 workflows:
