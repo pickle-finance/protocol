@@ -22,7 +22,10 @@ jobs:
     working_directory: ~/protocol
     docker:
       - image: nixos/nix:2.3.6
+      - image: trufflesuite/ganache-cli
+        command: ganache-cli -f $RPC_URL -d -e 10000000 --networkId 1 -l 90000000
     steps:
+      - checkout
       - restore_cache:
           keys:
             - solc_0_6_12-dapptools_0_41_0
@@ -30,6 +33,7 @@ jobs:
           name: build
           command: |
             dapp build
+            DAPP_TEST_NUMBER=$(seth block-number) DAPP_TEST_TIMESTAMP=$(date +%s) DAPP_TEST_BALANCE_CREATE=10000000000000000000000000 dapp test --rpc-url http://localhost:8545 -v
 
 workflows:
   version: 2
