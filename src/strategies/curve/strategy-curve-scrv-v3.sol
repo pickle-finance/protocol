@@ -278,6 +278,11 @@ contract StrategyCurveSCRVv3 {
         // But ETH is a dark forest, and I wanna see how this plays out
         // i.e. will be be heavily frontrunned?
         //      if so, a new strategy will be deployed.
+        require(
+            msg.sender == tx.origin ||
+                msg.sender == governance ||
+                msg.sender == strategist
+        );
 
         // stablecoin we want to convert to
         (address to, uint256 toIndex) = getMostPremiumStablecoin();

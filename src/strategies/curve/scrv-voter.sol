@@ -14,6 +14,8 @@ contract SCRVVoter {
     using SafeMath for uint256;
 
     CRVLocker public crvLocker;
+
+    address public constant want = 0xC25a3A3b969415c80451098fa907EC722572917F;
     address public constant mintr = 0xd061D61a4d941c39E5453435B6345Dc261C2fcE0;
     address public constant crv = 0xD533a949740bb3306d119CC777fa900bA034cd52;
     address public constant snx = 0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F;

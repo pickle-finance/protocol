@@ -74,7 +74,7 @@ contract StrategyCurveSCRVv4Test is DSTestDefiBase {
 
         scrvVoter.approveStrategy(address(strategy));
         scrvVoter.approveStrategy(governance);
-        crvLocker.setVoter(address(scrvVoter));
+        crvLocker.addVoter(address(scrvVoter));
 
         hevm.warp(startTime);
 
