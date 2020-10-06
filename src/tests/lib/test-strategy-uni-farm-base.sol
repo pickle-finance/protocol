@@ -2,21 +2,21 @@ pragma solidity ^0.6.7;
 
 import "ds-test/test.sol";
 
-import "../../lib/hevm.sol";
-import "../../lib/user.sol";
-import "../../lib/test-approx.sol";
-import "../../lib/test-defi-base.sol";
+import "../lib/hevm.sol";
+import "../lib/user.sol";
+import "../lib/test-approx.sol";
+import "../lib/test-defi-base.sol";
 
-import "../../../interfaces/strategy.sol";
-import "../../../interfaces/curve.sol";
-import "../../../interfaces/uniswapv2.sol";
+import "../../interfaces/strategy.sol";
+import "../../interfaces/curve.sol";
+import "../../interfaces/uniswapv2.sol";
 
-import "../../../pickle-jar.sol";
-import "../../../controller-v3.sol";
-import "../../../strategies/uniswapv2/strategy-uni-eth-usdc-lp-v3.sol";
+import "../../pickle-jar.sol";
+import "../../controller-v3.sol";
 
-contract StrategyUniEthUsdcLpV3Test is DSTestDefiBase {
-    address want = 0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc;
+contract StrategyUniFarmTestBase is DSTestDefiBase {
+    address want;
+    address token1;
 
     address governance;
     address strategist;
@@ -27,54 +27,19 @@ contract StrategyUniEthUsdcLpV3Test is DSTestDefiBase {
 
     PickleJar pickleJar;
     ControllerV3 controller;
-    StrategyUniEthUsdcLpV3 strategy;
+    IStrategy strategy;
 
-    function setUp() public {
-        governance = address(this);
-        strategist = address(this);
-        devfund = address(new User());
-        treasury = address(new User());
-        timelock = address(this);
+    function _getWant(uint256 ethAmount, uint256 amount) internal {
+        _getERC20(token1, amount);
 
-        controller = new ControllerV3(
-            governance,
-            strategist,
-            timelock,
-            devfund,
-            treasury
-        );
+        uint256 _token1 = IERC20(token1).balanceOf(address(this));
 
-        strategy = new StrategyUniEthUsdcLpV3(
-            governance,
-            strategist,
-            address(controller),
-            timelock
-        );
-
-        pickleJar = new PickleJar(
-            strategy.want(),
-            governance,
-            timelock,
-            address(controller)
-        );
-
-        controller.setJar(strategy.want(), address(pickleJar));
-        controller.approveStrategy(strategy.want(), address(strategy));
-        controller.setStrategy(strategy.want(), address(strategy));
-
-        // Set time
-        hevm.warp(startTime);
-    }
-
-    function _getWant(uint256 ethAmount, uint256 daiAmount) internal {
-        _getERC20(usdc, daiAmount);
-
-        uint256 _usdc = IERC20(usdc).balanceOf(address(this));
-        IERC20(usdc).approve(address(univ2), _usdc);
+        IERC20(token1).safeApprove(address(univ2), 0);
+        IERC20(token1).safeApprove(address(univ2), _token1);
 
         univ2.addLiquidityETH{value: ethAmount}(
-            usdc,
-            _usdc,
+            token1,
+            _token1,
             0,
             0,
             address(this),
@@ -84,16 +49,18 @@ contract StrategyUniEthUsdcLpV3Test is DSTestDefiBase {
 
     // **** Tests ****
 
-    function test_ethusdcv3_timelock() public {
+    function _test_timelock() internal {
         assertTrue(strategy.timelock() == timelock);
         strategy.setTimelock(address(1));
         assertTrue(strategy.timelock() == address(1));
     }
 
-    function test_ethusdcv3_withdraw_release() public {
-        _getWant(10 ether, 4000e6); // WANT w/ 10 ETH and 400 DAI in 18 decimals
+    function _test_withdraw_release() internal {
+        uint256 decimals = ERC20(token1).decimals();
+        _getWant(10 ether, 4000 * (10**decimals));
         uint256 _want = IERC20(want).balanceOf(address(this));
-        IERC20(want).approve(address(pickleJar), _want);
+        IERC20(want).safeApprove(address(pickleJar), 0);
+        IERC20(want).safeApprove(address(pickleJar), _want);
         pickleJar.deposit(_want);
         pickleJar.earn();
         hevm.warp(block.timestamp + 1 weeks);
@@ -113,10 +80,12 @@ contract StrategyUniEthUsdcLpV3Test is DSTestDefiBase {
         assertTrue(_after > _want);
     }
 
-    function test_ethusdcv3_get_earn_harvest_rewards() public {
-        _getWant(10 ether, 4000e6); // WANT w/ 10 ETH and 400 DAI in 18 decimals
+    function _test_get_earn_harvest_rewards() internal {
+        uint256 decimals = ERC20(token1).decimals();
+        _getWant(10 ether, 4000 * (10**decimals));
         uint256 _want = IERC20(want).balanceOf(address(this));
-        IERC20(want).approve(address(pickleJar), _want);
+        IERC20(want).safeApprove(address(pickleJar), 0);
+        IERC20(want).safeApprove(address(pickleJar), _want);
         pickleJar.deposit(_want);
         pickleJar.earn();
         hevm.warp(block.timestamp + 1 weeks);
