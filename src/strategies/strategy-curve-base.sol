@@ -19,6 +19,13 @@ abstract contract StrategyCurveBase is StrategyBase {
     address public usdt = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     address public susd = 0x57Ab1ec28D129707052df4dF418D58a2D46d5f51;
 
+    // bitcoins
+    address public wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
+    address public renbtc = 0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D;
+
+    // rewards
+    address public crv = 0xD533a949740bb3306d119CC777fa900bA034cd52;
+
     // How much CRV tokens to keep
     uint256 public keepCRV = 0;
     uint256 public keepCRVMax = 10000;
@@ -49,7 +56,7 @@ abstract contract StrategyCurveBase is StrategyBase {
         return ICurveGauge(gauge).claimable_tokens(address(this));
     }
 
-    function getMostPremiumStablecoin() public virtual view returns (address, uint256);
+    function getMostPremium() public virtual view returns (address, uint256);
 
     // **** Setters ****
 

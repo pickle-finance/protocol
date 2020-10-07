@@ -20,8 +20,7 @@ contract StrategyCurveSCRVv3_1 is StrategyCurveBase {
     address public susdv2_gauge = 0xA90996896660DEcC6E997655E065b23788857849;
     address public scrv = 0xC25a3A3b969415c80451098fa907EC722572917F;
 
-    // Tokens we're farming
-    address public crv = 0xD533a949740bb3306d119CC777fa900bA034cd52;
+    // Harvesting
     address public snx = 0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F;
 
     constructor(
@@ -44,7 +43,7 @@ contract StrategyCurveSCRVv3_1 is StrategyCurveBase {
 
     // **** Views ****
 
-    function getMostPremiumStablecoin()
+    function getMostPremium()
         public
         override
         view
@@ -110,7 +109,7 @@ contract StrategyCurveSCRVv3_1 is StrategyCurveBase {
         //      if so, a new strategy will be deployed.
 
         // stablecoin we want to convert to
-        (address to, uint256 toIndex) = getMostPremiumStablecoin();
+        (address to, uint256 toIndex) = getMostPremium();
 
         // Collects crv tokens
         // Don't bother voting in v1

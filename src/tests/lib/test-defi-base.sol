@@ -24,11 +24,14 @@ contract DSTestDefiBase is DSTestApprox {
 
     address susdv2_pool = 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD;
     address three_pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
+    address ren_pool = 0x93054188d876f558f4a66B2EF1d97d16eDf0895B;
+
+    address scrv = 0xC25a3A3b969415c80451098fa907EC722572917F;
+    address three_crv = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
+    address ren_crv = 0x49849C98ae39Fff122806C06791Fa73784FB3675;
 
     address eth = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     address weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address scrv = 0xC25a3A3b969415c80451098fa907EC722572917F;
-    address three_crv = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
     address crv = 0xD533a949740bb3306d119CC777fa900bA034cd52;
     address snx = 0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F;
     address dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
@@ -38,6 +41,7 @@ contract DSTestDefiBase is DSTestApprox {
     address uni = 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984;
 
     address wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
+    address renbtc = 0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D;
 
     Hevm hevm = Hevm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
