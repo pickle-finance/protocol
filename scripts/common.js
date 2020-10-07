@@ -73,6 +73,7 @@ const deployContract = async ({
     (x) => x.type === "constructor"
   )[0];
   const inputs = constructor.inputs.map((x) => x.name);
+  const inputTypes = constructor.inputs.map((x) => x.type);
   if (inputs.length !== args.length) {
     console.log(
       chalk.red(
@@ -124,7 +125,11 @@ const deployContract = async ({
       JSON.stringify(
         {
           ...deployedContent,
-          [name]: contract.address,
+          [name]: {
+            address: contract.address,
+            args,
+            argsRaw: args.join(' '), // Used for easy verification
+          },
         },
         null,
         4

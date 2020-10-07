@@ -20,6 +20,9 @@ const tempGov = deployer.address;
 const tempTimelock = deployer.address;
 
 const main = async () => {
+  console.log(chalk.redBright(`DEPLOYER: ${deployer.address}`));
+  console.log(chalk.redBright(`PROVIDER_URL: ${provider.connection.url}`));
+
   const strategies = [
     ["StrategyCurve3CRVv1", "p3CRV"],
     ["StrategyCurveRenCRVv1", "pRenCrv"],
@@ -39,12 +42,7 @@ const main = async () => {
       name: jarName,
       abi: ABIS.Pickle.PickleJar,
       bytecode: BYTECODE.Pickle.PickleJar,
-      args: [
-        await Strategy.want(),
-        governance,
-        timelock_12,
-        controller,
-      ],
+      args: [await Strategy.want(), governance, timelock_12, controller],
       deployer,
       user: deployer,
     });
