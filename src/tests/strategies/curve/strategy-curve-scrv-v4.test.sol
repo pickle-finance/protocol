@@ -99,7 +99,7 @@ contract StrategyCurveSCRVv4Test is DSTestDefiBase {
         uint256[4] memory liquidity;
         liquidity[0] = IERC20(dai).balanceOf(address(this));
         IERC20(dai).approve(curve, liquidity[0]);
-        ICurveFi(curve).add_liquidity(liquidity, 0);
+        ICurveFi_4(curve).add_liquidity(liquidity, 0);
     }
 
     // **** Tests ****

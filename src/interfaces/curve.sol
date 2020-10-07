@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.2;
 
-interface ICurveFi {
+interface ICurveFi_4 {
     function get_virtual_price() external view returns (uint256);
 
     function add_liquidity(uint256[4] calldata amounts, uint256 min_mint_amount)
@@ -25,7 +25,7 @@ interface ICurveFi {
     function balances(int128) external view returns (uint256);
 }
 
-interface ICurveZap {
+interface ICurveZap_4 {
     function add_liquidity(
         uint256[4] calldata uamounts,
         uint256 min_mint_amount

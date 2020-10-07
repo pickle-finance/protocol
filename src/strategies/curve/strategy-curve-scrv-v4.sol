@@ -117,10 +117,10 @@ contract StrategyCurveSCRVv4 {
 
     function getMostPremiumStablecoin() public view returns (address, uint256) {
         uint256[] memory balances = new uint256[](4);
-        balances[0] = ICurveFi(curve).balances(0); // DAI
-        balances[1] = ICurveFi(curve).balances(1).mul(10**12); // USDC
-        balances[2] = ICurveFi(curve).balances(2).mul(10**12); // USDT
-        balances[3] = ICurveFi(curve).balances(3); // sUSD
+        balances[0] = ICurveFi_4(curve).balances(0); // DAI
+        balances[1] = ICurveFi_4(curve).balances(1).mul(10**12); // USDC
+        balances[2] = ICurveFi_4(curve).balances(2).mul(10**12); // USDT
+        balances[3] = ICurveFi_4(curve).balances(3); // sUSD
 
         // DAI
         if (
@@ -313,7 +313,7 @@ contract StrategyCurveSCRVv4 {
             IERC20(to).safeApprove(curve, _to);
             uint256[4] memory liquidity;
             liquidity[toIndex] = _to;
-            ICurveFi(curve).add_liquidity(liquidity, 0);
+            ICurveFi_4(curve).add_liquidity(liquidity, 0);
         }
 
         // We want to get back sCRV

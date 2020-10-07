@@ -80,8 +80,6 @@ abstract contract StrategyBase {
 
     function getName() external virtual pure returns (string memory);
 
-    function getHarvestable() external virtual view returns (uint256);
-
     // **** Setters **** //
 
     function setDevFundFee(uint256 _devFundFee) external {
@@ -131,7 +129,28 @@ abstract contract StrategyBase {
     }
 
     // Withdraw partial funds, normally used with a jar withdrawal
-    function withdraw(uint256 _amount) external virtual;
+    function withdraw(uint256 _amount) external {
+        require(msg.sender == controller, "!controller");
+        uint256 _balance = IERC20(want).balanceOf(address(this));
+        if (_balance < _amount) {
+            _amount = _withdrawSome(_amount.sub(_balance));
+            _amount = _amount.add(_balance);
+        }
+
+        uint256 _feeDev = _amount.mul(devFundFee).div(devFundMax);
+        IERC20(want).safeTransfer(IController(controller).devfund(), _feeDev);
+
+        uint256 _feeTreasury = _amount.mul(treasuryFee).div(treasuryMax);
+        IERC20(want).safeTransfer(
+            IController(controller).treasury(),
+            _feeTreasury
+        );
+
+        address _jar = IController(controller).jars(address(want));
+        require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
+
+        IERC20(want).safeTransfer(_jar, _amount.sub(_feeDev).sub(_feeTreasury));
+    }
 
     // Withdraw all funds, normally used when migrating strategies
     function withdrawAll() external returns (uint256 balance) {

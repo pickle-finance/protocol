@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
 import "ds-test/test.sol";
@@ -14,9 +15,9 @@ import "../../../interfaces/uniswapv2.sol";
 import "../../../pickle-jar.sol";
 import "../../../controller-v3.sol";
 
-import "../../../strategies/curve/strategy-curve-scrv-v3.sol";
+import "../../../strategies/curve/strategy-curve-scrv-v3_1.sol";
 
-contract StrategyCurveSCRVv3Test is DSTestDefiBase {
+contract StrategyCurveSCRVv3_1Test is DSTestDefiBase {
     address governance;
     address strategist;
     address timelock;
@@ -26,7 +27,7 @@ contract StrategyCurveSCRVv3Test is DSTestDefiBase {
 
     PickleJar pickleJar;
     ControllerV3 controller;
-    StrategyCurveSCRVv3 strategy;
+    StrategyCurveSCRVv3_1 strategy;
 
     function setUp() public {
         governance = address(this);
@@ -43,11 +44,11 @@ contract StrategyCurveSCRVv3Test is DSTestDefiBase {
             treasury
         );
 
-        strategy = new StrategyCurveSCRVv3(
+        strategy = new StrategyCurveSCRVv3_1(
             governance,
             strategist,
-            timelock,
-            address(controller)
+            address(controller),
+            timelock
         );
 
         pickleJar = new PickleJar(
@@ -69,7 +70,7 @@ contract StrategyCurveSCRVv3Test is DSTestDefiBase {
         uint256[4] memory liquidity;
         liquidity[0] = IERC20(dai).balanceOf(address(this));
         IERC20(dai).approve(curve, liquidity[0]);
-        ICurveFi(curve).add_liquidity(liquidity, 0);
+        ICurveFi_4(curve).add_liquidity(liquidity, 0);
     }
 
     // **** Tests ****
