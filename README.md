@@ -54,6 +54,10 @@ export SOLC_FLAGS="--optimize --optimize-runs 200"
 
 dapp build
 
+# Export keys
+export DEPLOYER_PRIVATE_KEY=<PRIVATE_KEY>
+export PROVIDER_URL=<PRIVATE_KEY>
+
 # You'll need to edit the deploy.js to fit your needs
 node scripts/deploy.js
 ```
