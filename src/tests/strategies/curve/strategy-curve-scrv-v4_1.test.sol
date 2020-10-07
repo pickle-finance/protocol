@@ -14,7 +14,7 @@ import "../../../interfaces/uniswapv2.sol";
 import "../../../pickle-jar.sol";
 import "../../../controller-v3.sol";
 
-import "../../../strategies/curve/strategy-curve-scrv-v4.sol";
+import "../../../strategies/curve/strategy-curve-scrv-v4_1.sol";
 import "../../../strategies/curve/scrv-voter.sol";
 import "../../../strategies/curve/crv-locker.sol";
 
@@ -30,7 +30,7 @@ contract StrategyCurveSCRVv4Test is DSTestDefiBase {
 
     PickleJar pickleJar;
     ControllerV3 controller;
-    StrategyCurveSCRVv4 strategy;
+    StrategyCurveSCRVv4_1 strategy;
     SCRVVoter scrvVoter;
     CRVLocker crvLocker;
 
@@ -53,12 +53,13 @@ contract StrategyCurveSCRVv4Test is DSTestDefiBase {
 
         scrvVoter = new SCRVVoter(governance, address(crvLocker));
 
-        strategy = new StrategyCurveSCRVv4(
+        strategy = new StrategyCurveSCRVv4_1(
+            address(scrvVoter),
+            address(crvLocker),
             governance,
             strategist,
             address(controller),
-            address(scrvVoter),
-            address(crvLocker)
+            timelock
         );
 
         pickleJar = new PickleJar(
@@ -104,7 +105,7 @@ contract StrategyCurveSCRVv4Test is DSTestDefiBase {
 
     // **** Tests ****
 
-    function test_scrv_v4_withdraw() public {
+    function test_scrv_v4_1_withdraw() public {
         _getSCRV(10000000 ether); // 1 million DAI
         uint256 _scrv = IERC20(scrv).balanceOf(address(this));
         IERC20(scrv).approve(address(pickleJar), _scrv);
@@ -135,7 +136,7 @@ contract StrategyCurveSCRVv4Test is DSTestDefiBase {
         assertTrue(_after > _scrv);
     }
 
-    function test_scrv_v4_get_earn_harvest_rewards() public {
+    function test_scrv_v4_1_get_earn_harvest_rewards() public {
         address dev = controller.devfund();
 
         // Deposit sCRV, and earn
@@ -173,7 +174,7 @@ contract StrategyCurveSCRVv4Test is DSTestDefiBase {
         assertEq(_devFund, _stratBal.mul(125).div(100000));
     }
 
-    function test_scrv_v4_lock() public {
+    function test_scrv_v4_1_lock() public {
         // Deposit sCRV, and earn
         _getSCRV(10000000 ether); // 1 million DAI
         uint256 _scrv = IERC20(scrv).balanceOf(address(this));
