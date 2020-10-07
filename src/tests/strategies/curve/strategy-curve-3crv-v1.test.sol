@@ -16,9 +16,9 @@ import "../../../interfaces/uniswapv2.sol";
 import "../../../pickle-jar.sol";
 import "../../../controller-v3.sol";
 
-import "../../../strategies/curve/strategy-curve-scrv-v3_1.sol";
+import "../../../strategies/curve/strategy-curve-3crv-v1.sol";
 
-contract StrategyCurveSCRVv3_1Test is StrategyCurveFarmTestBase {
+contract StrategyCurve3CRVv1Test is StrategyCurveFarmTestBase {
     function setUp() public {
         governance = address(this);
         strategist = address(this);
@@ -26,7 +26,7 @@ contract StrategyCurveSCRVv3_1Test is StrategyCurveFarmTestBase {
         treasury = address(new User());
         timelock = address(this);
 
-        want = scrv;
+        want = three_crv;
 
         controller = new ControllerV3(
             governance,
@@ -38,7 +38,7 @@ contract StrategyCurveSCRVv3_1Test is StrategyCurveFarmTestBase {
 
         strategy = IStrategy(
             address(
-                new StrategyCurveSCRVv3_1(
+                new StrategyCurve3CRVv1(
                     governance,
                     strategist,
                     address(controller),
@@ -65,19 +65,19 @@ contract StrategyCurveSCRVv3_1Test is StrategyCurveFarmTestBase {
 
     function _getWant(uint256 daiAmount) internal {
         _getERC20(dai, daiAmount);
-        uint256[4] memory liquidity;
+        uint256[3] memory liquidity;
         liquidity[0] = IERC20(dai).balanceOf(address(this));
-        IERC20(dai).approve(susdv2_pool, liquidity[0]);
-        ICurveFi_4(susdv2_pool).add_liquidity(liquidity, 0);
+        IERC20(dai).approve(three_pool, liquidity[0]);
+        ICurveFi_3(three_pool).add_liquidity(liquidity, 0);
     }
 
     // **** Tests **** //
 
-    function test_scrv_v3_1_withdraw() public {
+    function test_3crv_v1_withdraw() public {
         _test_withdraw();
     }
 
-    function test_scrv_v3_1_earn_harvest_rewards() public {
+    function test_3crv_v1_earn_harvest_rewards() public {
         _test_get_earn_harvest_rewards();
     }
 }

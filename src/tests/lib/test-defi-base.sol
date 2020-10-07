@@ -22,10 +22,13 @@ contract DSTestDefiBase is DSTestApprox {
     address pickle = 0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5;
     address burn = 0x000000000000000000000000000000000000dEaD;
 
+    address susdv2_pool = 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD;
+    address three_pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
+
     address eth = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     address weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address curve = 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD;
     address scrv = 0xC25a3A3b969415c80451098fa907EC722572917F;
+    address three_crv = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
     address crv = 0xD533a949740bb3306d119CC777fa900bA034cd52;
     address snx = 0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F;
     address dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
