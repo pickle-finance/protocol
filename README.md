@@ -1,6 +1,6 @@
 # Pickle Protocol
 
-[![circleci](https://badgen.net/circleci/github/pickle-finance/protocol)](https://badgen.net/circleci/github/pickle-finance/protocol)
+[![circleci](https://circleci.com/gh/pickle-finance/protocol.svg?style=svg)](https://circleci.com/gh/pickle-finance/protocol)
 
 Solidity files relating to the PICKLE protocol.
 

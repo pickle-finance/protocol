@@ -1,13 +1,8 @@
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
 import "ds-test/test.sol";
 
-import "../../lib/hevm.sol";
-import "../../lib/user.sol";
-import "../../lib/test-approx.sol";
-import "../../lib/test-defi-base.sol";
-import "../../lib/test-strategy-curve-farm-base.sol";
+import "../../lib/test-strategy-uni-farm-base.sol";
 
 import "../../../interfaces/strategy.sol";
 import "../../../interfaces/curve.sol";
@@ -15,18 +10,18 @@ import "../../../interfaces/uniswapv2.sol";
 
 import "../../../pickle-jar.sol";
 import "../../../controller-v3.sol";
+import "../../../strategies/uniswapv2/strategy-uni-eth-wbtc-lp-v1.sol";
 
-import "../../../strategies/curve/strategy-curve-scrv-v3_1.sol";
-
-contract StrategyCurveSCRVv3_1Test is StrategyCurveFarmTestBase {
+contract StrategyUniEthWBtcLpV1Test is StrategyUniFarmTestBase {
     function setUp() public {
+        want = 0xBb2b8038a1640196FbE3e38816F3e67Cba72D940;
+        token1 = wbtc;
+
         governance = address(this);
         strategist = address(this);
         devfund = address(new User());
         treasury = address(new User());
         timelock = address(this);
-
-        want = scrv;
 
         controller = new ControllerV3(
             governance,
@@ -38,7 +33,7 @@ contract StrategyCurveSCRVv3_1Test is StrategyCurveFarmTestBase {
 
         strategy = IStrategy(
             address(
-                new StrategyCurveSCRVv3_1(
+                new StrategyUniEthWBtcLpV1(
                     governance,
                     strategist,
                     address(controller),
@@ -58,26 +53,21 @@ contract StrategyCurveSCRVv3_1Test is StrategyCurveFarmTestBase {
         controller.approveStrategy(strategy.want(), address(strategy));
         controller.setStrategy(strategy.want(), address(strategy));
 
+        // Set time
         hevm.warp(startTime);
-
-        _getWant(10000000 ether);
     }
 
-    function _getWant(uint256 daiAmount) internal {
-        _getERC20(dai, daiAmount);
-        uint256[4] memory liquidity;
-        liquidity[0] = IERC20(dai).balanceOf(address(this));
-        IERC20(dai).approve(susdv2_pool, liquidity[0]);
-        ICurveFi_4(susdv2_pool).add_liquidity(liquidity, 0);
+    // **** Tests ****
+
+    function test_ethwbtcv1_timelock() public {
+        _test_timelock();
     }
 
-    // **** Tests **** //
-
-    function test_scrv_v3_1_withdraw() public {
-        _test_withdraw();
+    function test_ethwbtcv1_withdraw_release() public {
+        _test_withdraw_release();
     }
 
-    function test_scrv_v3_1_earn_harvest_rewards() public {
+    function test_ethwbtcv1_get_earn_harvest_rewards() public {
         _test_get_earn_harvest_rewards();
     }
 }
