@@ -1,56 +1,23 @@
-// https://etherscan.io/address/0xF147b8125d2ef93FB6965Db97D6746952a133934
+pragma solidity ^0.6.7;
 
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.6.2;
+import "../lib/erc20.sol";
+import "../lib/safe-math.sol";
 
-import "../../lib/erc20.sol";
-import "../../lib/safe-math.sol";
+import "../interfaces/jar.sol";
+import "../interfaces/staking-rewards.sol";
+import "../interfaces/uniswapv2.sol";
+import "../interfaces/controller.sol";
 
-import "../../interfaces/jar.sol";
-import "../../interfaces/staking-rewards.sol";
-import "../../interfaces/uniswapv2.sol";
-import "../../interfaces/controller.sol";
+// Strategy Contract Basics
 
-contract StrategyUniEthUsdcLpV3 {
-    // v2 Uses uniswap for less gas
-    // We can roll back to v1 if the liquidity is there
-
+abstract contract StrategyBase {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
 
-    // Staking rewards address for ETH/USDC LP providers
-    address
-        public constant rewards = 0x7FBa4B8Dc5E7616e59622806932DBea72537A56b;
-
-    // want eth/usdc lp tokens
-    address public constant want = 0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc;
-
-    // tokens we're farming
-    address public constant uni = 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984;
-
-    // stablecoins
-    address public constant usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-
-    // pickle token
-    address public constant pickle = 0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5;
-
-    // weth
-    address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-
-    // burn address
-    address public constant burn = 0x000000000000000000000000000000000000dEaD;
-
-    // dex
-    address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-
     // Perfomance fee 4.5%
     uint256 public performanceFee = 450;
     uint256 public constant performanceMax = 10000;
-
-    // How much UNI tokens to keep (10%)
-    uint256 public keepUNI = 0;
-    uint256 public constant keepUNIMax = 10000;
 
     // Withdrawal fee 0.5%
     // - 0.375% to treasury
@@ -61,60 +28,72 @@ contract StrategyUniEthUsdcLpV3 {
     uint256 public devFundFee = 125;
     uint256 public constant devFundMax = 100000;
 
+    // Tokens
+    address public want;
+    address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+
+    // User accounts
     address public governance;
-    address public strategist;
     address public controller;
+    address public strategist;
     address public timelock;
 
+    // Dex
+    address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+
     constructor(
+        address _want,
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
     ) public {
+        want = _want;
         governance = _governance;
         strategist = _strategist;
         controller = _controller;
         timelock = _timelock;
     }
 
-    // **** Views ****
+    // **** Modifiers **** //
+
+    modifier onlyBenevolent {
+        require(
+            msg.sender == tx.origin ||
+                msg.sender == governance ||
+                msg.sender == strategist
+        );
+        _;
+    }
+
+    // **** Views **** //
 
     function balanceOfWant() public view returns (uint256) {
         return IERC20(want).balanceOf(address(this));
     }
 
-    function balanceOfPool() public view returns (uint256) {
-        return IStakingRewards(rewards).balanceOf(address(this));
-    }
+    function balanceOfPool() public virtual view returns (uint256);
 
     function balanceOf() public view returns (uint256) {
         return balanceOfWant().add(balanceOfPool());
     }
 
-    function getName() external pure returns (string memory) {
-        return "StrategyUniEthUsdcLpV3";
-    }
+    function getName() external virtual pure returns (string memory);
 
-    // **** Setters ****
-
-    function setKeepUNI(uint256 _keepUNI) external {
-        require(msg.sender == governance, "!governance");
-        keepUNI = _keepUNI;
-    }
+    // **** Setters **** //
 
     function setDevFundFee(uint256 _devFundFee) external {
-        require(msg.sender == governance, "!governance");
+        require(msg.sender == timelock, "!timelock");
         devFundFee = _devFundFee;
     }
 
     function setTreasuryFee(uint256 _treasuryFee) external {
-        require(msg.sender == governance, "!governance");
+        require(msg.sender == timelock, "!timelock");
         treasuryFee = _treasuryFee;
     }
 
     function setPerformanceFee(uint256 _performanceFee) external {
-        require(msg.sender == governance, "!governance");
+        require(msg.sender == timelock, "!timelock");
         performanceFee = _performanceFee;
     }
 
@@ -138,16 +117,8 @@ contract StrategyUniEthUsdcLpV3 {
         controller = _controller;
     }
 
-    // **** State Mutations ****
-
-    function deposit() public {
-        uint256 _want = IERC20(want).balanceOf(address(this));
-        if (_want > 0) {
-            IERC20(want).safeApprove(rewards, 0);
-            IERC20(want).approve(rewards, _want);
-            IStakingRewards(rewards).stake(_want);
-        }
-    }
+    // **** State mutations **** //
+    function deposit() public virtual;
 
     // Controller only function for creating additional rewards from dust
     function withdraw(IERC20 _asset) external returns (uint256 balance) {
@@ -197,94 +168,18 @@ contract StrategyUniEthUsdcLpV3 {
         _withdrawSome(balanceOfPool());
     }
 
-    function _withdrawSome(uint256 _amount) internal returns (uint256) {
-        IStakingRewards(rewards).withdraw(_amount);
-        return _amount;
-    }
+    function _withdrawSome(uint256 _amount) internal virtual returns (uint256);
 
-    function brine() public {
-        harvest();
-    }
+    function harvest() public virtual;
 
-    function harvest() public {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But ETH is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
+    // **** Emergency functions ****
 
-        // Collects UNI tokens
-        IStakingRewards(rewards).getReward();
-        uint256 _uni = IERC20(uni).balanceOf(address(this));
-        if (_uni > 0) {
-            // 10% is locked up for future gov
-            uint256 _keepUNI = _uni.mul(keepUNI).div(keepUNIMax);
-            IERC20(uni).safeTransfer(
-                IController(controller).treasury(),
-                _keepUNI
-            );
-            _swap(uni, weth, _uni.sub(_keepUNI));
-        }
-
-        // Swap half WETH for USDC
-        uint256 _weth = IERC20(weth).balanceOf(address(this));
-        if (_weth > 0) {
-            _swap(weth, usdc, _weth.div(2));
-        }
-
-        // Adds in liquidity for ETH/USDC
-        _weth = IERC20(weth).balanceOf(address(this));
-        uint256 _usdc = IERC20(usdc).balanceOf(address(this));
-        if (_weth > 0 && _usdc > 0) {
-            IERC20(weth).safeApprove(univ2Router2, 0);
-            IERC20(weth).safeApprove(univ2Router2, _weth);
-
-            IERC20(usdc).safeApprove(univ2Router2, 0);
-            IERC20(usdc).safeApprove(univ2Router2, _usdc);
-
-            UniswapRouterV2(univ2Router2).addLiquidity(
-                weth,
-                usdc,
-                _weth,
-                _usdc,
-                0,
-                0,
-                address(this),
-                now + 60
-            );
-
-            // Donates DUST
-            IERC20(weth).transfer(
-                IController(controller).treasury(),
-                IERC20(weth).balanceOf(address(this))
-            );
-            IERC20(usdc).transfer(
-                IController(controller).treasury(),
-                IERC20(usdc).balanceOf(address(this))
-            );
-        }
-
-        // We want to get back UNI ETH/USDC LP tokens
-        uint256 _want = IERC20(want).balanceOf(address(this));
-        if (_want > 0) {
-            // Performance fee
-            IERC20(want).safeTransfer(
-                IController(controller).treasury(),
-                _want.mul(performanceFee).div(performanceMax)
-            );
-
-            deposit();
-        }
-    }
-
-    // Emergency proxy pattern
     function execute(address _target, bytes memory _data)
         public
         payable
         returns (bytes memory response)
     {
         require(msg.sender == timelock, "!timelock");
-
         require(_target != address(0), "!target");
 
         // call contract in current context
@@ -316,8 +211,7 @@ contract StrategyUniEthUsdcLpV3 {
     }
 
     // **** Internal functions ****
-
-    function _swap(
+    function _swapUniswap(
         address _from,
         address _to,
         uint256 _amount

@@ -46,7 +46,7 @@ contract DSTestDefiBase is DSTestApprox {
         0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f
     );
 
-    ICurveFi curveSusdV2 = ICurveFi(0xA5407eAE9Ba41422680e2e00537571bcC53efBfD);
+    ICurveFi_4 curveSusdV2 = ICurveFi_4(0xA5407eAE9Ba41422680e2e00537571bcC53efBfD);
 
     uint256 startTime = block.timestamp;
 

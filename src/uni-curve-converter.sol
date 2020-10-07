@@ -31,7 +31,7 @@ contract UniCurveConverter {
     address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
     // susd v2 pool
-    ICurveFi public curve = ICurveFi(
+    ICurveFi_4 public curve = ICurveFi_4(
         0xA5407eAE9Ba41422680e2e00537571bcC53efBfD
     );
 
@@ -134,10 +134,10 @@ contract UniCurveConverter {
 
     function getMostPremiumStablecoin() public view returns (address, uint256) {
         uint256[] memory balances = new uint256[](4);
-        balances[0] = ICurveFi(curve).balances(0); // DAI
-        balances[1] = ICurveFi(curve).balances(1).mul(10**12); // USDC
-        balances[2] = ICurveFi(curve).balances(2).mul(10**12); // USDT
-        balances[3] = ICurveFi(curve).balances(3); // sUSD
+        balances[0] = ICurveFi_4(curve).balances(0); // DAI
+        balances[1] = ICurveFi_4(curve).balances(1).mul(10**12); // USDC
+        balances[2] = ICurveFi_4(curve).balances(2).mul(10**12); // USDT
+        balances[3] = ICurveFi_4(curve).balances(3); // sUSD
 
         // DAI
         if (
