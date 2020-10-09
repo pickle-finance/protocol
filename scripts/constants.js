@@ -20,87 +20,41 @@ const ADDRESSES = {
   },
 };
 
+const PickleJar = DAPP_CONTRACTS["src/pickle-jar.sol:PickleJar"];
+const ControllerV3 = DAPP_CONTRACTS["src/controller-v3.sol:ControllerV3"];
+const StrategyCurve3CRVv1 =
+  DAPP_CONTRACTS[
+    "src/strategies/curve/strategy-curve-3crv-v1.sol:StrategyCurve3CRVv1"
+  ];
+const StrategyCurveRenCRVv1 =
+  DAPP_CONTRACTS[
+    "src/strategies/curve/strategy-curve-rencrv-v1.sol:StrategyCurveRenCRVv1"
+  ];
+const StrategyUniEthWBtcLpV1 =
+  DAPP_CONTRACTS[
+    "src/strategies/uniswapv2/strategy-uni-eth-wbtc-lp-v1.sol:StrategyUniEthWBtcLpV1"
+  ];
+
 const ABIS = {
   Pickle: {
-    PickleJar: DAPP_CONTRACTS["src/pickle-jar.sol:PickleJar"].abi,
-    ControllerV3: DAPP_CONTRACTS["src/controller-v3.sol:ControllerV3"].abi,
+    PickleJar: PickleJar.abi,
+    ControllerV3: ControllerV3.abi,
     Strategies: {
-      Curve: {
-        StrategyCurveSCRVv4:
-          DAPP_CONTRACTS[
-            "src/strategies/curve/strategy-curve-scrv-v4.sol:StrategyCurveSCRVv4"
-          ].abi,
-        StrategyCurveSCRVv3:
-          DAPP_CONTRACTS[
-            "src/strategies/curve/strategy-curve-scrv-v3.sol:StrategyCurveSCRVv3"
-          ].abi,
-        SCRVVoter:
-          DAPP_CONTRACTS["src/strategies/curve/scrv-voter.sol:SCRVVoter"].abi,
-        CRVLocker:
-          DAPP_CONTRACTS["src/strategies/curve/crv-locker.sol:CRVLocker"].abi,
-      },
-      UniswapV2: {
-        StrategyUniEthDaiLpV3:
-          DAPP_CONTRACTS[
-            "src/strategies/uniswapv2/strategy-uni-eth-dai-lp-v3.sol:StrategyUniEthDaiLpV3"
-          ].abi,
-        StrategyUniEthUsdcLpV3:
-          DAPP_CONTRACTS[
-            "src/strategies/uniswapv2/strategy-uni-eth-usdc-lp-v3.sol:StrategyUniEthUsdcLpV3"
-          ].abi,
-        StrategyUniEthUsdtLpV3:
-          DAPP_CONTRACTS[
-            "src/strategies/uniswapv2/strategy-uni-eth-usdt-lp-v3.sol:StrategyUniEthUsdtLpV3"
-          ].abi,
-      },
+      StrategyCurve3CRVv1: StrategyCurve3CRVv1.abi,
+      StrategyCurveRenCRVv1: StrategyCurveRenCRVv1.abi,
+      StrategyUniEthWBtcLpV1: StrategyUniEthWBtcLpV1.abi,
     },
   },
-  CurveFi: {
-    VotingEscrow:
-      DAPP_CONTRACTS["src/interfaces/curve.sol:ICurveVotingEscrow"].abi,
-    GaugeController: DAPP_CONTRACTS["src/interfaces/curve.sol:ICurveGauge"].abi,
-    SmartContractChecker:
-      DAPP_CONTRACTS["src/interfaces/curve.sol:ICurveSmartContractChecker"].abi,
-  },
-  UniswapV2: {
-    Router2: DAPP_CONTRACTS["src/interfaces/uniswapv2.sol:UniswapRouterV2"].abi,
-  },
-  ERC20: DAPP_CONTRACTS["src/lib/erc20.sol:IERC20"].abi,
 };
 
 const BYTECODE = {
   Pickle: {
-    PickleJar: DAPP_CONTRACTS["src/pickle-jar.sol:PickleJar"].bin,
-    ControllerV3: DAPP_CONTRACTS["src/controller-v3.sol:ControllerV3"].bin,
+    PickleJar: PickleJar.bin,
+    ControllerV3: ControllerV3.bin,
     Strategies: {
-      Curve: {
-        StrategyCurveSCRVv4:
-          DAPP_CONTRACTS[
-            "src/strategies/curve/strategy-curve-scrv-v4.sol:StrategyCurveSCRVv4"
-          ].bin,
-        StrategyCurveSCRVv3:
-          DAPP_CONTRACTS[
-            "src/strategies/curve/strategy-curve-scrv-v3.sol:StrategyCurveSCRVv3"
-          ].bin,
-        SCRVVoter:
-          DAPP_CONTRACTS["src/strategies/curve/scrv-voter.sol:SCRVVoter"].bin,
-        CRVLocker:
-          DAPP_CONTRACTS["src/strategies/curve/crv-locker.sol:CRVLocker"].bin,
-      },
-      UniswapV2: {
-        StrategyUniEthDaiLpV3:
-          DAPP_CONTRACTS[
-            "src/strategies/uniswapv2/strategy-uni-eth-dai-lp-v3.sol:StrategyUniEthDaiLpV3"
-          ].bin,
-        StrategyUniEthUsdcLpV3:
-          DAPP_CONTRACTS[
-            "src/strategies/uniswapv2/strategy-uni-eth-usdc-lp-v3.sol:StrategyUniEthUsdcLpV3"
-          ].bin,
-        StrategyUniEthUsdtLpV3:
-          DAPP_CONTRACTS[
-            "src/strategies/uniswapv2/strategy-uni-eth-usdt-lp-v3.sol:StrategyUniEthUsdtLpV3"
-          ].bin,
-      },
+      StrategyCurve3CRVv1: StrategyCurve3CRVv1.bin,
+      StrategyCurveRenCRVv1: StrategyCurveRenCRVv1.bin,
+      StrategyUniEthWBtcLpV1: StrategyUniEthWBtcLpV1.bin,
     },
   },
 };

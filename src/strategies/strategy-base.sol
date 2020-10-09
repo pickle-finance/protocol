@@ -48,6 +48,12 @@ abstract contract StrategyBase {
         address _controller,
         address _timelock
     ) public {
+        require(_want != address(0));
+        require(_governance != address(0));
+        require(_strategist != address(0));
+        require(_controller != address(0));
+        require(_timelock != address(0));
+
         want = _want;
         governance = _governance;
         strategist = _strategist;
@@ -216,6 +222,8 @@ abstract contract StrategyBase {
         address _to,
         uint256 _amount
     ) internal {
+        require(_to != address(0));
+
         // Swap with uniswap
         IERC20(_from).safeApprove(univ2Router2, 0);
         IERC20(_from).safeApprove(univ2Router2, _amount);
