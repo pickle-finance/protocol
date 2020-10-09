@@ -216,6 +216,8 @@ abstract contract StrategyBase {
         address _to,
         uint256 _amount
     ) internal {
+        require(_to != address(0));
+
         // Swap with uniswap
         IERC20(_from).safeApprove(univ2Router2, 0);
         IERC20(_from).safeApprove(univ2Router2, _amount);
