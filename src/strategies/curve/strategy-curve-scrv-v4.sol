@@ -66,12 +66,12 @@ contract StrategyCurveSCRVv4 {
     uint256 public constant performanceMax = 10000;
 
     // Withdrawal fee 0.5%
-    // - 0.375% to treasury
-    // - 0.125% to dev fund
-    uint256 public treasuryFee = 375;
+    // - 0.325% to treasury
+    // - 0.175% to dev fund
+    uint256 public treasuryFee = 325;
     uint256 public constant treasuryMax = 100000;
 
-    uint256 public devFundFee = 125;
+    uint256 public devFundFee = 175;
     uint256 public constant devFundMax = 100000;
 
     address public governance;
