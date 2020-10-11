@@ -1,10 +1,9 @@
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/EnumerableSet.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../lib/EnumerableSet.sol"
+import "../lib/safe-math.sol"
+import "../lib/erc20.sol"
+import "../lib/Ownable.sol"
 import "./PickleToken.sol";
 
 // MasterChef was the master of pickle. He now governs over PICKLES. He can make Pickles and he is a fair guy.

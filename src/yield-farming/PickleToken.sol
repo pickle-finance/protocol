@@ -1,7 +1,7 @@
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../lib/erc20.sol"
+import "../lib/Ownable.sol"
 
 // PickleToken with Governance.
 contract PickleToken is ERC20("PickleToken", "PICKLE"), Ownable {
