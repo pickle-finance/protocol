@@ -64,7 +64,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         controller.setStrategy(strategy.want(), address(strategy));
     }
 
-    function test_compound_dai_balances() public {
+    function test_compound_dai_basics() public {
         _getERC20(want, 100e18);
 
         uint256 _want = IERC20(want).balanceOf(address(this));
@@ -77,5 +77,14 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         hevm.roll(block.number + 100);
 
         strategy.harvest();
+        
+        pickleJar.withdraw(50e18);
+        strategy.maxLeverage();
+        pickleJar.withdraw(25e18);
+        strategy.maxLeverage();
+        pickleJar.withdraw(10e18);
+        strategy.maxLeverage();
+        pickleJar.withdraw(5e18);
+        pickleJar.withdrawAll();
     }
 }

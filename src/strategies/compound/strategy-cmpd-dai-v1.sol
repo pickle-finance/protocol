@@ -49,7 +49,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         return "StrategyCompoundDaiV1";
     }
 
-    function balanceOfUnderlyingView() public view returns (uint256) {
+    function getSuppliedAmount() public view returns (uint256) {
         (, uint256 cTokenBal, , uint256 exchangeRate) = ICToken(cdai)
             .getAccountSnapshot(address(this));
 
@@ -63,7 +63,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
 
     function balanceOfPool() public override view returns (uint256) {
         return
-            balanceOfUnderlyingView().sub(
+            getSuppliedAmount().sub(
                 ICToken(cdai).borrowBalanceStored(address(this))
             );
     }
@@ -77,6 +77,20 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         uint256 leverage = getMaxLeverage();
 
         return supplyBalance.mul(leverage).div(1e18);
+    }
+
+    function getCurrentLeverage() public view returns (uint256) {
+        (, uint256 cTokenBal, uint256 borrowed, uint256 exchangeRate) = ICToken(
+            cdai
+        )
+            .getAccountSnapshot(address(this));
+
+        (, uint256 supplied) = mulScalarTruncate(
+            Exp({mantissa: exchangeRate}),
+            cTokenBal
+        );
+
+        return supplied.mul(1e18).div(supplied.sub(borrowed));
     }
 
     // Max leverage we can go up to, w.r.t safe buffer
@@ -141,7 +155,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
     // **** State mutations **** //
 
     function maxLeverage() public {
-        leverageUntil(getTargetSupplyBalance(balanceOf()));
+        leverageUntil(getTargetSupplyBalance(balanceOfPoolCurrent()));
     }
 
     // Leverages until we're supplying <x> amount
@@ -151,7 +165,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
 
         uint256 leverage = getMaxLeverage();
         uint256 unleveragedSupply = balanceOfPoolCurrent();
-        uint256 supplied = balanceOfUnderlyingView();
+        uint256 supplied = getSuppliedAmount();
         require(
             _supplyAmount >= unleveragedSupply &&
                 _supplyAmount <= unleveragedSupply.mul(leverage).div(1e18),
@@ -183,7 +197,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         // 2. Repay <x> DAI
 
         uint256 unleveragedSupply = balanceOfPoolCurrent();
-        uint256 supplied = balanceOfUnderlyingView();
+        uint256 supplied = getSuppliedAmount();
         require(
             _supplyAmount >= unleveragedSupply && _supplyAmount <= supplied,
             "!deleverage"
@@ -214,8 +228,10 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         uint256 _want = balanceOfWant();
         if (_want < _amount) {
             // How much borrowed amount do we need to free?
-            (, uint256 colFactor) = IComptroller(comptroller).markets(cdai);
-            uint256 borrowedToBeFree = _amount.mul(1e18).div(colFactor);
+            uint256 curLeverage = getCurrentLeverage();
+            uint256 borrowedToBeFree = _amount.sub(_want).mul(curLeverage).div(
+                1e18
+            );
             uint256 borrowed = borrowedBalanceCurrent();
 
             // If the amount we need to free is > borrowed
@@ -225,10 +241,10 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
             } else {
                 // Otherwise just keep freeing up borrowed amounts until
                 // we hit that number
-                deleverageUntil(balanceOfUnderlyingView().sub(_amount));
+                deleverageUntil(getSuppliedAmount().sub(borrowedToBeFree));
             }
 
-            ICToken(cdai).redeemUnderlying(_amount);
+            ICToken(cdai).redeemUnderlying(_amount.sub(_want));
         }
 
         return _amount;
