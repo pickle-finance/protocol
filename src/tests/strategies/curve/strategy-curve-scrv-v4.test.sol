@@ -168,9 +168,9 @@ contract StrategyCurveSCRVv4Test is DSTestDefiBase {
         pickleJar.withdrawAll();
         uint256 _devAfter = IERC20(scrv).balanceOf(dev);
 
-        // 0.125% goes to dev
+        // 0.175% goes to dev
         uint256 _devFund = _devAfter.sub(_devBefore);
-        assertEq(_devFund, _stratBal.mul(125).div(100000));
+        assertEq(_devFund, _stratBal.mul(175).div(100000));
     }
 
     function test_scrv_v4_lock() public {

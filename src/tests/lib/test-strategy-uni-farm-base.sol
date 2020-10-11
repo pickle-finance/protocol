@@ -112,12 +112,12 @@ contract StrategyUniFarmTestBase is DSTestDefiBase {
         uint256 _devAfter = IERC20(want).balanceOf(devfund);
         _treasuryAfter = IERC20(want).balanceOf(treasury);
 
-        // 0.125% goes to dev
+        // 0.175% goes to dev
         uint256 _devFund = _devAfter.sub(_devBefore);
-        assertEq(_devFund, _stratBal.mul(125).div(100000));
+        assertEq(_devFund, _stratBal.mul(175).div(100000));
 
-        // 0.375% goes to treasury
+        // 0.325% goes to treasury
         uint256 _treasuryFund = _treasuryAfter.sub(_treasuryBefore);
-        assertEq(_treasuryFund, _stratBal.mul(375).div(100000));
+        assertEq(_treasuryFund, _stratBal.mul(325).div(100000));
     }
 }
