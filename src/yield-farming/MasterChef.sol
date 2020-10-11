@@ -1,9 +1,9 @@
 pragma solidity 0.6.7;
 
-import "../lib/EnumerableSet.sol"
-import "../lib/safe-math.sol"
-import "../lib/erc20.sol"
-import "../lib/Ownable.sol"
+import "../lib/EnumerableSet.sol";
+import "../lib/safe-math.sol";
+import "../lib/erc20.sol";
+import "../lib/Ownable.sol";
 import "./PickleToken.sol";
 
 // MasterChef was the master of pickle. He now governs over PICKLES. He can make Pickles and he is a fair guy.
