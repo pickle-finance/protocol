@@ -79,20 +79,6 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         return supplyBalance.mul(leverage).div(1e18);
     }
 
-    function getCurrentLeverage() public view returns (uint256) {
-        (, uint256 cTokenBal, uint256 borrowed, uint256 exchangeRate) = ICToken(
-            cdai
-        )
-            .getAccountSnapshot(address(this));
-
-        (, uint256 supplied) = mulScalarTruncate(
-            Exp({mantissa: exchangeRate}),
-            cTokenBal
-        );
-
-        return supplied.mul(1e18).div(supplied.sub(borrowed));
-    }
-
     function getSafeColRatio() public view returns (uint256) {
         (, uint256 colFactor) = IComptroller(comptroller).markets(cdai);
 
@@ -107,6 +93,8 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
     // Max leverage we can go up to, w.r.t safe buffer
     function getMaxLeverage() public view returns (uint256) {
         uint256 safeColFactor = getSafeColRatio();
+
+        // Infinite geometric series
         uint256 leverage = 1e36 / (1e18 - safeColFactor);
         return leverage;
     }
@@ -142,8 +130,8 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
     }
 
     function getBorrowable() public returns (uint256) {
-        uint256 supplied = ICToken(cdai).balanceOfUnderlying(address(this));
-        uint256 borrowed = ICToken(cdai).borrowBalanceCurrent(address(this));
+        uint256 supplied = getSupplied();
+        uint256 borrowed = getBorrowed();
 
         (, uint256 colFactor) = IComptroller(comptroller).markets(cdai);
 
@@ -152,6 +140,13 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
             supplied.mul(colFactor).div(1e18).sub(borrowed).mul(9999).div(
                 10000
             );
+    }
+
+    function getCurrentLeverage() public returns (uint256) {
+        uint256 supplied = getSupplied();
+        uint256 borrowed = getBorrowed();
+
+        return supplied.mul(1e18).div(supplied.sub(borrowed));
     }
 
     // **** Setters **** //
