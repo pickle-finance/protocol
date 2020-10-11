@@ -10,12 +10,15 @@ import "../../lib/test-defi-base.sol";
 
 import "../../../interfaces/compound.sol";
 
+import "../../../pickle-jar.sol";
 import "../../../controller-v3.sol";
+
 import "../../../strategies/compound/strategy-cmpd-dai-v1.sol";
 
 contract StrategyCmpndDaiV1 is DSTestDefiBase {
     StrategyCmpdDaiV1 strategy;
     ControllerV3 controller;
+    PickleJar pickleJar;
 
     address governance;
     address strategist;
@@ -23,7 +26,11 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
     address devfund;
     address treasury;
 
+    address want;
+
     function setUp() public {
+        want = dai;
+
         governance = address(this);
         strategist = address(new User());
         timelock = address(this);
@@ -44,27 +51,31 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
             address(controller),
             timelock
         );
+
+        pickleJar = new PickleJar(
+            strategy.want(),
+            governance,
+            timelock,
+            address(controller)
+        );
+
+        controller.setJar(strategy.want(), address(pickleJar));
+        controller.approveStrategy(strategy.want(), address(strategy));
+        controller.setStrategy(strategy.want(), address(strategy));
     }
 
     function test_compound_dai_balances() public {
-        _getERC20(dai, 100e18);
-        IERC20(dai).transfer(
-            address(strategy),
-            IERC20(dai).balanceOf(address(this))
-        );
-        strategy.deposit();
+        _getERC20(want, 100e18);
+
+        uint256 _want = IERC20(want).balanceOf(address(this));
+        IERC20(want).approve(address(pickleJar), _want);
+        pickleJar.deposit(_want);
+        pickleJar.earn();
+        strategy.maxLeverage();
 
         hevm.warp(block.timestamp + 1 weeks);
         hevm.roll(block.number + 100);
 
         strategy.harvest();
-
-        uint256 balanceOfWant = strategy.balanceOf();
-        uint256 balUnderlying = strategy.balanceOfUnderlyingView();
-        uint256 targetSupply = strategy.getTargetSupplyBalance();
-
-        log_named_uint("balanceOfWant", balanceOfWant);
-        log_named_uint("balUnderlying", balUnderlying);
-        log_named_uint("targetSupply", targetSupply);
     }
 }
