@@ -25,6 +25,10 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
     uint256 colRatioLeverageBuffer = 100;
     uint256 colRatioLeverageBufferMax = 1000;
 
+    // Keeper bots
+    // Maintain leverage within buffer
+    mapping(address => bool) keepers;
+
     constructor(
         address _governance,
         address _strategist,
@@ -38,6 +42,19 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         address[] memory ctokens = new address[](1);
         ctokens[0] = cdai;
         IComptroller(comptroller).enterMarkets(ctokens);
+    }
+
+    // **** Modifiers **** //
+
+    modifier onlyKeepers {
+        require(
+            keepers[msg.sender] ||
+                msg.sender == address(this) ||
+                msg.sender == strategist ||
+                msg.sender == governance,
+            "!keepers"
+        );
+        _;
     }
 
     // **** Views **** //
@@ -151,6 +168,22 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
 
     // **** Setters **** //
 
+    function addKeeper(address _keeper) public {
+        require(
+            msg.sender == governance || msg.sender == strategist,
+            "!governance"
+        );
+        keepers[_keeper] = true;
+    }
+
+    function removeKeeper(address _keeper) public {
+        require(
+            msg.sender == governance || msg.sender == strategist,
+            "!governance"
+        );
+        keepers[_keeper] = false;
+    }
+
     function setColRatioLeverageBuffer(uint256 _colRatioLeverageBuffer) public {
         require(
             msg.sender == governance || msg.sender == strategist,
@@ -168,7 +201,9 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
     }
 
     // Leverages until we're supplying <x> amount
-    function leverageUntil(uint256 _supplyAmount) public {
+    // 1. Redeem <x> DAI
+    // 2. Repay <x> DAI
+    function leverageUntil(uint256 _supplyAmount) public onlyKeepers {
         // 1. Borrow out <X> DAI
         // 2. Supply <X> DAI
 
@@ -204,10 +239,9 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
     }
 
     // Deleverages until we're supplying <x> amount
-    function deleverageUntil(uint256 _supplyAmount) public {
-        // 1. Redeem <x> DAI
-        // 2. Repay <x> DAI
-
+    // 1. Redeem <x> DAI
+    // 2. Repay <x> DAI
+    function deleverageUntil(uint256 _supplyAmount) public onlyKeepers {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         uint256 supplied = getSupplied();
         require(
@@ -253,11 +287,11 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
             // If the amount we need to free is > borrowed
             // Just free up all the borrowed amount
             if (borrowedToBeFree > borrowed) {
-                maxDeleverage();
+                this.maxDeleverage();
             } else {
                 // Otherwise just keep freeing up borrowed amounts until
                 // we hit a safe number to redeem our underlying
-                deleverageUntil(supplied.sub(borrowedToBeFree));
+                this.deleverageUntil(supplied.sub(borrowedToBeFree));
             }
 
             // Redeems underlying

@@ -64,6 +64,27 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         controller.setStrategy(strategy.want(), address(strategy));
     }
 
+    function testFail_cmpnd_dai_v1_onlyKeeper_leverage() public {
+        _getERC20(want, 100e18);
+        uint256 _want = IERC20(want).balanceOf(address(this));
+        IERC20(want).approve(address(pickleJar), _want);
+        pickleJar.deposit(_want);
+
+        User randomUser = new User();
+        randomUser.execute(address(strategy), 0, "maxLeverage()", "");
+    }
+
+    function testFail_cmpnd_dai_v1_onlyKeeper_deleverage() public {
+        _getERC20(want, 100e18);
+        uint256 _want = IERC20(want).balanceOf(address(this));
+        IERC20(want).approve(address(pickleJar), _want);
+        pickleJar.deposit(_want);
+        strategy.maxLeverage();
+
+        User randomUser = new User();
+        randomUser.execute(address(strategy), 0, "maxDeleverage()", "");
+    }
+
     function test_cmpnd_dai_v1_leverage() public {
         _getERC20(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
