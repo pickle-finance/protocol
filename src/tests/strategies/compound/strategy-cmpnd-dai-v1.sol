@@ -77,7 +77,9 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         hevm.roll(block.number + 100);
 
         strategy.harvest();
-        
+
+        pickleJar.withdraw(1e18);
+        strategy.maxLeverage();
         pickleJar.withdraw(50e18);
         strategy.maxLeverage();
         pickleJar.withdraw(25e18);
