@@ -1,4 +1,4 @@
-pragma solidity 0.6.12;
+pragma solidity 0.6.7;
 
 import "../lib/EnumerableSet.sol"
 import "../lib/safe-math.sol"
