@@ -14,6 +14,10 @@ jobs:
             nix-env -i cachix git
             cachix use dapp
             nix-env -iA dapp hevm seth solc -f https://api.github.com/repos/dapphub/dapptools/tarball/hevm/0.41.0
+            git clone https://github.com/dapphub/dapptools.git ~/dapptools
+            cd ~/dapptools
+            git reset --hard 351e523d88497b21a5f023f9a20782d5972f7218
+            nix-env -iA hevm dapp solc seth -f .
       - save_cache:
           key: solc_0_6_12-dapptools_0_41_0
           paths:
