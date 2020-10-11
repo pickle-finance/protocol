@@ -7,7 +7,7 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - solc_0_6_12-dapptools_0_41_0
+            - solc_0_6_12-dapptools_351e52
       - run:
           name: Install DappTools
           command: |
@@ -19,7 +19,7 @@ jobs:
             git reset --hard 351e523d88497b21a5f023f9a20782d5972f7218
             nix-env -iA hevm dapp solc seth -f /dapptools
       - save_cache:
-          key: solc_0_6_12-dapptools_0_41_0
+          key: solc_0_6_12-dapptools_351e52
           paths:
             - /nix
             - /dapptools
@@ -33,7 +33,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - solc_0_6_12-dapptools_0_41_0
+            - solc_0_6_12-dapptools_351e52
       - run:
           name: build
           command: |
