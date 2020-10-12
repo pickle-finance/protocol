@@ -15,15 +15,24 @@ import "../../interfaces/compound.sol";
 contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
     address
         public constant comptroller = 0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B;
+    address public constant lens = 0xd513d22422a3062Bd342Ae374b4b9c20E0a9a074;
     address public constant dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
     address public constant comp = 0xc00e94Cb662C3520282E6f5717214004A7f26888;
     address public constant cdai = 0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643;
     address public constant cether = 0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5;
 
-    // Safety parameters
-    // 10% buffer allowed when leveraging
-    uint256 colRatioLeverageBuffer = 100;
-    uint256 colRatioLeverageBufferMax = 1000;
+    // Require a 10% buffer between
+    // market collateral factor and strategy's collateral factor
+    // when leveraging
+    uint256 colFactorLeverageBuffer = 100;
+    uint256 colFactorLeverageBufferMax = 1000;
+
+    // Allow a 5% buffer
+    // between market collateral factor and strategy's collateral factor
+    // until we have to deleverage
+    // This is so we can hit max leverage and keep accruing interest
+    uint256 colFactorSyncBuffer = 50;
+    uint256 colFactorSyncBufferMax = 1000;
 
     // Keeper bots
     // Maintain leverage within buffer
@@ -96,23 +105,40 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         return supplyBalance.mul(leverage).div(1e18);
     }
 
-    function getSafeColRatio() public view returns (uint256) {
-        (, uint256 colFactor) = IComptroller(comptroller).markets(cdai);
+    function getSafeLeverageColFactor() public view returns (uint256) {
+        uint256 colFactor = getMarketColFactor();
 
         // Collateral factor within the buffer
         uint256 safeColFactor = colFactor.sub(
-            colRatioLeverageBuffer.mul(1e18).div(colRatioLeverageBufferMax)
+            colFactorLeverageBuffer.mul(1e18).div(colFactorLeverageBufferMax)
         );
 
         return safeColFactor;
     }
 
+    function getSafeSyncColFactor() public view returns (uint256) {
+        uint256 colFactor = getMarketColFactor();
+
+        // Collateral factor within the buffer
+        uint256 safeColFactor = colFactor.sub(
+            colFactorSyncBuffer.mul(1e18).div(colFactorSyncBufferMax)
+        );
+
+        return safeColFactor;
+    }
+
+    function getMarketColFactor() public view returns (uint256) {
+        (, uint256 colFactor) = IComptroller(comptroller).markets(cdai);
+
+        return colFactor;
+    }
+
     // Max leverage we can go up to, w.r.t safe buffer
     function getMaxLeverage() public view returns (uint256) {
-        uint256 safeColFactor = getSafeColRatio();
+        uint256 safeLeverageColFactor = getSafeLeverageColFactor();
 
         // Infinite geometric series
-        uint256 leverage = 1e36 / (1e18 - safeColFactor);
+        uint256 leverage = 1e36 / (1e18 - safeLeverageColFactor);
         return leverage;
     }
 
@@ -124,115 +150,17 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
        results by calling `callStatic`.
     */
 
-    function getCompAccruedBorrow() public returns (uint256) {
-        // https://github.com/compound-finance/compound-protocol/blob/master/contracts/ComptrollerG4.sol#L1163
-
-        // Borrow
-        (uint224 borrowedStateIndex, uint32 borrowedStateBlock) = IComptroller(
-            comptroller
-        )
-            .compBorrowState(cdai);
-        Exp memory marketBorrowIndex = Exp({
-            mantissa: ICToken(cdai).borrowIndex()
-        });
-        uint256 borrowSpeed = IComptroller(comptroller).compSpeeds(cdai);
-        uint256 borrowDeltaBlocks = block.number.sub(
-            uint256(borrowedStateBlock)
+    function getCompAccrued() public returns (uint256) {
+        (, , , uint256 accrued) = ICompoundLens(lens).getCompBalanceMetadataExt(
+            comp,
+            comptroller,
+            address(this)
         );
 
-        if (borrowDeltaBlocks > 0 && borrowSpeed > 0) {
-            uint256 borrowAmount = div_(
-                ICToken(cdai).totalBorrows(),
-                marketBorrowIndex
-            );
-            uint256 compAccrued = mul_(borrowDeltaBlocks, borrowSpeed);
-            Double memory ratio = borrowAmount > 0
-                ? fraction(compAccrued, borrowAmount)
-                : Double({mantissa: 0});
-            Double memory borrowIndex = add_(
-                Double({mantissa: borrowedStateIndex}),
-                ratio
-            );
-            Double memory borrowerIndex = Double({
-                mantissa: IComptroller(comptroller).compBorrowerIndex(
-                    cdai,
-                    address(this)
-                )
-            });
-
-            if (borrowerIndex.mantissa > 0) {
-                Double memory deltaIndex = sub_(borrowIndex, borrowerIndex);
-                uint256 borrowerAmount = div_(
-                    ICToken(cdai).borrowBalanceStored(address(this)),
-                    marketBorrowIndex
-                );
-                uint256 borrowerDelta = mul_(borrowerAmount, deltaIndex);
-                uint256 borrowerAccrued = add_(
-                    IComptroller(comptroller).compAccrued(address(this)),
-                    borrowerDelta
-                );
-
-                return borrowerAccrued;
-            }
-        }
-
-        return 0;
+        return accrued;
     }
 
-    function getCompAccruedSupply() public returns (uint256) {
-        // https://github.com/compound-finance/compound-protocol/blob/master/contracts/ComptrollerG4.sol#L1140
-        uint224 compInitialIndex = 1e36;
-
-        // Supply
-        (uint224 supplyStateIndex, uint32 supplyStateBlock) = IComptroller(
-            comptroller
-        )
-            .compSupplyState(cdai);
-        uint256 supplySpeed = IComptroller(comptroller).compSpeeds(cdai);
-        uint256 supplyDeltaBlocks = block.number.sub(uint256(supplyStateBlock));
-
-        if (supplyDeltaBlocks > 0 && supplySpeed > 0) {
-            uint256 supplyTokens = ICToken(cdai).totalSupply();
-            uint256 compAccrued = mul_(supplyDeltaBlocks, supplySpeed);
-            Double memory ratio = supplyTokens > 0
-                ? fraction(compAccrued, supplyTokens)
-                : Double({mantissa: 0});
-            Double memory supplyIndex = add_(
-                Double({mantissa: supplyStateIndex}),
-                ratio
-            );
-            Double memory supplierIndex = Double({
-                mantissa: IComptroller(comptroller).compSupplierIndex(
-                    cdai,
-                    address(this)
-                )
-            });
-
-            if (supplierIndex.mantissa == 0 && supplyIndex.mantissa > 0) {
-                supplierIndex.mantissa = compInitialIndex;
-            }
-
-            Double memory deltaIndex = sub_(supplyIndex, supplierIndex);
-            uint256 supplierTokens = ICToken(cdai).balanceOf(address(this));
-            uint256 supplierDelta = mul_(supplierTokens, deltaIndex);
-            uint256 supplierAccrued = add_(
-                IComptroller(comptroller).compAccrued(address(this)),
-                supplierDelta
-            );
-
-            return supplierAccrued;
-        }
-
-        return 0;
-    }
-
-    function getCompAccrued() public returns (uint256) {
-        uint256 borrowAccrued = getCompAccruedBorrow();
-        uint256 supplyAccrued = getCompAccruedSupply();
-        return borrowAccrued.add(supplyAccrued);
-    }
-
-    function getColRatio() public returns (uint256) {
+    function getColFactor() public returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
 
@@ -292,15 +220,44 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         keepers[_keeper] = false;
     }
 
-    function setColRatioLeverageBuffer(uint256 _colRatioLeverageBuffer) public {
+    function setColFactorLeverageBuffer(uint256 _colFactorLeverageBuffer)
+        public
+    {
         require(
             msg.sender == governance || msg.sender == strategist,
             "!governance"
         );
-        colRatioLeverageBuffer = _colRatioLeverageBuffer;
+        colFactorLeverageBuffer = _colFactorLeverageBuffer;
+    }
+
+    function setColFactorSyncBuffer(uint256 _colFactorSyncBuffer) public {
+        require(
+            msg.sender == governance || msg.sender == strategist,
+            "!governance"
+        );
+        colFactorSyncBuffer = _colFactorSyncBuffer;
     }
 
     // **** State mutations **** //
+
+    // Do a `static call` on this.
+    // If it returns true then run it for realz. (i.e. eth_signedTx, not eth_call)
+    function sync() public returns (bool) {
+        uint256 colFactor = getColFactor();
+        uint256 safeSyncColFactor = getSafeSyncColFactor();
+
+        // If we're not safe
+        if (colFactor > safeSyncColFactor) {
+            uint256 unleveragedSupply = getSuppliedUnleveraged();
+            uint256 idealSupply = getLeveragedSupplyTarget(unleveragedSupply);
+
+            deleverageUntil(idealSupply);
+
+            return true;
+        }
+
+        return false;
+    }
 
     function maxLeverage() public {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
@@ -374,6 +331,37 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         } while (supplied > _supplyAmount);
     }
 
+    function harvest() public override onlyBenevolent {
+        address[] memory ctokens = new address[](1);
+        ctokens[0] = cdai;
+
+        IComptroller(comptroller).claimComp(address(this), ctokens);
+        uint256 _comp = IERC20(comp).balanceOf(address(this));
+        if (_comp > 0) {
+            _swapUniswap(comp, want, _comp);
+        }
+
+        uint256 _want = IERC20(want).balanceOf(address(this));
+        if (_want > 0) {
+            // Fees 4.5% goes to treasury
+            IERC20(want).safeTransfer(
+                IController(controller).treasury(),
+                _want.mul(performanceFee).div(performanceMax)
+            );
+
+            deposit();
+        }
+    }
+
+    function deposit() public override {
+        uint256 _want = IERC20(want).balanceOf(address(this));
+        if (_want > 0) {
+            IERC20(want).safeApprove(cdai, 0);
+            IERC20(want).safeApprove(cdai, _want);
+            ICToken(cdai).mint(_want);
+        }
+    }
+
     function _withdrawSome(uint256 _amount)
         internal
         override
@@ -407,36 +395,5 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         }
 
         return _amount;
-    }
-
-    function harvest() public override onlyBenevolent {
-        address[] memory ctokens = new address[](1);
-        ctokens[0] = cdai;
-
-        IComptroller(comptroller).claimComp(address(this), ctokens);
-        uint256 _comp = IERC20(comp).balanceOf(address(this));
-        if (_comp > 0) {
-            _swapUniswap(comp, want, _comp);
-        }
-
-        uint256 _want = IERC20(want).balanceOf(address(this));
-        if (_want > 0) {
-            // Fees 4.5% goes to treasury
-            IERC20(want).safeTransfer(
-                IController(controller).treasury(),
-                _want.mul(performanceFee).div(performanceMax)
-            );
-
-            deposit();
-        }
-    }
-
-    function deposit() public override {
-        uint256 _want = IERC20(want).balanceOf(address(this));
-        if (_want > 0) {
-            IERC20(want).safeApprove(cdai, 0);
-            IERC20(want).safeApprove(cdai, _want);
-            ICToken(cdai).mint(_want);
-        }
     }
 }

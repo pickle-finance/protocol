@@ -105,6 +105,34 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         assertTrue(compAccrued > 0);
     }
 
+    function test_cmpnd_dai_v1_comp_sync() public {
+        _getERC20(want, 1000000e18);
+        uint256 _want = IERC20(want).balanceOf(address(this));
+        IERC20(want).approve(address(pickleJar), _want);
+        pickleJar.deposit(_want);
+        pickleJar.earn();
+
+        // Sets colFactor Buffer to be 3% (safeSync is 5%)
+        strategy.setColFactorLeverageBuffer(30);
+        strategy.maxLeverage();
+        // Back to 10%
+        strategy.setColFactorLeverageBuffer(100);
+
+        uint256 colFactor = strategy.getColFactor();
+        uint256 safeColFactor = strategy.getSafeLeverageColFactor();
+        assertTrue(colFactor > safeColFactor);
+
+        // Sync automatically fixes the colFactor for us
+        bool shouldSync = strategy.sync();
+        assertTrue(shouldSync);
+
+        colFactor = strategy.getColFactor();
+        assertEqApprox(colFactor, safeColFactor);
+
+        shouldSync = strategy.sync();
+        assertTrue(!shouldSync);
+    }
+
     function test_cmpnd_dai_v1_leverage() public {
         _getERC20(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
@@ -114,19 +142,19 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
 
         uint256 _stratInitialBal = strategy.balanceOf();
 
-        uint256 _beforeCR = strategy.getColRatio();
+        uint256 _beforeCR = strategy.getColFactor();
         uint256 _beforeLev = strategy.getCurrentLeverage();
         strategy.maxLeverage();
-        uint256 _afterCR = strategy.getColRatio();
+        uint256 _afterCR = strategy.getColFactor();
         uint256 _afterLev = strategy.getCurrentLeverage();
-        uint256 _safeColRatio = strategy.getSafeColRatio();
+        uint256 _safeLeverageColFactor = strategy.getSafeLeverageColFactor();
 
         assertTrue(_afterCR > _beforeCR);
         assertTrue(_afterLev > _beforeLev);
-        assertEqApprox(_safeColRatio, _afterCR);
+        assertEqApprox(_safeLeverageColFactor, _afterCR);
 
         uint256 _maxLeverage = strategy.getMaxLeverage();
-        assertTrue(_maxLeverage > 2e18); // Should be ~2.6, depending on colRatioLeverageBuffer
+        assertTrue(_maxLeverage > 2e18); // Should be ~2.6, depending on colFactorLeverageBuffer
 
         uint256 leverageTarget = strategy.getLeveragedSupplyTarget(
             _stratInitialBal
@@ -150,10 +178,10 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         pickleJar.earn();
         strategy.maxLeverage();
 
-        uint256 _beforeCR = strategy.getColRatio();
+        uint256 _beforeCR = strategy.getColFactor();
         uint256 _beforeLev = strategy.getCurrentLeverage();
         strategy.maxDeleverage();
-        uint256 _afterCR = strategy.getColRatio();
+        uint256 _afterCR = strategy.getColFactor();
         uint256 _afterLev = strategy.getCurrentLeverage();
 
         assertTrue(_afterCR < _beforeCR);
