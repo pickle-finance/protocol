@@ -77,7 +77,7 @@ contract StrategyCurveFarmTestBase is DSTestDefiBase {
         uint256 _after = pickleJar.balance();
         uint256 _treasuryAfter = IERC20(want).balanceOf(treasury);
 
-        uint256 earned = _after.sub(_before).mul(1000).div(970);
+        uint256 earned = _after.sub(_before).mul(1000).div(955);
         uint256 earnedRewards = earned.mul(45).div(1000); // 4.5%
         uint256 actualRewardsEarned = _treasuryAfter.sub(_treasuryBefore);
 

@@ -155,7 +155,7 @@ contract StrategyCurveSCRVv4Test is DSTestDefiBase {
         uint256 _after = pickleJar.balance();
         uint256 _rewardsAfter = IERC20(scrv).balanceOf(treasury);
 
-        uint256 earned = _after.sub(_before).mul(1000).div(970);
+        uint256 earned = _after.sub(_before).mul(1000).div(955);
         uint256 earnedRewards = earned.mul(45).div(1000); // 4.5%
         uint256 actualRewardsEarned = _rewardsAfter.sub(_rewardsBefore);
 
