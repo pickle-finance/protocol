@@ -128,9 +128,15 @@ interface ICEther {
 interface IComptroller {
     function compAccrued(address) external view returns (uint256);
 
-    function compSupplierIndex(address, address) external view returns (uint256);
+    function compSupplierIndex(address, address)
+        external
+        view
+        returns (uint256);
 
-    function compBorrowerIndex(address, address) external view returns (uint256);
+    function compBorrowerIndex(address, address)
+        external
+        view
+        returns (uint256);
 
     function compSpeeds(address) external view returns (uint256);
 
@@ -274,4 +280,19 @@ interface IComptroller {
         external
         view
         returns (bool, uint256);
+}
+
+interface ICompoundLens {
+    function getCompBalanceMetadataExt(
+        address comp,
+        address comptroller,
+        address account
+    )
+        external
+        returns (
+            uint256 balance,
+            uint256 votes,
+            address delegate,
+            uint256 allocated
+        );
 }

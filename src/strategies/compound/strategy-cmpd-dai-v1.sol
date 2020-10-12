@@ -15,6 +15,7 @@ import "../../interfaces/compound.sol";
 contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
     address
         public constant comptroller = 0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B;
+    address public constant lens = 0xd513d22422a3062Bd342Ae374b4b9c20E0a9a074;
     address public constant dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
     address public constant comp = 0xc00e94Cb662C3520282E6f5717214004A7f26888;
     address public constant cdai = 0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643;
@@ -124,112 +125,11 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
        results by calling `callStatic`.
     */
 
-    function getCompAccruedBorrow() public returns (uint256) {
-        // https://github.com/compound-finance/compound-protocol/blob/master/contracts/ComptrollerG4.sol#L1163
-
-        // Borrow
-        (uint224 borrowedStateIndex, uint32 borrowedStateBlock) = IComptroller(
-            comptroller
-        )
-            .compBorrowState(cdai);
-        Exp memory marketBorrowIndex = Exp({
-            mantissa: ICToken(cdai).borrowIndex()
-        });
-        uint256 borrowSpeed = IComptroller(comptroller).compSpeeds(cdai);
-        uint256 borrowDeltaBlocks = block.number.sub(
-            uint256(borrowedStateBlock)
-        );
-
-        if (borrowDeltaBlocks > 0 && borrowSpeed > 0) {
-            uint256 borrowAmount = div_(
-                ICToken(cdai).totalBorrows(),
-                marketBorrowIndex
-            );
-            uint256 compAccrued = mul_(borrowDeltaBlocks, borrowSpeed);
-            Double memory ratio = borrowAmount > 0
-                ? fraction(compAccrued, borrowAmount)
-                : Double({mantissa: 0});
-            Double memory borrowIndex = add_(
-                Double({mantissa: borrowedStateIndex}),
-                ratio
-            );
-            Double memory borrowerIndex = Double({
-                mantissa: IComptroller(comptroller).compBorrowerIndex(
-                    cdai,
-                    address(this)
-                )
-            });
-
-            if (borrowerIndex.mantissa > 0) {
-                Double memory deltaIndex = sub_(borrowIndex, borrowerIndex);
-                uint256 borrowerAmount = div_(
-                    ICToken(cdai).borrowBalanceStored(address(this)),
-                    marketBorrowIndex
-                );
-                uint256 borrowerDelta = mul_(borrowerAmount, deltaIndex);
-                uint256 borrowerAccrued = add_(
-                    IComptroller(comptroller).compAccrued(address(this)),
-                    borrowerDelta
-                );
-
-                return borrowerAccrued;
-            }
-        }
-
-        return 0;
-    }
-
-    function getCompAccruedSupply() public returns (uint256) {
-        // https://github.com/compound-finance/compound-protocol/blob/master/contracts/ComptrollerG4.sol#L1140
-        uint224 compInitialIndex = 1e36;
-
-        // Supply
-        (uint224 supplyStateIndex, uint32 supplyStateBlock) = IComptroller(
-            comptroller
-        )
-            .compSupplyState(cdai);
-        uint256 supplySpeed = IComptroller(comptroller).compSpeeds(cdai);
-        uint256 supplyDeltaBlocks = block.number.sub(uint256(supplyStateBlock));
-
-        if (supplyDeltaBlocks > 0 && supplySpeed > 0) {
-            uint256 supplyTokens = ICToken(cdai).totalSupply();
-            uint256 compAccrued = mul_(supplyDeltaBlocks, supplySpeed);
-            Double memory ratio = supplyTokens > 0
-                ? fraction(compAccrued, supplyTokens)
-                : Double({mantissa: 0});
-            Double memory supplyIndex = add_(
-                Double({mantissa: supplyStateIndex}),
-                ratio
-            );
-            Double memory supplierIndex = Double({
-                mantissa: IComptroller(comptroller).compSupplierIndex(
-                    cdai,
-                    address(this)
-                )
-            });
-
-            if (supplierIndex.mantissa == 0 && supplyIndex.mantissa > 0) {
-                supplierIndex.mantissa = compInitialIndex;
-            }
-
-            Double memory deltaIndex = sub_(supplyIndex, supplierIndex);
-            uint256 supplierTokens = ICToken(cdai).balanceOf(address(this));
-            uint256 supplierDelta = mul_(supplierTokens, deltaIndex);
-            uint256 supplierAccrued = add_(
-                IComptroller(comptroller).compAccrued(address(this)),
-                supplierDelta
-            );
-
-            return supplierAccrued;
-        }
-
-        return 0;
-    }
-
     function getCompAccrued() public returns (uint256) {
-        uint256 borrowAccrued = getCompAccruedBorrow();
-        uint256 supplyAccrued = getCompAccruedSupply();
-        return borrowAccrued.add(supplyAccrued);
+        (, , , uint256 accrued) = ICompoundLens(lens)
+            .getCompBalanceMetadataExt(comp, comptroller, address(this));
+
+        return accrued;
     }
 
     function getColRatio() public returns (uint256) {
