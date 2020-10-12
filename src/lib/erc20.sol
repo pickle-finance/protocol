@@ -6,7 +6,7 @@
 pragma solidity ^0.6.0;
 
 import "./safe-math.sol";
-import "./Context.sol";
+import "./context.sol";
 
 // File: contracts/token/ERC20/IERC20.sol
 
