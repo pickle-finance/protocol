@@ -3,6 +3,12 @@
 pragma solidity ^0.6.0;
 
 interface ICToken {
+    function totalSupply() external view returns (uint256);
+
+    function totalBorrows() external returns (uint256);
+
+    function borrowIndex() external returns (uint256);
+
     function repayBorrow(uint256 repayAmount) external returns (uint256);
 
     function redeemUnderlying(uint256 redeemAmount) external returns (uint256);
@@ -120,6 +126,18 @@ interface ICEther {
 }
 
 interface IComptroller {
+    function compAccrued(address) external view returns (uint256);
+
+    function compSupplierIndex(address, address) external view returns (uint256);
+
+    function compBorrowerIndex(address, address) external view returns (uint256);
+
+    function compSpeeds(address) external view returns (uint256);
+
+    function compBorrowState(address) external view returns (uint224, uint32);
+
+    function compSupplyState(address) external view returns (uint224, uint32);
+
     /*** Assets You Are In ***/
 
     function enterMarkets(address[] calldata cTokens)

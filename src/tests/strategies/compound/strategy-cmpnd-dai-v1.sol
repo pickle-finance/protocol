@@ -85,6 +85,26 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         randomUser.execute(address(strategy), 0, "maxDeleverage()", "");
     }
 
+    function test_cmpnd_dai_v1_comp_accrued() public {
+        _getERC20(want, 1000000e18);
+        uint256 _want = IERC20(want).balanceOf(address(this));
+        IERC20(want).approve(address(pickleJar), _want);
+        pickleJar.deposit(_want);
+        pickleJar.earn();
+
+        strategy.maxLeverage();
+
+        uint256 compAccrued = strategy.getCompAccrued();
+
+        assertEq(compAccrued, 0);
+
+        hevm.warp(block.timestamp + 1 days);
+        hevm.roll(block.number + 6171); // Roughly number of blocks per day
+
+        compAccrued = strategy.getCompAccrued();
+        assertTrue(compAccrued > 0);
+    }
+
     function test_cmpnd_dai_v1_leverage() public {
         _getERC20(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
