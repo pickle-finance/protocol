@@ -1,10 +1,14 @@
 const { ethers } = require("ethers");
 const chalk = require("chalk");
 
-const { ABIS, BYTECODE } = require("./constants");
+const { ABIS, BYTECODE, KEYS } = require("./constants");
 const { deployContract, provider } = require("./common");
 
-const deployer = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
+const deployer = new ethers.Wallet(
+  process.env.DEPLOYER_PRIVATE_KEY ||
+    "0x815e8055180f085d4ed09f34293892eb4a12de2915678a53b66ede14580b6723",
+  provider
+);
 
 const controller = "0x2ff3e6C2E054ABf45E21f790163970df82b0ea90";
 
@@ -24,29 +28,52 @@ const main = async () => {
   console.log(chalk.redBright(`PROVIDER_URL: ${provider.connection.url}`));
 
   const strategies = [
-    ["StrategyCurve3CRVv1", "p3CRV"],
-    ["StrategyCurveRenCRVv1", "pRenCrv"],
-    ["StrategyUniEthWBtcLpV1", "pUNIWBTC"],
+    ["StrategyCmpdDaiV1", "pDAI", KEYS.Pickle.Strategies.StrategyCmpdDaiV1],
   ];
 
-  for (const [stratName, jarName] of strategies) {
+  const verifyCliCmds = [];
+
+  for (const [stratName, jarName, key] of strategies) {
+    const stratArgs = [governance, strategist, controller, timelock_12];
     const Strategy = await deployContract({
       name: stratName,
       abi: ABIS.Pickle.Strategies[stratName],
       bytecode: BYTECODE.Pickle.Strategies[stratName],
-      args: [governance, strategist, controller, timelock_12],
+      args: stratArgs,
       deployer,
       user: deployer,
     });
-    await deployContract({
+
+    verifyCliCmds.push(
+      `DAPP_ROOT=$(pwd) DAPP_JSON=out/dapp.sol.json ./scripts/verify.sh ${key} ${
+        Strategy.address
+      } ${stratArgs.join(" ")}`
+    );
+
+    const pickleJarArgs = [
+      await Strategy.want(),
+      governance,
+      timelock_12,
+      controller,
+    ];
+    const PickleJar = await deployContract({
       name: jarName,
       abi: ABIS.Pickle.PickleJar,
       bytecode: BYTECODE.Pickle.PickleJar,
-      args: [await Strategy.want(), governance, timelock_12, controller],
+      args: pickleJarArgs,
       deployer,
       user: deployer,
     });
+
+    verifyCliCmds.push(
+      `DAPP_ROOT=$(pwd) DAPP_JSON=out/dapp.sol.json ./scripts/verify.sh ${
+        KEYS.Pickle
+      } ${PickleJar.address} ${pickleJarArgs.join(" ")}`
+    );
   }
+
+  console.log(chalk.grey("--------- Verification ---------"));
+  console.log(JSON.stringify(verifyCliCmds, null, 4));
 };
 
 main();

@@ -20,29 +20,28 @@ const ADDRESSES = {
   },
 };
 
-const PickleJar = DAPP_CONTRACTS["src/pickle-jar.sol:PickleJar"];
-const ControllerV3 = DAPP_CONTRACTS["src/controller-v3.sol:ControllerV3"];
-const StrategyCurve3CRVv1 =
-  DAPP_CONTRACTS[
-    "src/strategies/curve/strategy-curve-3crv-v1.sol:StrategyCurve3CRVv1"
-  ];
-const StrategyCurveRenCRVv1 =
-  DAPP_CONTRACTS[
-    "src/strategies/curve/strategy-curve-rencrv-v1.sol:StrategyCurveRenCRVv1"
-  ];
-const StrategyUniEthWBtcLpV1 =
-  DAPP_CONTRACTS[
-    "src/strategies/uniswapv2/strategy-uni-eth-wbtc-lp-v1.sol:StrategyUniEthWBtcLpV1"
-  ];
+const KEYS = {
+  Pickle: {
+    PickleJar: "src/pickle-jar.sol:PickleJar",
+    ControllerV3: "src/controller-v3.sol:ControllerV3",
+    Strategies: {
+      StrategyCmpdDaiV1:
+        "src/strategies/compound/strategy-cmpd-dai-v1.sol:StrategyCmpdDaiV1",
+    },
+  },
+};
+
+const PickleJar = DAPP_CONTRACTS[KEYS.Pickle.PickleJar];
+const ControllerV3 = DAPP_CONTRACTS[KEYS.Pickle.ControllerV3];
+const StrategyCmpdDaiV1 =
+  DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyCmpdDaiV1];
 
 const ABIS = {
   Pickle: {
     PickleJar: PickleJar.abi,
     ControllerV3: ControllerV3.abi,
     Strategies: {
-      StrategyCurve3CRVv1: StrategyCurve3CRVv1.abi,
-      StrategyCurveRenCRVv1: StrategyCurveRenCRVv1.abi,
-      StrategyUniEthWBtcLpV1: StrategyUniEthWBtcLpV1.abi,
+      StrategyCmpdDaiV1: StrategyCmpdDaiV1.abi,
     },
   },
 };
@@ -52,14 +51,13 @@ const BYTECODE = {
     PickleJar: PickleJar.bin,
     ControllerV3: ControllerV3.bin,
     Strategies: {
-      StrategyCurve3CRVv1: StrategyCurve3CRVv1.bin,
-      StrategyCurveRenCRVv1: StrategyCurveRenCRVv1.bin,
-      StrategyUniEthWBtcLpV1: StrategyUniEthWBtcLpV1.bin,
+      StrategyCmpdDaiV1: StrategyCmpdDaiV1.bin,
     },
   },
 };
 
 module.exports = {
+  KEYS,
   ADDRESSES,
   ABIS,
   BYTECODE,
