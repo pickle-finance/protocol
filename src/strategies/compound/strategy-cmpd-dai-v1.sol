@@ -358,7 +358,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         if (_want > 0) {
             IERC20(want).safeApprove(cdai, 0);
             IERC20(want).safeApprove(cdai, _want);
-            ICToken(cdai).mint(_want);
+            require(ICToken(cdai).mint(_want) == 0, "!deposit");
         }
     }
 
@@ -370,7 +370,10 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         uint256 _want = balanceOfWant();
         if (_want < _amount) {
             // Make sure market can cover liquidity
-            require(ICToken(cdai).getCash() >= _amount.sub(_want), "!cash-liquidity");
+            require(
+                ICToken(cdai).getCash() >= _amount.sub(_want),
+                "!cash-liquidity"
+            );
 
             // How much borrowed amount do we need to free?
             uint256 borrowed = getBorrowed();

@@ -322,7 +322,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
             initialBorrowable,
             initialSupplied.mul(marketColFactor).div(1e18)
         );
-        assertEq(initialBorrowed, 0);
+        assertEqApprox(initialBorrowed, 0);
 
         // Leverage to Max
         strategy.leverageToMax();
@@ -352,7 +352,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
 
         assertEqApprox(deleverageSupplied, initialSupplied);
         assertEqApprox(deleverageBorrowed, initialBorrowed);
-        assertEq(deleverageBorrowable, initialBorrowable);
+        assertEqApprox(deleverageBorrowable, initialBorrowable);
     }
 
     function test_cmpnd_dai_v1_deleverage_stepping() public {

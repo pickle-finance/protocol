@@ -50,26 +50,26 @@ const main = async () => {
       } ${stratArgs.join(" ")}`
     );
 
-    const pickleJarArgs = [
-      await Strategy.want(),
-      governance,
-      timelock_12,
-      controller,
-    ];
-    const PickleJar = await deployContract({
-      name: jarName,
-      abi: ABIS.Pickle.PickleJar,
-      bytecode: BYTECODE.Pickle.PickleJar,
-      args: pickleJarArgs,
-      deployer,
-      user: deployer,
-    });
+    // const pickleJarArgs = [
+    //   await Strategy.want(),
+    //   governance,
+    //   timelock_12,
+    //   controller,
+    // ];
+    // const PickleJar = await deployContract({
+    //   name: jarName,
+    //   abi: ABIS.Pickle.PickleJar,
+    //   bytecode: BYTECODE.Pickle.PickleJar,
+    //   args: pickleJarArgs,
+    //   deployer,
+    //   user: deployer,
+    // });
 
-    verifyCliCmds.push(
-      `DAPP_ROOT=$(pwd) DAPP_JSON=out/dapp.sol.json ./scripts/verify.sh ${
-        KEYS.Pickle
-      } ${PickleJar.address} ${pickleJarArgs.join(" ")}`
-    );
+    // verifyCliCmds.push(
+    //   `DAPP_ROOT=$(pwd) DAPP_JSON=out/dapp.sol.json ./scripts/verify.sh ${
+    //     KEYS.Pickle
+    //   } ${PickleJar.address} ${pickleJarArgs.join(" ")}`
+    // );
   }
 
   console.log(chalk.grey("--------- Verification ---------"));
