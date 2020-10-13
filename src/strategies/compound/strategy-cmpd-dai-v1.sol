@@ -138,7 +138,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         uint256 safeLeverageColFactor = getSafeLeverageColFactor();
 
         // Infinite geometric series
-        uint256 leverage = 1e36 / (1e18 - safeLeverageColFactor);
+        uint256 leverage = uint256(1e36).div(1e18 - safeLeverageColFactor);
         return leverage;
     }
 
@@ -370,7 +370,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         uint256 _want = balanceOfWant();
         if (_want < _amount) {
             // Make sure market can cover liquidity
-            require(ICToken(cdai).getCash() >= _amount, "!cash-liquidity");
+            require(ICToken(cdai).getCash() >= _amount.sub(_want), "!cash-liquidity");
 
             // How much borrowed amount do we need to free?
             uint256 borrowed = getBorrowed();
