@@ -240,7 +240,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
 
     // **** State mutations **** //
 
-    // Do a `static call` on this.
+    // Do a `callStatic` on this.
     // If it returns true then run it for realz. (i.e. eth_signedTx, not eth_call)
     function sync() public returns (bool) {
         uint256 colFactor = getColFactor();
@@ -259,7 +259,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         return false;
     }
 
-    function maxLeverage() public {
+    function leverageToMax() public {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         uint256 idealSupply = getLeveragedSupplyTarget(unleveragedSupply);
         leverageUntil(idealSupply);
@@ -298,7 +298,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         }
     }
 
-    function maxDeleverage() public {
+    function deleverageToMin() public {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         deleverageUntil(unleveragedSupply);
     }
@@ -383,7 +383,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
             // If the amount we need to free is > borrowed
             // Just free up all the borrowed amount
             if (borrowedToBeFree > borrowed) {
-                this.maxDeleverage();
+                this.deleverageToMin();
             } else {
                 // Otherwise just keep freeing up borrowed amounts until
                 // we hit a safe number to redeem our underlying
