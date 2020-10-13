@@ -10,6 +10,7 @@ const ADDRESSES = {
     sCRVGauge: "0xA90996896660DEcC6E997655E065b23788857849",
   },
   ERC20: {
+    DAI: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
     CRV: "0xD533a949740bb3306d119CC777fa900bA034cd52",
     WETH: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
     veCRV: "0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2",
@@ -43,6 +44,9 @@ const ABIS = {
     Strategies: {
       StrategyCmpdDaiV1: StrategyCmpdDaiV1.abi,
     },
+  },
+  UniswapV2: {
+    Router2: DAPP_CONTRACTS["src/interfaces/uniswapv2.sol:UniswapRouterV2"].abi,
   },
 };
 
