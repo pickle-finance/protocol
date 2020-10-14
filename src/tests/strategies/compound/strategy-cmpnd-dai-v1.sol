@@ -71,7 +71,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         pickleJar.deposit(_want);
 
         User randomUser = new User();
-        randomUser.execute(address(strategy), 0, "maxLeverage()", "");
+        randomUser.execute(address(strategy), 0, "leverageToMax()", "");
     }
 
     function testFail_cmpnd_dai_v1_onlyKeeper_deleverage() public {
@@ -79,10 +79,10 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
         pickleJar.deposit(_want);
-        strategy.maxLeverage();
+        strategy.leverageToMax();
 
         User randomUser = new User();
-        randomUser.execute(address(strategy), 0, "maxDeleverage()", "");
+        randomUser.execute(address(strategy), 0, "deleverageToMin()", "");
     }
 
     function test_cmpnd_dai_v1_comp_accrued() public {
@@ -92,7 +92,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         pickleJar.deposit(_want);
         pickleJar.earn();
 
-        strategy.maxLeverage();
+        strategy.leverageToMax();
 
         uint256 compAccrued = strategy.getCompAccrued();
 
@@ -114,7 +114,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
 
         // Sets colFactor Buffer to be 3% (safeSync is 5%)
         strategy.setColFactorLeverageBuffer(30);
-        strategy.maxLeverage();
+        strategy.leverageToMax();
         // Back to 10%
         strategy.setColFactorLeverageBuffer(100);
 
@@ -144,7 +144,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
 
         uint256 _beforeCR = strategy.getColFactor();
         uint256 _beforeLev = strategy.getCurrentLeverage();
-        strategy.maxLeverage();
+        strategy.leverageToMax();
         uint256 _afterCR = strategy.getColFactor();
         uint256 _afterLev = strategy.getCurrentLeverage();
         uint256 _safeLeverageColFactor = strategy.getSafeLeverageColFactor();
@@ -176,11 +176,11 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         IERC20(want).approve(address(pickleJar), _want);
         pickleJar.deposit(_want);
         pickleJar.earn();
-        strategy.maxLeverage();
+        strategy.leverageToMax();
 
         uint256 _beforeCR = strategy.getColFactor();
         uint256 _beforeLev = strategy.getCurrentLeverage();
-        strategy.maxDeleverage();
+        strategy.deleverageToMin();
         uint256 _afterCR = strategy.getColFactor();
         uint256 _afterLev = strategy.getCurrentLeverage();
 
@@ -199,14 +199,28 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         IERC20(want).approve(address(pickleJar), _want);
         pickleJar.deposit(_want);
         pickleJar.earn();
-        strategy.maxLeverage();
+        strategy.leverageToMax();
 
         uint256 _before = IERC20(want).balanceOf(address(this));
-        pickleJar.withdraw(25e18); // 25%
+        pickleJar.withdraw(25e18);
         uint256 _after = IERC20(want).balanceOf(address(this));
 
         assertTrue(_after > _before);
         assertEqApprox(_after.sub(_before), 25e18);
+
+        _before = IERC20(want).balanceOf(address(this));
+        pickleJar.withdraw(10e18);
+        _after = IERC20(want).balanceOf(address(this));
+
+        assertTrue(_after > _before);
+        assertEqApprox(_after.sub(_before), 10e18);
+
+        _before = IERC20(want).balanceOf(address(this));
+        pickleJar.withdraw(30e18);
+        _after = IERC20(want).balanceOf(address(this));
+
+        assertTrue(_after > _before);
+        assertEqApprox(_after.sub(_before), 30e18);
 
         // Make sure we're still leveraging
         uint256 _leverage = strategy.getCurrentLeverage();
@@ -221,7 +235,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         pickleJar.deposit(_want);
         pickleJar.earn();
 
-        strategy.maxLeverage();
+        strategy.leverageToMax();
 
         hevm.warp(block.timestamp + 1 days);
         hevm.roll(block.number + 6171); // Roughly number of blocks per day
@@ -286,5 +300,79 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         // 0.325% goes to treasury
         uint256 _treasuryFund = _treasuryAfter.sub(_treasuryBefore);
         assertEq(_treasuryFund, _stratBal.mul(325).div(100000));
+    }
+
+    function test_cmpnd_dai_v1_functions() public {
+        _getERC20(want, 100e18);
+
+        uint256 _want = IERC20(want).balanceOf(address(this));
+        IERC20(want).approve(address(pickleJar), _want);
+        pickleJar.deposit(_want);
+        pickleJar.earn();
+
+        uint256 initialSupplied = strategy.getSupplied();
+        uint256 initialBorrowed = strategy.getBorrowed();
+        uint256 initialBorrowable = strategy.getBorrowable();
+        uint256 marketColFactor = strategy.getMarketColFactor();
+        uint256 maxLeverage = strategy.getMaxLeverage();
+
+        // Earn deposits 95% into strategy
+        assertEqApprox(initialSupplied, 95e18);
+        assertEqApprox(
+            initialBorrowable,
+            initialSupplied.mul(marketColFactor).div(1e18)
+        );
+        assertEqApprox(initialBorrowed, 0);
+
+        // Leverage to Max
+        strategy.leverageToMax();
+
+        uint256 supplied = strategy.getSupplied();
+        uint256 borrowed = strategy.getBorrowed();
+        uint256 borrowable = strategy.getBorrowable();
+        uint256 currentColFactor = strategy.getColFactor();
+        uint256 safeLeverageColFactor = strategy.getSafeLeverageColFactor();
+
+        assertEqApprox(supplied, initialSupplied.mul(maxLeverage).div(1e18));
+        assertEqApprox(borrowed, supplied.mul(safeLeverageColFactor).div(1e18));
+        assertEqApprox(
+            borrowable,
+            supplied.mul(marketColFactor.sub(currentColFactor)).div(1e18)
+        );
+        assertEqApprox(currentColFactor, safeLeverageColFactor);
+        assertTrue(marketColFactor > currentColFactor);
+        assertTrue(marketColFactor > safeLeverageColFactor);
+
+        // Deleverage
+        strategy.deleverageToMin();
+
+        uint256 deleverageSupplied = strategy.getSupplied();
+        uint256 deleverageBorrowed = strategy.getBorrowed();
+        uint256 deleverageBorrowable = strategy.getBorrowable();
+
+        assertEqApprox(deleverageSupplied, initialSupplied);
+        assertEqApprox(deleverageBorrowed, initialBorrowed);
+        assertEqApprox(deleverageBorrowable, initialBorrowable);
+    }
+
+    function test_cmpnd_dai_v1_deleverage_stepping() public {
+        _getERC20(want, 100e18);
+        uint256 _want = IERC20(want).balanceOf(address(this));
+        IERC20(want).approve(address(pickleJar), _want);
+        pickleJar.deposit(_want);
+        pickleJar.earn();
+        strategy.leverageToMax();
+
+        strategy.deleverageUntil(200e18);
+        uint256 supplied = strategy.getSupplied();
+        assertEqApprox(supplied, 200e18);
+
+        strategy.deleverageUntil(180e18);
+        supplied = strategy.getSupplied();
+        assertEqApprox(supplied, 180e18);
+
+        strategy.deleverageUntil(120e18);
+        supplied = strategy.getSupplied();
+        assertEqApprox(supplied, 120e18);
     }
 }

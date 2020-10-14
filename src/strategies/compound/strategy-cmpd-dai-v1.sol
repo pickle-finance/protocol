@@ -21,13 +21,13 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
     address public constant cdai = 0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643;
     address public constant cether = 0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5;
 
-    // Require a 10% buffer between
+    // Require a 0.1 buffer between
     // market collateral factor and strategy's collateral factor
     // when leveraging
     uint256 colFactorLeverageBuffer = 100;
     uint256 colFactorLeverageBufferMax = 1000;
 
-    // Allow a 5% buffer
+    // Allow a 0.05 buffer
     // between market collateral factor and strategy's collateral factor
     // until we have to deleverage
     // This is so we can hit max leverage and keep accruing interest
@@ -138,7 +138,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         uint256 safeLeverageColFactor = getSafeLeverageColFactor();
 
         // Infinite geometric series
-        uint256 leverage = 1e36 / (1e18 - safeLeverageColFactor);
+        uint256 leverage = uint256(1e36).div(1e18 - safeLeverageColFactor);
         return leverage;
     }
 
@@ -240,7 +240,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
 
     // **** State mutations **** //
 
-    // Do a `static call` on this.
+    // Do a `callStatic` on this.
     // If it returns true then run it for realz. (i.e. eth_signedTx, not eth_call)
     function sync() public returns (bool) {
         uint256 colFactor = getColFactor();
@@ -259,7 +259,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         return false;
     }
 
-    function maxLeverage() public {
+    function leverageToMax() public {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         uint256 idealSupply = getLeveragedSupplyTarget(unleveragedSupply);
         leverageUntil(idealSupply);
@@ -298,7 +298,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         }
     }
 
-    function maxDeleverage() public {
+    function deleverageToMin() public {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         deleverageUntil(unleveragedSupply);
     }
@@ -322,10 +322,13 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
                 _redeemAndRepay = supplied.sub(_supplyAmount);
             }
 
-            ICToken(cdai).redeemUnderlying(_redeemAndRepay);
+            require(
+                ICToken(cdai).redeemUnderlying(_redeemAndRepay) == 0,
+                "!redeem"
+            );
             IERC20(dai).safeApprove(cdai, 0);
             IERC20(dai).safeApprove(cdai, _redeemAndRepay);
-            ICToken(cdai).repayBorrow(_redeemAndRepay);
+            require(ICToken(cdai).repayBorrow(_redeemAndRepay) == 0, "!repay");
 
             supplied = supplied.sub(_redeemAndRepay);
         } while (supplied > _supplyAmount);
@@ -358,7 +361,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
         if (_want > 0) {
             IERC20(want).safeApprove(cdai, 0);
             IERC20(want).safeApprove(cdai, _want);
-            ICToken(cdai).mint(_want);
+            require(ICToken(cdai).mint(_want) == 0, "!deposit");
         }
     }
 
@@ -369,21 +372,21 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
     {
         uint256 _want = balanceOfWant();
         if (_want < _amount) {
+            uint256 _redeem = _amount.sub(_want);
+
             // Make sure market can cover liquidity
-            require(ICToken(cdai).getCash() >= _amount, "!cash-liquidity");
+            require(ICToken(cdai).getCash() >= _redeem, "!cash-liquidity");
 
             // How much borrowed amount do we need to free?
             uint256 borrowed = getBorrowed();
             uint256 supplied = getSupplied();
             uint256 curLeverage = getCurrentLeverage();
-            uint256 borrowedToBeFree = _amount.sub(_want).mul(curLeverage).div(
-                1e18
-            );
+            uint256 borrowedToBeFree = _redeem.mul(curLeverage).div(1e18);
 
             // If the amount we need to free is > borrowed
             // Just free up all the borrowed amount
             if (borrowedToBeFree > borrowed) {
-                this.maxDeleverage();
+                this.deleverageToMin();
             } else {
                 // Otherwise just keep freeing up borrowed amounts until
                 // we hit a safe number to redeem our underlying
@@ -391,7 +394,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
             }
 
             // Redeems underlying
-            ICToken(cdai).redeemUnderlying(_amount.sub(_want));
+            require(ICToken(cdai).redeemUnderlying(_redeem) == 0, "!redeem");
         }
 
         return _amount;

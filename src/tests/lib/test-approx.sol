@@ -4,6 +4,10 @@ import "ds-test/test.sol";
 
 contract DSTestApprox is DSTest {
     function assertEqApprox(uint256 a, uint256 b) internal {
+        if (a == 0 && b == 0) {
+            return;    
+        }
+
         // +/- 5%
         uint256 bMax = (b * 105) / 100;
         uint256 bMin = (b * 95) / 100;
