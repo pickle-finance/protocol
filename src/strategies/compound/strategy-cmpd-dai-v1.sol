@@ -322,10 +322,13 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
                 _redeemAndRepay = supplied.sub(_supplyAmount);
             }
 
-            ICToken(cdai).redeemUnderlying(_redeemAndRepay);
+            require(
+                ICToken(cdai).redeemUnderlying(_redeemAndRepay) == 0,
+                "!redeem"
+            );
             IERC20(dai).safeApprove(cdai, 0);
             IERC20(dai).safeApprove(cdai, _redeemAndRepay);
-            ICToken(cdai).repayBorrow(_redeemAndRepay);
+            require(ICToken(cdai).repayBorrow(_redeemAndRepay) == 0, "!repay");
 
             supplied = supplied.sub(_redeemAndRepay);
         } while (supplied > _supplyAmount);
@@ -369,19 +372,16 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
     {
         uint256 _want = balanceOfWant();
         if (_want < _amount) {
+            uint256 _redeem = _amount.sub(_want);
+
             // Make sure market can cover liquidity
-            require(
-                ICToken(cdai).getCash() >= _amount.sub(_want),
-                "!cash-liquidity"
-            );
+            require(ICToken(cdai).getCash() >= _redeem, "!cash-liquidity");
 
             // How much borrowed amount do we need to free?
             uint256 borrowed = getBorrowed();
             uint256 supplied = getSupplied();
             uint256 curLeverage = getCurrentLeverage();
-            uint256 borrowedToBeFree = _amount.sub(_want).mul(curLeverage).div(
-                1e18
-            );
+            uint256 borrowedToBeFree = _redeem.mul(curLeverage).div(1e18);
 
             // If the amount we need to free is > borrowed
             // Just free up all the borrowed amount
@@ -394,7 +394,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
             }
 
             // Redeems underlying
-            ICToken(cdai).redeemUnderlying(_amount.sub(_want));
+            require(ICToken(cdai).redeemUnderlying(_redeem) == 0, "!redeem");
         }
 
         return _amount;
