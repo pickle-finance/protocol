@@ -60,6 +60,8 @@ const BYTECODE = {
   },
 };
 
+console.log(ABIS.Pickle.Strategies.StrategyCmpdDaiV1)
+
 module.exports = {
   KEYS,
   ADDRESSES,
