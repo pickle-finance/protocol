@@ -2,12 +2,11 @@
 
 pragma solidity ^0.6.7;
 
-import "ds-test/test.sol";
-
 import "../lib/safe-math.sol";
 
 import "../staking-rewards.sol";
 
+import "./lib/test.sol";
 import "./lib/mock-erc20.sol";
 import "./lib/hevm.sol";
 
