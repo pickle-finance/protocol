@@ -1,6 +1,6 @@
 pragma solidity ^0.6.7;
 
-import "ds-test/test.sol";
+import "./test.sol";
 
 contract DSTestApprox is DSTest {
     function assertEqApprox(uint256 a, uint256 b) internal {

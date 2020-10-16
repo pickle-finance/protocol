@@ -1,6 +1,6 @@
 pragma solidity ^0.6.7;
 
-import "ds-test/test.sol";
+
 
 import "../../lib/test-strategy-uni-farm-base.sol";
 
