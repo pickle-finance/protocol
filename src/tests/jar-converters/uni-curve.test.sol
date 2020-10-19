@@ -200,14 +200,14 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
 
         _getERC20(other, otherAmount);
 
-        uint256 _token1 = IERC20(other).balanceOf(address(this));
+        uint256 _other = IERC20(other).balanceOf(address(this));
 
         IERC20(other).safeApprove(address(univ2), 0);
-        IERC20(other).safeApprove(address(univ2), _token1);
+        IERC20(other).safeApprove(address(univ2), _other);
 
         univ2.addLiquidityETH{value: ethAmount}(
             other,
-            _token1,
+            _other,
             0,
             0,
             address(this),
@@ -377,6 +377,282 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
         uint256 toIndex = 2;
         address fromUnderlying = dai;
         uint256 fromUnderlyingAmount = 400e18;
+        address toWant = ren_crv;
+        address toUnderlying = wbtc;
+        address curvePool = ren_pool;
+        bytes4 curveFunctionSig = bytes4(
+            keccak256(bytes("add_liquidity(uint256[2],uint256)"))
+        );
+        uint256 curvePoolSize = uint256(2);
+        uint256 curveUnderlyingIndex = uint256(1);
+
+        _test_uni_curve_swap(
+            abi.encode(
+                fromIndex,
+                toIndex,
+                fromUnderlying,
+                fromUnderlyingAmount,
+                toWant,
+                toUnderlying,
+                curvePool,
+                curveFunctionSig,
+                curvePoolSize,
+                curveUnderlyingIndex
+            )
+        );
+    }
+
+    function test_jar_converter_uni_curve_1_0() public {
+        uint256 fromIndex = 1;
+        uint256 toIndex = 0;
+        address fromUnderlying = usdc;
+        uint256 fromUnderlyingAmount = 400e6;
+        address toWant = three_crv;
+        address toUnderlying = dai;
+        address curvePool = three_pool;
+        bytes4 curveFunctionSig = bytes4(
+            keccak256(bytes("add_liquidity(uint256[3],uint256)"))
+        );
+
+        uint256 curvePoolSize = uint256(3);
+        uint256 curveUnderlyingIndex = uint256(0);
+
+        _test_uni_curve_swap(
+            abi.encode(
+                fromIndex,
+                toIndex,
+                fromUnderlying,
+                fromUnderlyingAmount,
+                toWant,
+                toUnderlying,
+                curvePool,
+                curveFunctionSig,
+                curvePoolSize,
+                curveUnderlyingIndex
+            )
+        );
+    }
+
+    function test_jar_converter_uni_curve_1_1() public {
+        uint256 fromIndex = 1;
+        uint256 toIndex = 1;
+        address fromUnderlying = usdc;
+        uint256 fromUnderlyingAmount = 400e6;
+        address toWant = scrv;
+        address toUnderlying = dai;
+        address curvePool = susdv2_pool;
+        bytes4 curveFunctionSig = bytes4(
+            keccak256(bytes("add_liquidity(uint256[4],uint256)"))
+        );
+
+        uint256 curvePoolSize = uint256(4);
+        uint256 curveUnderlyingIndex = uint256(0);
+
+        _test_uni_curve_swap(
+            abi.encode(
+                fromIndex,
+                toIndex,
+                fromUnderlying,
+                fromUnderlyingAmount,
+                toWant,
+                toUnderlying,
+                curvePool,
+                curveFunctionSig,
+                curvePoolSize,
+                curveUnderlyingIndex
+            )
+        );
+    }
+
+    function test_jar_converter_uni_curve_1_2() public {
+        uint256 fromIndex = 1;
+        uint256 toIndex = 2;
+        address fromUnderlying = usdc;
+        uint256 fromUnderlyingAmount = 400e6;
+        address toWant = ren_crv;
+        address toUnderlying = wbtc;
+        address curvePool = ren_pool;
+        bytes4 curveFunctionSig = bytes4(
+            keccak256(bytes("add_liquidity(uint256[2],uint256)"))
+        );
+        uint256 curvePoolSize = uint256(2);
+        uint256 curveUnderlyingIndex = uint256(1);
+
+        _test_uni_curve_swap(
+            abi.encode(
+                fromIndex,
+                toIndex,
+                fromUnderlying,
+                fromUnderlyingAmount,
+                toWant,
+                toUnderlying,
+                curvePool,
+                curveFunctionSig,
+                curvePoolSize,
+                curveUnderlyingIndex
+            )
+        );
+    }
+
+    function test_jar_converter_uni_curve_2_0() public {
+        uint256 fromIndex = 2;
+        uint256 toIndex = 0;
+        address fromUnderlying = usdt;
+        uint256 fromUnderlyingAmount = 400e6;
+        address toWant = three_crv;
+        address toUnderlying = dai;
+        address curvePool = three_pool;
+        bytes4 curveFunctionSig = bytes4(
+            keccak256(bytes("add_liquidity(uint256[3],uint256)"))
+        );
+
+        uint256 curvePoolSize = uint256(3);
+        uint256 curveUnderlyingIndex = uint256(0);
+
+        _test_uni_curve_swap(
+            abi.encode(
+                fromIndex,
+                toIndex,
+                fromUnderlying,
+                fromUnderlyingAmount,
+                toWant,
+                toUnderlying,
+                curvePool,
+                curveFunctionSig,
+                curvePoolSize,
+                curveUnderlyingIndex
+            )
+        );
+    }
+
+    function test_jar_converter_uni_curve_2_1() public {
+        uint256 fromIndex = 2;
+        uint256 toIndex = 1;
+        address fromUnderlying = usdt;
+        uint256 fromUnderlyingAmount = 400e6;
+        address toWant = scrv;
+        address toUnderlying = dai;
+        address curvePool = susdv2_pool;
+        bytes4 curveFunctionSig = bytes4(
+            keccak256(bytes("add_liquidity(uint256[4],uint256)"))
+        );
+
+        uint256 curvePoolSize = uint256(4);
+        uint256 curveUnderlyingIndex = uint256(0);
+
+        _test_uni_curve_swap(
+            abi.encode(
+                fromIndex,
+                toIndex,
+                fromUnderlying,
+                fromUnderlyingAmount,
+                toWant,
+                toUnderlying,
+                curvePool,
+                curveFunctionSig,
+                curvePoolSize,
+                curveUnderlyingIndex
+            )
+        );
+    }
+
+    function test_jar_converter_uni_curve_2_2() public {
+        uint256 fromIndex = 2;
+        uint256 toIndex = 2;
+        address fromUnderlying = usdt;
+        uint256 fromUnderlyingAmount = 400e6;
+        address toWant = ren_crv;
+        address toUnderlying = wbtc;
+        address curvePool = ren_pool;
+        bytes4 curveFunctionSig = bytes4(
+            keccak256(bytes("add_liquidity(uint256[2],uint256)"))
+        );
+        uint256 curvePoolSize = uint256(2);
+        uint256 curveUnderlyingIndex = uint256(1);
+
+        _test_uni_curve_swap(
+            abi.encode(
+                fromIndex,
+                toIndex,
+                fromUnderlying,
+                fromUnderlyingAmount,
+                toWant,
+                toUnderlying,
+                curvePool,
+                curveFunctionSig,
+                curvePoolSize,
+                curveUnderlyingIndex
+            )
+        );
+    }
+
+    function test_jar_converter_uni_curve_3_0() public {
+        uint256 fromIndex = 3;
+        uint256 toIndex = 0;
+        address fromUnderlying = wbtc;
+        uint256 fromUnderlyingAmount = 4e6; // 0.04 BTC
+        address toWant = three_crv;
+        address toUnderlying = dai;
+        address curvePool = three_pool;
+        bytes4 curveFunctionSig = bytes4(
+            keccak256(bytes("add_liquidity(uint256[3],uint256)"))
+        );
+
+        uint256 curvePoolSize = uint256(3);
+        uint256 curveUnderlyingIndex = uint256(0);
+
+        _test_uni_curve_swap(
+            abi.encode(
+                fromIndex,
+                toIndex,
+                fromUnderlying,
+                fromUnderlyingAmount,
+                toWant,
+                toUnderlying,
+                curvePool,
+                curveFunctionSig,
+                curvePoolSize,
+                curveUnderlyingIndex
+            )
+        );
+    }
+
+    function test_jar_converter_uni_curve_3_1() public {
+        uint256 fromIndex = 3;
+        uint256 toIndex = 1;
+        address fromUnderlying = wbtc;
+        uint256 fromUnderlyingAmount = 4e6; // 0.04 BTC
+        address toWant = scrv;
+        address toUnderlying = dai;
+        address curvePool = susdv2_pool;
+        bytes4 curveFunctionSig = bytes4(
+            keccak256(bytes("add_liquidity(uint256[4],uint256)"))
+        );
+
+        uint256 curvePoolSize = uint256(4);
+        uint256 curveUnderlyingIndex = uint256(0);
+
+        _test_uni_curve_swap(
+            abi.encode(
+                fromIndex,
+                toIndex,
+                fromUnderlying,
+                fromUnderlyingAmount,
+                toWant,
+                toUnderlying,
+                curvePool,
+                curveFunctionSig,
+                curvePoolSize,
+                curveUnderlyingIndex
+            )
+        );
+    }
+
+    function test_jar_converter_uni_curve_3_2() public {
+        uint256 fromIndex = 3;
+        uint256 toIndex = 2;
+        address fromUnderlying = wbtc;
+        uint256 fromUnderlyingAmount = 4e6; // 0.04 BTC
         address toWant = ren_crv;
         address toUnderlying = wbtc;
         address curvePool = ren_pool;
