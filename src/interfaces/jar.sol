@@ -15,4 +15,6 @@ interface IJar is IERC20 {
     function withdraw(uint256) external;
 
     function earn() external;
+
+    function decimals() external view returns (uint8);
 }

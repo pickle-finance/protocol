@@ -11,7 +11,7 @@ import "../../interfaces/curve.sol";
 import "../../interfaces/uniswapv2.sol";
 
 import "../../pickle-jar.sol";
-import "../../controller-v3.sol";
+import "../../controller-v4.sol";
 
 contract StrategyCurveFarmTestBase is DSTestDefiBase {
     address governance;
@@ -24,7 +24,7 @@ contract StrategyCurveFarmTestBase is DSTestDefiBase {
     address want;
 
     PickleJar pickleJar;
-    ControllerV3 controller;
+    ControllerV4 controller;
     IStrategy strategy;
 
     // **** Tests ****

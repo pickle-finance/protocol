@@ -14,7 +14,7 @@ import "../../../interfaces/curve.sol";
 import "../../../interfaces/uniswapv2.sol";
 
 import "../../../pickle-jar.sol";
-import "../../../controller-v3.sol";
+import "../../../controller-v4.sol";
 
 import "../../../strategies/curve/strategy-curve-scrv-v3_1.sol";
 
@@ -28,7 +28,7 @@ contract StrategyCurveSCRVv3_1Test is StrategyCurveFarmTestBase {
 
         want = scrv;
 
-        controller = new ControllerV3(
+        controller = new ControllerV4(
             governance,
             strategist,
             timelock,

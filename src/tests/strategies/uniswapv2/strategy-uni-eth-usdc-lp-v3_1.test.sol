@@ -9,7 +9,7 @@ import "../../../interfaces/curve.sol";
 import "../../../interfaces/uniswapv2.sol";
 
 import "../../../pickle-jar.sol";
-import "../../../controller-v3.sol";
+import "../../../controller-v4.sol";
 import "../../../strategies/uniswapv2/strategy-uni-eth-usdc-lp-v3_1.sol";
 
 contract StrategyUniEthUsdcLpV3_1Test is StrategyUniFarmTestBase {
@@ -23,7 +23,7 @@ contract StrategyUniEthUsdcLpV3_1Test is StrategyUniFarmTestBase {
         treasury = address(new User());
         timelock = address(this);
 
-        controller = new ControllerV3(
+        controller = new ControllerV4(
             governance,
             strategist,
             timelock,

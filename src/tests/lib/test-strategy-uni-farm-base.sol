@@ -10,7 +10,7 @@ import "../../interfaces/curve.sol";
 import "../../interfaces/uniswapv2.sol";
 
 import "../../pickle-jar.sol";
-import "../../controller-v3.sol";
+import "../../controller-v4.sol";
 
 contract StrategyUniFarmTestBase is DSTestDefiBase {
     address want;
@@ -24,7 +24,7 @@ contract StrategyUniFarmTestBase is DSTestDefiBase {
     address treasury;
 
     PickleJar pickleJar;
-    ControllerV3 controller;
+    ControllerV4 controller;
     IStrategy strategy;
 
     function _getWant(uint256 ethAmount, uint256 amount) internal {

@@ -158,6 +158,21 @@ abstract contract StrategyBase {
         IERC20(want).safeTransfer(_jar, _amount.sub(_feeDev).sub(_feeTreasury));
     }
 
+    // Withdraw funds, used to swap between strategies
+    function withdrawForSwap(uint256 _amount)
+        external
+        returns (uint256 balance)
+    {
+        require(msg.sender == controller, "!controller");
+        _withdrawSome(_amount);
+
+        balance = IERC20(want).balanceOf(address(this));
+
+        address _jar = IController(controller).jars(address(want));
+        require(_jar != address(0), "!jar");
+        IERC20(want).safeTransfer(_jar, balance);
+    }
+
     // Withdraw all funds, normally used when migrating strategies
     function withdrawAll() external returns (uint256 balance) {
         require(msg.sender == controller, "!controller");

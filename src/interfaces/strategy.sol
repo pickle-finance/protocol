@@ -12,6 +12,8 @@ interface IStrategy {
 
     function deposit() external;
 
+    function withdrawForSwap(uint256) external returns (uint256);
+
     function withdraw(address) external;
 
     function withdraw(uint256) external;

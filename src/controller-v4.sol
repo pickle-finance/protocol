@@ -8,12 +8,12 @@ import "./lib/erc20.sol";
 import "./lib/safe-math.sol";
 
 import "./interfaces/jar.sol";
+import "./interfaces/jar-converter.sol";
 import "./interfaces/onesplit.sol";
 import "./interfaces/strategy.sol";
 import "./interfaces/converter.sol";
-import "./interfaces/strategy-converter.sol";
 
-contract ControllerV3 {
+contract ControllerV4 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -27,12 +27,15 @@ contract ControllerV3 {
     address public treasury;
     address public timelock;
 
+    // Convenience fee 0.1%
+    uint256 public convenienceFee = 100;
+    uint256 public constant convenienceFeeMax = 100000;
+
     mapping(address => address) public jars;
     mapping(address => address) public strategies;
     mapping(address => mapping(address => address)) public converters;
-    mapping(address => mapping(address => address)) public strategyConverters;
-
     mapping(address => mapping(address => bool)) public approvedStrategies;
+    mapping(address => bool) public approvedJarConverters;
 
     uint256 public split = 500;
     uint256 public constant max = 10000;
@@ -95,6 +98,16 @@ contract ControllerV3 {
         jars[_token] = _jar;
     }
 
+    function approveJarConverter(address _converter) public {
+        require(msg.sender == governance, "!governance");
+        approvedJarConverters[_converter] = true;
+    }
+
+    function revokeJarConverter(address _converter) public {
+        require(msg.sender == governance, "!governance");
+        approvedJarConverters[_converter] = false;
+    }
+
     function approveStrategy(address _token, address _strategy) public {
         require(msg.sender == timelock, "!timelock");
         approvedStrategies[_token][_strategy] = true;
@@ -105,16 +118,9 @@ contract ControllerV3 {
         approvedStrategies[_token][_strategy] = false;
     }
 
-    function setConverter(
-        address _input,
-        address _output,
-        address _converter
-    ) public {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!strategist"
-        );
-        converters[_input][_output] = _converter;
+    function setConvenienceFee(uint256 _convenienceFee) external {
+        require(msg.sender == timelock, "!timelock");
+        convenienceFee = _convenienceFee;
     }
 
     function setStrategy(address _token, address _strategy) public {
@@ -236,5 +242,80 @@ contract ControllerV3 {
     function withdraw(address _token, uint256 _amount) public {
         require(msg.sender == jars[_token], "!jar");
         IStrategy(strategies[_token]).withdraw(_amount);
+    }
+
+    // Function to swap between jars
+    function swapExactJarForJar(
+        address _fromJar,
+        address _toJar,
+        uint256 _fromAmount,
+        address _converter,
+        bytes calldata _data
+    ) external {
+        require(_converter != address(0), "!converter");
+        require(approvedJarConverters[_converter], "!converter");
+
+        address _fromWant = IJar(_fromJar).token();
+        address _toWant = IJar(_toJar).token();
+
+        address _fromStrategy = strategies[_fromWant];
+
+        // Get pTokens
+        IERC20(_fromJar).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _fromAmount
+        );
+
+        // Calculate pToken Underlying
+        uint256 _fromUnderlyingAmount = _fromAmount
+            .mul(IJar(_fromJar).getRatio())
+            .div(10**uint256(IJar(_fromJar).decimals()));
+
+        // Call 'withdrawFroSwap' from Jar if Jar doesn't have enough initial capital
+        uint256 _fromJarAvailUnderlying = IERC20(_fromWant).balanceOf(_fromJar);
+        if (_fromJarAvailUnderlying < _fromUnderlyingAmount) {
+            IStrategy(_fromStrategy).withdrawForSwap(
+                _fromUnderlyingAmount.sub(_fromJarAvailUnderlying)
+            );
+        }
+
+        // Withdraw from Jar
+        // Note this is free since its still within the "earnable" amount
+        IERC20(_fromJar).safeApprove(_fromJar, 0);
+        IERC20(_fromJar).safeApprove(_fromJar, uint256(-1));
+        IJar(_fromJar).withdraw(_fromAmount);
+
+        // Swap fee
+        uint256 _fromUnderlyingBalance = IERC20(_fromWant).balanceOf(
+            address(this)
+        );
+        uint256 _swapFee = _fromUnderlyingBalance.mul(convenienceFee).div(
+            convenienceFeeMax
+        );
+        IERC20(_fromWant).transfer(devfund, _swapFee.div(2));
+        IERC20(_fromWant).transfer(treasury, _swapFee.div(2));
+
+        // Swapsies
+        _fromUnderlyingBalance = _fromUnderlyingBalance.sub(_swapFee);
+        IERC20(_fromWant).safeApprove(_converter, 0);
+        IERC20(_fromWant).safeApprove(_converter, _fromUnderlyingBalance);
+        IJarConverter(_converter).convert(
+            msg.sender,
+            _fromUnderlyingBalance,
+            _data
+        );
+
+        // Deposit into new Jar
+        uint256 _toBal = IERC20(_toWant).balanceOf(address(this));
+        IERC20(_toWant).safeApprove(_toJar, 0);
+        IERC20(_toWant).safeApprove(_toJar, _toBal);
+        IJar(_toJar).deposit(_toBal);
+
+        // Send Jar Tokens to user
+        IJar(_toJar).transfer(
+            msg.sender,
+            IJar(_toJar).balanceOf(address(this))
+        );
     }
 }

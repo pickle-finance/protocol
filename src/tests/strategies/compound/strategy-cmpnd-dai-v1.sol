@@ -10,13 +10,13 @@ import "../../lib/test-defi-base.sol";
 import "../../../interfaces/compound.sol";
 
 import "../../../pickle-jar.sol";
-import "../../../controller-v3.sol";
+import "../../../controller-v4.sol";
 
 import "../../../strategies/compound/strategy-cmpd-dai-v1.sol";
 
 contract StrategyCmpndDaiV1 is DSTestDefiBase {
     StrategyCmpdDaiV1 strategy;
-    ControllerV3 controller;
+    ControllerV4 controller;
     PickleJar pickleJar;
 
     address governance;
@@ -36,7 +36,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         devfund = address(new User());
         treasury = address(new User());
 
-        controller = new ControllerV3(
+        controller = new ControllerV4(
             governance,
             strategist,
             timelock,

@@ -12,7 +12,7 @@ import "../../../interfaces/curve.sol";
 import "../../../interfaces/uniswapv2.sol";
 
 import "../../../pickle-jar.sol";
-import "../../../controller-v3.sol";
+import "../../../controller-v4.sol";
 
 import "../../../strategies/curve/strategy-curve-scrv-v4.sol";
 import "../../../strategies/curve/scrv-voter.sol";
@@ -29,7 +29,7 @@ contract StrategyCurveSCRVv4Test is DSTestDefiBase {
     address treasury;
 
     PickleJar pickleJar;
-    ControllerV3 controller;
+    ControllerV4 controller;
     StrategyCurveSCRVv4 strategy;
     SCRVVoter scrvVoter;
     CRVLocker crvLocker;
@@ -41,7 +41,7 @@ contract StrategyCurveSCRVv4Test is DSTestDefiBase {
         devfund = address(new User());
         treasury = address(new User());
 
-        controller = new ControllerV3(
+        controller = new ControllerV4(
             governance,
             strategist,
             timelock,
