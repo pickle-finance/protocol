@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+pragma experimental ABIEncoderV2;
 
 import "../lib/hevm.sol";
 import "../lib/user.sol";
@@ -93,7 +94,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
         // Create PICKLE Jars
         for (uint256 i = 0; i < curvePickleJars.length; i++) {
             curvePickleJars[i] = new PickleJar(
-                curveStrategies[0].want(),
+                curveStrategies[i].want(),
                 governance,
                 timelock,
                 address(controller)
@@ -159,7 +160,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
 
         for (uint256 i = 0; i < uniStrategies.length; i++) {
             uniPickleJars[i] = new PickleJar(
-                uniStrategies[0].want(),
+                uniStrategies[i].want(),
                 governance,
                 timelock,
                 address(controller)
@@ -240,52 +241,164 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
         }
     }
 
-    // Tests
-    function test_jar_converter_uni_curve_0() public {
+    struct TestParams {
+        uint256 fromIndex;
+        uint256 toIndex;
+        address fromUnderlying;
+        uint256 fromUnderlyingAmount;
+        address toWant;
+        address toUnderlying;
+        address curvePool;
+        bytes4 curveFunctionSig;
+        uint256 curvePoolSize;
+        uint256 curveUnderlyingIndex;
+    }
+
+    function _test_uni_curve_swap(bytes memory _data) internal {
+        TestParams memory params = abi.decode(_data, (TestParams));
+
         // Deposit into PickleJars
-        address from = address(uniPickleJars[0].token());
-        _getUniLP(from, 1e18, 400e18);
+        address from = address(uniPickleJars[params.fromIndex].token());
+        _getUniLP(from, 1e18, params.fromUnderlyingAmount);
 
         uint256 _from = IERC20(from).balanceOf(address(this));
-        IERC20(from).approve(address(uniPickleJars[0]), _from);
-        uniPickleJars[0].deposit(_from);
+        IERC20(from).approve(address(uniPickleJars[params.fromIndex]), _from);
+        uniPickleJars[params.fromIndex].deposit(_from);
+        uniPickleJars[params.fromIndex].earn();
 
         // Swap!
-        uint256 _fromPickleJar = IERC20(address(uniPickleJars[0])).balanceOf(
-            address(this)
-        );
-        IERC20(address(uniPickleJars[0])).approve(
+        uint256 _fromPickleJar = IERC20(
+            address(uniPickleJars[params.fromIndex])
+        )
+            .balanceOf(address(this));
+        IERC20(address(uniPickleJars[params.fromIndex])).approve(
             address(controller),
             _fromPickleJar
         );
 
-        uint256 _before = IERC20(address(curvePickleJars[0])).balanceOf(
-            address(this)
-        );
+        uint256 _beforeTo = IERC20(address(curvePickleJars[params.toIndex]))
+            .balanceOf(address(this));
+        uint256 _beforeFrom = IERC20(address(uniPickleJars[params.fromIndex]))
+            .balanceOf(address(this));
 
         bytes memory data = abi.encode(
-            three_pool,
-            bytes4(keccak256(bytes("add_liquidity(uint256[3],uint256)"))),
-            uint256(3), // 3 pool size
-            uint256(0), // Dai index 0
+            params.curvePool,
+            params.curveFunctionSig,
+            params.curvePoolSize,
+            params.curveUnderlyingIndex,
             from,
-            dai,
-            three_crv,
-            dai
+            params.fromUnderlying,
+            params.toWant,
+            params.toUnderlying
         );
 
         controller.swapExactJarForJar(
-            address(uniPickleJars[0]),
-            address(curvePickleJars[0]),
+            address(uniPickleJars[params.fromIndex]),
+            address(curvePickleJars[params.toIndex]),
             _fromPickleJar,
             address(uniCurveJarConverter),
             data
         );
 
-        uint256 _after = IERC20(address(curvePickleJars[0])).balanceOf(
-            address(this)
+        uint256 _afterTo = IERC20(address(curvePickleJars[params.toIndex]))
+            .balanceOf(address(this));
+        uint256 _afterFrom = IERC20(address(uniPickleJars[params.fromIndex]))
+            .balanceOf(address(this));
+
+        assertTrue(_afterFrom < _beforeFrom);
+        assertTrue(_afterTo > _beforeTo);
+    }
+
+    // Tests
+    function test_jar_converter_uni_curve_0_0() public {
+        uint256 fromIndex = 0;
+        uint256 toIndex = 0;
+        address fromUnderlying = dai;
+        uint256 fromUnderlyingAmount = 400e18;
+        address toWant = three_crv;
+        address toUnderlying = dai;
+        address curvePool = three_pool;
+        bytes4 curveFunctionSig = bytes4(
+            keccak256(bytes("add_liquidity(uint256[3],uint256)"))
         );
 
-        assertTrue(_after > _before);
+        uint256 curvePoolSize = uint256(3);
+        uint256 curveUnderlyingIndex = uint256(0);
+
+        _test_uni_curve_swap(
+            abi.encode(
+                fromIndex,
+                toIndex,
+                fromUnderlying,
+                fromUnderlyingAmount,
+                toWant,
+                toUnderlying,
+                curvePool,
+                curveFunctionSig,
+                curvePoolSize,
+                curveUnderlyingIndex
+            )
+        );
+    }
+
+    function test_jar_converter_uni_curve_0_1() public {
+        uint256 fromIndex = 0;
+        uint256 toIndex = 1;
+        address fromUnderlying = dai;
+        uint256 fromUnderlyingAmount = 400e18;
+        address toWant = scrv;
+        address toUnderlying = dai;
+        address curvePool = susdv2_pool;
+        bytes4 curveFunctionSig = bytes4(
+            keccak256(bytes("add_liquidity(uint256[4],uint256)"))
+        );
+
+        uint256 curvePoolSize = uint256(4);
+        uint256 curveUnderlyingIndex = uint256(0);
+
+        _test_uni_curve_swap(
+            abi.encode(
+                fromIndex,
+                toIndex,
+                fromUnderlying,
+                fromUnderlyingAmount,
+                toWant,
+                toUnderlying,
+                curvePool,
+                curveFunctionSig,
+                curvePoolSize,
+                curveUnderlyingIndex
+            )
+        );
+    }
+
+    function test_jar_converter_uni_curve_0_2() public {
+        uint256 fromIndex = 0;
+        uint256 toIndex = 2;
+        address fromUnderlying = dai;
+        uint256 fromUnderlyingAmount = 400e18;
+        address toWant = ren_crv;
+        address toUnderlying = wbtc;
+        address curvePool = ren_pool;
+        bytes4 curveFunctionSig = bytes4(
+            keccak256(bytes("add_liquidity(uint256[2],uint256)"))
+        );
+        uint256 curvePoolSize = uint256(2);
+        uint256 curveUnderlyingIndex = uint256(1);
+
+        _test_uni_curve_swap(
+            abi.encode(
+                fromIndex,
+                toIndex,
+                fromUnderlying,
+                fromUnderlyingAmount,
+                toWant,
+                toUnderlying,
+                curvePool,
+                curveFunctionSig,
+                curvePoolSize,
+                curveUnderlyingIndex
+            )
+        );
     }
 }
