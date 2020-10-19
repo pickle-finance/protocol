@@ -22,7 +22,7 @@ contract UniCurveJarConverter {
 
     struct Params {
         address curve;
-        string curveAddFunctionSig; // Function signature for adding liquidity to curve pool
+        bytes4 curveFunctionSig; // Function signature for adding liquidity to curve pool
         uint256 curvePoolSize; // Amount of tokens in curve pool
         uint256 curveUnderlyingIndex; // Underlying index in curve
         address from; // UNI LP - We always assume its a weth pair
@@ -109,17 +109,11 @@ contract UniCurveJarConverter {
         uint256[] memory liquidity = new uint256[](params.curvePoolSize);
         liquidity[params.curveUnderlyingIndex] = _toUnderlying;
 
-        bytes memory callData;
-
-        if (bytes(params.curveAddFunctionSig).length == 0) {
-            callData = abi.encode(liquidity, uint256(0));
-        } else {
-            callData = abi.encodeWithSignature(
-                params.curveAddFunctionSig,
-                liquidity,
-                uint256(0)
-            );
-        }
+        bytes memory callData = abi.encodePacked(
+            params.curveFunctionSig,
+            liquidity,
+            uint256(0)
+        );
 
         (bool success, ) = params.curve.call(callData);
         require(success, "!success");

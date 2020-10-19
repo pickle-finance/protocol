@@ -265,7 +265,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
 
         bytes memory data = abi.encode(
             three_pool,
-            "add_liquidity(uint256[3],uint256)",
+            bytes4(keccak256(bytes("add_liquidity(uint256[3],uint256)"))),
             uint256(3), // 3 pool size
             uint256(0), // Dai index 0
             from,
