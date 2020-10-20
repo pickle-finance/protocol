@@ -68,6 +68,9 @@ contract CurveUniJarConverter {
             liquidity
         );
 
+        IERC20(params.fromUnderlying).safeApprove(params.curve, 0);
+        IERC20(params.fromUnderlying).safeApprove(params.curve, _amount);
+
         (bool success, ) = params.curve.call(callData);
         require(success, "!success");
 

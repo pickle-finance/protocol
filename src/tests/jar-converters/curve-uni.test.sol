@@ -25,7 +25,7 @@ import "../../strategies/curve/strategy-curve-scrv-v3_1.sol";
 import "../../strategies/curve/strategy-curve-rencrv-v1.sol";
 import "../../strategies/curve/strategy-curve-3crv-v1.sol";
 
-contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
+contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
     address governance;
     address strategist;
     address devfund;
@@ -309,6 +309,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
         );
         assertTrue(_afterFrom < _beforeFrom);
         assertTrue(_afterTo > _beforeTo);
+        assertTrue(_afterTo.sub(_beforeTo) > 0);
         assertEq(_afterFrom, 0);
     }
 

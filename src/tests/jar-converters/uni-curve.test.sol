@@ -309,6 +309,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
             ),
             treasuryEarned.mul(2)
         );
+        assertTrue(_afterTo.sub(_beforeTo) > 0);
         assertTrue(_afterFrom < _beforeFrom);
         assertTrue(_afterTo > _beforeTo);
         assertEq(_afterFrom, 0);
