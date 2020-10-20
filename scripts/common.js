@@ -72,25 +72,32 @@ const deployContract = async ({
   const constructor = JSON.parse(abi).filter(
     (x) => x.type === "constructor"
   )[0];
-  const inputs = constructor.inputs.map((x) => x.name);
-  const inputTypes = constructor.inputs.map((x) => x.type);
-  if (inputs.length !== args.length) {
-    console.log(
-      chalk.red(
-        `Invalid number of parameters for ${name}. Expected ${inputs.length}, got ${args.length}`
-      )
-    );
-    process.exit(1);
-  }
-  const prettyArgs = Array(inputs.length)
-    .fill(0)
-    .map((_, i) => i)
-    .reduce((acc, x) => {
-      return { ...acc, [inputs[x]]: args[x] };
-    }, {});
 
-  console.log(chalk.yellow(`Deploying ${name} with the following parameters:`));
-  console.log(chalk.blue(JSON.stringify(prettyArgs, null, 4)));
+  if (constructor) {
+    const inputs = constructor.inputs.map((x) => x.name);
+    const inputTypes = constructor.inputs.map((x) => x.type);
+    if (inputs.length !== args.length) {
+      console.log(
+        chalk.red(
+          `Invalid number of parameters for ${name}. Expected ${inputs.length}, got ${args.length}`
+        )
+      );
+      process.exit(1);
+    }
+    const prettyArgs = Array(inputs.length)
+      .fill(0)
+      .map((_, i) => i)
+      .reduce((acc, x) => {
+        return { ...acc, [inputs[x]]: args[x] };
+      }, {});
+
+    console.log(
+      chalk.yellow(`Deploying ${name} with the following parameters:`)
+    );
+    console.log(chalk.blue(JSON.stringify(prettyArgs, null, 4)));
+  } else {
+    console.log(chalk.yellow(`Deploying ${name} (no parameters)`));
+  }
 
   const confirmationName = "confirmDeploy";
   const responses = await inquirer.prompt([
@@ -109,6 +116,7 @@ const deployContract = async ({
       .mul(ethers.BigNumber.from(125))
       .div(ethers.BigNumber.from(100));
     const contract = await factory.deploy(...args, {
+      gasLimit: 12000000,
       gasPrice: fastGasPrice,
     });
     await contract.deployed();
@@ -128,7 +136,7 @@ const deployContract = async ({
           [name]: {
             address: contract.address,
             args,
-            argsRaw: args.join(' '), // Used for easy verification
+            argsRaw: args.join(" "), // Used for easy verification
           },
         },
         null,
