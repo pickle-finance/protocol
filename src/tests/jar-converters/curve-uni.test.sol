@@ -42,6 +42,9 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
 
     CurveUniJarConverter curveUniJarConverter;
 
+    // Contract wide variable to avoid stack too deep errors
+    uint256 temp;
+
     function setUp() public {
         governance = address(this);
         strategist = address(this);
@@ -281,7 +284,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
         uint256 _beforeDev = IERC20(from).balanceOf(devfund);
         uint256 _beforeTreasury = IERC20(from).balanceOf(treasury);
 
-        controller.swapExactJarForJar(
+        temp = controller.swapExactJarForJar(
             address(curvePickleJars[params.fromIndex]),
             address(uniPickleJars[params.toIndex]),
             _fromPickleJar,
@@ -310,6 +313,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
         assertTrue(_afterFrom < _beforeFrom);
         assertTrue(_afterTo > _beforeTo);
         assertTrue(_afterTo.sub(_beforeTo) > 0);
+        assertEq(_afterTo.sub(_beforeTo), temp);
         assertEq(_afterFrom, 0);
     }
 

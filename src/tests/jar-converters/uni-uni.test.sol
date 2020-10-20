@@ -35,6 +35,9 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
 
     UniUniJarConverter uniUniJarConverter;
 
+    // Contract wide variable to avoid stack too deep errors
+    uint256 temp;
+
     function setUp() public {
         governance = address(this);
         strategist = address(this);
@@ -213,7 +216,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
         uint256 _beforeDev = IERC20(from).balanceOf(devfund);
         uint256 _beforeTreasury = IERC20(from).balanceOf(treasury);
 
-        controller.swapExactJarForJar(
+        temp = controller.swapExactJarForJar(
             address(uniPickleJars[fromIndex]),
             address(uniPickleJars[toIndex]),
             _fromPickleJar,
@@ -241,6 +244,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
             treasuryEarned.mul(2)
         );
         assertTrue(_afterTo.sub(_beforeTo) > 0);
+        assertEq(_afterTo.sub(_beforeTo), temp);
         assertTrue(_afterFrom < _beforeFrom);
         assertTrue(_afterTo > _beforeTo);
         assertEq(_afterFrom, 0);
