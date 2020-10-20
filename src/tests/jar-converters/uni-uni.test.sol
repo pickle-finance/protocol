@@ -16,10 +16,10 @@ import "../../controller-v4.sol";
 
 import "../../jar-converters/uni-uni-converter.sol";
 
-import "../../strategies/uniswapv2/strategy-uni-eth-dai-lp-v3_1.sol";
-import "../../strategies/uniswapv2/strategy-uni-eth-usdt-lp-v3_1.sol";
-import "../../strategies/uniswapv2/strategy-uni-eth-usdc-lp-v3_1.sol";
-import "../../strategies/uniswapv2/strategy-uni-eth-wbtc-lp-v1.sol";
+import "../../strategies/uniswapv2/strategy-uni-eth-dai-lp-v4.sol";
+import "../../strategies/uniswapv2/strategy-uni-eth-usdt-lp-v4.sol";
+import "../../strategies/uniswapv2/strategy-uni-eth-usdc-lp-v4.sol";
+import "../../strategies/uniswapv2/strategy-uni-eth-wbtc-lp-v2.sol";
 
 contract StrategyUniUniJarSwapTest is DSTestDefiBase {
     address governance;
@@ -58,7 +58,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
         uniPickleJars = new PickleJar[](uniStrategies.length);
         uniStrategies[0] = IStrategy(
             address(
-                new StrategyUniEthDaiLpV3_1(
+                new StrategyUniEthDaiLpV4(
                     governance,
                     strategist,
                     address(controller),
@@ -68,7 +68,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
         );
         uniStrategies[1] = IStrategy(
             address(
-                new StrategyUniEthUsdcLpV3_1(
+                new StrategyUniEthUsdcLpV4(
                     governance,
                     strategist,
                     address(controller),
@@ -78,7 +78,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
         );
         uniStrategies[2] = IStrategy(
             address(
-                new StrategyUniEthUsdtLpV3_1(
+                new StrategyUniEthUsdtLpV4(
                     governance,
                     strategist,
                     address(controller),
@@ -88,7 +88,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
         );
         uniStrategies[3] = IStrategy(
             address(
-                new StrategyUniEthWBtcLpV1(
+                new StrategyUniEthWBtcLpV2(
                     governance,
                     strategist,
                     address(controller),

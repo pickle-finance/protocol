@@ -1,8 +1,13 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
 
 
-import "../../lib/test-strategy-uni-farm-base.sol";
+import "../../lib/hevm.sol";
+import "../../lib/user.sol";
+import "../../lib/test-approx.sol";
+import "../../lib/test-defi-base.sol";
+import "../../lib/test-strategy-curve-farm-base.sol";
 
 import "../../../interfaces/strategy.sol";
 import "../../../interfaces/curve.sol";
@@ -10,18 +15,18 @@ import "../../../interfaces/uniswapv2.sol";
 
 import "../../../pickle-jar.sol";
 import "../../../controller-v4.sol";
-import "../../../strategies/uniswapv2/strategy-uni-eth-usdt-lp-v3_1.sol";
 
-contract StrategyUniEthUsdtLpV3_1Test is StrategyUniFarmTestBase {
+import "../../../strategies/curve/strategy-curve-3crv-v2.sol";
+
+contract StrategyCurve3CRVv2Test is StrategyCurveFarmTestBase {
     function setUp() public {
-        want = 0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852;
-        token1 = usdt;
-
         governance = address(this);
         strategist = address(this);
         devfund = address(new User());
         treasury = address(new User());
         timelock = address(this);
+
+        want = three_crv;
 
         controller = new ControllerV4(
             governance,
@@ -33,7 +38,7 @@ contract StrategyUniEthUsdtLpV3_1Test is StrategyUniFarmTestBase {
 
         strategy = IStrategy(
             address(
-                new StrategyUniEthUsdtLpV3_1(
+                new StrategyCurve3CRVv2(
                     governance,
                     strategist,
                     address(controller),
@@ -53,21 +58,26 @@ contract StrategyUniEthUsdtLpV3_1Test is StrategyUniFarmTestBase {
         controller.approveStrategy(strategy.want(), address(strategy));
         controller.setStrategy(strategy.want(), address(strategy));
 
-        // Set time
         hevm.warp(startTime);
+
+        _getWant(10000000 ether);
     }
 
-    // **** Tests ****
-
-    function test_ethusdtv3_1_timelock() public {
-        _test_timelock();
+    function _getWant(uint256 daiAmount) internal {
+        _getERC20(dai, daiAmount);
+        uint256[3] memory liquidity;
+        liquidity[0] = IERC20(dai).balanceOf(address(this));
+        IERC20(dai).approve(three_pool, liquidity[0]);
+        ICurveFi_3(three_pool).add_liquidity(liquidity, 0);
     }
 
-    function test_ethusdtv3_1_withdraw_release() public {
-        _test_withdraw_release();
+    // **** Tests **** //
+
+    function test_3crv_v1_withdraw() public {
+        _test_withdraw();
     }
 
-    function test_ethusdtv3_1_get_earn_harvest_rewards() public {
+    function test_3crv_v1_earn_harvest_rewards() public {
         _test_get_earn_harvest_rewards();
     }
 }

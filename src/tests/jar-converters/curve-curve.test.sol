@@ -16,9 +16,9 @@ import "../../controller-v4.sol";
 
 import "../../jar-converters/curve-curve-converter.sol";
 
-import "../../strategies/curve/strategy-curve-scrv-v3_1.sol";
-import "../../strategies/curve/strategy-curve-rencrv-v1.sol";
-import "../../strategies/curve/strategy-curve-3crv-v1.sol";
+import "../../strategies/curve/strategy-curve-scrv-v3_2.sol";
+import "../../strategies/curve/strategy-curve-rencrv-v2.sol";
+import "../../strategies/curve/strategy-curve-3crv-v2.sol";
 
 contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
     address governance;
@@ -58,7 +58,7 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
         curvePickleJars = new PickleJar[](curveStrategies.length);
         curveStrategies[0] = IStrategy(
             address(
-                new StrategyCurve3CRVv1(
+                new StrategyCurve3CRVv2(
                     governance,
                     strategist,
                     address(controller),
@@ -68,7 +68,7 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
         );
         curveStrategies[1] = IStrategy(
             address(
-                new StrategyCurveSCRVv3_1(
+                new StrategyCurveSCRVv3_2(
                     governance,
                     strategist,
                     address(controller),
@@ -78,7 +78,7 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
         );
         curveStrategies[2] = IStrategy(
             address(
-                new StrategyCurveRenCRVv1(
+                new StrategyCurveRenCRVv2(
                     governance,
                     strategist,
                     address(controller),

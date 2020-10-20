@@ -4,6 +4,9 @@ pragma solidity ^0.6.2;
 import "../../lib/erc20.sol";
 import "../../lib/safe-math.sol";
 
+import "./scrv-voter.sol";
+import "./crv-locker.sol";
+
 import "../../interfaces/jar.sol";
 import "../../interfaces/curve.sol";
 import "../../interfaces/uniswapv2.sol";
@@ -11,12 +14,14 @@ import "../../interfaces/controller.sol";
 
 import "../strategy-curve-base.sol";
 
-contract StrategyCurveRenCRVv1 is StrategyCurveBase {
-    // https://www.curve.fi/ren
+contract StrategyCurveSCRVv3_2 is StrategyCurveBase {
     // Curve stuff
-    address public ren_pool = 0x93054188d876f558f4a66B2EF1d97d16eDf0895B;
-    address public ren_gauge = 0xB1F2cdeC61db658F091671F5f199635aEF202CAC;
-    address public ren_crv = 0x49849C98ae39Fff122806C06791Fa73784FB3675;
+    address public susdv2_pool = 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD;
+    address public susdv2_gauge = 0xA90996896660DEcC6E997655E065b23788857849;
+    address public scrv = 0xC25a3A3b969415c80451098fa907EC722572917F;
+
+    // Harvesting
+    address public snx = 0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F;
 
     constructor(
         address _governance,
@@ -26,9 +31,9 @@ contract StrategyCurveRenCRVv1 is StrategyCurveBase {
     )
         public
         StrategyCurveBase(
-            ren_pool,
-            ren_gauge,
-            ren_crv,
+            susdv2_pool,
+            susdv2_gauge,
+            scrv,
             _governance,
             _strategist,
             _controller,
@@ -38,33 +43,65 @@ contract StrategyCurveRenCRVv1 is StrategyCurveBase {
 
     // **** Views ****
 
-    function getMostPremium() public override view returns (address, uint256) {
-        // Both 8 decimals, so doesn't matter
-        uint256[] memory balances = new uint256[](3);
-        balances[0] = ICurveFi_2(curve).balances(0); // RENBTC
-        balances[1] = ICurveFi_2(curve).balances(1); // WBTC
+    function getMostPremium()
+        public
+        override
+        view
+        returns (address, uint256)
+    {
+        uint256[] memory balances = new uint256[](4);
+        balances[0] = ICurveFi_4(curve).balances(0); // DAI
+        balances[1] = ICurveFi_4(curve).balances(1).mul(10**12); // USDC
+        balances[2] = ICurveFi_4(curve).balances(2).mul(10**12); // USDT
+        balances[3] = ICurveFi_4(curve).balances(3); // sUSD
 
-        // renbtc
-        if (balances[0] < balances[1]) {
-            return (renbtc, 0);
+        // DAI
+        if (
+            balances[0] < balances[1] &&
+            balances[0] < balances[2] &&
+            balances[0] < balances[3]
+        ) {
+            return (dai, 0);
         }
 
-        // WBTC
-        if (balances[1] < balances[0]) {
-            return (wbtc, 1);
+        // USDC
+        if (
+            balances[1] < balances[0] &&
+            balances[1] < balances[2] &&
+            balances[1] < balances[3]
+        ) {
+            return (usdc, 1);
         }
 
-        // If they're somehow equal, we just want RENBTC
-        return (renbtc, 0);
+        // USDT
+        if (
+            balances[2] < balances[0] &&
+            balances[2] < balances[1] &&
+            balances[2] < balances[3]
+        ) {
+            return (usdt, 2);
+        }
+
+        // SUSD
+        if (
+            balances[3] < balances[0] &&
+            balances[3] < balances[1] &&
+            balances[3] < balances[2]
+        ) {
+            return (susd, 3);
+        }
+
+        // If they're somehow equal, we just want DAI
+        return (dai, 0);
     }
 
     function getName() external override pure returns (string memory) {
-        return "StrategyCurveRenCRVv1";
+        return "StrategyCurveSCRVv3_2";
     }
 
     // **** State Mutations ****
 
-    function harvest() public override onlyBenevolent {
+    function harvest() public onlyBenevolent override {
         // Anyone can harvest it at any given time.
         // I understand the possibility of being frontrun
         // But ETH is a dark forest, and I wanna see how this plays out
@@ -92,15 +129,22 @@ contract StrategyCurveRenCRVv1 is StrategyCurveBase {
             _swapUniswap(crv, to, _crv);
         }
 
-        // Adds liquidity to curve.fi's pool
+        // Collects SNX tokens
+        ICurveGauge(gauge).claim_rewards(address(this));
+        uint256 _snx = IERC20(snx).balanceOf(address(this));
+        if (_snx > 0) {
+            _swapUniswap(snx, to, _snx);
+        }
+
+        // Adds liquidity to curve.fi's susd pool
         // to get back want (scrv)
         uint256 _to = IERC20(to).balanceOf(address(this));
         if (_to > 0) {
             IERC20(to).safeApprove(curve, 0);
             IERC20(to).safeApprove(curve, _to);
-            uint256[2] memory liquidity;
+            uint256[4] memory liquidity;
             liquidity[toIndex] = _to;
-            ICurveFi_2(curve).add_liquidity(liquidity, 0);
+            ICurveFi_4(curve).add_liquidity(liquidity, 0);
         }
 
         // We want to get back sCRV

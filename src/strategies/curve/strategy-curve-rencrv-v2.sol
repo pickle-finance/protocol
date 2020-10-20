@@ -11,11 +11,12 @@ import "../../interfaces/controller.sol";
 
 import "../strategy-curve-base.sol";
 
-contract StrategyCurve3CRVv1 is StrategyCurveBase {
+contract StrategyCurveRenCRVv2 is StrategyCurveBase {
+    // https://www.curve.fi/ren
     // Curve stuff
-    address public three_pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
-    address public three_gauge = 0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A;
-    address public three_crv = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
+    address public ren_pool = 0x93054188d876f558f4a66B2EF1d97d16eDf0895B;
+    address public ren_gauge = 0xB1F2cdeC61db658F091671F5f199635aEF202CAC;
+    address public ren_crv = 0x49849C98ae39Fff122806C06791Fa73784FB3675;
 
     constructor(
         address _governance,
@@ -25,9 +26,9 @@ contract StrategyCurve3CRVv1 is StrategyCurveBase {
     )
         public
         StrategyCurveBase(
-            three_pool,
-            three_gauge,
-            three_crv,
+            ren_pool,
+            ren_gauge,
+            ren_crv,
             _governance,
             _strategist,
             _controller,
@@ -37,52 +38,33 @@ contract StrategyCurve3CRVv1 is StrategyCurveBase {
 
     // **** Views ****
 
-    function getMostPremium()
-        public
-        override
-        view
-        returns (address, uint256)
-    {
+    function getMostPremium() public override view returns (address, uint256) {
+        // Both 8 decimals, so doesn't matter
         uint256[] memory balances = new uint256[](3);
-        balances[0] = ICurveFi_3(curve).balances(0); // DAI
-        balances[1] = ICurveFi_3(curve).balances(1).mul(10**12); // USDC
-        balances[2] = ICurveFi_3(curve).balances(2).mul(10**12); // USDT
+        balances[0] = ICurveFi_2(curve).balances(0); // RENBTC
+        balances[1] = ICurveFi_2(curve).balances(1); // WBTC
 
-        // DAI
-        if (
-            balances[0] < balances[1] &&
-            balances[0] < balances[2]
-        ) {
-            return (dai, 0);
+        // renbtc
+        if (balances[0] < balances[1]) {
+            return (renbtc, 0);
         }
 
-        // USDC
-        if (
-            balances[1] < balances[0] &&
-            balances[1] < balances[2]
-        ) {
-            return (usdc, 1);
+        // WBTC
+        if (balances[1] < balances[0]) {
+            return (wbtc, 1);
         }
 
-        // USDT
-        if (
-            balances[2] < balances[0] &&
-            balances[2] < balances[1]
-        ) {
-            return (usdt, 2);
-        }
-
-        // If they're somehow equal, we just want DAI
-        return (dai, 0);
+        // If they're somehow equal, we just want RENBTC
+        return (renbtc, 0);
     }
 
     function getName() external override pure returns (string memory) {
-        return "StrategyCurve3CRVv1";
+        return "StrategyCurveRenCRVv2";
     }
 
     // **** State Mutations ****
 
-    function harvest() public onlyBenevolent override {
+    function harvest() public override onlyBenevolent {
         // Anyone can harvest it at any given time.
         // I understand the possibility of being frontrun
         // But ETH is a dark forest, and I wanna see how this plays out
@@ -116,9 +98,9 @@ contract StrategyCurve3CRVv1 is StrategyCurveBase {
         if (_to > 0) {
             IERC20(to).safeApprove(curve, 0);
             IERC20(to).safeApprove(curve, _to);
-            uint256[3] memory liquidity;
+            uint256[2] memory liquidity;
             liquidity[toIndex] = _to;
-            ICurveFi_3(curve).add_liquidity(liquidity, 0);
+            ICurveFi_2(curve).add_liquidity(liquidity, 0);
         }
 
         // We want to get back sCRV

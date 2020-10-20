@@ -12,10 +12,10 @@ import "../../../interfaces/compound.sol";
 import "../../../pickle-jar.sol";
 import "../../../controller-v4.sol";
 
-import "../../../strategies/compound/strategy-cmpd-dai-v1.sol";
+import "../../../strategies/compound/strategy-cmpd-dai-v2.sol";
 
 contract StrategyCmpndDaiV1 is DSTestDefiBase {
-    StrategyCmpdDaiV1 strategy;
+    StrategyCmpdDaiV2 strategy;
     ControllerV4 controller;
     PickleJar pickleJar;
 
@@ -44,7 +44,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
             treasury
         );
 
-        strategy = new StrategyCmpdDaiV1(
+        strategy = new StrategyCmpdDaiV2(
             governance,
             strategist,
             address(controller),

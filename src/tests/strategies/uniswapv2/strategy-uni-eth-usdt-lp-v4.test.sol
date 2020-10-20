@@ -10,12 +10,12 @@ import "../../../interfaces/uniswapv2.sol";
 
 import "../../../pickle-jar.sol";
 import "../../../controller-v4.sol";
-import "../../../strategies/uniswapv2/strategy-uni-eth-usdc-lp-v3_1.sol";
+import "../../../strategies/uniswapv2/strategy-uni-eth-usdt-lp-v4.sol";
 
-contract StrategyUniEthUsdcLpV3_1Test is StrategyUniFarmTestBase {
+contract StrategyUniEthUsdtLpV4Test is StrategyUniFarmTestBase {
     function setUp() public {
-        want = 0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc;
-        token1 = usdc;
+        want = 0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852;
+        token1 = usdt;
 
         governance = address(this);
         strategist = address(this);
@@ -33,7 +33,7 @@ contract StrategyUniEthUsdcLpV3_1Test is StrategyUniFarmTestBase {
 
         strategy = IStrategy(
             address(
-                new StrategyUniEthUsdcLpV3_1(
+                new StrategyUniEthUsdtLpV4(
                     governance,
                     strategist,
                     address(controller),
@@ -59,15 +59,15 @@ contract StrategyUniEthUsdcLpV3_1Test is StrategyUniFarmTestBase {
 
     // **** Tests ****
 
-    function test_ethusdcv3_1_timelock() public {
+    function test_ethusdtv3_1_timelock() public {
         _test_timelock();
     }
 
-    function test_ethusdcv3_1_withdraw_release() public {
+    function test_ethusdtv3_1_withdraw_release() public {
         _test_withdraw_release();
     }
 
-    function test_ethusdcv3_1_get_earn_harvest_rewards() public {
+    function test_ethusdtv3_1_get_earn_harvest_rewards() public {
         _test_get_earn_harvest_rewards();
     }
 }

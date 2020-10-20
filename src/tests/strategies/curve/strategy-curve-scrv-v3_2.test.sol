@@ -16,9 +16,9 @@ import "../../../interfaces/uniswapv2.sol";
 import "../../../pickle-jar.sol";
 import "../../../controller-v4.sol";
 
-import "../../../strategies/curve/strategy-curve-scrv-v3_1.sol";
+import "../../../strategies/curve/strategy-curve-scrv-v3_2.sol";
 
-contract StrategyCurveSCRVv3_1Test is StrategyCurveFarmTestBase {
+contract StrategyCurveSCRVv3_2Test is StrategyCurveFarmTestBase {
     function setUp() public {
         governance = address(this);
         strategist = address(this);
@@ -38,7 +38,7 @@ contract StrategyCurveSCRVv3_1Test is StrategyCurveFarmTestBase {
 
         strategy = IStrategy(
             address(
-                new StrategyCurveSCRVv3_1(
+                new StrategyCurveSCRVv3_2(
                     governance,
                     strategist,
                     address(controller),
