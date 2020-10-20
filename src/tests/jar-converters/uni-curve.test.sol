@@ -259,6 +259,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
 
         // Deposit into PickleJars
         address from = address(uniPickleJars[params.fromIndex].token());
+
         _getUniLP(from, 1e18, params.fromUnderlyingAmount);
 
         uint256 _from = IERC20(from).balanceOf(address(this));
@@ -276,11 +277,6 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
             _fromPickleJar
         );
 
-        uint256 _beforeTo = IERC20(address(curvePickleJars[params.toIndex]))
-            .balanceOf(address(this));
-        uint256 _beforeFrom = IERC20(address(uniPickleJars[params.fromIndex]))
-            .balanceOf(address(this));
-
         bytes memory data = abi.encode(
             params.curvePool,
             params.curveFunctionSig,
@@ -292,10 +288,32 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
             params.toUnderlying
         );
 
+        // Check minimum amount
+        try
+            controller.swapExactJarForJar(
+                address(uniPickleJars[params.fromIndex]),
+                address(curvePickleJars[params.toIndex]),
+                _fromPickleJar,
+                uint256(-1), // Min receive amount
+                address(uniCurveJarConverter),
+                data
+            )
+         {
+            revert("min-amount-should-fail");
+        } catch {}
+
+        uint256 _beforeTo = IERC20(address(curvePickleJars[params.toIndex]))
+            .balanceOf(address(this));
+        uint256 _beforeFrom = IERC20(address(uniPickleJars[params.fromIndex]))
+            .balanceOf(address(this));
+        uint256 _beforeDev = IERC20(from).balanceOf(devfund);
+        uint256 _beforeTreasury = IERC20(from).balanceOf(treasury);
+
         controller.swapExactJarForJar(
             address(uniPickleJars[params.fromIndex]),
             address(curvePickleJars[params.toIndex]),
             _fromPickleJar,
+            0, // Min receive amount
             address(uniCurveJarConverter),
             data
         );
@@ -304,9 +322,22 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
             .balanceOf(address(this));
         uint256 _afterFrom = IERC20(address(uniPickleJars[params.fromIndex]))
             .balanceOf(address(this));
+        uint256 _afterDev = IERC20(from).balanceOf(devfund);
+        uint256 _afterTreasury = IERC20(from).balanceOf(treasury);
 
+        uint256 treasuryEarned = _afterTreasury.sub(_beforeTreasury);
+
+        assertEq(treasuryEarned, _afterDev.sub(_beforeDev));
+        assertTrue(treasuryEarned > 0);
+        assertEqApprox(
+            _fromPickleJar.mul(controller.convenienceFee()).div(
+                controller.convenienceFeeMax()
+            ),
+            treasuryEarned.mul(2)
+        );
         assertTrue(_afterFrom < _beforeFrom);
         assertTrue(_afterTo > _beforeTo);
+        assertEq(_afterFrom, 0);
     }
 
     // Tests

@@ -246,60 +246,64 @@ contract ControllerV4 {
 
     // Function to swap between jars
     function swapExactJarForJar(
-        address _fromJar,
-        address _toJar,
-        uint256 _fromAmount,
-        address _converter,
-        bytes calldata _data
-    ) external {
+        address _fromJar, // From which Jar
+        address _toJar, // To which Jar
+        uint256 _fromJarAmount, // How much jar tokens to swap
+        uint256 _toJarMinAmount, // How much jar tokens you'd like at a minimum
+        address _converter, // Address of the jar converter (must be approved)
+        bytes calldata _data // Generic data to be passed into the converter
+    ) external returns (uint256) {
         require(_converter != address(0), "!converter");
         require(approvedJarConverters[_converter], "!converter");
 
-        address _fromWant = IJar(_fromJar).token();
-        address _toWant = IJar(_toJar).token();
+        address _fromJarToken = IJar(_fromJar).token();
+        address _toJarToken = IJar(_toJar).token();
 
-        address _fromStrategy = strategies[_fromWant];
-
-        // Get pTokens
+        // Get pTokens from msg.sender
         IERC20(_fromJar).safeTransferFrom(
             msg.sender,
             address(this),
-            _fromAmount
+            _fromJarAmount
         );
 
-        // Calculate pToken Underlying
-        uint256 _fromUnderlyingAmount = _fromAmount
+        // Calculate how much underlying
+        // is the amount of pTokens worth
+        uint256 _fromJarUnderlyingAmount = _fromJarAmount
             .mul(IJar(_fromJar).getRatio())
             .div(10**uint256(IJar(_fromJar).decimals()));
 
-        // Call 'withdrawFroSwap' from Jar if Jar doesn't have enough initial capital
-        uint256 _fromJarAvailUnderlying = IERC20(_fromWant).balanceOf(_fromJar);
-        if (_fromJarAvailUnderlying < _fromUnderlyingAmount) {
-            IStrategy(_fromStrategy).withdrawForSwap(
-                _fromUnderlyingAmount.sub(_fromJarAvailUnderlying)
+        // Call 'withdrawForSwap' on Jar's current strategy if Jar
+        // doesn't have enough initial capital.
+        // This has moves the funds from the strategy to the Jar's
+        // 'earnable' amount. Enabling free withdrawals
+        uint256 _fromJarAvailUnderlying = IERC20(_fromJarToken).balanceOf(_fromJar);
+        if (_fromJarAvailUnderlying < _fromJarUnderlyingAmount) {
+            IStrategy(strategies[_fromJarToken]).withdrawForSwap(
+                _fromJarUnderlyingAmount.sub(_fromJarAvailUnderlying)
             );
         }
 
         // Withdraw from Jar
-        // Note this is free since its still within the "earnable" amount
+        // Note: this is free since its still within the "earnable" amount
+        //       as we transferred the access
         IERC20(_fromJar).safeApprove(_fromJar, 0);
         IERC20(_fromJar).safeApprove(_fromJar, uint256(-1));
-        IJar(_fromJar).withdraw(_fromAmount);
+        IJar(_fromJar).withdraw(_fromJarAmount);
 
-        // Swap fee
-        uint256 _fromUnderlyingBalance = IERC20(_fromWant).balanceOf(
+        // Calculate swap fee
+        uint256 _fromUnderlyingBalance = IERC20(_fromJarToken).balanceOf(
             address(this)
         );
         uint256 _swapFee = _fromUnderlyingBalance.mul(convenienceFee).div(
             convenienceFeeMax
         );
-        IERC20(_fromWant).transfer(devfund, _swapFee.div(2));
-        IERC20(_fromWant).transfer(treasury, _swapFee.div(2));
+        IERC20(_fromJarToken).safeTransfer(devfund, _swapFee.div(2));
+        IERC20(_fromJarToken).safeTransfer(treasury, _swapFee.div(2));
 
-        // Swapsies
+        // Perform swaps
         _fromUnderlyingBalance = _fromUnderlyingBalance.sub(_swapFee);
-        IERC20(_fromWant).safeApprove(_converter, 0);
-        IERC20(_fromWant).safeApprove(_converter, _fromUnderlyingBalance);
+        IERC20(_fromJarToken).safeApprove(_converter, 0);
+        IERC20(_fromJarToken).safeApprove(_converter, _fromUnderlyingBalance);
         IJarConverter(_converter).convert(
             msg.sender,
             _fromUnderlyingBalance,
@@ -307,15 +311,22 @@ contract ControllerV4 {
         );
 
         // Deposit into new Jar
-        uint256 _toBal = IERC20(_toWant).balanceOf(address(this));
-        IERC20(_toWant).safeApprove(_toJar, 0);
-        IERC20(_toWant).safeApprove(_toJar, _toBal);
+        uint256 _toBal = IERC20(_toJarToken).balanceOf(address(this));
+        IERC20(_toJarToken).safeApprove(_toJar, 0);
+        IERC20(_toJarToken).safeApprove(_toJar, _toBal);
         IJar(_toJar).deposit(_toBal);
 
         // Send Jar Tokens to user
+        uint256 _toJarBal = IJar(_toJar).balanceOf(address(this));
+        if (_toJarBal < _toJarMinAmount) {
+            revert("!min-jar-amount");
+        }
+
         IJar(_toJar).transfer(
             msg.sender,
-            IJar(_toJar).balanceOf(address(this))
+            _toJarBal
         );
+
+        return _toJarBal;
     }
 }
