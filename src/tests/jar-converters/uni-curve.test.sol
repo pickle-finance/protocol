@@ -215,32 +215,6 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
         );
     }
 
-    function _getCurveLP(address curve, uint256 amount) internal {
-        if (curve == ren_pool) {
-            _getERC20(wbtc, amount);
-            uint256 _wbtc = IERC20(wbtc).balanceOf(address(this));
-            IERC20(wbtc).approve(curve, _wbtc);
-
-            uint256[2] memory liquidity;
-            liquidity[1] = _wbtc;
-            ICurveFi_2(curve).add_liquidity(liquidity, 0);
-        } else {
-            _getERC20(dai, amount);
-            uint256 _dai = IERC20(dai).balanceOf(address(this));
-            IERC20(dai).approve(curve, _dai);
-
-            if (curve == three_pool) {
-                uint256[3] memory liquidity;
-                liquidity[0] = _dai;
-                ICurveFi_3(curve).add_liquidity(liquidity, 0);
-            } else {
-                uint256[4] memory liquidity;
-                liquidity[0] = _dai;
-                ICurveFi_4(curve).add_liquidity(liquidity, 0);
-            }
-        }
-    }
-
     struct TestParams {
         uint256 fromIndex;
         uint256 toIndex;

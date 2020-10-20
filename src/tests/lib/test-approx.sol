@@ -5,7 +5,7 @@ import "./test.sol";
 contract DSTestApprox is DSTest {
     function assertEqApprox(uint256 a, uint256 b) internal {
         if (a == 0 && b == 0) {
-            return;    
+            return;
         }
 
         // +/- 5%

@@ -49,6 +49,10 @@ contract UniCurveJarConverter {
         // Get Uniswap pair
         IUniswapV2Pair fromPair = IUniswapV2Pair(params.from);
 
+        if (fromPair.token0() != weth && fromPair.token1() != weth) {
+            revert("!weth-pair");
+        }
+
         // Remove liquidity
         IERC20(params.from).safeApprove(address(router), 0);
         IERC20(params.from).safeApprove(address(router), _amount);
