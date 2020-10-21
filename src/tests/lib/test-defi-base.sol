@@ -20,6 +20,8 @@ contract DSTestDefiBase is DSTestApprox {
     address pickle = 0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5;
     address burn = 0x000000000000000000000000000000000000dEaD;
 
+    address susdv2_deposit = 0xFCBa3E75865d2d561BE8D220616520c171F12851;
+
     address susdv2_pool = 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD;
     address three_pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
     address ren_pool = 0x93054188d876f558f4a66B2EF1d97d16eDf0895B;

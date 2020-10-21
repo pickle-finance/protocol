@@ -231,6 +231,31 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
         uint256 curveUnderlyingIndex;
     }
 
+    // Some post swap checks
+    // Checks if there's any leftover funds in the converter contract
+    function _post_swap_check(uint256 fromIndex, uint256 toIndex)
+        internal
+    {
+        IERC20 token0 = uniPickleJars[fromIndex].token();
+        IERC20 token1 = curvePickleJars[toIndex].token();
+
+        // 100 WEI in DUST
+        uint256 MAX_DUST = 100;
+
+        // No funds left behind
+        assertEq(uniPickleJars[fromIndex].balanceOf(address(controller)), 0);
+        assertEq(curvePickleJars[toIndex].balanceOf(address(controller)), 0);
+        assertTrue(token0.balanceOf(address(controller)) < MAX_DUST);
+        assertTrue(token1.balanceOf(address(controller)) < MAX_DUST);
+        assertEq(token0.balanceOf(address(uniCurveJarConverter)), 0);
+        assertEq(token1.balanceOf(address(uniCurveJarConverter)), 0);
+
+        // Make sure only controller can call 'withdrawForSwap' 
+        try uniStrategies[fromIndex].withdrawForSwap(0) {
+            revert("!withdraw-for-swap-only-controller");
+        } catch {}
+    }
+
     function _test_uni_curve_swap(bytes memory _data) internal {
         TestParams memory params = abi.decode(_data, (TestParams));
 
@@ -349,6 +374,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_curve_0_1() public {
@@ -380,6 +406,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_curve_0_2() public {
@@ -410,6 +437,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_curve_1_0() public {
@@ -441,6 +469,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_curve_1_1() public {
@@ -472,6 +501,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_curve_1_2() public {
@@ -502,6 +532,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_curve_2_0() public {
@@ -533,6 +564,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_curve_2_1() public {
@@ -564,6 +596,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_curve_2_2() public {
@@ -594,6 +627,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_curve_3_0() public {
@@ -625,6 +659,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_curve_3_1() public {
@@ -656,6 +691,7 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_curve_3_2() public {
@@ -686,5 +722,6 @@ contract StrategyUniCurveJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 }

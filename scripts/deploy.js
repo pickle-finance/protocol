@@ -189,7 +189,7 @@ const main = async () => {
     if (realStratName !== stratName) {
       console.log(
         chalk.red(
-          `Jar and Strategy expecting differnt names, stratName: ${stratName}, realStratName ${realStratName}`
+          `Jar and Strategy expecting different names, stratName: ${stratName}, realStratName ${realStratName}`
         )
       );
     }

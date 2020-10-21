@@ -161,6 +161,35 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
         address toUnderlying; // The other side of the weth pair
     }
 
+    function _post_swap_check(uint256 fromIndex, uint256 toIndex)
+        internal
+    {
+        IERC20 token0 = uniPickleJars[fromIndex].token();
+        IUniswapV2Pair token1 = IUniswapV2Pair(address(uniPickleJars[toIndex].token()));
+
+        // 100 WEI in DUST
+        uint256 MAX_DUST = 10;
+
+        // No funds left behind
+        assertEq(uniPickleJars[fromIndex].balanceOf(address(controller)), 0);
+        assertEq(uniPickleJars[toIndex].balanceOf(address(controller)), 0);
+        assertTrue(token0.balanceOf(address(controller)) < MAX_DUST);
+        assertTrue(token1.balanceOf(address(controller)) < MAX_DUST);
+        assertEq(token0.balanceOf(address(uniUniJarConverter)), 0);
+        assertEq(token1.balanceOf(address(uniUniJarConverter)), 0);
+
+        // Curve -> UNI LP should be optimal supply
+        // Note: We refund the access, which is why its checking this balance
+        assertTrue(IERC20(token1.token0()).balanceOf(address(this)) < MAX_DUST);
+        assertTrue(IERC20(token1.token1()).balanceOf(address(this)) < MAX_DUST);
+
+
+        // Make sure only controller can call 'withdrawForSwap' 
+        try uniStrategies[fromIndex].withdrawForSwap(0) {
+            revert("!withdraw-for-swap-only-controller");
+        } catch {}
+    }
+
     function _test_uni_uni_swap(
         uint256 fromIndex,
         uint256 toIndex,
@@ -268,6 +297,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
             amount,
             abi.encode(from, fromUnderlying, to, toUnderlying)
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_uni_0_2() public {
@@ -287,6 +317,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
             amount,
             abi.encode(from, fromUnderlying, to, toUnderlying)
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_uni_0_3() public {
@@ -306,6 +337,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
             amount,
             abi.encode(from, fromUnderlying, to, toUnderlying)
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_uni_1_0() public {
@@ -325,6 +357,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
             amount,
             abi.encode(from, fromUnderlying, to, toUnderlying)
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_uni_1_2() public {
@@ -344,6 +377,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
             amount,
             abi.encode(from, fromUnderlying, to, toUnderlying)
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_uni_1_3() public {
@@ -363,6 +397,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
             amount,
             abi.encode(from, fromUnderlying, to, toUnderlying)
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_uni_2_0() public {
@@ -382,6 +417,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
             amount,
             abi.encode(from, fromUnderlying, to, toUnderlying)
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_uni_2_1() public {
@@ -401,6 +437,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
             amount,
             abi.encode(from, fromUnderlying, to, toUnderlying)
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_uni_2_3() public {
@@ -420,6 +457,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
             amount,
             abi.encode(from, fromUnderlying, to, toUnderlying)
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_uni_3_0() public {
@@ -439,6 +477,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
             amount,
             abi.encode(from, fromUnderlying, to, toUnderlying)
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_uni_3_1() public {
@@ -458,6 +497,7 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
             amount,
             abi.encode(from, fromUnderlying, to, toUnderlying)
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_uni_uni_3_2() public {
@@ -477,5 +517,6 @@ contract StrategyUniUniJarSwapTest is DSTestDefiBase {
             amount,
             abi.encode(from, fromUnderlying, to, toUnderlying)
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 }

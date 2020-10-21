@@ -41,7 +41,7 @@ contract CurveUniJarConverter {
     // Curve LP -> Uni LP
     function convert(
         address _refundExcess, // address to send the excess amount
-        uint256 _amount, // UNI LP Amount
+        uint256 _amount, // Curve LP Amount
         bytes calldata _data
     ) external returns (uint256) {
         Params memory params = abi.decode(_data, (Params));
@@ -60,18 +60,15 @@ contract CurveUniJarConverter {
         );
 
         // Remove liquidity from Curve
-        uint256[] memory liquidity = new uint256[](params.curvePoolSize);
-
         bytes memory callData = abi.encodePacked(
             params.curveFunctionSig,
-            _amount,
-            liquidity
+            abi.encode(_amount, int128(params.curveUnderlyingIndex), uint256(0))
         );
 
-        IERC20(params.fromUnderlying).safeApprove(params.curve, 0);
-        IERC20(params.fromUnderlying).safeApprove(params.curve, _amount);
+        IERC20(params.from).safeApprove(params.curve, 0);
+        IERC20(params.from).safeApprove(params.curve, _amount);
 
-        (bool success, ) = params.curve.call(callData);
+        (bool success,) = params.curve.call(callData);
         require(success, "!success");
 
         // If fromUnderlying is not toUnderlying
@@ -92,7 +89,11 @@ contract CurveUniJarConverter {
         }
 
         // Supply liquidity and send LP tokens received to msg.sender
-        uint256 _to = supplyUniswapLiquidity(msg.sender, weth, params.toUnderlying);    
+        uint256 _to = supplyUniswapLiquidity(
+            msg.sender,
+            weth,
+            params.toUnderlying
+        );
 
         // Refund any excess token
         refundExcessToken(toPair, _refundExcess);
@@ -114,39 +115,25 @@ contract CurveUniJarConverter {
         }
     }
 
-    function getSwapAmt(uint256 amtA, uint256 resA) internal pure returns (uint256) {
-        return sqrt(amtA.mul(resA.mul(3988000).add(amtA.mul(3988009)))).sub(amtA.mul(1997)).div(1994);
-    }
-
-    function swapUniswap(address from, address to) internal {
-        address[] memory path = new address[](2);
-        path[0] = from;
-        path[1] = to;
-
-        if (from != weth && to != weth) {
-            revert("!weth-pair");
-        }
-
-        uint256 _from = IERC20(from).balanceOf(address(this));
-
-        IERC20(from).safeApprove(address(router), 0);
-        IERC20(from).safeApprove(
-            address(router),
-            _from
-        );
-        router.swapExactTokensForTokens(
-            _from,
-            0,
-            path,
-            address(this),
-            now + 60
-        );
+    function getSwapAmt(uint256 amtA, uint256 resA)
+        internal
+        pure
+        returns (uint256)
+    {
+        return
+            sqrt(amtA.mul(resA.mul(3988000).add(amtA.mul(3988009))))
+                .sub(amtA.mul(1997))
+                .div(1994);
     }
 
     // https://blog.alphafinance.io/onesideduniswap/
     // https://github.com/AlphaFinanceLab/alphahomora/blob/88a8dfe4d4fa62b13b40f7983ee2c646f83e63b5/contracts/StrategyAddETHOnly.sol#L39
     // AlphaFinance is gripbook licensed
-    function optimalUniswapOneSideSupply(IUniswapV2Pair pair, address from, address to) internal {
+    function optimalUniswapOneSideSupply(
+        IUniswapV2Pair pair,
+        address from,
+        address to
+    ) internal {
         address[] memory path = new address[](2);
 
         // 1. Compute optimal amount of WETH to be converted
@@ -161,8 +148,31 @@ contract CurveUniJarConverter {
         IERC20(from).safeApprove(address(router), 0);
         IERC20(from).safeApprove(address(router), aIn);
 
+        router.swapExactTokensForTokens(aIn, 0, path, address(this), now + 60);
+    }
+
+    function swapUniswap(address from, address to) internal {
+        require(to != address(0));
+
+        address[] memory path;
+
+        if (from == weth || to == weth) {
+            path = new address[](2);
+            path[0] = from;
+            path[1] = to;
+        } else {
+            path = new address[](3);
+            path[0] = from;
+            path[1] = weth;
+            path[2] = to;
+        }
+
+        uint256 amount = IERC20(from).balanceOf(address(this));
+
+        IERC20(from).safeApprove(address(router), 0);
+        IERC20(from).safeApprove(address(router), amount);
         router.swapExactTokensForTokens(
-            aIn,
+            amount,
             0,
             path,
             address(this),
@@ -170,7 +180,26 @@ contract CurveUniJarConverter {
         );
     }
 
-    function supplyUniswapLiquidity(address recipient, address token0, address token1) internal returns (uint256) {
+    function removeUniswapLiquidity(IUniswapV2Pair pair) internal {
+        uint256 _balance = pair.balanceOf(address(this));
+        pair.approve(address(router), _balance);
+
+        router.removeLiquidity(
+            pair.token0(),
+            pair.token1(),
+            _balance,
+            0,
+            0,
+            address(this),
+            now + 60
+        );
+    }
+
+    function supplyUniswapLiquidity(
+        address recipient,
+        address token0,
+        address token1
+    ) internal returns (uint256) {
         // Add liquidity to uniswap
         IERC20(token0).safeApprove(address(router), 0);
         IERC20(token0).safeApprove(
@@ -184,7 +213,7 @@ contract CurveUniJarConverter {
             IERC20(token1).balanceOf(address(this))
         );
 
-        (,, uint256 _to) = router.addLiquidity(
+        (, , uint256 _to) = router.addLiquidity(
             token0,
             token1,
             IERC20(token0).balanceOf(address(this)),
@@ -198,11 +227,19 @@ contract CurveUniJarConverter {
         return _to;
     }
 
-    function refundExcessToken(IUniswapV2Pair pair, address recipient) internal {
+    function refundExcessToken(IUniswapV2Pair pair, address recipient)
+        internal
+    {
         address token0 = pair.token0();
         address token1 = pair.token1();
 
-        IERC20(token0).safeTransfer(recipient, IERC20(token0).balanceOf(address(this)));
-        IERC20(token1).safeTransfer(recipient, IERC20(token1).balanceOf(address(this)));
+        IERC20(token0).safeTransfer(
+            recipient,
+            IERC20(token0).balanceOf(address(this))
+        );
+        IERC20(token1).safeTransfer(
+            recipient,
+            IERC20(token1).balanceOf(address(this))
+        );
     }
 }

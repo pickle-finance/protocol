@@ -158,6 +158,28 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
         uint256 toCurveUnderlyingIndex;
     }
 
+    // Some post swap checks
+    // Checks if there's any leftover funds in the converter contract
+    function _post_swap_check(uint256 fromIndex, uint256 toIndex) internal {
+        IERC20 token0 = curvePickleJars[fromIndex].token();
+        IERC20 token1 = curvePickleJars[toIndex].token();
+
+        uint256 MAX_DUST = 10;
+
+        // No funds left behind
+        assertEq(curvePickleJars[fromIndex].balanceOf(address(controller)), 0);
+        assertEq(curvePickleJars[toIndex].balanceOf(address(controller)), 0);
+        assertTrue(token0.balanceOf(address(controller)) < MAX_DUST);
+        assertTrue(token1.balanceOf(address(controller)) < MAX_DUST);
+        assertEq(token0.balanceOf(address(curveCurveJarConverter)), 0);
+        assertEq(token1.balanceOf(address(curveCurveJarConverter)), 0);
+
+        // Make sure only controller can call 'withdrawForSwap'
+        try curveStrategies[fromIndex].withdrawForSwap(0)  {
+            revert("!withdraw-for-swap-only-controller");
+        } catch {}
+    }
+
     function _test_curve_curve_swap(
         uint256 fromIndex,
         uint256 toIndex,
@@ -298,6 +320,7 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
                 toCurveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_curve_0_2() public {
@@ -342,6 +365,7 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
                 toCurveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_curve_1_0() public {
@@ -386,6 +410,7 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
                 toCurveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_curve_1_2() public {
@@ -430,6 +455,7 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
                 toCurveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_curve_2_0() public {
@@ -474,6 +500,7 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
                 toCurveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_curve_2_1() public {
@@ -518,5 +545,6 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
                 toCurveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 }

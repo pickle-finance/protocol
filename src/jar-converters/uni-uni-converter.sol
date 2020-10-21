@@ -30,7 +30,7 @@ contract UniUniJarConverter {
         address toUnderlying; // The other side of the weth pair
     }
 
-    // Curve LP -> Uni LP
+    // Uni LP -> Uni LP
     function convert(
         address _refundExcess, // address to send the excess amount
         uint256 _amount, // UNI LP Amount
@@ -59,8 +59,11 @@ contract UniUniJarConverter {
         // Remove liquidity from Uniswap
         removeUniswapLiquidity(fromPair);
 
-        // Swap fromUnderlying -> weth -> toUnderlying
-        swapUniswap(params.fromUnderlying, params.toUnderlying);
+        // Swap fromUnderlying -> weth
+        swapUniswap(params.fromUnderlying, weth);
+
+        // Optimal swap from weth -> to.Underlying
+        optimalUniswapOneSideSupply(toPair, weth, params.toUnderlying);
 
         // Supply liquidity and send LP tokens received to msg.sender
         uint256 _to = supplyUniswapLiquidity(
@@ -75,22 +78,78 @@ contract UniUniJarConverter {
         return _to;
     }
 
-    function swapUniswap(address from, address to) internal {
-        address[] memory path = new address[](3);
-        path[0] = from;
-        path[1] = weth;
-        path[2] = to;
-
-        if (from == weth && to == weth) {
-            revert("weth-pair");
+    // babylonian method (https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method)
+    function sqrt(uint256 y) internal pure returns (uint256 z) {
+        if (y > 3) {
+            z = y;
+            uint256 x = y / 2 + 1;
+            while (x < z) {
+                z = x;
+                x = (y / x + x) / 2;
+            }
+        } else if (y != 0) {
+            z = 1;
         }
+    }
 
-        uint256 _from = IERC20(from).balanceOf(address(this));
+    function getSwapAmt(uint256 amtA, uint256 resA)
+        internal
+        pure
+        returns (uint256)
+    {
+        return
+            sqrt(amtA.mul(resA.mul(3988000).add(amtA.mul(3988009))))
+                .sub(amtA.mul(1997))
+                .div(1994);
+    }
+
+    // https://blog.alphafinance.io/onesideduniswap/
+    // https://github.com/AlphaFinanceLab/alphahomora/blob/88a8dfe4d4fa62b13b40f7983ee2c646f83e63b5/contracts/StrategyAddETHOnly.sol#L39
+    // AlphaFinance is gripbook licensed
+    function optimalUniswapOneSideSupply(
+        IUniswapV2Pair pair,
+        address from,
+        address to
+    ) internal {
+        address[] memory path = new address[](2);
+
+        // 1. Compute optimal amount of WETH to be converted
+        (uint256 r0, uint256 r1, ) = pair.getReserves();
+        uint256 rIn = pair.token0() == from ? r0 : r1;
+        uint256 aIn = getSwapAmt(rIn, IERC20(from).balanceOf(address(this)));
+
+        // 2. Convert that from -> to
+        path[0] = from;
+        path[1] = to;
 
         IERC20(from).safeApprove(address(router), 0);
-        IERC20(from).safeApprove(address(router), _from);
+        IERC20(from).safeApprove(address(router), aIn);
+
+        router.swapExactTokensForTokens(aIn, 0, path, address(this), now + 60);
+    }
+
+    function swapUniswap(address from, address to) internal {
+        require(to != address(0));
+
+        address[] memory path;
+
+        if (from == weth || to == weth) {
+            path = new address[](2);
+            path[0] = from;
+            path[1] = to;
+        } else {
+            path = new address[](3);
+            path[0] = from;
+            path[1] = weth;
+            path[2] = to;
+        }
+
+        uint256 amount = IERC20(from).balanceOf(address(this));
+
+        IERC20(from).safeApprove(address(router), 0);
+        IERC20(from).safeApprove(address(router), amount);
         router.swapExactTokensForTokens(
-            _from,
+            amount,
             0,
             path,
             address(this),

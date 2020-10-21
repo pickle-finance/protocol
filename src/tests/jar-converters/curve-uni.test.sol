@@ -229,13 +229,42 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
         uint256 curveUnderlyingIndex;
     }
 
+    // Some post swap checks
+    // Checks if there's any leftover funds in the converter contract
+    function _post_swap_check(uint256 fromIndex, uint256 toIndex) internal {
+        IERC20 token0 = curvePickleJars[fromIndex].token();
+        IUniswapV2Pair token1 = IUniswapV2Pair(
+            address(uniPickleJars[toIndex].token())
+        );
+
+        uint256 MAX_DUST = 1000;
+
+        // No funds left behind
+        assertEq(curvePickleJars[fromIndex].balanceOf(address(controller)), 0);
+        assertEq(uniPickleJars[toIndex].balanceOf(address(controller)), 0);
+        assertTrue(token0.balanceOf(address(controller)) < MAX_DUST);
+        assertTrue(token1.balanceOf(address(controller)) < MAX_DUST);
+        assertEq(token0.balanceOf(address(curveUniJarConverter)), 0);
+        assertEq(token1.balanceOf(address(curveUniJarConverter)), 0);
+
+        // Curve -> UNI LP should be optimal supply
+        // Note: We refund the access, which is why its checking this balance
+        assertTrue(IERC20(token1.token0()).balanceOf(address(this)) < MAX_DUST);
+        assertTrue(IERC20(token1.token1()).balanceOf(address(this)) < MAX_DUST);
+
+        // Make sure only controller can call 'withdrawForSwap'
+        try curveStrategies[fromIndex].withdrawForSwap(0)  {
+            revert("!withdraw-for-swap-only-controller");
+        } catch {}
+    }
+
     function _test_curve_uni_swap(bytes memory _data) internal {
         TestParams memory params = abi.decode(_data, (TestParams));
 
         // Deposit into PickleJars
         address from = address(curvePickleJars[params.fromIndex].token());
 
-        _getCurveLP(params.curvePool, params.fromUnderlyingAmount);
+        _getCurveLP(params.curvePool, params.fromUnderlyingAmount * 10);
 
         uint256 _from = IERC20(from).balanceOf(address(this));
         IERC20(from).approve(address(curvePickleJars[params.fromIndex]), _from);
@@ -327,7 +356,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
 
         address curvePool = three_pool;
         bytes4 curveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[3])"))
+            keccak256(bytes("remove_liquidity_one_coin(uint256,int128,uint256)"))
         );
         uint256 curvePoolSize = uint256(3);
         uint256 curveUnderlyingIndex = uint256(0);
@@ -349,6 +378,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_uni_0_1() public {
@@ -360,7 +390,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
 
         address curvePool = three_pool;
         bytes4 curveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[3])"))
+            keccak256(bytes("remove_liquidity_one_coin(uint256,int128,uint256)"))
         );
         uint256 curvePoolSize = uint256(3);
         uint256 curveUnderlyingIndex = uint256(0);
@@ -382,6 +412,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_uni_0_2() public {
@@ -393,7 +424,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
 
         address curvePool = three_pool;
         bytes4 curveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[3])"))
+            keccak256(bytes("remove_liquidity_one_coin(uint256,int128,uint256)"))
         );
         uint256 curvePoolSize = uint256(3);
         uint256 curveUnderlyingIndex = uint256(0);
@@ -415,6 +446,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_uni_0_3() public {
@@ -426,7 +458,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
 
         address curvePool = three_pool;
         bytes4 curveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[3])"))
+            keccak256(bytes("remove_liquidity_one_coin(uint256,int128,uint256)"))
         );
         uint256 curvePoolSize = uint256(3);
         uint256 curveUnderlyingIndex = uint256(0);
@@ -448,6 +480,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_uni_1_0() public {
@@ -457,9 +490,9 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
         address fromUnderlying = dai;
         uint256 fromUnderlyingAmount = 400e18;
 
-        address curvePool = susdv2_pool;
+        address curvePool = susdv2_deposit;
         bytes4 curveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[4])"))
+            keccak256(bytes("remove_liquidity_one_coin(uint256,int128,uint256)"))
         );
         uint256 curvePoolSize = uint256(4);
         uint256 curveUnderlyingIndex = uint256(0);
@@ -481,6 +514,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_uni_1_1() public {
@@ -490,9 +524,9 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
         address fromUnderlying = dai;
         uint256 fromUnderlyingAmount = 400e18;
 
-        address curvePool = susdv2_pool;
+        address curvePool = susdv2_deposit;
         bytes4 curveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[4])"))
+            keccak256(bytes("remove_liquidity_one_coin(uint256,int128,uint256)"))
         );
         uint256 curvePoolSize = uint256(4);
         uint256 curveUnderlyingIndex = uint256(0);
@@ -514,6 +548,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_uni_1_2() public {
@@ -523,9 +558,9 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
         address fromUnderlying = dai;
         uint256 fromUnderlyingAmount = 400e18;
 
-        address curvePool = susdv2_pool;
+        address curvePool = susdv2_deposit;
         bytes4 curveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[4])"))
+            keccak256(bytes("remove_liquidity_one_coin(uint256,int128,uint256)"))
         );
         uint256 curvePoolSize = uint256(4);
         uint256 curveUnderlyingIndex = uint256(0);
@@ -547,6 +582,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_uni_1_3() public {
@@ -556,9 +592,9 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
         address fromUnderlying = dai;
         uint256 fromUnderlyingAmount = 400e18;
 
-        address curvePool = susdv2_pool;
+        address curvePool = susdv2_deposit;
         bytes4 curveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[4])"))
+            keccak256(bytes("remove_liquidity_one_coin(uint256,int128,uint256)"))
         );
         uint256 curvePoolSize = uint256(4);
         uint256 curveUnderlyingIndex = uint256(0);
@@ -580,6 +616,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_uni_2_0() public {
@@ -591,10 +628,10 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
 
         address curvePool = ren_pool;
         bytes4 curveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[2])"))
+            keccak256(bytes("remove_liquidity_one_coin(uint256,int128,uint256)"))
         );
         uint256 curvePoolSize = uint256(2);
-        uint256 curveUnderlyingIndex = uint256(0);
+        uint256 curveUnderlyingIndex = uint256(1);
 
         address toWant = univ2Factory.getPair(weth, dai);
         address toUnderlying = dai;
@@ -613,6 +650,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_uni_2_1() public {
@@ -624,10 +662,10 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
 
         address curvePool = ren_pool;
         bytes4 curveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[2])"))
+            keccak256(bytes("remove_liquidity_one_coin(uint256,int128,uint256)"))
         );
         uint256 curvePoolSize = uint256(2);
-        uint256 curveUnderlyingIndex = uint256(0);
+        uint256 curveUnderlyingIndex = uint256(1);
 
         address toWant = univ2Factory.getPair(weth, usdc);
         address toUnderlying = usdc;
@@ -646,6 +684,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_uni_2_2() public {
@@ -657,10 +696,10 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
 
         address curvePool = ren_pool;
         bytes4 curveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[2])"))
+            keccak256(bytes("remove_liquidity_one_coin(uint256,int128,uint256)"))
         );
         uint256 curvePoolSize = uint256(2);
-        uint256 curveUnderlyingIndex = uint256(0);
+        uint256 curveUnderlyingIndex = uint256(1);
 
         address toWant = univ2Factory.getPair(weth, usdt);
         address toUnderlying = usdt;
@@ -679,6 +718,7 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 
     function test_jar_converter_curve_uni_2_3() public {
@@ -690,10 +730,10 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
 
         address curvePool = ren_pool;
         bytes4 curveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[2])"))
+            keccak256(bytes("remove_liquidity_one_coin(uint256,int128,uint256)"))
         );
         uint256 curvePoolSize = uint256(2);
-        uint256 curveUnderlyingIndex = uint256(0);
+        uint256 curveUnderlyingIndex = uint256(1);
 
         address toWant = univ2Factory.getPair(weth, wbtc);
         address toUnderlying = wbtc;
@@ -712,5 +752,6 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
                 curveUnderlyingIndex
             )
         );
+        _post_swap_check(fromIndex, toIndex);
     }
 }

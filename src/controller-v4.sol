@@ -275,7 +275,7 @@ contract ControllerV4 {
         // Call 'withdrawForSwap' on Jar's current strategy if Jar
         // doesn't have enough initial capital.
         // This has moves the funds from the strategy to the Jar's
-        // 'earnable' amount. Enabling free withdrawals
+        // 'earnable' amount. Enabling 'free' withdrawals
         uint256 _fromJarAvailUnderlying = IERC20(_fromJarToken).balanceOf(_fromJar);
         if (_fromJarAvailUnderlying < _fromJarUnderlyingAmount) {
             IStrategy(strategies[_fromJarToken]).withdrawForSwap(
@@ -287,7 +287,7 @@ contract ControllerV4 {
         // Note: this is free since its still within the "earnable" amount
         //       as we transferred the access
         IERC20(_fromJar).safeApprove(_fromJar, 0);
-        IERC20(_fromJar).safeApprove(_fromJar, uint256(-1));
+        IERC20(_fromJar).safeApprove(_fromJar, _fromJarAmount);
         IJar(_fromJar).withdraw(_fromJarAmount);
 
         // Calculate swap fee

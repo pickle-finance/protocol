@@ -75,7 +75,6 @@ const deployContract = async ({
 
   if (constructor) {
     const inputs = constructor.inputs.map((x) => x.name);
-    const inputTypes = constructor.inputs.map((x) => x.type);
     if (inputs.length !== args.length) {
       console.log(
         chalk.red(
