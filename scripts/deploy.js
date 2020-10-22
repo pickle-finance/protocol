@@ -90,26 +90,24 @@ const main = async () => {
 
   // Deploy converters
   const converters = [
-    ["CurveCurve", KEYS.Pickle.Converters.CurveCurve],
-    ["CurveUni", KEYS.Pickle.Converters.CurveUni],
-    ["UniCurve", KEYS.Pickle.Converters.UniCurve],
-    ["UniUni", KEYS.Pickle.Converters.UniUni],
+    ["CurveProxyLogic", KEYS.Pickle.ProxyLogic.Curve],
+    ["UniswapV2ProxyLogic", KEYS.Pickle.ProxyLogic.UniswapV2],
   ];
 
   for (const [converterName, key] of converters) {
-    const Converter = await deployContract({
+    const ProxyLogic = await deployContract({
       name: converterName,
-      abi: ABIS.Pickle.Converters[converterName],
-      bytecode: BYTECODE.Pickle.Converters[converterName],
+      abi: ABIS.Pickle.ProxyLogic[converterName],
+      bytecode: BYTECODE.Pickle.ProxyLogic[converterName],
       args: [],
       deployer,
       user: deployer,
     });
-    const tx = await ControllerV4.approveJarConverter(Converter.address);
+    const tx = await ControllerV4.approveJarConverter(ProxyLogic.address);
     await tx.wait();
 
     const approved = await ControllerV4.approvedJarConverters(
-      Converter.address
+      ProxyLogic.address
     );
 
     if (!approved) {
@@ -118,7 +116,7 @@ const main = async () => {
     }
 
     verifyCliCmds.push(
-      `DAPP_ROOT=$(pwd) DAPP_JSON=out/dapp.sol.json ./scripts/verify.sh ${key} ${Converter.address}`
+      `DAPP_ROOT=$(pwd) DAPP_JSON=out/dapp.sol.json ./scripts/verify.sh ${key} ${ProxyLogic.address}`
     );
   }
 

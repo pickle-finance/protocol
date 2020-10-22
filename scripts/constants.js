@@ -25,14 +25,9 @@ const KEYS = {
   Pickle: {
     PickleJar: "src/pickle-jar.sol:PickleJar",
     ControllerV4: "src/controller-v4.sol:ControllerV4",
-    Converters: {
-      CurveCurve:
-        "src/jar-converters/curve-curve-converter.sol:CurveCurveJarConverter",
-      CurveUni:
-        "src/jar-converters/curve-uni-converter.sol:CurveUniJarConverter",
-      UniCurve:
-        "src/jar-converters/uni-curve-converter.sol:UniCurveJarConverter",
-      UniUni: "src/jar-converters/uni-uni-converter.sol:UniUniJarConverter",
+    ProxyLogic: {
+      Curve: "src/proxy-logic/curve.sol:CurveProxyLogic",
+      UniswapV2: "src/proxy-logic/uniswapv2.sol:UniswapV2ProxyLogic",
     },
     Strategies: {
       StrategyCmpdDaiV2:
@@ -58,10 +53,8 @@ const KEYS = {
 const PickleJar = DAPP_CONTRACTS[KEYS.Pickle.PickleJar];
 const ControllerV4 = DAPP_CONTRACTS[KEYS.Pickle.ControllerV4];
 
-const CurveCurve = DAPP_CONTRACTS[KEYS.Pickle.Converters.CurveCurve];
-const CurveUni = DAPP_CONTRACTS[KEYS.Pickle.Converters.CurveUni];
-const UniCurve = DAPP_CONTRACTS[KEYS.Pickle.Converters.UniCurve];
-const UniUni = DAPP_CONTRACTS[KEYS.Pickle.Converters.UniUni];
+const CurveProxyLogic = DAPP_CONTRACTS[KEYS.Pickle.ProxyLogic.Curve];
+const UniswapV2ProxyLogic = DAPP_CONTRACTS[KEYS.Pickle.ProxyLogic.UniswapV2];
 
 const StrategyCmpdDaiV2 =
   DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyCmpdDaiV2];
@@ -84,11 +77,9 @@ const ABIS = {
   Pickle: {
     PickleJar: PickleJar.abi,
     ControllerV4: ControllerV4.abi,
-    Converters: {
-      CurveCurve: CurveCurve.abi,
-      CurveUni: CurveUni.abi,
-      UniCurve: UniCurve.abi,
-      UniUni: UniUni.abi,
+    ProxyLogic: {
+      CurveProxyLogic: CurveProxyLogic.abi,
+      UniswapV2ProxyLogic: UniswapV2ProxyLogic.abi,
     },
     Strategies: {
       StrategyCmpdDaiV2: StrategyCmpdDaiV2.abi,
@@ -110,11 +101,9 @@ const BYTECODE = {
   Pickle: {
     PickleJar: PickleJar.bin,
     ControllerV4: ControllerV4.bin,
-    Converters: {
-      CurveCurve: CurveCurve.bin,
-      CurveUni: CurveUni.bin,
-      UniCurve: UniCurve.bin,
-      UniUni: UniUni.bin,
+    ProxyLogic: {
+      CurveProxyLogic: CurveProxyLogic.bin,
+      UniswapV2ProxyLogic: UniswapV2ProxyLogic.bin,
     },
     Strategies: {
       StrategyCmpdDaiV2: StrategyCmpdDaiV2.bin,
