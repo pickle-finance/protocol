@@ -104,15 +104,6 @@ abstract contract StrategyUniFarmBase is StrategyStakingRewardsBase {
         }
 
         // We want to get back UNI LP tokens
-        uint256 _want = IERC20(want).balanceOf(address(this));
-        if (_want > 0) {
-            // Performance fee
-            IERC20(want).safeTransfer(
-                IController(controller).treasury(),
-                _want.mul(performanceFee).div(performanceMax)
-            );
-
-            deposit();
-        }
+        _distributePerformanceFeesAndDeposit();
     }
 }

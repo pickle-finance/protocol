@@ -148,15 +148,6 @@ contract StrategyCurveSCRVv3_2 is StrategyCurveBase {
         }
 
         // We want to get back sCRV
-        uint256 _want = IERC20(want).balanceOf(address(this));
-        if (_want > 0) {
-            // Fees 4.5% goes to treasury
-            IERC20(want).safeTransfer(
-                IController(controller).treasury(),
-                _want.mul(performanceFee).div(performanceMax)
-            );
-
-            deposit();
-        }
+        _distributePerformanceFeesAndDeposit();
     }
 }

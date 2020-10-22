@@ -103,8 +103,17 @@ const main = async () => {
       deployer,
       user: deployer,
     });
-    const tx = await ControllerV4.approveJarConverter(ProxyLogic.address);
+
+    const gasPrice = await deployer.provider.getGasPrice();
+    const fastGasPrice = gasPrice
+      .mul(ethers.BigNumber.from(125))
+      .div(ethers.BigNumber.from(100));
+    console.log(chalk.gray("approvingJarConverter..."));
+    const tx = await ControllerV4.approveJarConverter(ProxyLogic.address, {
+      gasPrice: fastGasPrice,
+    });
     await tx.wait();
+    console.log(chalk.gray(`approvingJarConverter tx: ${tx.hash}`));
 
     const approved = await ControllerV4.approvedJarConverters(
       ProxyLogic.address

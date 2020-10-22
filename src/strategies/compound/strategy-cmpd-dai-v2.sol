@@ -344,16 +344,7 @@ contract StrategyCmpdDaiV2 is StrategyBase, Exponential {
             _swapUniswap(comp, want, _comp);
         }
 
-        uint256 _want = IERC20(want).balanceOf(address(this));
-        if (_want > 0) {
-            // Fees 4.5% goes to treasury
-            IERC20(want).safeTransfer(
-                IController(controller).treasury(),
-                _want.mul(performanceFee).div(performanceMax)
-            );
-
-            deposit();
-        }
+        _distributePerformanceFeesAndDeposit();
     }
 
     function deposit() public override {
