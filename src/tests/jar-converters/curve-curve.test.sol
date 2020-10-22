@@ -14,8 +14,6 @@ import "../../interfaces/uniswapv2.sol";
 import "../../pickle-jar.sol";
 import "../../controller-v4.sol";
 
-import "../../jar-converters/curve-curve-converter.sol";
-
 import "../../proxy-logic/curve.sol";
 import "../../proxy-logic/uniswapv2.sol";
 
@@ -238,7 +236,7 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
     }
 
     function _get_uniswap_pl_swap_data(address from, address to)
-        internal
+        internal pure
         returns (bytes memory)
     {
         return

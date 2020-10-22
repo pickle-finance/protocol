@@ -170,6 +170,28 @@ contract DSTestDefiBase is DSTestApprox {
         return bytes4(keccak256(bytes(sig)));
     }
 
+    function _getDynamicArray(address payable one)
+        internal
+        pure
+        returns (address payable[] memory)
+    {
+        address payable[] memory targets = new address payable[](1);
+        targets[0] = one;
+
+        return targets;
+    }
+
+    function _getDynamicArray(bytes memory one)
+        internal
+        pure
+        returns (bytes[] memory)
+    {
+        bytes[] memory data = new bytes[](1);
+        data[0] = one;
+
+        return data;
+    }
+
     function _getDynamicArray(address payable one, address payable two)
         internal
         pure

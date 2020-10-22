@@ -51,7 +51,7 @@ contract UniswapV2ProxyLogic {
     // https://blog.alphafinance.io/onesideduniswap/
     // https://github.com/AlphaFinanceLab/alphahomora/blob/88a8dfe4d4fa62b13b40f7983ee2c646f83e63b5/contracts/StrategyAddETHOnly.sol#L39
     // AlphaFinance is gripbook licensed
-    function uniswapOptimalOneSideSupply(
+    function optimalOneSideSupply(
         IUniswapV2Pair pair,
         address from,
         address to
@@ -102,7 +102,7 @@ contract UniswapV2ProxyLogic {
         );
     }
 
-    function removeUniswapLiquidity(IUniswapV2Pair pair) public {
+    function removeLiquidity(IUniswapV2Pair pair) public {
         uint256 _balance = pair.balanceOf(address(this));
         pair.approve(address(router), _balance);
 
@@ -117,8 +117,7 @@ contract UniswapV2ProxyLogic {
         );
     }
 
-    function supplyUniswapLiquidity(
-        address recipient,
+    function supplyLiquidity(
         address token0,
         address token1
     ) public returns (uint256) {
@@ -142,16 +141,14 @@ contract UniswapV2ProxyLogic {
             IERC20(token1).balanceOf(address(this)),
             0,
             0,
-            recipient,
+            address(this),
             now + 60
         );
 
         return _to;
     }
 
-    function refundExcessToken(IUniswapV2Pair pair, address recipient)
-        public
-    {
+    function refundDust(IUniswapV2Pair pair, address recipient) public {
         address token0 = pair.token0();
         address token1 = pair.token1();
 
@@ -163,5 +160,63 @@ contract UniswapV2ProxyLogic {
             recipient,
             IERC20(token1).balanceOf(address(this))
         );
+    }
+
+    function primitiveToLpTokens(
+        address from,
+        IUniswapV2Pair to,
+        address dustRecipient
+    ) public {
+        if (to.token0() != weth && to.token1() != weth) {
+            revert("!to-weth-pair");
+        }
+
+        address toOther = to.token0() == weth ? to.token1() : to.token0();
+
+        // Swap to WETH
+        swapUniswap(from, weth);
+
+        // Optimal supply from WETH to
+        optimalOneSideSupply(to, weth, toOther);
+
+        // Supply tokens
+        supplyLiquidity(weth, toOther);
+
+        // Dust
+        refundDust(to, dustRecipient);
+    }
+
+    function swapUniLPTokens(
+        IUniswapV2Pair from,
+        IUniswapV2Pair to,
+        address dustRecipient
+    ) public {
+        if (from.token0() != weth && from.token1() != weth) {
+            revert("!from-weth-pair");
+        }
+
+        if (to.token0() != weth && to.token1() != weth) {
+            revert("!to-weth-pair");
+        }
+
+        address fromOther = from.token0() == weth
+            ? from.token1()
+            : from.token0();
+
+        address toOther = to.token0() == weth ? to.token1() : to.token0();
+
+        removeLiquidity(from);
+
+        // Swap to WETH
+        swapUniswap(fromOther, weth);
+
+        // Optimal supply from WETH to
+        optimalOneSideSupply(to, weth, toOther);
+
+        // Supply tokens
+        supplyLiquidity(weth, toOther);
+
+        // Dust
+        refundDust(to, dustRecipient);
     }
 }
