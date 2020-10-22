@@ -162,6 +162,28 @@ contract UniswapV2ProxyLogic {
         );
     }
 
+    function lpTokensToPrimitive(
+        IUniswapV2Pair from,
+        address to
+    ) public {
+        if (from.token0() != weth && from.token1() != weth) {
+            revert("!from-weth-pair");
+        }
+
+        address fromOther = from.token0() == weth ? from.token1() : from.token0();
+
+        // Removes liquidity
+        removeLiquidity(from);
+
+        // Swap from WETH to other
+        swapUniswap(weth, to);
+
+        // If from is not to, we swap them too
+        if (fromOther != to) {
+            swapUniswap(fromOther, to);
+        }
+    }
+
     function primitiveToLpTokens(
         address from,
         IUniswapV2Pair to,
@@ -205,18 +227,19 @@ contract UniswapV2ProxyLogic {
 
         address toOther = to.token0() == weth ? to.token1() : to.token0();
 
+        // Remove weth-<token> pair
         removeLiquidity(from);
 
-        // Swap to WETH
+        // Swap <token> to WETH
         swapUniswap(fromOther, weth);
 
-        // Optimal supply from WETH to
+        // Optimal supply from WETH to <other-token>
         optimalOneSideSupply(to, weth, toOther);
 
-        // Supply tokens
+        // Supply weth-<other-token> pair
         supplyLiquidity(weth, toOther);
 
-        // Dust
+        // Refund dust
         refundDust(to, dustRecipient);
     }
 }
