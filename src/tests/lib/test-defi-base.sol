@@ -59,6 +59,9 @@ contract DSTestDefiBase is DSTestApprox {
 
     uint256 startTime = block.timestamp;
 
+    receive() external payable {}
+    fallback () external payable {}
+
     function _swap(
         address _from,
         address _to,
