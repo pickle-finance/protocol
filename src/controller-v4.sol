@@ -1,6 +1,7 @@
 // https://github.com/iearn-finance/jars/blob/master/contracts/controllers/StrategyControllerV1.sol
 
 pragma solidity ^0.6.7;
+pragma experimental ABIEncoderV2;
 
 import "./interfaces/controller.sol";
 
@@ -250,11 +251,16 @@ contract ControllerV4 {
         address _toJar, // To which Jar
         uint256 _fromJarAmount, // How much jar tokens to swap
         uint256 _toJarMinAmount, // How much jar tokens you'd like at a minimum
-        address _converter, // Address of the jar converter (must be approved)
-        bytes calldata _data // Generic data to be passed into the converter
+        address payable[] calldata _targets,
+        bytes[] calldata _data
     ) external returns (uint256) {
-        require(_converter != address(0), "!converter");
-        require(approvedJarConverters[_converter], "!converter");
+        require(_targets.length == _data.length, "!length");
+
+        // Only return last response
+        for (uint256 i = 0; i < _targets.length; i++) {
+            require(_targets[i] != address(0), "!converter");
+            require(approvedJarConverters[_targets[i]], "!converter");
+        }
 
         address _fromJarToken = IJar(_fromJar).token();
         address _toJarToken = IJar(_toJar).token();
@@ -276,7 +282,9 @@ contract ControllerV4 {
         // doesn't have enough initial capital.
         // This has moves the funds from the strategy to the Jar's
         // 'earnable' amount. Enabling 'free' withdrawals
-        uint256 _fromJarAvailUnderlying = IERC20(_fromJarToken).balanceOf(_fromJar);
+        uint256 _fromJarAvailUnderlying = IERC20(_fromJarToken).balanceOf(
+            _fromJar
+        );
         if (_fromJarAvailUnderlying < _fromJarUnderlyingAmount) {
             IStrategy(strategies[_fromJarToken]).withdrawForSwap(
                 _fromJarUnderlyingAmount.sub(_fromJarAvailUnderlying)
@@ -290,25 +298,23 @@ contract ControllerV4 {
         IERC20(_fromJar).safeApprove(_fromJar, _fromJarAmount);
         IJar(_fromJar).withdraw(_fromJarAmount);
 
-        // Calculate swap fee
+        // Calculate fee
         uint256 _fromUnderlyingBalance = IERC20(_fromJarToken).balanceOf(
             address(this)
         );
-        uint256 _swapFee = _fromUnderlyingBalance.mul(convenienceFee).div(
+        uint256 _convenienceFee = _fromUnderlyingBalance.mul(convenienceFee).div(
             convenienceFeeMax
         );
-        IERC20(_fromJarToken).safeTransfer(devfund, _swapFee.div(2));
-        IERC20(_fromJarToken).safeTransfer(treasury, _swapFee.div(2));
 
-        // Perform swaps
-        _fromUnderlyingBalance = _fromUnderlyingBalance.sub(_swapFee);
-        IERC20(_fromJarToken).safeApprove(_converter, 0);
-        IERC20(_fromJarToken).safeApprove(_converter, _fromUnderlyingBalance);
-        IJarConverter(_converter).convert(
-            msg.sender,
-            _fromUnderlyingBalance,
-            _data
-        );
+        if (_convenienceFee > 1) {
+            IERC20(_fromJarToken).safeTransfer(devfund, _convenienceFee.div(2));
+            IERC20(_fromJarToken).safeTransfer(treasury, _convenienceFee.div(2));
+        }
+
+        // Executes sequence of logic
+        for (uint256 i = 0; i < _targets.length; i++) {
+            _execute(_targets[i], _data[i]);
+        }
 
         // Deposit into new Jar
         uint256 _toBal = IERC20(_toJarToken).balanceOf(address(this));
@@ -322,11 +328,42 @@ contract ControllerV4 {
             revert("!min-jar-amount");
         }
 
-        IJar(_toJar).transfer(
-            msg.sender,
-            _toJarBal
-        );
+        IJar(_toJar).transfer(msg.sender, _toJarBal);
 
         return _toJarBal;
+    }
+
+    function _execute(address _target, bytes memory _data)
+        internal
+        returns (bytes memory response)
+    {
+        require(_target != address(0), "!target");
+
+        // call contract in current context
+        assembly {
+            let succeeded := delegatecall(
+                sub(gas(), 5000),
+                _target,
+                add(_data, 0x20),
+                mload(_data),
+                0,
+                0
+            )
+            let size := returndatasize()
+
+            response := mload(0x40)
+            mstore(
+                0x40,
+                add(response, and(add(add(size, 0x20), 0x1f), not(0x1f)))
+            )
+            mstore(response, size)
+            returndatacopy(add(response, 0x20), 0, size)
+
+            switch iszero(succeeded)
+                case 1 {
+                    // throw if delegatecall failed
+                    revert(add(response, 0x20), size)
+                }
+        }
     }
 }

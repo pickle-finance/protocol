@@ -25,7 +25,6 @@ interface ICurveFi_2 {
     function balances(int128) external view returns (uint256);
 }
 
-
 interface ICurveFi_3 {
     function get_virtual_price() external view returns (uint256);
 
@@ -114,6 +113,14 @@ interface ICurveZap_4 {
     function curve() external returns (address);
 
     function token() external returns (address);
+}
+
+interface ICurveZap {
+    function remove_liquidity_one_coin(
+        uint256 _token_amount,
+        int128 i,
+        uint256 min_uamount
+    ) external;
 }
 
 interface ICurveGauge {

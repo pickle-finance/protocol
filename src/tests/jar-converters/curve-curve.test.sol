@@ -16,6 +16,9 @@ import "../../controller-v4.sol";
 
 import "../../jar-converters/curve-curve-converter.sol";
 
+import "../../proxy-logic/curve.sol";
+import "../../proxy-logic/uniswapv2.sol";
+
 import "../../strategies/curve/strategy-curve-scrv-v3_2.sol";
 import "../../strategies/curve/strategy-curve-rencrv-v2.sol";
 import "../../strategies/curve/strategy-curve-3crv-v2.sol";
@@ -33,10 +36,11 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
 
     ControllerV4 controller;
 
-    CurveCurveJarConverter curveCurveJarConverter;
+    CurveProxyLogic curveProxyLogic;
+    UniswapV2ProxyLogic uniswapV2ProxyLogic;
 
-    // Contract wide variable to avoid stack too deep errors
-    uint256 temp;
+    address[] curvePools;
+    address[] curveLps;
 
     function setUp() public {
         governance = address(this);
@@ -56,6 +60,11 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
         // Curve Strategies
         curveStrategies = new IStrategy[](3);
         curvePickleJars = new PickleJar[](curveStrategies.length);
+        curveLps = new address[](curveStrategies.length);
+        curvePools = new address[](curveStrategies.length);
+
+        curveLps[0] = three_crv;
+        curvePools[0] = three_pool;
         curveStrategies[0] = IStrategy(
             address(
                 new StrategyCurve3CRVv2(
@@ -66,6 +75,8 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
                 )
             )
         );
+        curveLps[1] = scrv;
+        curvePools[1] = susdv2_pool;
         curveStrategies[1] = IStrategy(
             address(
                 new StrategyCurveSCRVv3_2(
@@ -76,6 +87,8 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
                 )
             )
         );
+        curveLps[2] = ren_crv;
+        curvePools[2] = ren_pool;
         curveStrategies[2] = IStrategy(
             address(
                 new StrategyCurveRenCRVv2(
@@ -110,9 +123,11 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
             );
         }
 
-        curveCurveJarConverter = new CurveCurveJarConverter();
+        curveProxyLogic = new CurveProxyLogic();
+        uniswapV2ProxyLogic = new UniswapV2ProxyLogic();
 
-        controller.approveJarConverter(address(curveCurveJarConverter));
+        controller.approveJarConverter(address(curveProxyLogic));
+        controller.approveJarConverter(address(uniswapV2ProxyLogic));
 
         hevm.warp(startTime);
     }
@@ -143,20 +158,8 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
         }
     }
 
-    struct TestParams {
-        address fromUnderlying;
-        address fromCurve;
-        address fromCurveLP;
-        bytes4 fromCurveFunctionSig;
-        uint256 fromCurvePoolSize;
-        uint256 fromCurveUnderlyingIndex;
-        address toUnderlying;
-        address toCurve;
-        address toCurveLP;
-        bytes4 toCurveFunctionSig;
-        uint256 toCurvePoolSize;
-        uint256 toCurveUnderlyingIndex;
-    }
+    // **** Internal functions **** //
+    // Theres so many internal functions due to stack blowing up
 
     // Some post swap checks
     // Checks if there's any leftover funds in the converter contract
@@ -171,8 +174,6 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
         assertEq(curvePickleJars[toIndex].balanceOf(address(controller)), 0);
         assertTrue(token0.balanceOf(address(controller)) < MAX_DUST);
         assertTrue(token1.balanceOf(address(controller)) < MAX_DUST);
-        assertEq(token0.balanceOf(address(curveCurveJarConverter)), 0);
-        assertEq(token1.balanceOf(address(curveCurveJarConverter)), 0);
 
         // Make sure only controller can call 'withdrawForSwap'
         try curveStrategies[fromIndex].withdrawForSwap(0)  {
@@ -180,25 +181,88 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
         } catch {}
     }
 
-    function _test_curve_curve_swap(
+    function _test_check_treasury_fee(uint256 _amount, uint256 earned)
+        internal
+    {
+        assertEqApprox(
+            _amount.mul(controller.convenienceFee()).div(
+                controller.convenienceFeeMax()
+            ),
+            earned.mul(2)
+        );
+    }
+
+    function _test_swap_and_check_balances(
+        address fromPickleJar,
+        address toPickleJar,
+        address fromPickleJarUnderlying,
+        uint256 fromPickleJarUnderlyingAmount,
+        address payable[] memory targets,
+        bytes[] memory data
+    ) internal {
+        uint256 _beforeTo = IERC20(toPickleJar).balanceOf(address(this));
+        uint256 _beforeFrom = IERC20(fromPickleJar).balanceOf(address(this));
+
+        uint256 _beforeDev = IERC20(fromPickleJarUnderlying).balanceOf(devfund);
+        uint256 _beforeTreasury = IERC20(fromPickleJarUnderlying).balanceOf(
+            treasury
+        );
+
+        uint256 _ret = controller.swapExactJarForJar(
+            fromPickleJar,
+            toPickleJar,
+            fromPickleJarUnderlyingAmount,
+            0, // Min receive amount
+            targets,
+            data
+        );
+
+        uint256 _afterTo = IERC20(toPickleJar).balanceOf(address(this));
+        uint256 _afterFrom = IERC20(fromPickleJar).balanceOf(address(this));
+
+        uint256 _afterDev = IERC20(fromPickleJarUnderlying).balanceOf(devfund);
+        uint256 _afterTreasury = IERC20(fromPickleJarUnderlying).balanceOf(
+            treasury
+        );
+
+        uint256 treasuryEarned = _afterTreasury.sub(_beforeTreasury);
+
+        assertEq(treasuryEarned, _afterDev.sub(_beforeDev));
+        assertTrue(treasuryEarned > 0);
+        _test_check_treasury_fee(fromPickleJarUnderlyingAmount, treasuryEarned);
+        assertTrue(_afterFrom < _beforeFrom);
+        assertTrue(_afterTo > _beforeTo);
+        assertTrue(_afterTo.sub(_beforeTo) > 0);
+        assertEq(_afterTo.sub(_beforeTo), _ret);
+        assertEq(_afterFrom, 0);
+    }
+
+    function _get_uniswap_pl_swap_data(address from, address to)
+        internal
+        returns (bytes memory)
+    {
+        return
+            abi.encodeWithSignature("swapUniswap(address,address)", from, to);
+    }
+
+    function _test_curve_curve(
         uint256 fromIndex,
         uint256 toIndex,
         uint256 amount,
-        bytes memory _data
-    ) internal {
-        TestParams memory params = abi.decode(_data, (TestParams));
+        address payable[] memory targets,
+        bytes[] memory data
+    ) public {
+        // Get LP
+        _getCurveLP(curvePools[fromIndex], amount);
 
-        // Deposit into PickleJars
+        // Deposit into pickle jars
         address from = address(curvePickleJars[fromIndex].token());
-
-        _getCurveLP(params.fromCurve, amount);
-
         uint256 _from = IERC20(from).balanceOf(address(this));
         IERC20(from).approve(address(curvePickleJars[fromIndex]), _from);
         curvePickleJars[fromIndex].deposit(_from);
         curvePickleJars[fromIndex].earn();
 
-        // Swap!
+        // Approve controller
         uint256 _fromPickleJar = IERC20(address(curvePickleJars[fromIndex]))
             .balanceOf(address(this));
         IERC20(address(curvePickleJars[fromIndex])).approve(
@@ -206,345 +270,292 @@ contract StrategyCurveCurveJarSwapTest is DSTestDefiBase {
             _fromPickleJar
         );
 
-        bytes memory data = abi.encode(
-            params.fromUnderlying,
-            params.fromCurve,
-            params.fromCurveLP,
-            params.fromCurveFunctionSig,
-            params.fromCurvePoolSize,
-            params.fromCurveUnderlyingIndex,
-            params.toUnderlying,
-            params.toCurve,
-            params.toCurveLP,
-            params.toCurveFunctionSig,
-            params.toCurvePoolSize,
-            params.toCurveUnderlyingIndex
-        );
-
-        // Check minimum amount
+        // Swap
         try
             controller.swapExactJarForJar(
                 address(curvePickleJars[fromIndex]),
                 address(curvePickleJars[toIndex]),
                 _fromPickleJar,
                 uint256(-1), // Min receive amount
-                address(curveCurveJarConverter),
+                targets,
                 data
             )
          {
-            revert("min-amount-should-fail");
+            revert("min-receive-amount");
         } catch {}
 
-        uint256 _beforeTo = IERC20(address(curvePickleJars[toIndex])).balanceOf(
-            address(this)
-        );
-        uint256 _beforeFrom = IERC20(address(curvePickleJars[fromIndex]))
-            .balanceOf(address(this));
-        uint256 _beforeDev = IERC20(from).balanceOf(devfund);
-        uint256 _beforeTreasury = IERC20(from).balanceOf(treasury);
-
-        temp = controller.swapExactJarForJar(
+        _test_swap_and_check_balances(
             address(curvePickleJars[fromIndex]),
             address(curvePickleJars[toIndex]),
+            from,
             _fromPickleJar,
-            0, // Min receive amount
-            address(curveCurveJarConverter),
+            targets,
             data
         );
 
-        uint256 _afterTo = IERC20(address(curvePickleJars[toIndex])).balanceOf(
-            address(this)
+        _post_swap_check(fromIndex, toIndex);
+    }
+
+    // **** Tests ****
+
+    function test_jar_converter_curve_curve_0() public {
+        uint256 fromIndex = 0;
+        uint256 toIndex = 1;
+        uint256 amount = 400e18;
+
+        int128 fromCurveUnderlyingIndex = 0;
+
+        bytes4 toCurveFunctionSig = _getFunctionSig(
+            "add_liquidity(uint256[4],uint256)"
         );
-        uint256 _afterFrom = IERC20(address(curvePickleJars[fromIndex]))
-            .balanceOf(address(this));
-        uint256 _afterDev = IERC20(from).balanceOf(devfund);
-        uint256 _afterTreasury = IERC20(from).balanceOf(treasury);
+        uint256 toCurvePoolSize = 4;
+        uint256 toCurveUnderlyingIndex = 0;
+        address toCurveUnderlying = dai;
 
-        uint256 treasuryEarned = _afterTreasury.sub(_beforeTreasury);
+        // Remove liquidity
+        address fromCurve = curvePools[fromIndex];
+        address fromCurveLp = curveLps[fromIndex];
 
-        assertEq(treasuryEarned, _afterDev.sub(_beforeDev));
-        assertTrue(treasuryEarned > 0);
-        assertEqApprox(
-            _fromPickleJar.mul(controller.convenienceFee()).div(
-                controller.convenienceFeeMax()
+        address payable target0 = payable(address(curveProxyLogic));
+        bytes memory data0 = abi.encodeWithSignature(
+            "remove_liquidity_one_coin(address,address,int128)",
+            fromCurve,
+            fromCurveLp,
+            fromCurveUnderlyingIndex
+        );
+
+        // Add liquidity
+        address toCurve = curvePools[toIndex];
+
+        address payable target1 = payable(address(curveProxyLogic));
+        bytes memory data1 = abi.encodeWithSignature(
+            "add_liquidity(address,bytes4,uint256,uint256,address)",
+            toCurve,
+            toCurveFunctionSig,
+            toCurvePoolSize,
+            toCurveUnderlyingIndex,
+            toCurveUnderlying
+        );
+
+        // Swap
+        _test_curve_curve(
+            fromIndex,
+            toIndex,
+            amount,
+            _getDynamicArray(target0, target1),
+            _getDynamicArray(data0, data1)
+        );
+    }
+
+    function test_jar_converter_curve_curve_1() public {
+        uint256 fromIndex = 0;
+        uint256 toIndex = 2;
+        uint256 amount = 400e18;
+
+        int128 fromCurveUnderlyingIndex = 0;
+
+        bytes4 toCurveFunctionSig = _getFunctionSig(
+            "add_liquidity(uint256[2],uint256)"
+        );
+        uint256 toCurvePoolSize = 2;
+        uint256 toCurveUnderlyingIndex = 1;
+        address toCurveUnderlying = wbtc;
+
+        // Remove liquidity
+        address fromCurve = curvePools[fromIndex];
+        address fromCurveLp = curveLps[fromIndex];
+
+        bytes memory data0 = abi.encodeWithSignature(
+            "remove_liquidity_one_coin(address,address,int128)",
+            fromCurve,
+            fromCurveLp,
+            fromCurveUnderlyingIndex
+        );
+
+        // Swap
+        bytes memory data1 = _get_uniswap_pl_swap_data(dai, toCurveUnderlying);
+
+        // Add liquidity
+        address toCurve = curvePools[toIndex];
+
+        bytes memory data2 = abi.encodeWithSignature(
+            "add_liquidity(address,bytes4,uint256,uint256,address)",
+            toCurve,
+            toCurveFunctionSig,
+            toCurvePoolSize,
+            toCurveUnderlyingIndex,
+            toCurveUnderlying
+        );
+
+        _test_curve_curve(
+            fromIndex,
+            toIndex,
+            amount,
+            _getDynamicArray(
+                payable(address(curveProxyLogic)),
+                payable(address(uniswapV2ProxyLogic)),
+                payable(address(curveProxyLogic))
             ),
-            treasuryEarned.mul(2)
+            _getDynamicArray(data0, data1, data2)
         );
-        assertTrue(_afterFrom < _beforeFrom);
-        assertTrue(_afterTo > _beforeTo);
-        assertTrue(_afterTo.sub(_beforeTo) > 0);
-        assertEq(_afterTo.sub(_beforeTo), temp);
-        assertEq(_afterFrom, 0);
     }
 
-    // Tests
-    function test_jar_converter_curve_curve_0_1() public {
-        uint256 fromIndex = 0;
-        uint256 toIndex = 1;
-        uint256 fromUnderlyingAmount = 400e18;
-
-        address fromUnderlying = dai;
-        address fromCurvePool = three_pool;
-        address fromCurveLP = three_crv;
-        bytes4 fromCurveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[3])"))
-        );
-        uint256 fromCurvePoolSize = uint256(3);
-        uint256 fromCurveUnderlyingIndex = uint256(0);
-
-        address toUnderlying = dai;
-        address toCurvePool = susdv2_pool;
-        address toCurveLP = scrv;
-        bytes4 toCurveFunctionSig = bytes4(
-            keccak256(bytes("add_liquidity(uint256[4],uint256)"))
-        );
-        uint256 toCurvePoolSize = uint256(4);
-        uint256 toCurveUnderlyingIndex = uint256(0);
-
-        _test_curve_curve_swap(
-            fromIndex,
-            toIndex,
-            fromUnderlyingAmount,
-            abi.encode(
-                fromUnderlying,
-                fromCurvePool,
-                fromCurveLP,
-                fromCurveFunctionSig,
-                fromCurvePoolSize,
-                fromCurveUnderlyingIndex,
-                toUnderlying,
-                toCurvePool,
-                toCurveLP,
-                toCurveFunctionSig,
-                toCurvePoolSize,
-                toCurveUnderlyingIndex
-            )
-        );
-        _post_swap_check(fromIndex, toIndex);
-    }
-
-    function test_jar_converter_curve_curve_0_2() public {
-        uint256 fromIndex = 0;
-        uint256 toIndex = 2;
-        uint256 fromUnderlyingAmount = 400e18;
-
-        address fromUnderlying = dai;
-        address fromCurvePool = three_pool;
-        address fromCurveLP = three_crv;
-        bytes4 fromCurveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[3])"))
-        );
-        uint256 fromCurvePoolSize = uint256(3);
-        uint256 fromCurveUnderlyingIndex = uint256(0);
-
-        address toUnderlying = wbtc;
-        address toCurvePool = ren_pool;
-        address toCurveLP = ren_crv;
-        bytes4 toCurveFunctionSig = bytes4(
-            keccak256(bytes("add_liquidity(uint256[2],uint256)"))
-        );
-        uint256 toCurvePoolSize = uint256(2);
-        uint256 toCurveUnderlyingIndex = uint256(1);
-
-        _test_curve_curve_swap(
-            fromIndex,
-            toIndex,
-            fromUnderlyingAmount,
-            abi.encode(
-                fromUnderlying,
-                fromCurvePool,
-                fromCurveLP,
-                fromCurveFunctionSig,
-                fromCurvePoolSize,
-                fromCurveUnderlyingIndex,
-                toUnderlying,
-                toCurvePool,
-                toCurveLP,
-                toCurveFunctionSig,
-                toCurvePoolSize,
-                toCurveUnderlyingIndex
-            )
-        );
-        _post_swap_check(fromIndex, toIndex);
-    }
-
-    function test_jar_converter_curve_curve_1_0() public {
+    function test_jar_converter_curve_curve_2() public {
         uint256 fromIndex = 1;
         uint256 toIndex = 0;
-        uint256 fromUnderlyingAmount = 400e18;
+        uint256 amount = 400e18;
 
-        address fromUnderlying = dai;
-        address fromCurvePool = susdv2_pool;
-        address fromCurveLP = scrv;
-        bytes4 fromCurveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[4])"))
+        int128 fromCurveUnderlyingIndex = 1;
+
+        bytes4 toCurveFunctionSig = _getFunctionSig(
+            "add_liquidity(uint256[3],uint256)"
         );
-        uint256 fromCurvePoolSize = uint256(4);
-        uint256 fromCurveUnderlyingIndex = uint256(0);
+        uint256 toCurvePoolSize = 3;
+        uint256 toCurveUnderlyingIndex = 2;
+        address toCurveUnderlying = usdt;
 
-        address toUnderlying = dai;
-        address toCurvePool = three_pool;
-        address toCurveLP = three_crv;
-        bytes4 toCurveFunctionSig = bytes4(
-            keccak256(bytes("add_liquidity(uint256[3],uint256)"))
+        // Remove liquidity
+        address fromCurve = susdv2_deposit; // curvePools[fromIndex];
+        address fromCurveLp = curveLps[fromIndex];
+
+        bytes memory data0 = abi.encodeWithSignature(
+            "remove_liquidity_one_coin(address,address,int128)",
+            fromCurve,
+            fromCurveLp,
+            fromCurveUnderlyingIndex
         );
-        uint256 toCurvePoolSize = uint256(3);
-        uint256 toCurveUnderlyingIndex = uint256(0);
 
-        _test_curve_curve_swap(
+        // Swap
+        bytes memory data1 = _get_uniswap_pl_swap_data(usdc, usdt);
+
+        // Add liquidity
+        address toCurve = curvePools[toIndex];
+
+        bytes memory data2 = abi.encodeWithSignature(
+            "add_liquidity(address,bytes4,uint256,uint256,address)",
+            toCurve,
+            toCurveFunctionSig,
+            toCurvePoolSize,
+            toCurveUnderlyingIndex,
+            toCurveUnderlying
+        );
+
+        _test_curve_curve(
             fromIndex,
             toIndex,
-            fromUnderlyingAmount,
-            abi.encode(
-                fromUnderlying,
-                fromCurvePool,
-                fromCurveLP,
-                fromCurveFunctionSig,
-                fromCurvePoolSize,
-                fromCurveUnderlyingIndex,
-                toUnderlying,
-                toCurvePool,
-                toCurveLP,
-                toCurveFunctionSig,
-                toCurvePoolSize,
-                toCurveUnderlyingIndex
-            )
+            amount,
+            _getDynamicArray(
+                payable(address(curveProxyLogic)),
+                payable(address(uniswapV2ProxyLogic)),
+                payable(address(curveProxyLogic))
+            ),
+            _getDynamicArray(data0, data1, data2)
         );
-        _post_swap_check(fromIndex, toIndex);
     }
 
-    function test_jar_converter_curve_curve_1_2() public {
-        uint256 fromIndex = 1;
-        uint256 toIndex = 2;
-        uint256 fromUnderlyingAmount = 400e18;
-
-        address fromUnderlying = dai;
-        address fromCurvePool = susdv2_pool;
-        address fromCurveLP = scrv;
-        bytes4 fromCurveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[4])"))
-        );
-        uint256 fromCurvePoolSize = uint256(4);
-        uint256 fromCurveUnderlyingIndex = uint256(0);
-
-        address toUnderlying = wbtc;
-        address toCurvePool = ren_pool;
-        address toCurveLP = ren_crv;
-        bytes4 toCurveFunctionSig = bytes4(
-            keccak256(bytes("add_liquidity(uint256[2],uint256)"))
-        );
-        uint256 toCurvePoolSize = uint256(2);
-        uint256 toCurveUnderlyingIndex = uint256(1);
-
-        _test_curve_curve_swap(
-            fromIndex,
-            toIndex,
-            fromUnderlyingAmount,
-            abi.encode(
-                fromUnderlying,
-                fromCurvePool,
-                fromCurveLP,
-                fromCurveFunctionSig,
-                fromCurvePoolSize,
-                fromCurveUnderlyingIndex,
-                toUnderlying,
-                toCurvePool,
-                toCurveLP,
-                toCurveFunctionSig,
-                toCurvePoolSize,
-                toCurveUnderlyingIndex
-            )
-        );
-        _post_swap_check(fromIndex, toIndex);
-    }
-
-    function test_jar_converter_curve_curve_2_0() public {
+    function test_jar_converter_curve_curve_3() public {
         uint256 fromIndex = 2;
         uint256 toIndex = 0;
-        uint256 fromUnderlyingAmount = 4e6;
+        uint256 amount = 4e6;
 
-        address fromUnderlying = wbtc;
-        address fromCurvePool = ren_pool;
-        address fromCurveLP = ren_crv;
-        bytes4 fromCurveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[2])"))
+        int128 fromCurveUnderlyingIndex = 1;
+
+        bytes4 toCurveFunctionSig = _getFunctionSig(
+            "add_liquidity(uint256[3],uint256)"
         );
-        uint256 fromCurvePoolSize = uint256(2);
-        uint256 fromCurveUnderlyingIndex = uint256(1);
+        uint256 toCurvePoolSize = 3;
+        uint256 toCurveUnderlyingIndex = 1;
+        address toCurveUnderlying = usdc;
 
-        address toUnderlying = dai;
-        address toCurvePool = three_pool;
-        address toCurveLP = three_crv;
-        bytes4 toCurveFunctionSig = bytes4(
-            keccak256(bytes("add_liquidity(uint256[3],uint256)"))
+        // Remove liquidity
+        address fromCurve = curvePools[fromIndex];
+        address fromCurveLp = curveLps[fromIndex];
+
+        bytes memory data0 = abi.encodeWithSignature(
+            "remove_liquidity_one_coin(address,address,int128)",
+            fromCurve,
+            fromCurveLp,
+            fromCurveUnderlyingIndex
         );
-        uint256 toCurvePoolSize = uint256(3);
-        uint256 toCurveUnderlyingIndex = uint256(0);
 
-        _test_curve_curve_swap(
+        // Swap
+        bytes memory data1 = _get_uniswap_pl_swap_data(wbtc, usdc);
+
+        // Add liquidity
+        address toCurve = curvePools[toIndex];
+
+        bytes memory data2 = abi.encodeWithSignature(
+            "add_liquidity(address,bytes4,uint256,uint256,address)",
+            toCurve,
+            toCurveFunctionSig,
+            toCurvePoolSize,
+            toCurveUnderlyingIndex,
+            toCurveUnderlying
+        );
+
+        _test_curve_curve(
             fromIndex,
             toIndex,
-            fromUnderlyingAmount,
-            abi.encode(
-                fromUnderlying,
-                fromCurvePool,
-                fromCurveLP,
-                fromCurveFunctionSig,
-                fromCurvePoolSize,
-                fromCurveUnderlyingIndex,
-                toUnderlying,
-                toCurvePool,
-                toCurveLP,
-                toCurveFunctionSig,
-                toCurvePoolSize,
-                toCurveUnderlyingIndex
-            )
+            amount,
+            _getDynamicArray(
+                payable(address(curveProxyLogic)),
+                payable(address(uniswapV2ProxyLogic)),
+                payable(address(curveProxyLogic))
+            ),
+            _getDynamicArray(data0, data1, data2)
         );
-        _post_swap_check(fromIndex, toIndex);
     }
 
-    function test_jar_converter_curve_curve_2_1() public {
-        uint256 fromIndex = 2;
-        uint256 toIndex = 1;
-        uint256 fromUnderlyingAmount = 4e6;
+    function test_jar_converter_curve_curve_4() public {
+        uint256 fromIndex = 1;
+        uint256 toIndex = 0;
+        uint256 amount = 400e18;
 
-        address fromUnderlying = wbtc;
-        address fromCurvePool = ren_pool;
-        address fromCurveLP = ren_crv;
-        bytes4 fromCurveFunctionSig = bytes4(
-            keccak256(bytes("remove_liquidity(uint256,uint256[2])"))
+        int128 fromCurveUnderlyingIndex = 2;
+
+        bytes4 toCurveFunctionSig = _getFunctionSig(
+            "add_liquidity(uint256[3],uint256)"
         );
-        uint256 fromCurvePoolSize = uint256(2);
-        uint256 fromCurveUnderlyingIndex = uint256(1);
+        uint256 toCurvePoolSize = 3;
+        uint256 toCurveUnderlyingIndex = 1;
+        address toCurveUnderlying = usdc;
 
-        address toUnderlying = dai;
-        address toCurvePool = susdv2_pool;
-        address toCurveLP = scrv;
-        bytes4 toCurveFunctionSig = bytes4(
-            keccak256(bytes("add_liquidity(uint256[4],uint256)"))
+        // Remove liquidity
+        address fromCurve = susdv2_deposit;
+        address fromCurveLp = curveLps[fromIndex];
+
+        bytes memory data0 = abi.encodeWithSignature(
+            "remove_liquidity_one_coin(address,address,int128)",
+            fromCurve,
+            fromCurveLp,
+            fromCurveUnderlyingIndex
         );
-        uint256 toCurvePoolSize = uint256(4);
-        uint256 toCurveUnderlyingIndex = uint256(0);
 
-        _test_curve_curve_swap(
+        // Swap
+        bytes memory data1 = _get_uniswap_pl_swap_data(usdt, usdc);
+
+        // Add liquidity
+        address toCurve = curvePools[toIndex];
+
+        bytes memory data2 = abi.encodeWithSignature(
+            "add_liquidity(address,bytes4,uint256,uint256,address)",
+            toCurve,
+            toCurveFunctionSig,
+            toCurvePoolSize,
+            toCurveUnderlyingIndex,
+            toCurveUnderlying
+        );
+
+        _test_curve_curve(
             fromIndex,
             toIndex,
-            fromUnderlyingAmount,
-            abi.encode(
-                fromUnderlying,
-                fromCurvePool,
-                fromCurveLP,
-                fromCurveFunctionSig,
-                fromCurvePoolSize,
-                fromCurveUnderlyingIndex,
-                toUnderlying,
-                toCurvePool,
-                toCurveLP,
-                toCurveFunctionSig,
-                toCurvePoolSize,
-                toCurveUnderlyingIndex
-            )
+            amount,
+            _getDynamicArray(
+                payable(address(curveProxyLogic)),
+                payable(address(uniswapV2ProxyLogic)),
+                payable(address(curveProxyLogic))
+            ),
+            _getDynamicArray(data0, data1, data2)
         );
-        _post_swap_check(fromIndex, toIndex);
     }
 }

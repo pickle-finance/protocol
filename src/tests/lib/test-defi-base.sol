@@ -53,7 +53,9 @@ contract DSTestDefiBase is DSTestApprox {
         0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f
     );
 
-    ICurveFi_4 curveSusdV2 = ICurveFi_4(0xA5407eAE9Ba41422680e2e00537571bcC53efBfD);
+    ICurveFi_4 curveSusdV2 = ICurveFi_4(
+        0xA5407eAE9Ba41422680e2e00537571bcC53efBfD
+    );
 
     uint256 startTime = block.timestamp;
 
@@ -162,5 +164,59 @@ contract DSTestDefiBase is DSTestApprox {
         uint256 _ethAmount
     ) internal {
         _getUniV2LPToken(univ2Factory.getPair(token0, token1), _ethAmount);
+    }
+
+    function _getFunctionSig(string memory sig) internal pure returns (bytes4) {
+        return bytes4(keccak256(bytes(sig)));
+    }
+
+    function _getDynamicArray(address payable one, address payable two)
+        internal
+        pure
+        returns (address payable[] memory)
+    {
+        address payable[] memory targets = new address payable[](2);
+        targets[0] = one;
+        targets[1] = two;
+
+        return targets;
+    }
+
+    function _getDynamicArray(bytes memory one, bytes memory two)
+        internal
+        pure
+        returns (bytes[] memory)
+    {
+        bytes[] memory data = new bytes[](2);
+        data[0] = one;
+        data[1] = two;
+
+        return data;
+    }
+
+    function _getDynamicArray(
+        address payable one,
+        address payable two,
+        address payable three
+    ) internal pure returns (address payable[] memory) {
+        address payable[] memory targets = new address payable[](3);
+        targets[0] = one;
+        targets[1] = two;
+        targets[2] = three;
+
+        return targets;
+    }
+
+    function _getDynamicArray(
+        bytes memory one,
+        bytes memory two,
+        bytes memory three
+    ) internal pure returns (bytes[] memory) {
+        bytes[] memory data = new bytes[](3);
+        data[0] = one;
+        data[1] = two;
+        data[2] = three;
+
+        return data;
     }
 }
