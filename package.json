@@ -3,6 +3,7 @@
     "chalk": "^4.1.0",
     "ethers": "^5.0.14",
     "inquirer": "^7.3.3",
+    "node-fetch": "^2.6.1",
     "ora": "^5.1.0"
   },
   "devDependencies": {

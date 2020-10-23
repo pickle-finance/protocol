@@ -39,6 +39,11 @@ const tempGov = deployer.address;
 const tempTimelock = deployer.address;
 
 const main = async () => {
+  if (!process.env.SOLC_FLAGS) {
+    console.log(chalk.redBright(`SOLC_FLAGS not present, aborting...`));
+    process.exit(1);
+  }
+
   console.log(chalk.redBright(`DEPLOYER: ${deployer.address}`));
   console.log(chalk.redBright(`PROVIDER_URL: ${provider.connection.url}`));
 
@@ -48,6 +53,7 @@ const main = async () => {
   const controllerArgs = [tempGov, strategist, tempTimelock, devfund, treasury];
   const ControllerV4 = await deployContract({
     name: "ControllerV4",
+    key: KEYS.Pickle.ControllerV4,
     abi: ABIS.Pickle.ControllerV4,
     bytecode: BYTECODE.Pickle.ControllerV4,
     args: controllerArgs,
@@ -97,6 +103,7 @@ const main = async () => {
   for (const [converterName, key] of converters) {
     const ProxyLogic = await deployContract({
       name: converterName,
+      key: KEYS.Pickle.ProxyLogic[converterName],
       abi: ABIS.Pickle.ProxyLogic[converterName],
       bytecode: BYTECODE.Pickle.ProxyLogic[converterName],
       args: [],
@@ -174,6 +181,7 @@ const main = async () => {
     const stratArgs = [governance, strategist, controller, timelock_12];
     const Strategy = await deployContract({
       name: stratName,
+      key: KEYS.Pickle.Strategies[stratName],
       abi: ABIS.Pickle.Strategies[stratName],
       bytecode: BYTECODE.Pickle.Strategies[stratName],
       args: stratArgs,
