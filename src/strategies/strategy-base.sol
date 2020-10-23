@@ -15,18 +15,21 @@ abstract contract StrategyBase {
     using Address for address;
     using SafeMath for uint256;
 
-    // Perfomance fee 4.5%
-    uint256 public performanceFee = 450;
-    uint256 public constant performanceMax = 10000;
+    // Perfomance fees - start with 4.5%
+    uint256 public performanceTreasuryFee = 450;
+    uint256 public constant performanceTreasuryMax = 10000;
+
+    uint256 public performanceDevFee = 0;
+    uint256 public constant performanceDevMax = 10000;
 
     // Withdrawal fee 0.5%
     // - 0.325% to treasury
     // - 0.175% to dev fund
-    uint256 public treasuryFee = 325;
-    uint256 public constant treasuryMax = 100000;
+    uint256 public withdrawalTreasuryFee = 325;
+    uint256 public constant withdrawalTreasuryMax = 100000;
 
-    uint256 public devFundFee = 175;
-    uint256 public constant devFundMax = 100000;
+    uint256 public withdrawalDevFundFee = 175;
+    uint256 public constant withdrawalDevFundMax = 100000;
 
     // Tokens
     address public want;
@@ -88,19 +91,26 @@ abstract contract StrategyBase {
 
     // **** Setters **** //
 
-    function setDevFundFee(uint256 _devFundFee) external {
+    function setWithdrawalDevFundFee(uint256 _withdrawalDevFundFee) external {
         require(msg.sender == timelock, "!timelock");
-        devFundFee = _devFundFee;
+        withdrawalDevFundFee = _withdrawalDevFundFee;
     }
 
-    function setTreasuryFee(uint256 _treasuryFee) external {
+    function setWithdrawalTreasuryFee(uint256 _withdrawalTreasuryFee) external {
         require(msg.sender == timelock, "!timelock");
-        treasuryFee = _treasuryFee;
+        withdrawalTreasuryFee = _withdrawalTreasuryFee;
     }
 
-    function setPerformanceFee(uint256 _performanceFee) external {
+    function setPerformanceDevFee(uint256 _performanceDevFee) external {
         require(msg.sender == timelock, "!timelock");
-        performanceFee = _performanceFee;
+        performanceDevFee = _performanceDevFee;
+    }
+
+    function setPerformanceTreasuryFee(uint256 _performanceTreasuryFee)
+        external
+    {
+        require(msg.sender == timelock, "!timelock");
+        performanceTreasuryFee = _performanceTreasuryFee;
     }
 
     function setStrategist(address _strategist) external {
@@ -143,10 +153,14 @@ abstract contract StrategyBase {
             _amount = _amount.add(_balance);
         }
 
-        uint256 _feeDev = _amount.mul(devFundFee).div(devFundMax);
+        uint256 _feeDev = _amount.mul(withdrawalDevFundFee).div(
+            withdrawalDevFundMax
+        );
         IERC20(want).safeTransfer(IController(controller).devfund(), _feeDev);
 
-        uint256 _feeTreasury = _amount.mul(treasuryFee).div(treasuryMax);
+        uint256 _feeTreasury = _amount.mul(withdrawalTreasuryFee).div(
+            withdrawalTreasuryMax
+        );
         IERC20(want).safeTransfer(
             IController(controller).treasury(),
             _feeTreasury
@@ -156,6 +170,21 @@ abstract contract StrategyBase {
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
 
         IERC20(want).safeTransfer(_jar, _amount.sub(_feeDev).sub(_feeTreasury));
+    }
+
+    // Withdraw funds, used to swap between strategies
+    function withdrawForSwap(uint256 _amount)
+        external
+        returns (uint256 balance)
+    {
+        require(msg.sender == controller, "!controller");
+        _withdrawSome(_amount);
+
+        balance = IERC20(want).balanceOf(address(this));
+
+        address _jar = IController(controller).jars(address(want));
+        require(_jar != address(0), "!jar");
+        IERC20(want).safeTransfer(_jar, balance);
     }
 
     // Withdraw all funds, normally used when migrating strategies
@@ -248,5 +277,25 @@ abstract contract StrategyBase {
             address(this),
             now.add(60)
         );
+    }
+
+    function _distributePerformanceFeesAndDeposit() internal {
+        uint256 _want = IERC20(want).balanceOf(address(this));
+
+        if (_want > 0) {
+            // Treasury fees
+            IERC20(want).safeTransfer(
+                IController(controller).treasury(),
+                _want.mul(performanceTreasuryFee).div(performanceTreasuryMax)
+            );
+
+            // Performance fee
+            IERC20(want).safeTransfer(
+                IController(controller).devfund(),
+                _want.mul(performanceDevFee).div(performanceDevMax)
+            );
+
+            deposit();
+        }
     }
 }

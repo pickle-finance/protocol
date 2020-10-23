@@ -12,7 +12,7 @@ import "../../interfaces/uniswapv2.sol";
 import "../../interfaces/controller.sol";
 import "../../interfaces/compound.sol";
 
-contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
+contract StrategyCmpdDaiV2 is StrategyBase, Exponential {
     address
         public constant comptroller = 0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B;
     address public constant lens = 0xd513d22422a3062Bd342Ae374b4b9c20E0a9a074;
@@ -69,7 +69,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {
-        return "StrategyCompoundDaiV1";
+        return "StrategyCmpdDaiV2";
     }
 
     function getSuppliedView() public view returns (uint256) {
@@ -344,16 +344,7 @@ contract StrategyCmpdDaiV1 is StrategyBase, Exponential {
             _swapUniswap(comp, want, _comp);
         }
 
-        uint256 _want = IERC20(want).balanceOf(address(this));
-        if (_want > 0) {
-            // Fees 4.5% goes to treasury
-            IERC20(want).safeTransfer(
-                IController(controller).treasury(),
-                _want.mul(performanceFee).div(performanceMax)
-            );
-
-            deposit();
-        }
+        _distributePerformanceFeesAndDeposit();
     }
 
     function deposit() public override {

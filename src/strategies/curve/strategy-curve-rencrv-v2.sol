@@ -11,7 +11,7 @@ import "../../interfaces/controller.sol";
 
 import "../strategy-curve-base.sol";
 
-contract StrategyCurveRenCRVv1 is StrategyCurveBase {
+contract StrategyCurveRenCRVv2 is StrategyCurveBase {
     // https://www.curve.fi/ren
     // Curve stuff
     address public ren_pool = 0x93054188d876f558f4a66B2EF1d97d16eDf0895B;
@@ -59,7 +59,7 @@ contract StrategyCurveRenCRVv1 is StrategyCurveBase {
     }
 
     function getName() external override pure returns (string memory) {
-        return "StrategyCurveRenCRVv1";
+        return "StrategyCurveRenCRVv2";
     }
 
     // **** State Mutations ****
@@ -103,16 +103,6 @@ contract StrategyCurveRenCRVv1 is StrategyCurveBase {
             ICurveFi_2(curve).add_liquidity(liquidity, 0);
         }
 
-        // We want to get back sCRV
-        uint256 _want = IERC20(want).balanceOf(address(this));
-        if (_want > 0) {
-            // Fees 4.5% goes to treasury
-            IERC20(want).safeTransfer(
-                IController(controller).treasury(),
-                _want.mul(performanceFee).div(performanceMax)
-            );
-
-            deposit();
-        }
+        _distributePerformanceFeesAndDeposit();
     }
 }

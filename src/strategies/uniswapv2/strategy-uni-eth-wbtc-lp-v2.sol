@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
+pragma solidity ^0.6.2;
 
 import "../strategy-uni-farm-base.sol";
 
-contract StrategyUniEthDaiLpV3_1 is StrategyUniFarmBase {
+contract StrategyUniEthWBtcLpV2 is StrategyUniFarmBase {
     // Token addresses
-    address public uni_rewards = 0xa1484C3aa22a66C62b77E0AE78E15258bd0cB711;
-    address public uni_eth_dai_lp = 0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11;
-    address public dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+    address public uni_rewards = 0xCA35e32e7926b96A9988f61d510E038108d8068e;
+    address public uni_eth_wbtc_lp = 0xBb2b8038a1640196FbE3e38816F3e67Cba72D940;
+    address public wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
 
     constructor(
         address _governance,
@@ -17,9 +17,9 @@ contract StrategyUniEthDaiLpV3_1 is StrategyUniFarmBase {
     )
         public
         StrategyUniFarmBase(
-            dai,
+            wbtc,
             uni_rewards,
-            uni_eth_dai_lp,
+            uni_eth_wbtc_lp,
             _governance,
             _strategist,
             _controller,
@@ -30,6 +30,6 @@ contract StrategyUniEthDaiLpV3_1 is StrategyUniFarmBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyUniEthDaiLpV3_1";
+        return "StrategyUniEthWBtcLpV2";
     }
 }

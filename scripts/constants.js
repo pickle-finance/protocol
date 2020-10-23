@@ -24,25 +24,72 @@ const ADDRESSES = {
 const KEYS = {
   Pickle: {
     PickleJar: "src/pickle-jar.sol:PickleJar",
-    ControllerV3: "src/controller-v3.sol:ControllerV3",
+    ControllerV4: "src/controller-v4.sol:ControllerV4",
+    ProxyLogic: {
+      CurveProxyLogic: "src/proxy-logic/curve.sol:CurveProxyLogic",
+      UniswapV2ProxyLogic: "src/proxy-logic/uniswapv2.sol:UniswapV2ProxyLogic",
+    },
     Strategies: {
-      StrategyCmpdDaiV1:
-        "src/strategies/compound/strategy-cmpd-dai-v1.sol:StrategyCmpdDaiV1",
+      StrategyCmpdDaiV2:
+        "src/strategies/compound/strategy-cmpd-dai-v2.sol:StrategyCmpdDaiV2",
+      StrategyCurve3CRVv2:
+        "src/strategies/curve/strategy-curve-3crv-v2.sol:StrategyCurve3CRVv2",
+      StrategyCurveRenCRVv2:
+        "src/strategies/curve/strategy-curve-rencrv-v2.sol:StrategyCurveRenCRVv2",
+      StrategyCurveSCRVv3_2:
+        "src/strategies/curve/strategy-curve-scrv-v3_2.sol:StrategyCurveSCRVv3_2",
+      StrategyUniEthDaiLpV4:
+        "src/strategies/uniswapv2/strategy-uni-eth-dai-lp-v4.sol:StrategyUniEthDaiLpV4",
+      StrategyUniEthUsdcLpV4:
+        "src/strategies/uniswapv2/strategy-uni-eth-usdc-lp-v4.sol:StrategyUniEthUsdcLpV4",
+      StrategyUniEthUsdtLpV4:
+        "src/strategies/uniswapv2/strategy-uni-eth-usdt-lp-v4.sol:StrategyUniEthUsdtLpV4",
+      StrategyUniEthWBtcLpV2:
+        "src/strategies/uniswapv2/strategy-uni-eth-wbtc-lp-v2.sol:StrategyUniEthWBtcLpV2",
     },
   },
 };
 
 const PickleJar = DAPP_CONTRACTS[KEYS.Pickle.PickleJar];
-const ControllerV3 = DAPP_CONTRACTS[KEYS.Pickle.ControllerV3];
-const StrategyCmpdDaiV1 =
-  DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyCmpdDaiV1];
+const ControllerV4 = DAPP_CONTRACTS[KEYS.Pickle.ControllerV4];
+
+const CurveProxyLogic = DAPP_CONTRACTS[KEYS.Pickle.ProxyLogic.CurveProxyLogic];
+const UniswapV2ProxyLogic = DAPP_CONTRACTS[KEYS.Pickle.ProxyLogic.UniswapV2ProxyLogic];
+
+const StrategyCmpdDaiV2 =
+  DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyCmpdDaiV2];
+const StrategyCurve3CRVv2 =
+  DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyCurve3CRVv2];
+const StrategyCurveRenCRVv2 =
+  DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyCurveRenCRVv2];
+const StrategyCurveSCRVv3_2 =
+  DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyCurveSCRVv3_2];
+const StrategyUniEthDaiLpV4 =
+  DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyUniEthDaiLpV4];
+const StrategyUniEthUsdcLpV4 =
+  DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyUniEthUsdcLpV4];
+const StrategyUniEthUsdtLpV4 =
+  DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyUniEthUsdtLpV4];
+const StrategyUniEthWBtcLpV2 =
+  DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyUniEthWBtcLpV2];
 
 const ABIS = {
   Pickle: {
     PickleJar: PickleJar.abi,
-    ControllerV3: ControllerV3.abi,
+    ControllerV4: ControllerV4.abi,
+    ProxyLogic: {
+      CurveProxyLogic: CurveProxyLogic.abi,
+      UniswapV2ProxyLogic: UniswapV2ProxyLogic.abi,
+    },
     Strategies: {
-      StrategyCmpdDaiV1: StrategyCmpdDaiV1.abi,
+      StrategyCmpdDaiV2: StrategyCmpdDaiV2.abi,
+      StrategyCurve3CRVv2: StrategyCurve3CRVv2.abi,
+      StrategyCurveRenCRVv2: StrategyCurveRenCRVv2.abi,
+      StrategyCurveSCRVv3_2: StrategyCurveSCRVv3_2.abi,
+      StrategyUniEthDaiLpV4: StrategyUniEthDaiLpV4.abi,
+      StrategyUniEthUsdcLpV4: StrategyUniEthUsdcLpV4.abi,
+      StrategyUniEthUsdtLpV4: StrategyUniEthUsdtLpV4.abi,
+      StrategyUniEthWBtcLpV2: StrategyUniEthWBtcLpV2.abi,
     },
   },
   UniswapV2: {
@@ -53,14 +100,23 @@ const ABIS = {
 const BYTECODE = {
   Pickle: {
     PickleJar: PickleJar.bin,
-    ControllerV3: ControllerV3.bin,
+    ControllerV4: ControllerV4.bin,
+    ProxyLogic: {
+      CurveProxyLogic: CurveProxyLogic.bin,
+      UniswapV2ProxyLogic: UniswapV2ProxyLogic.bin,
+    },
     Strategies: {
-      StrategyCmpdDaiV1: StrategyCmpdDaiV1.bin,
+      StrategyCmpdDaiV2: StrategyCmpdDaiV2.bin,
+      StrategyCurve3CRVv2: StrategyCurve3CRVv2.bin,
+      StrategyCurveRenCRVv2: StrategyCurveRenCRVv2.bin,
+      StrategyCurveSCRVv3_2: StrategyCurveSCRVv3_2.bin,
+      StrategyUniEthDaiLpV4: StrategyUniEthDaiLpV4.bin,
+      StrategyUniEthUsdcLpV4: StrategyUniEthUsdcLpV4.bin,
+      StrategyUniEthUsdtLpV4: StrategyUniEthUsdtLpV4.bin,
+      StrategyUniEthWBtcLpV2: StrategyUniEthWBtcLpV2.bin,
     },
   },
 };
-
-console.log(ABIS.Pickle.Strategies.StrategyCmpdDaiV1)
 
 module.exports = {
   KEYS,

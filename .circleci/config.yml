@@ -35,6 +35,7 @@ jobs:
           name: build
           command: |
             nix-env -iA hevm dapp solc seth -f /dapptools
+            mkdir lib
             dapp update
             dapp build
             DAPP_TEST_NUMBER=$(expr $(seth block-number) - 2) DAPP_TEST_TIMESTAMP=$(date +%s) DAPP_TEST_BALANCE_CREATE=10000000000000000000000000 dapp test --rpc-url http://localhost:8545 -v

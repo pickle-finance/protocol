@@ -9,10 +9,10 @@ import "../../../interfaces/curve.sol";
 import "../../../interfaces/uniswapv2.sol";
 
 import "../../../pickle-jar.sol";
-import "../../../controller-v3.sol";
-import "../../../strategies/uniswapv2/strategy-uni-eth-usdt-lp-v3_1.sol";
+import "../../../controller-v4.sol";
+import "../../../strategies/uniswapv2/strategy-uni-eth-usdt-lp-v4.sol";
 
-contract StrategyUniEthUsdtLpV3_1Test is StrategyUniFarmTestBase {
+contract StrategyUniEthUsdtLpV4Test is StrategyUniFarmTestBase {
     function setUp() public {
         want = 0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852;
         token1 = usdt;
@@ -23,7 +23,7 @@ contract StrategyUniEthUsdtLpV3_1Test is StrategyUniFarmTestBase {
         treasury = address(new User());
         timelock = address(this);
 
-        controller = new ControllerV3(
+        controller = new ControllerV4(
             governance,
             strategist,
             timelock,
@@ -33,7 +33,7 @@ contract StrategyUniEthUsdtLpV3_1Test is StrategyUniFarmTestBase {
 
         strategy = IStrategy(
             address(
-                new StrategyUniEthUsdtLpV3_1(
+                new StrategyUniEthUsdtLpV4(
                     governance,
                     strategist,
                     address(controller),

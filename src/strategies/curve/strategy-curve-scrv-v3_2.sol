@@ -14,7 +14,7 @@ import "../../interfaces/controller.sol";
 
 import "../strategy-curve-base.sol";
 
-contract StrategyCurveSCRVv3_1 is StrategyCurveBase {
+contract StrategyCurveSCRVv3_2 is StrategyCurveBase {
     // Curve stuff
     address public susdv2_pool = 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD;
     address public susdv2_gauge = 0xA90996896660DEcC6E997655E065b23788857849;
@@ -96,7 +96,7 @@ contract StrategyCurveSCRVv3_1 is StrategyCurveBase {
     }
 
     function getName() external override pure returns (string memory) {
-        return "StrategyCurveSCRVv3_1";
+        return "StrategyCurveSCRVv3_2";
     }
 
     // **** State Mutations ****
@@ -148,15 +148,6 @@ contract StrategyCurveSCRVv3_1 is StrategyCurveBase {
         }
 
         // We want to get back sCRV
-        uint256 _want = IERC20(want).balanceOf(address(this));
-        if (_want > 0) {
-            // Fees 4.5% goes to treasury
-            IERC20(want).safeTransfer(
-                IController(controller).treasury(),
-                _want.mul(performanceFee).div(performanceMax)
-            );
-
-            deposit();
-        }
+        _distributePerformanceFeesAndDeposit();
     }
 }

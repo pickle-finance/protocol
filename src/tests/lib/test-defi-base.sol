@@ -20,6 +20,8 @@ contract DSTestDefiBase is DSTestApprox {
     address pickle = 0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5;
     address burn = 0x000000000000000000000000000000000000dEaD;
 
+    address susdv2_deposit = 0xFCBa3E75865d2d561BE8D220616520c171F12851;
+
     address susdv2_pool = 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD;
     address three_pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
     address ren_pool = 0x93054188d876f558f4a66B2EF1d97d16eDf0895B;
@@ -51,9 +53,14 @@ contract DSTestDefiBase is DSTestApprox {
         0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f
     );
 
-    ICurveFi_4 curveSusdV2 = ICurveFi_4(0xA5407eAE9Ba41422680e2e00537571bcC53efBfD);
+    ICurveFi_4 curveSusdV2 = ICurveFi_4(
+        0xA5407eAE9Ba41422680e2e00537571bcC53efBfD
+    );
 
     uint256 startTime = block.timestamp;
+
+    receive() external payable {}
+    fallback () external payable {}
 
     function _swap(
         address _from,
@@ -160,5 +167,81 @@ contract DSTestDefiBase is DSTestApprox {
         uint256 _ethAmount
     ) internal {
         _getUniV2LPToken(univ2Factory.getPair(token0, token1), _ethAmount);
+    }
+
+    function _getFunctionSig(string memory sig) internal pure returns (bytes4) {
+        return bytes4(keccak256(bytes(sig)));
+    }
+
+    function _getDynamicArray(address payable one)
+        internal
+        pure
+        returns (address payable[] memory)
+    {
+        address payable[] memory targets = new address payable[](1);
+        targets[0] = one;
+
+        return targets;
+    }
+
+    function _getDynamicArray(bytes memory one)
+        internal
+        pure
+        returns (bytes[] memory)
+    {
+        bytes[] memory data = new bytes[](1);
+        data[0] = one;
+
+        return data;
+    }
+
+    function _getDynamicArray(address payable one, address payable two)
+        internal
+        pure
+        returns (address payable[] memory)
+    {
+        address payable[] memory targets = new address payable[](2);
+        targets[0] = one;
+        targets[1] = two;
+
+        return targets;
+    }
+
+    function _getDynamicArray(bytes memory one, bytes memory two)
+        internal
+        pure
+        returns (bytes[] memory)
+    {
+        bytes[] memory data = new bytes[](2);
+        data[0] = one;
+        data[1] = two;
+
+        return data;
+    }
+
+    function _getDynamicArray(
+        address payable one,
+        address payable two,
+        address payable three
+    ) internal pure returns (address payable[] memory) {
+        address payable[] memory targets = new address payable[](3);
+        targets[0] = one;
+        targets[1] = two;
+        targets[2] = three;
+
+        return targets;
+    }
+
+    function _getDynamicArray(
+        bytes memory one,
+        bytes memory two,
+        bytes memory three
+    ) internal pure returns (bytes[] memory) {
+        bytes[] memory data = new bytes[](3);
+        data[0] = one;
+        data[1] = two;
+        data[2] = three;
+
+        return data;
     }
 }
