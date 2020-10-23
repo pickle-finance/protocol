@@ -26,8 +26,8 @@ const KEYS = {
     PickleJar: "src/pickle-jar.sol:PickleJar",
     ControllerV4: "src/controller-v4.sol:ControllerV4",
     ProxyLogic: {
-      Curve: "src/proxy-logic/curve.sol:CurveProxyLogic",
-      UniswapV2: "src/proxy-logic/uniswapv2.sol:UniswapV2ProxyLogic",
+      CurveProxyLogic: "src/proxy-logic/curve.sol:CurveProxyLogic",
+      UniswapV2ProxyLogic: "src/proxy-logic/uniswapv2.sol:UniswapV2ProxyLogic",
     },
     Strategies: {
       StrategyCmpdDaiV2:
@@ -53,8 +53,8 @@ const KEYS = {
 const PickleJar = DAPP_CONTRACTS[KEYS.Pickle.PickleJar];
 const ControllerV4 = DAPP_CONTRACTS[KEYS.Pickle.ControllerV4];
 
-const CurveProxyLogic = DAPP_CONTRACTS[KEYS.Pickle.ProxyLogic.Curve];
-const UniswapV2ProxyLogic = DAPP_CONTRACTS[KEYS.Pickle.ProxyLogic.UniswapV2];
+const CurveProxyLogic = DAPP_CONTRACTS[KEYS.Pickle.ProxyLogic.CurveProxyLogic];
+const UniswapV2ProxyLogic = DAPP_CONTRACTS[KEYS.Pickle.ProxyLogic.UniswapV2ProxyLogic];
 
 const StrategyCmpdDaiV2 =
   DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyCmpdDaiV2];
