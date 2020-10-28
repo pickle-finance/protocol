@@ -42,6 +42,8 @@ abstract contract StrategyCurveBase is StrategyBase {
         public
         StrategyBase(_want, _governance, _strategist, _controller, _timelock)
     {
+        require(_curve != address(0));
+        require(_gauge != address(0));
         curve = _curve;
         gauge = _gauge;
     }

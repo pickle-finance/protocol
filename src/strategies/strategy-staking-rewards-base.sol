@@ -19,6 +19,7 @@ abstract contract StrategyStakingRewardsBase is StrategyBase {
         public
         StrategyBase(_want, _governance, _strategist, _controller, _timelock)
     {
+        require(_rewards != address(0));
         rewards = _rewards;
     }
 

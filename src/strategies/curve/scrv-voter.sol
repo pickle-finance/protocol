@@ -28,6 +28,8 @@ contract SCRVVoter {
     address public governance;
 
     constructor(address _governance, address _crvLocker) public {
+        require(_governance != address(0));
+        require(_crvLocker != address(0));
         governance = _governance;
         crvLocker = CRVLocker(_crvLocker);
     }
