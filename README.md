@@ -61,14 +61,3 @@ export PROVIDER_URL=<RPC_URL>
 # You'll need to edit the deploy.js to fit your needs
 node scripts/deploy.js
 ```
-
-## Verify
-
-```bash
-export ETHERSCAN_API_KEY=<>
-
-# Run it from local directory
-# contract-key is e.g. "src/strategies/curve/strategy-curve-rencrv-v1.sol:StrategyCurveRenCRVv1"
-sudo apt-get install jq jshon
-DAPP_ROOT=$(pwd) DAPP_JSON=out/dapp.sol.json ./scripts/verify.sh <contract-key> <address> [...args]
-```

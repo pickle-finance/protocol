@@ -61,7 +61,6 @@ const getContract = (address, abi) => {
 
 const deployContract = async ({
   name,
-  key,
   abi,
   bytecode,
   args = [],
@@ -74,11 +73,8 @@ const deployContract = async ({
     (x) => x.type === "constructor"
   )[0];
 
-  let argsAbiEncoded = "";
-
   if (constructor) {
     const inputs = constructor.inputs.map((x) => x.name);
-    const inputTypes = constructor.inputs.map((x) => x.type);
     if (inputs.length !== args.length) {
       console.log(
         chalk.red(
@@ -93,8 +89,6 @@ const deployContract = async ({
       .reduce((acc, x) => {
         return { ...acc, [inputs[x]]: args[x] };
       }, {});
-
-    argsAbiEncoded = ethers.utils.defaultAbiCoder.encode(inputTypes, args);
 
     console.log(
       chalk.yellow(`Deploying ${name} with the following parameters:`)
@@ -138,11 +132,7 @@ const deployContract = async ({
       JSON.stringify(
         {
           ...deployedContent,
-          [name]: {
-            address: contract.address,
-            args: argsAbiEncoded,
-            contract: key,
-          },
+          [name]: contract.address,
         },
         null,
         4

@@ -22,6 +22,7 @@ const ADDRESSES = {
 };
 
 const KEYS = {
+  StakingRewards: "src/staking-rewards.sol:StakingRewards",
   Pickle: {
     PickleJar: "src/pickle-jar.sol:PickleJar",
     ControllerV4: "src/controller-v4.sol:ControllerV4",
@@ -50,11 +51,14 @@ const KEYS = {
   },
 };
 
+const StakingRewards = DAPP_CONTRACTS[KEYS.StakingRewards];
+
 const PickleJar = DAPP_CONTRACTS[KEYS.Pickle.PickleJar];
 const ControllerV4 = DAPP_CONTRACTS[KEYS.Pickle.ControllerV4];
 
 const CurveProxyLogic = DAPP_CONTRACTS[KEYS.Pickle.ProxyLogic.CurveProxyLogic];
-const UniswapV2ProxyLogic = DAPP_CONTRACTS[KEYS.Pickle.ProxyLogic.UniswapV2ProxyLogic];
+const UniswapV2ProxyLogic =
+  DAPP_CONTRACTS[KEYS.Pickle.ProxyLogic.UniswapV2ProxyLogic];
 
 const StrategyCmpdDaiV2 =
   DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyCmpdDaiV2];
@@ -74,6 +78,7 @@ const StrategyUniEthWBtcLpV2 =
   DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyUniEthWBtcLpV2];
 
 const ABIS = {
+  StakingRewards: StakingRewards.abi,
   Pickle: {
     PickleJar: PickleJar.abi,
     ControllerV4: ControllerV4.abi,
@@ -98,6 +103,7 @@ const ABIS = {
 };
 
 const BYTECODE = {
+  StakingRewards: StakingRewards.bin,
   Pickle: {
     PickleJar: PickleJar.bin,
     ControllerV4: ControllerV4.bin,

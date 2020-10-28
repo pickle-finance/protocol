@@ -373,6 +373,11 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
         curvePickleJars[fromIndex].deposit(_from);
         curvePickleJars[fromIndex].earn();
 
+        hevm.warp(block.timestamp + 1 days);
+        hevm.roll(block.number + 6171); // Roughly number of blocks per day
+
+        curveStrategies[fromIndex].harvest();
+
         // Swap!
         uint256 _fromPickleJar = IERC20(address(curvePickleJars[fromIndex]))
             .balanceOf(address(this));
