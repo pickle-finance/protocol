@@ -39,8 +39,7 @@ abstract contract StrategyUniFarmBase is StrategyStakingRewardsBase {
 
     // **** Setters ****
 
-    function setKeepUNI(uint256 _keepUNI) external {
-        require(msg.sender == timelock, "!timelock");
+    function setKeepUNI(uint256 _keepUNI) external onlyTimelock {
         keepUNI = _keepUNI;
     }
 

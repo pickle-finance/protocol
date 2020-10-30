@@ -62,8 +62,7 @@ abstract contract StrategyCurveBase is StrategyBase {
 
     // **** Setters ****
 
-    function setKeepCRV(uint256 _keepCRV) external {
-        require(msg.sender == governance, "!governance");
+    function setKeepCRV(uint256 _keepCRV) external onlyGovernance {
         keepCRV = _keepCRV;
     }
 
