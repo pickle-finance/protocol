@@ -26,17 +26,25 @@ contract CRVLocker {
         governance = _governance;
     }
 
+    modifier onlyGovernance {
+        require(msg.sender == governance, "!governance");
+        _;
+    }
+
+    modifier onlyVotersOrGovernance {
+        require(voters[msg.sender] || msg.sender == governance, "!authorized");
+        _;
+    }
+
     function getName() external pure returns (string memory) {
         return "CRVLocker";
     }
 
-    function addVoter(address _voter) external {
-        require(msg.sender == governance, "!governance");
+    function addVoter(address _voter) external onlyGovernance {
         voters[_voter] = true;
     }
 
-    function removeVoter(address _voter) external {
-        require(msg.sender == governance, "!governance");
+    function removeVoter(address _voter) external onlyGovernance {
         voters[_voter] = false;
     }
 
@@ -46,32 +54,33 @@ contract CRVLocker {
         IERC20(_asset).safeTransfer(msg.sender, balance);
     }
 
-    function createLock(uint256 _value, uint256 _unlockTime) external {
-        require(voters[msg.sender] || msg.sender == governance, "!authorized");
+    function createLock(uint256 _value, uint256 _unlockTime)
+        external
+        onlyVotersOrGovernance
+    {
         IERC20(crv).safeApprove(escrow, 0);
         IERC20(crv).safeApprove(escrow, _value);
         ICurveVotingEscrow(escrow).create_lock(_value, _unlockTime);
     }
 
-    function increaseAmount(uint256 _value) external {
-        require(voters[msg.sender] || msg.sender == governance, "!authorized");
+    function increaseAmount(uint256 _value) external onlyVotersOrGovernance {
         IERC20(crv).safeApprove(escrow, 0);
         IERC20(crv).safeApprove(escrow, _value);
         ICurveVotingEscrow(escrow).increase_amount(_value);
     }
 
-    function increaseUnlockTime(uint256 _unlockTime) external {
-        require(voters[msg.sender] || msg.sender == governance, "!authorized");
+    function increaseUnlockTime(uint256 _unlockTime)
+        external
+        onlyVotersOrGovernance
+    {
         ICurveVotingEscrow(escrow).increase_unlock_time(_unlockTime);
     }
 
-    function release() external {
-        require(voters[msg.sender] || msg.sender == governance, "!authorized");
+    function release() external onlyVotersOrGovernance {
         ICurveVotingEscrow(escrow).withdraw();
     }
 
-    function setGovernance(address _governance) external {
-        require(msg.sender == governance, "!governance");
+    function setGovernance(address _governance) external onlyGovernance {
         governance = _governance;
     }
 
@@ -79,9 +88,7 @@ contract CRVLocker {
         address to,
         uint256 value,
         bytes calldata data
-    ) external returns (bytes memory) {
-        require(voters[msg.sender] || msg.sender == governance, "!governance");
-
+    ) external onlyVotersOrGovernance returns (bytes memory) {
         (bool success, bytes memory result) = to.call{value: value}(data);
         require(success, "!execute-success");
 
