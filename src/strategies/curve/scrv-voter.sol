@@ -34,18 +34,25 @@ contract SCRVVoter {
         crvLocker = CRVLocker(_crvLocker);
     }
 
-    function setGovernance(address _governance) external {
+    modifier onlyGovernance {
         require(msg.sender == governance, "!governance");
+        _;
+    }
+
+    modifier onlyStrategies {
+        require(strategies[msg.sender], "!strategy");
+        _;
+    }
+
+    function setGovernance(address _governance) external onlyGovernance {
         governance = _governance;
     }
 
-    function approveStrategy(address _strategy) external {
-        require(msg.sender == governance, "!governance");
+    function approveStrategy(address _strategy) external onlyGovernance {
         strategies[_strategy] = true;
     }
 
-    function revokeStrategy(address _strategy) external {
-        require(msg.sender == governance, "!governance");
+    function revokeStrategy(address _strategy) external onlyGovernance {
         strategies[_strategy] = false;
     }
 
@@ -53,8 +60,7 @@ contract SCRVVoter {
         crvLocker.increaseAmount(IERC20(crv).balanceOf(address(crvLocker)));
     }
 
-    function vote(address _gauge, uint256 _amount) public {
-        require(strategies[msg.sender], "!strategy");
+    function vote(address _gauge, uint256 _amount) public onlyStrategies {
         crvLocker.execute(
             gaugeController,
             0,
@@ -66,8 +72,7 @@ contract SCRVVoter {
         );
     }
 
-    function max() external {
-        require(strategies[msg.sender], "!strategy");
+    function max() external onlyStrategies {
         vote(scrvGauge, 10000);
     }
 
@@ -75,8 +80,7 @@ contract SCRVVoter {
         address _gauge,
         address _token,
         uint256 _amount
-    ) public returns (uint256) {
-        require(strategies[msg.sender], "!strategy");
+    ) public onlyStrategies returns (uint256) {
         uint256 _before = IERC20(_token).balanceOf(address(crvLocker));
         crvLocker.execute(
             _gauge,
@@ -103,9 +107,9 @@ contract SCRVVoter {
 
     function withdrawAll(address _gauge, address _token)
         external
+        onlyStrategies
         returns (uint256)
     {
-        require(strategies[msg.sender], "!strategy");
         return withdraw(_gauge, _token, balanceOf(_gauge));
     }
 
@@ -135,8 +139,7 @@ contract SCRVVoter {
         );
     }
 
-    function harvest(address _gauge) external {
-        require(strategies[msg.sender], "!strategy");
+    function harvest(address _gauge) external onlyStrategies {
         uint256 _before = IERC20(crv).balanceOf(address(crvLocker));
         crvLocker.execute(
             mintr,
@@ -156,11 +159,13 @@ contract SCRVVoter {
         );
     }
 
-    function claimRewards() external {
-        require(strategies[msg.sender], "!strategy");
-
+    function claimRewards() external onlyStrategies {
         uint256 _before = IERC20(snx).balanceOf(address(crvLocker));
-        crvLocker.execute(scrvGauge, 0, abi.encodeWithSignature("claim_rewards()"));
+        crvLocker.execute(
+            scrvGauge,
+            0,
+            abi.encodeWithSignature("claim_rewards()")
+        );
         uint256 _after = IERC20(snx).balanceOf(address(crvLocker));
         uint256 _balance = _after.sub(_before);
 
