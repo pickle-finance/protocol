@@ -21,7 +21,12 @@ contract PickleJar is ERC20 {
     address public timelock;
     address public controller;
 
-    constructor(address _token, address _governance, address _timelock, address _controller)
+    constructor(
+        address _token,
+        address _governance,
+        address _timelock,
+        address _controller
+    )
         public
         ERC20(
             string(abi.encodePacked("pickling ", ERC20(_token).name())),
@@ -40,6 +45,16 @@ contract PickleJar is ERC20 {
         controller = _controller;
     }
 
+    modifier onlyGovernance {
+        require(msg.sender == governance, "!governance");
+        _;
+    }
+
+    modifier onlyTimelock {
+        require(msg.sender == timelock, "!timelock");
+        _;
+    }
+
     function balance() public view returns (uint256) {
         return
             token.balanceOf(address(this)).add(
@@ -47,23 +62,19 @@ contract PickleJar is ERC20 {
             );
     }
 
-    function setMin(uint256 _min) external {
-        require(msg.sender == governance, "!governance");
+    function setMin(uint256 _min) external onlyGovernance {
         min = _min;
     }
 
-    function setGovernance(address _governance) public {
-        require(msg.sender == governance, "!governance");
+    function setGovernance(address _governance) public onlyGovernance {
         governance = _governance;
     }
 
-    function setTimelock(address _timelock) public {
-        require(msg.sender == timelock, "!timelock");
+    function setTimelock(address _timelock) public onlyTimelock {
         timelock = _timelock;
     }
 
-    function setController(address _controller) public {
-        require(msg.sender == timelock, "!timelock");
+    function setController(address _controller) public onlyTimelock {
         controller = _controller;
     }
 
