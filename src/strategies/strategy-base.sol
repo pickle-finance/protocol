@@ -75,6 +75,21 @@ abstract contract StrategyBase {
         _;
     }
 
+    modifier onlyTimelock {
+        require(msg.sender == timelock, "!timelock");
+        _;
+    }
+
+    modifier onlyGovernance {
+        require(msg.sender == governance, "!governance");
+        _;
+    }
+
+    modifier onlyController {
+        require(msg.sender == controller, "!controller");
+        _;
+    }
+
     // **** Views **** //
 
     function balanceOfWant() public view returns (uint256) {
@@ -91,45 +106,47 @@ abstract contract StrategyBase {
 
     // **** Setters **** //
 
-    function setWithdrawalDevFundFee(uint256 _withdrawalDevFundFee) external {
-        require(msg.sender == timelock, "!timelock");
+    function setWithdrawalDevFundFee(uint256 _withdrawalDevFundFee)
+        external
+        onlyTimelock
+    {
         withdrawalDevFundFee = _withdrawalDevFundFee;
     }
 
-    function setWithdrawalTreasuryFee(uint256 _withdrawalTreasuryFee) external {
-        require(msg.sender == timelock, "!timelock");
+    function setWithdrawalTreasuryFee(uint256 _withdrawalTreasuryFee)
+        external
+        onlyTimelock
+    {
         withdrawalTreasuryFee = _withdrawalTreasuryFee;
     }
 
-    function setPerformanceDevFee(uint256 _performanceDevFee) external {
-        require(msg.sender == timelock, "!timelock");
+    function setPerformanceDevFee(uint256 _performanceDevFee)
+        external
+        onlyTimelock
+    {
         performanceDevFee = _performanceDevFee;
     }
 
     function setPerformanceTreasuryFee(uint256 _performanceTreasuryFee)
         external
+        onlyTimelock
     {
-        require(msg.sender == timelock, "!timelock");
         performanceTreasuryFee = _performanceTreasuryFee;
     }
 
-    function setStrategist(address _strategist) external {
-        require(msg.sender == governance, "!governance");
+    function setStrategist(address _strategist) external onlyGovernance {
         strategist = _strategist;
     }
 
-    function setGovernance(address _governance) external {
-        require(msg.sender == governance, "!governance");
+    function setGovernance(address _governance) external onlyGovernance {
         governance = _governance;
     }
 
-    function setTimelock(address _timelock) external {
-        require(msg.sender == timelock, "!timelock");
+    function setTimelock(address _timelock) external onlyTimelock {
         timelock = _timelock;
     }
 
-    function setController(address _controller) external {
-        require(msg.sender == timelock, "!timelock");
+    function setController(address _controller) external onlyTimelock {
         controller = _controller;
     }
 
@@ -137,16 +154,18 @@ abstract contract StrategyBase {
     function deposit() public virtual;
 
     // Controller only function for creating additional rewards from dust
-    function withdraw(IERC20 _asset) external returns (uint256 balance) {
-        require(msg.sender == controller, "!controller");
+    function withdraw(IERC20 _asset)
+        external
+        onlyController
+        returns (uint256 balance)
+    {
         require(want != address(_asset), "want");
         balance = _asset.balanceOf(address(this));
         _asset.safeTransfer(controller, balance);
     }
 
     // Withdraw partial funds, normally used with a jar withdrawal
-    function withdraw(uint256 _amount) external {
-        require(msg.sender == controller, "!controller");
+    function withdraw(uint256 _amount) external onlyController {
         uint256 _balance = IERC20(want).balanceOf(address(this));
         if (_balance < _amount) {
             _amount = _withdrawSome(_amount.sub(_balance));
@@ -175,9 +194,9 @@ abstract contract StrategyBase {
     // Withdraw funds, used to swap between strategies
     function withdrawForSwap(uint256 _amount)
         external
+        onlyController
         returns (uint256 balance)
     {
-        require(msg.sender == controller, "!controller");
         _withdrawSome(_amount);
 
         balance = IERC20(want).balanceOf(address(this));
@@ -188,8 +207,7 @@ abstract contract StrategyBase {
     }
 
     // Withdraw all funds, normally used when migrating strategies
-    function withdrawAll() external returns (uint256 balance) {
-        require(msg.sender == controller, "!controller");
+    function withdrawAll() external onlyController returns (uint256 balance) {
         _withdrawAll();
 
         balance = IERC20(want).balanceOf(address(this));
@@ -212,9 +230,9 @@ abstract contract StrategyBase {
     function execute(address _target, bytes memory _data)
         public
         payable
+        onlyTimelock
         returns (bytes memory response)
     {
-        require(msg.sender == timelock, "!timelock");
         require(_target != address(0), "!target");
 
         // call contract in current context
