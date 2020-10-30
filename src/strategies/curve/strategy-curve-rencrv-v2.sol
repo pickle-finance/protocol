@@ -38,7 +38,7 @@ contract StrategyCurveRenCRVv2 is StrategyCurveBase {
 
     // **** Views ****
 
-    function getMostPremium() public override view returns (address, uint256) {
+    function getMostPremium() public override view returns (address, uint8) {
         // Both 8 decimals, so doesn't matter
         uint256[] memory balances = new uint256[](3);
         balances[0] = ICurveFi_2(curve).balances(0); // RENBTC
@@ -72,7 +72,7 @@ contract StrategyCurveRenCRVv2 is StrategyCurveBase {
         //      if so, a new strategy will be deployed.
 
         // stablecoin we want to convert to
-        (address to, uint256 toIndex) = getMostPremium();
+        (address to, uint8 toIndex) = getMostPremium();
 
         // Collects crv tokens
         // Don't bother voting in v1

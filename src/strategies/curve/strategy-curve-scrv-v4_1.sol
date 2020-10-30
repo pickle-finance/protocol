@@ -158,7 +158,7 @@ contract StrategyCurveSCRVv4_1 is StrategyBase {
         //      if so, a new strategy will be deployed.
 
         // stablecoin we want to convert to
-        (address to, uint256 toIndex) = getMostPremium();
+        (address to, uint8 toIndex) = getMostPremium();
 
         // Collects crv tokens
         // Don't bother voting in v1
