@@ -28,6 +28,11 @@ contract PickleJar is ERC20 {
             string(abi.encodePacked("p", ERC20(_token).symbol()))
         )
     {
+        require(_token != address(0));
+        require(_governance != address(0));
+        require(_timelock != address(0));
+        require(_controller != address(0));
+
         _setupDecimals(ERC20(_token).decimals());
         token = IERC20(_token);
         governance = _governance;

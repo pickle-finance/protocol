@@ -60,6 +60,8 @@ contract StrategyCurveSCRVv4_1 is StrategyBase {
         curve = susdv2_pool;
         gauge = susdv2_gauge;
 
+        require(_scrvVoter != address(0));
+        require(_crvLocker != address(0));
         scrvVoter = _scrvVoter;
         crvLocker = _crvLocker;
     }

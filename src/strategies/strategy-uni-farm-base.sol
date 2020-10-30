@@ -33,6 +33,7 @@ abstract contract StrategyUniFarmBase is StrategyStakingRewardsBase {
             _timelock
         )
     {
+        require(_token1 != address(0));
         token1 = _token1;
     }
 

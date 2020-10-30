@@ -22,6 +22,7 @@ contract CRVLocker {
     mapping(address => bool) public voters;
 
     constructor(address _governance) public {
+        require(_governance != address(0));
         governance = _governance;
     }
 
