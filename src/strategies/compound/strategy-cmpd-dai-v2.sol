@@ -66,6 +66,14 @@ contract StrategyCmpdDaiV2 is StrategyBase, Exponential {
         _;
     }
 
+    modifier onlyGovernanceOrStrategist {
+        require(
+            msg.sender == governance || msg.sender == strategist,
+            "!governance"
+        );
+        _;
+    }
+
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {
@@ -204,37 +212,25 @@ contract StrategyCmpdDaiV2 is StrategyBase, Exponential {
 
     // **** Setters **** //
 
-    function addKeeper(address _keeper) public {
-        require(
-            msg.sender == governance || msg.sender == strategist,
-            "!governance"
-        );
+    function addKeeper(address _keeper) public onlyGovernanceOrStrategist {
         keepers[_keeper] = true;
     }
 
-    function removeKeeper(address _keeper) public {
-        require(
-            msg.sender == governance || msg.sender == strategist,
-            "!governance"
-        );
+    function removeKeeper(address _keeper) public onlyGovernanceOrStrategist {
         keepers[_keeper] = false;
     }
 
     function setColFactorLeverageBuffer(uint256 _colFactorLeverageBuffer)
         public
+        onlyGovernanceOrStrategist
     {
-        require(
-            msg.sender == governance || msg.sender == strategist,
-            "!governance"
-        );
         colFactorLeverageBuffer = _colFactorLeverageBuffer;
     }
 
-    function setColFactorSyncBuffer(uint256 _colFactorSyncBuffer) public {
-        require(
-            msg.sender == governance || msg.sender == strategist,
-            "!governance"
-        );
+    function setColFactorSyncBuffer(uint256 _colFactorSyncBuffer)
+        public
+        onlyGovernanceOrStrategist
+    {
         colFactorSyncBuffer = _colFactorSyncBuffer;
     }
 
