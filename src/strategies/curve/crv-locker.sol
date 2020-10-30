@@ -78,12 +78,12 @@ contract CRVLocker {
         address to,
         uint256 value,
         bytes calldata data
-    ) external returns (bool, bytes memory) {
+    ) external returns (bytes memory) {
         require(voters[msg.sender] || msg.sender == governance, "!governance");
 
         (bool success, bytes memory result) = to.call{value: value}(data);
         require(success, "!execute-success");
 
-        return (success, result);
+        return result;
     }
 }
