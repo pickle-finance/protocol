@@ -41,7 +41,7 @@ contract StrategyCurve3CRVv2 is StrategyCurveBase {
         public
         override
         view
-        returns (address, uint256)
+        returns (address, uint8)
     {
         uint256[] memory balances = new uint256[](3);
         balances[0] = ICurveFi_3(curve).balances(0); // DAI
@@ -90,7 +90,7 @@ contract StrategyCurve3CRVv2 is StrategyCurveBase {
         //      if so, a new strategy will be deployed.
 
         // stablecoin we want to convert to
-        (address to, uint256 toIndex) = getMostPremium();
+        (address to, uint8 toIndex) = getMostPremium();
 
         // Collects crv tokens
         // Don't bother voting in v1

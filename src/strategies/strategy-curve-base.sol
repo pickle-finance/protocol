@@ -56,7 +56,7 @@ abstract contract StrategyCurveBase is StrategyBase {
         return ICurveGauge(gauge).claimable_tokens(address(this));
     }
 
-    function getMostPremium() public virtual view returns (address, uint256);
+    function getMostPremium() public virtual view returns (address, uint8);
 
     // **** Setters ****
 

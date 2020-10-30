@@ -132,7 +132,7 @@ contract UniCurveConverter {
         );
     }
 
-    function getMostPremium() public view returns (address, uint256) {
+    function getMostPremium() public view returns (address, uint8) {
         uint256[] memory balances = new uint256[](4);
         balances[0] = ICurveFi_4(curve).balances(0); // DAI
         balances[1] = ICurveFi_4(curve).balances(1).mul(10**12); // USDC
