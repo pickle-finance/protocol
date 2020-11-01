@@ -14,7 +14,7 @@ import "../../pickle-jar.sol";
 import "../../controller-v4.sol";
 
 
-contract StrategyBondFarmBase is DSTestDefiBase {
+contract StrategyBondFarmTestBase is DSTestDefiBase {
     address governance;
     address strategist;
     address timelock;

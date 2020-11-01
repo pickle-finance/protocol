@@ -15,7 +15,7 @@ import "../../../controller-v4.sol";
 
 import "../../../strategies/barnbridge/strategy-bond-usdc-v1.sol";
 
-contract StrategyBondUsdcV1Test is StrategyBondFarmBase {
+contract StrategyBondUsdcV1Test is StrategyBondFarmTestBase {
 
     function setUp() public {
         governance = address(this);
