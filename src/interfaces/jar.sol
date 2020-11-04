@@ -10,7 +10,11 @@ interface IJar is IERC20 {
 
     function getRatio() external view returns (uint256);
 
+    function depositAll() external;
+
     function deposit(uint256) external;
+
+    function withdrawAll() external;
 
     function withdraw(uint256) external;
 
