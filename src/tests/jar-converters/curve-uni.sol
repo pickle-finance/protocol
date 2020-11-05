@@ -346,13 +346,13 @@ contract StrategyCurveUniJarSwapTest is DSTestDefiBase {
 
         uint256 treasuryEarned = _afterTreasury.sub(_beforeTreasury);
 
-        assertEq(treasuryEarned, _afterDev.sub(_beforeDev));
+        assertEqApprox(treasuryEarned, _afterDev.sub(_beforeDev));
         assertTrue(treasuryEarned > 0);
         _test_check_treasury_fee(fromPickleJarUnderlyingAmount, treasuryEarned);
         assertTrue(_afterFrom < _beforeFrom);
         assertTrue(_afterTo > _beforeTo);
         assertTrue(_afterTo.sub(_beforeTo) > 0);
-        assertEq(_afterTo.sub(_beforeTo), _ret);
+        assertEqApprox(_afterTo.sub(_beforeTo), _ret);
         assertEq(_afterFrom, 0);
     }
 
