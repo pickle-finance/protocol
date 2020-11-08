@@ -36,7 +36,7 @@ For all security related issues, Pickle has the following contact information:
 | Contact | Email | Keybase |
 | ------- | ----- | ------- | 
 | BigBrainBriner | bigbrainbriner at protonmail.com | [@bigbrainbriner](https://keybase.io/bigbrainbriner) |
-| 0xPenguin | X at X.com | [@username](https://keybase.io/username) |
+| 0xPenguin | zeroxpenguin at gmail.com | [@zeroxpenguin](https://keybase.io/zeroxpenguin) |
 | Larry the Cucumber | larrythecucumber321 at gmail.com | [@larrythecucumber](https://keybase.io/larrythecucumber) |
 
 
