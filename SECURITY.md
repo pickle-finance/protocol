@@ -23,7 +23,26 @@ Any expected deviations and necessary clarifications around the standard are exp
 
 ## Receiving Disclosures
 
-ADD THIS SECTION BASED ON https://github.com/iearn-finance/yearn-protocol/blob/develop/SECURITY.md#receiving-disclosures
+Pickle Finance is committed to working with researchers who submit security vulnerability notifications to us, to resolve those issues on an appropriate timeline, and to perform a coordinated release, giving credit to the reporter if they would so like.
+
+Please submit issues to **all** of the following main points of contact for
+security related issues according to the
+[initial contact](https://github.com/RD-Crypto-Spec/Responsible-Disclosure#initial-contact)
+and [giving details](https://github.com/RD-Crypto-Spec/Responsible-Disclosure#giving-details)
+guidelines.
+
+For all security related issues, Pickle has the following contact information:
+
+| Contact | Email | Keybase |
+| ------- | ----- | ------- | 
+| BigBrainBriner | bigbrainbriner at protonmail.com | [@bigbrainbriner](https://keybase.io/bigbrainbriner) |
+| 0xPenguin | X at X.com | [@username](https://keybase.io/username) |
+| Larry the Cucumber | X at X.com | [@username](https://keybase.io/username) |
+
+
+Include all contacts in your communication when possible, PGP encrypted to all parties.
+
+You can also reach out informally over keybase encrypted chat to one or more of the contacts as per the details above. If you need help with this, you can ask for help on the Pickle [Discord](http://discord.gg/gR85hmC).
 
 ## Sending Disclosures
 
