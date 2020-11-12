@@ -72,6 +72,7 @@ contract ControllerV4 {
 
     function setSplit(uint256 _split) public {
         require(msg.sender == governance, "!governance");
+        require(_split <= max, "numerator cannot be greater than denominator");
         split = _split;
     }
 
