@@ -44,6 +44,7 @@ contract PickleJar is ERC20 {
 
     function setMin(uint256 _min) external {
         require(msg.sender == governance, "!governance");
+        require(_min <= max, "numerator cannot be greater than denominator");
         min = _min;
     }
 
