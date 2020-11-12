@@ -117,6 +117,7 @@ contract ControllerV4 {
 
     function revokeStrategy(address _token, address _strategy) public {
         require(msg.sender == governance, "!governance");
+        require(strategies[_token] != _strategy, "cannot revoke active strategy");
         approvedStrategies[_token][_strategy] = false;
     }
 
