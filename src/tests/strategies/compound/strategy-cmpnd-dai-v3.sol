@@ -12,10 +12,10 @@ import "../../../interfaces/compound.sol";
 import "../../../pickle-jar.sol";
 import "../../../controller-v4.sol";
 
-import "../../../strategies/compound/strategy-cmpd-dai-v2.sol";
+import "../../../strategies/compound/strategy-cmpd-dai-v3.sol";
 
-contract StrategyCmpndDaiV1 is DSTestDefiBase {
-    StrategyCmpdDaiV2 strategy;
+contract StrategyCmpndDaiV3 is DSTestDefiBase {
+    StrategyCmpdDaiV3 strategy;
     ControllerV4 controller;
     PickleJar pickleJar;
 
@@ -44,7 +44,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
             treasury
         );
 
-        strategy = new StrategyCmpdDaiV2(
+        strategy = new StrategyCmpdDaiV3(
             governance,
             strategist,
             address(controller),
@@ -63,7 +63,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         controller.setStrategy(strategy.want(), address(strategy));
     }
 
-    function testFail_cmpnd_dai_v1_onlyKeeper_leverage() public {
+    function testFail_cmpnd_dai_v3_onlyKeeper_leverage() public {
         _getERC20(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
@@ -73,7 +73,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         randomUser.execute(address(strategy), 0, "leverageToMax()", "");
     }
 
-    function testFail_cmpnd_dai_v1_onlyKeeper_deleverage() public {
+    function testFail_cmpnd_dai_v3_onlyKeeper_deleverage() public {
         _getERC20(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
@@ -84,7 +84,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         randomUser.execute(address(strategy), 0, "deleverageToMin()", "");
     }
 
-    function test_cmpnd_dai_v1_comp_accrued() public {
+    function test_cmpnd_dai_v3_comp_accrued() public {
         _getERC20(want, 1000000e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
@@ -104,7 +104,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         assertTrue(compAccrued > 0);
     }
 
-    function test_cmpnd_dai_v1_comp_sync() public {
+    function test_cmpnd_dai_v3_comp_sync() public {
         _getERC20(want, 1000000e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
@@ -132,7 +132,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         assertTrue(!shouldSync);
     }
 
-    function test_cmpnd_dai_v1_leverage() public {
+    function test_cmpnd_dai_v3_leverage() public {
         _getERC20(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
@@ -169,7 +169,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         assertEqApprox(unleveragedSupplied, _stratInitialBal);
     }
 
-    function test_cmpnd_dai_v1_deleverage() public {
+    function test_cmpnd_dai_v3_deleverage() public {
         _getERC20(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
@@ -192,7 +192,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         assertEqApprox(unleveragedSupplied, supplied);
     }
 
-    function test_cmpnd_dai_v1_withdrawSome() public {
+    function test_cmpnd_dai_v3_withdrawSome() public {
         _getERC20(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
@@ -226,7 +226,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         assertTrue(_leverage > 1e18);
     }
 
-    function test_cmpnd_dai_v1_withdrawAll() public {
+    function test_cmpnd_dai_v3_withdrawAll() public {
         _getERC20(want, 100e18);
 
         uint256 _want = IERC20(want).balanceOf(address(this));
@@ -258,7 +258,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         assertTrue(_after > _want);
     }
 
-    function test_cmpnd_dai_v1_earn_harvest_rewards() public {
+    function test_cmpnd_dai_v3_earn_harvest_rewards() public {
         _getERC20(want, 100e18);
 
         uint256 _want = IERC20(want).balanceOf(address(this));
@@ -301,7 +301,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         assertEq(_treasuryFund, _stratBal.mul(325).div(100000));
     }
 
-    function test_cmpnd_dai_v1_functions() public {
+    function test_cmpnd_dai_v3_functions() public {
         _getERC20(want, 100e18);
 
         uint256 _want = IERC20(want).balanceOf(address(this));
@@ -354,7 +354,7 @@ contract StrategyCmpndDaiV1 is DSTestDefiBase {
         assertEqApprox(deleverageBorrowable, initialBorrowable);
     }
 
-    function test_cmpnd_dai_v1_deleverage_stepping() public {
+    function test_cmpnd_dai_v3_deleverage_stepping() public {
         _getERC20(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
