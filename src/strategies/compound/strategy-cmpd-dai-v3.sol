@@ -12,7 +12,7 @@ import "../../interfaces/uniswapv2.sol";
 import "../../interfaces/controller.sol";
 import "../../interfaces/compound.sol";
 
-contract StrategyCmpdDaiV2 is StrategyBase, Exponential {
+contract StrategyCmpdDaiV3 is StrategyBase, Exponential {
     address
         public constant comptroller = 0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B;
     address public constant lens = 0xd513d22422a3062Bd342Ae374b4b9c20E0a9a074;
@@ -69,7 +69,7 @@ contract StrategyCmpdDaiV2 is StrategyBase, Exponential {
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {
-        return "StrategyCmpdDaiV2";
+        return "StrategyCmpdDaiV3";
     }
 
     function getSuppliedView() public view returns (uint256) {
@@ -195,6 +195,19 @@ contract StrategyCmpdDaiV2 is StrategyBase, Exponential {
             );
     }
 
+    function getRedeemable() public returns (uint256) {
+        uint256 supplied = getSupplied();
+        uint256 borrowed = getBorrowed();
+
+        (, uint256 colFactor) = IComptroller(comptroller).markets(cdai);
+
+        // Return 99.99% of the time just incase
+        return
+            supplied.sub(borrowed.mul(1e18).div(colFactor)).mul(9999).div(
+                10000
+            );
+    }
+
     function getCurrentLeverage() public returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
@@ -314,10 +327,14 @@ contract StrategyCmpdDaiV2 is StrategyBase, Exponential {
             "!deleverage"
         );
 
-        // Since we're only leveraging on 1 asset
-        // redeemable = borrowable
-        uint256 _redeemAndRepay = getBorrowable();
+        // Market collateral factor
+        uint256 marketColFactor = getMarketColFactor();
+
+        // How much can we redeem
+        uint256 _redeemAndRepay = getRedeemable();
         do {
+            // If the amount we're redeeming is exceeding the
+            // target supplyAmount, adjust accordingly
             if (supplied.sub(_redeemAndRepay) < _supplyAmount) {
                 _redeemAndRepay = supplied.sub(_supplyAmount);
             }
@@ -331,6 +348,9 @@ contract StrategyCmpdDaiV2 is StrategyBase, Exponential {
             require(ICToken(cdai).repayBorrow(_redeemAndRepay) == 0, "!repay");
 
             supplied = supplied.sub(_redeemAndRepay);
+
+            // After each deleverage we can redeem more (the colFactor)
+            _redeemAndRepay = _redeemAndRepay.mul(1e18).div(marketColFactor);
         } while (supplied > _supplyAmount);
     }
 
