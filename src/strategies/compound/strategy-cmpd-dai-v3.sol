@@ -23,15 +23,15 @@ contract StrategyCmpdDaiV3 is StrategyBase, Exponential {
 
     // Require a 0.04 buffer between
     // market collateral factor and strategy's collateral factor
-    // when leveraging
+    // when leveraging.
     uint256 colFactorLeverageBuffer = 40;
     uint256 colFactorLeverageBufferMax = 1000;
 
-    // Allow a 0.05 buffer
+    // Allow a 0.03 buffer
     // between market collateral factor and strategy's collateral factor
     // until we have to deleverage
     // This is so we can hit max leverage and keep accruing interest
-    uint256 colFactorSyncBuffer = 50;
+    uint256 colFactorSyncBuffer = 30;
     uint256 colFactorSyncBufferMax = 1000;
 
     // Keeper bots
