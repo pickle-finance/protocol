@@ -45,12 +45,12 @@ const main = async () => {
   console.log(chalk.redBright(`PROVIDER_URL: ${provider.connection.url}`));
 
   const tx = await deployContract({
-    name: "Instabrine",
-    abi: ABIS.Pickle.Instabrine,
-    bytecode: BYTECODE.Pickle.Instabrine,
+    name: "StrategyCmpdDaiV3",
+    abi: ABIS.Pickle.Strategies.StrategyCmpdDaiV3,
+    bytecode: BYTECODE.Pickle.Strategies.StrategyCmpdDaiV3,
     deployer,
     wallet: deployer,
-    args: [],
+    args: [governance, strategist, controller_v4, timelock_12],
   });
 };
 

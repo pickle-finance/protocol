@@ -32,8 +32,8 @@ const KEYS = {
       UniswapV2ProxyLogic: "src/proxy-logic/uniswapv2.sol:UniswapV2ProxyLogic",
     },
     Strategies: {
-      StrategyCmpdDaiV2:
-        "src/strategies/compound/strategy-cmpd-dai-v2.sol:StrategyCmpdDaiV2",
+      StrategyCmpdDaiV3:
+        "src/strategies/compound/strategy-cmpd-dai-v3.sol:StrategyCmpdDaiV3",
       StrategyCurve3CRVv2:
         "src/strategies/curve/strategy-curve-3crv-v2.sol:StrategyCurve3CRVv2",
       StrategyCurveRenCRVv2:
@@ -63,8 +63,8 @@ const UniswapV2ProxyLogic =
 
 const Instabrine = DAPP_CONTRACTS[KEYS.Pickle.Instabrine];
 
-const StrategyCmpdDaiV2 =
-  DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyCmpdDaiV2];
+const StrategyCmpdDaiV3 =
+  DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyCmpdDaiV3];
 const StrategyCurve3CRVv2 =
   DAPP_CONTRACTS[KEYS.Pickle.Strategies.StrategyCurve3CRVv2];
 const StrategyCurveRenCRVv2 =
@@ -91,7 +91,7 @@ const ABIS = {
       UniswapV2ProxyLogic: UniswapV2ProxyLogic.abi,
     },
     Strategies: {
-      StrategyCmpdDaiV2: StrategyCmpdDaiV2.abi,
+      StrategyCmpdDaiV3: StrategyCmpdDaiV3.abi,
       StrategyCurve3CRVv2: StrategyCurve3CRVv2.abi,
       StrategyCurveRenCRVv2: StrategyCurveRenCRVv2.abi,
       StrategyCurveSCRVv3_2: StrategyCurveSCRVv3_2.abi,
@@ -117,7 +117,7 @@ const BYTECODE = {
       UniswapV2ProxyLogic: UniswapV2ProxyLogic.bin,
     },
     Strategies: {
-      StrategyCmpdDaiV2: StrategyCmpdDaiV2.bin,
+      StrategyCmpdDaiV3: StrategyCmpdDaiV3.bin,
       StrategyCurve3CRVv2: StrategyCurve3CRVv2.bin,
       StrategyCurveRenCRVv2: StrategyCurveRenCRVv2.bin,
       StrategyCurveSCRVv3_2: StrategyCurveSCRVv3_2.bin,

@@ -21,10 +21,10 @@ contract StrategyCmpdDaiV3 is StrategyBase, Exponential {
     address public constant cdai = 0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643;
     address public constant cether = 0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5;
 
-    // Require a 0.1 buffer between
+    // Require a 0.04 buffer between
     // market collateral factor and strategy's collateral factor
     // when leveraging
-    uint256 colFactorLeverageBuffer = 100;
+    uint256 colFactorLeverageBuffer = 40;
     uint256 colFactorLeverageBufferMax = 1000;
 
     // Allow a 0.05 buffer
