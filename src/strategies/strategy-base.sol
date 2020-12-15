@@ -5,6 +5,7 @@ import "../lib/safe-math.sol";
 
 import "../interfaces/jar.sol";
 import "../interfaces/staking-rewards.sol";
+import "../interfaces/masterchef.sol";
 import "../interfaces/uniswapv2.sol";
 import "../interfaces/controller.sol";
 
@@ -43,6 +44,7 @@ abstract contract StrategyBase {
 
     // Dex
     address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+    address public sushiRouter = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
 
     constructor(
         address _want,
@@ -271,6 +273,39 @@ abstract contract StrategyBase {
         }
 
         UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
+            _amount,
+            0,
+            path,
+            address(this),
+            now.add(60)
+        );
+    }
+
+    function _swapSushiswap(
+        address _from,
+        address _to,
+        uint256 _amount
+    ) internal {
+        require(_to != address(0));
+
+        // Swap with uniswap
+        IERC20(_from).safeApprove(sushiRouter, 0);
+        IERC20(_from).safeApprove(sushiRouter, _amount);
+
+        address[] memory path;
+
+        if (_from == weth || _to == weth) {
+            path = new address[](2);
+            path[0] = _from;
+            path[1] = _to;
+        } else {
+            path = new address[](3);
+            path[0] = _from;
+            path[1] = weth;
+            path[2] = _to;
+        }
+
+        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
             _amount,
             0,
             path,
