@@ -62,44 +62,7 @@ contract DSTestDefiBase is DSTestApprox {
     receive() external payable {}
     fallback () external payable {}
 
-    function _swap(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal {
-        address[] memory path;
-
-        if (_from == eth || _from == weth) {
-            path = new address[](2);
-            path[0] = weth;
-            path[1] = _to;
-
-            univ2.swapExactETHForTokens{value: _amount}(
-                0,
-                path,
-                address(this),
-                now + 60
-            );
-        } else {
-            path = new address[](3);
-            path[0] = _from;
-            path[1] = weth;
-            path[2] = _to;
-
-            IERC20(_from).safeApprove(address(univ2), 0);
-            IERC20(_from).safeApprove(address(univ2), _amount);
-
-            univ2.swapExactTokensForTokens(
-                _amount,
-                0,
-                path,
-                address(this),
-                now + 60
-            );
-        }
-    }
-
-    function _getERC20(address token, uint256 _amount) internal {
+    function _getERC20(address token, uint256 _amount) virtual internal {
         address[] memory path = new address[](2);
         path[0] = weth;
         path[1] = token;
@@ -115,7 +78,7 @@ contract DSTestDefiBase is DSTestApprox {
         );
     }
 
-    function _getERC20WithETH(address token, uint256 _ethAmount) internal {
+    function _getERC20WithETH(address token, uint256 _ethAmount) virtual internal {
         address[] memory path = new address[](2);
         path[0] = weth;
         path[1] = token;
