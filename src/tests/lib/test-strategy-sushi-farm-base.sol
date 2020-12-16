@@ -95,11 +95,11 @@ contract StrategySushiFarmTestBase is DSTestSushiBase {
         uint256 _after = pickleJar.balance();
         uint256 _treasuryAfter = IERC20(want).balanceOf(treasury);
 
-        uint256 earned = _after.sub(_before).mul(1000).div(955);
-        uint256 earnedRewards = earned.mul(45).div(1000); // 4.5%
+        uint256 earned = _after.sub(_before).mul(1000).div(800);
+        uint256 earnedRewards = earned.mul(200).div(1000); // 20%
         uint256 actualRewardsEarned = _treasuryAfter.sub(_treasuryBefore);
 
-        // 4.5% performance fee is given
+        // 20% performance fee is given
         assertEqApprox(earnedRewards, actualRewardsEarned);
 
         // Withdraw
@@ -110,12 +110,12 @@ contract StrategySushiFarmTestBase is DSTestSushiBase {
         uint256 _devAfter = IERC20(want).balanceOf(devfund);
         _treasuryAfter = IERC20(want).balanceOf(treasury);
 
-        // 0.175% goes to dev
+        // 0% goes to dev
         uint256 _devFund = _devAfter.sub(_devBefore);
-        assertEq(_devFund, _stratBal.mul(175).div(100000));
+        assertEq(_devFund, 0);
 
-        // 0.325% goes to treasury
+        // 0% goes to treasury
         uint256 _treasuryFund = _treasuryAfter.sub(_treasuryBefore);
-        assertEq(_treasuryFund, _stratBal.mul(325).div(100000));
+        assertEq(_treasuryFund, 0);
     }
 }
