@@ -16,20 +16,20 @@ abstract contract StrategyBase {
     using Address for address;
     using SafeMath for uint256;
 
-    // Perfomance fees - start with 4.5%
-    uint256 public performanceTreasuryFee = 450;
+    // Perfomance fees - start with 20%
+    uint256 public performanceTreasuryFee = 2000;
     uint256 public constant performanceTreasuryMax = 10000;
 
     uint256 public performanceDevFee = 0;
     uint256 public constant performanceDevMax = 10000;
 
-    // Withdrawal fee 0.5%
-    // - 0.325% to treasury
-    // - 0.175% to dev fund
-    uint256 public withdrawalTreasuryFee = 325;
+    // Withdrawal fee 0%
+    // - 0% to treasury
+    // - 0% to dev fund
+    uint256 public withdrawalTreasuryFee = 0;
     uint256 public constant withdrawalTreasuryMax = 100000;
 
-    uint256 public withdrawalDevFundFee = 175;
+    uint256 public withdrawalDevFundFee = 0;
     uint256 public constant withdrawalDevFundMax = 100000;
 
     // Tokens
