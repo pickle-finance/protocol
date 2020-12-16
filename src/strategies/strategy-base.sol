@@ -44,7 +44,7 @@ abstract contract StrategyBase {
 
     // Dex
     address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-    address public sushiRouter = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+    address public sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
 
     constructor(
         address _want,
