@@ -6,7 +6,7 @@ import "../interfaces/sushi-chef.sol";
 
 abstract contract StrategySushiFarmBase is StrategyBase {
     // Token addresses
-    address public constant sushi = 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984;
+    address public constant sushi = 0x6b3595068778dd592e39a122f4f5a5cf09c90fe2;
     address public constant masterChef = 0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd;
 
     // WETH/<token1> pair
