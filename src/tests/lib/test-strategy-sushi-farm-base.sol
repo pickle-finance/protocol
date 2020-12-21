@@ -55,7 +55,7 @@ contract StrategySushiFarmTestBase is DSTestSushiBase {
 
     function _test_withdraw_release() internal {
         uint256 decimals = ERC20(token1).decimals();
-        _getWant(10 ether, 4000 * (10**decimals));
+        _getWant(10 ether, 400 * (10**decimals));
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).safeApprove(address(pickleJar), 0);
         IERC20(want).safeApprove(address(pickleJar), _want);
@@ -80,7 +80,7 @@ contract StrategySushiFarmTestBase is DSTestSushiBase {
 
     function _test_get_earn_harvest_rewards() internal {
         uint256 decimals = ERC20(token1).decimals();
-        _getWant(10 ether, 4000 * (10**decimals));
+        _getWant(10 ether, 400 * (10**decimals));
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).safeApprove(address(pickleJar), 0);
         IERC20(want).safeApprove(address(pickleJar), _want);
