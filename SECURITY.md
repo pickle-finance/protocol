@@ -42,7 +42,7 @@ For all security related issues, Pickle has the following contact information:
 
 Include all contacts in your communication when possible, PGP encrypted to all parties.
 
-You can also reach out informally over keybase encrypted chat to one or more of the contacts as per the details above. If you need help with this, you can ask for help on the Pickle [Discord](http://discord.gg/gR85hmC).
+You can also reach out informally over keybase encrypted chat to one or more of the contacts as per the details above. If you need help with this, you can ask for help on the Pickle [Discord](https://discord.gg/uG6WhYkM8n).
 
 ## Sending Disclosures
 
