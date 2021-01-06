@@ -79,6 +79,18 @@ contract DSTestDefiBase is DSTestApprox {
         );
     }
 
+    function _getERC20WithPath(address token, uint256 _amount, address[] memory path) virtual internal {
+        uint256[] memory ins = univ2.getAmountsIn(_amount, path);
+        uint256 ethAmount = ins[0];
+
+        univ2.swapETHForExactTokens{value: ethAmount}(
+            _amount,
+            path,
+            address(this),
+            now + 60
+        );
+    }
+
     function _getERC20WithETH(address token, uint256 _ethAmount) virtual internal {
         address[] memory path = new address[](2);
         path[0] = weth;
