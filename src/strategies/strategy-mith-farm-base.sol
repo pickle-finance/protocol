@@ -64,7 +64,6 @@ abstract contract StrategyMithFarmBase is StrategyStakingRewardsBase {
         // But ETH is a dark forest, and I wanna see how this plays out
         // i.e. will be be heavily frontrunned?
         //      if so, a new strategy will be deployed.
-        address[] memory path = new address[](2);
 
         // Collects MIS tokens
         IStakingRewards(rewards).getReward();
