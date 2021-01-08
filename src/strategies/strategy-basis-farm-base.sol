@@ -52,6 +52,7 @@ abstract contract StrategyBasisFarmBase is StrategyStakingRewardsBase {
         // But ETH is a dark forest, and I wanna see how this plays out
         // i.e. will be be heavily frontrunned?
         //      if so, a new strategy will be deployed.
+        address[] memory path = new address[](2);
 
         // Collects BAS tokens
         IStakingRewards(rewards).getReward();
@@ -63,13 +64,17 @@ abstract contract StrategyBasisFarmBase is StrategyStakingRewardsBase {
                 IController(controller).treasury(),
                 _keepBAS
             );
-            _swapUniswap(bas, dai, _bas.sub(_keepBAS));
+            path[0] = bas;
+            path[1] = dai;
+            _swapUniswapWithPath(path, _bas.sub(_keepBAS));
         }
 
         // Swap half DAI for token
         uint256 _dai = IERC20(dai).balanceOf(address(this));
         if (_dai > 0) {
-            _swapUniswap(dai, token1, _dai.div(2));
+            path[0] = dai;
+            path[1] = token1;
+            _swapUniswapWithPath(path, _dai.div(2));
         }
 
         // Adds in liquidity for DAI/Token
