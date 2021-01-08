@@ -281,6 +281,25 @@ abstract contract StrategyBase {
         );
     }
 
+    function _swapUniswapWithPath(
+        address[] memory path,
+        uint256 _amount
+    ) internal {
+        require(path[1] != address(0));
+
+        // Swap with uniswap
+        IERC20(path[0]).safeApprove(univ2Router2, 0);
+        IERC20(path[0]).safeApprove(univ2Router2, _amount);
+
+        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
+            _amount,
+            0,
+            path,
+            address(this),
+            now.add(60)
+        );
+    }
+
     function _swapSushiswap(
         address _from,
         address _to,
