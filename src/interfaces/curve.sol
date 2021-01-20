@@ -55,6 +55,12 @@ interface ICurveFi_4 {
     function add_liquidity(uint256[4] calldata amounts, uint256 min_mint_amount)
         external;
 
+    // stETH pool
+    function add_liquidity(
+        uint256[2] calldata amounts,
+        uint256 min_mint_amount
+    ) external payable;
+
     function remove_liquidity_imbalance(
         uint256[4] calldata amounts,
         uint256 max_burn_amount
@@ -141,6 +147,8 @@ interface ICurveGauge {
     function claimable_tokens(address addr) external returns (uint256);
 
     function claimable_reward(address addr) external view returns (uint256);
+
+    function claimable_reward(address, address) external view returns (uint256);
 
     function integrate_fraction(address arg0) external view returns (uint256);
 }
