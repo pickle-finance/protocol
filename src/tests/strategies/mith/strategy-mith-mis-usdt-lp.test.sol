@@ -59,15 +59,15 @@ contract StrategyMithMisUsdtLpTest is StrategyMithFarmTestBase {
 
     // **** Tests ****
 
-    function test_ethdaiv3_1_timelock() public {
+    function test_misusdtv3_1_timelock() public {
         _test_timelock();
     }
 
-    function test_ethdaiv3_1_withdraw_release() public {
+    function test_misusdtv3_1_withdraw_release() public {
         _test_withdraw_release();
     }
 
-    function test_ethdaiv3_1_get_earn_harvest_rewards() public {
+    function test_misusdtv3_1_get_earn_harvest_rewards() public {
         _test_get_earn_harvest_rewards();
     }
 }
