@@ -10,12 +10,12 @@ import "../../../interfaces/uniswapv2.sol";
 
 import "../../../pickle-jar.sol";
 import "../../../controller-v4.sol";
-import "../../../strategies/basis/strategy-basis-bac-dai-lp.sol";
+import "../../../strategies/basis/strategy-basis-bas-dai-lp.sol";
 
-contract StrategyBasisBacDaiLpTest is StrategyBasisFarmTestBase {
+contract StrategyBasisBasDaiLpTest is StrategyBasisFarmTestBase {
     function setUp() public {
-        want = 0xd4405F0704621DBe9d4dEA60E128E0C3b26bddbD;
-        token1 = 0x3449FC1Cd036255BA1EB19d65fF4BA2b8903A69a; // Basis Cash
+        want = 0x0379dA7a5895D13037B6937b109fA8607a659ADF;
+        token1 = 0xa7ED29B253D8B4E3109ce07c80fc570f81B63696; // Bas
 
         governance = address(this);
         strategist = address(this);
@@ -33,7 +33,7 @@ contract StrategyBasisBacDaiLpTest is StrategyBasisFarmTestBase {
 
         strategy = IStrategy(
             address(
-                new StrategyBasisBacDaiLp(
+                new StrategyBasisBasDaiLp(
                     governance,
                     strategist,
                     address(controller),
@@ -59,15 +59,15 @@ contract StrategyBasisBacDaiLpTest is StrategyBasisFarmTestBase {
 
     // **** Tests ****
 
-    function test_bacdaiv3_1_timelock() public {
+    function test_basdaiv3_1_timelock() public {
         _test_timelock();
     }
 
-    function test_bacdaiv3_1_withdraw_release() public {
+    function test_basdaiv3_1_withdraw_release() public {
         _test_withdraw_release();
     }
 
-    function test_bacdaiv3_1_get_earn_harvest_rewards() public {
+    function test_basdaiv3_1_get_earn_harvest_rewards() public {
         _test_get_earn_harvest_rewards();
     }
 }
