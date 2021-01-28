@@ -46,6 +46,8 @@ abstract contract StrategyBase {
     address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
     address public sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
 
+    mapping(address => bool) public harvesters;
+
     constructor(
         address _want,
         address _governance,
@@ -70,7 +72,7 @@ abstract contract StrategyBase {
 
     modifier onlyBenevolent {
         require(
-            msg.sender == tx.origin ||
+            harvesters[msg.sender] ||
                 msg.sender == governance ||
                 msg.sender == strategist
         );
@@ -92,6 +94,18 @@ abstract contract StrategyBase {
     function getName() external virtual pure returns (string memory);
 
     // **** Setters **** //
+
+    function whitelistHarvester(address _harvester) external {
+        require(msg.sender == governance ||
+             msg.sender == strategist, "not authorized");
+        harvesters[_harvester] = true;
+    }
+
+    function revokeHarvester(address _harvester) external {
+        require(msg.sender == governance ||
+             msg.sender == strategist, "not authorized");
+        harvesters[_harvester] = false;
+    }
 
     function setWithdrawalDevFundFee(uint256 _withdrawalDevFundFee) external {
         require(msg.sender == timelock, "!timelock");
