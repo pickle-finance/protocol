@@ -6,6 +6,9 @@
     "node-fetch": "^2.6.1",
     "ora": "^5.1.0"
   },
+  "scripts": {
+    "flatten": "npx sol-merger \"./src/**/*.sol\" ./build"
+  },
   "devDependencies": {
     "eslint": "^7.10.0"
   },
