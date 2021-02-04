@@ -3,21 +3,21 @@ pragma solidity ^0.6.7;
 
 import "./strategy-staking-rewards-base.sol";
 
-abstract contract StrategyMithFarmBase is StrategyStakingRewardsBase {
+abstract contract StrategyMirFarmBase is StrategyStakingRewardsBase {
     // Token addresses
-    address public mis = 0x4b4D2e899658FB59b1D518b68fe836B100ee8958;
-    address public usdt = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+    address public mir = 0x09a3ecafa817268f77be1283176b946c4ff2e608;
+    address public ust = 0xa47c8bf37f92abed4a126bda807a7b7498661acd;
 
-    // USDT/<token1> pair
+    // UST/<token1> pair
     address public token1;
 
-    // How much MIS tokens to keep?
-    uint256 public keepMIS = 0;
-    uint256 public constant keepMISMax = 10000;
+    // How much MIR tokens to keep?
+    uint256 public keepMIR = 0;
+    uint256 public constant keepMIRMax = 10000;
 
     // Uniswap swap paths
-    address[] public mis_usdt_path;
-    address[] public usdt_token1_path;
+    address[] public mir_ust_path;
+    address[] public ust_token1_path;
 
     constructor(
         address _token1,
@@ -40,20 +40,20 @@ abstract contract StrategyMithFarmBase is StrategyStakingRewardsBase {
     {
         token1 = _token1;
 
-        mis_usdt_path = new address[](2);
-        mis_usdt_path[0] = mis;
-        mis_usdt_path[1] = usdt;
+        mir_ust_path = new address[](2);
+        mir_ust_path[0] = mir;
+        mir_ust_path[1] = ust;
 
-        usdt_token1_path = new address[](2);
-        usdt_token1_path[0] = usdt;
-        usdt_token1_path[1] = token1;
+        ust_token1_path = new address[](2);
+        ust_token1_path[0] = ust;
+        ust_token1_path[1] = token1;
     }
 
     // **** Setters ****
 
-    function setKeepMIS(uint256 _keepMIS) external {
+    function setKeepMIR(uint256 _keepMIR) external {
         require(msg.sender == timelock, "!timelock");
-        keepMIS = _keepMIS;
+        keepMIR = _keepMIR;
     }
 
     // **** State Mutations ****
@@ -65,39 +65,39 @@ abstract contract StrategyMithFarmBase is StrategyStakingRewardsBase {
         // i.e. will be be heavily frontrunned?
         //      if so, a new strategy will be deployed.
 
-        // Collects MIS tokens
+        // Collects MIR tokens
         IStakingRewards(rewards).getReward();
-        uint256 _mis = IERC20(mis).balanceOf(address(this));
-        if (_mis > 0) {
+        uint256 _mir = IERC20(mir).balanceOf(address(this));
+        if (_mir > 0) {
             // 10% is locked up for future gov
-            uint256 _keepMIS = _mis.mul(keepMIS).div(keepMISMax);
-            IERC20(mis).safeTransfer(
+            uint256 _keepMIR = _mir.mul(keepMIR).div(keepMIRMax);
+            IERC20(mir).safeTransfer(
                 IController(controller).treasury(),
-                _keepMIS
+                _keepMIR
             );
-            _swapSushiswapWithPath(mis_usdt_path, _mis.sub(_keepMIS));
+            _swapSushiswapWithPath(mir_ust_path, _mir.sub(_keepMIR));
         }
 
-        // Swap half USDT for token
-        uint256 _usdt = IERC20(usdt).balanceOf(address(this));
-        if (_usdt > 0) {
-            _swapSushiswapWithPath(usdt_token1_path, _usdt.div(2));
+        // Swap half UST for token
+        uint256 _ust = IERC20(ust).balanceOf(address(this));
+        if (_ust > 0) {
+            _swapSushiswapWithPath(ust_token1_path, _ust.div(2));
         }
 
-        // Adds in liquidity for USDT/Token
-        _usdt = IERC20(usdt).balanceOf(address(this));
+        // Adds in liquidity for UST/Token
+        _ust = IERC20(ust).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
-        if (_usdt > 0 && _token1 > 0) {
-            IERC20(usdt).safeApprove(sushiRouter, 0);
-            IERC20(usdt).safeApprove(sushiRouter, _usdt);
+        if (_ust > 0 && _token1 > 0) {
+            IERC20(ust).safeApprove(sushiRouter, 0);
+            IERC20(ust).safeApprove(sushiRouter, _ust);
 
             IERC20(token1).safeApprove(sushiRouter, 0);
             IERC20(token1).safeApprove(sushiRouter, _token1);
 
             UniswapRouterV2(sushiRouter).addLiquidity(
-                usdt,
+                ust,
                 token1,
-                _usdt,
+                _ust,
                 _token1,
                 0,
                 0,
@@ -106,9 +106,9 @@ abstract contract StrategyMithFarmBase is StrategyStakingRewardsBase {
             );
 
             // Donates DUST
-            IERC20(usdt).safeTransfer(
+            IERC20(ust).safeTransfer(
                 IController(controller).treasury(),
-                IERC20(usdt).balanceOf(address(this))
+                IERC20(ust).balanceOf(address(this))
             );
             IERC20(token1).safeTransfer(
                 IController(controller).treasury(),
@@ -116,7 +116,7 @@ abstract contract StrategyMithFarmBase is StrategyStakingRewardsBase {
             );
         }
 
-        // We want to get back MIS LP tokens
+        // We want to get back MIR LP tokens
         _distributePerformanceFeesAndDeposit();
     }
 }
