@@ -75,26 +75,26 @@ abstract contract StrategyMirFarmBase is StrategyStakingRewardsBase {
                 IController(controller).treasury(),
                 _keepMIR
             );
-            _swapSushiswapWithPath(mir_ust_path, _mir.sub(_keepMIR));
+            _swapUniswapWithPath(mir_ust_path, _mir.sub(_keepMIR));
         }
 
         // Swap half UST for token
         uint256 _ust = IERC20(ust).balanceOf(address(this));
         if (_ust > 0) {
-            _swapSushiswapWithPath(ust_token1_path, _ust.div(2));
+            _swapUniswapWithPath(ust_token1_path, _ust.div(2));
         }
 
         // Adds in liquidity for UST/Token
         _ust = IERC20(ust).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
         if (_ust > 0 && _token1 > 0) {
-            IERC20(ust).safeApprove(sushiRouter, 0);
-            IERC20(ust).safeApprove(sushiRouter, _ust);
+            IERC20(ust).safeApprove(univ2Router2, 0);
+            IERC20(ust).safeApprove(univ2Router2, _ust);
 
-            IERC20(token1).safeApprove(sushiRouter, 0);
-            IERC20(token1).safeApprove(sushiRouter, _token1);
+            IERC20(token1).safeApprove(univ2Router2, 0);
+            IERC20(token1).safeApprove(univ2Router2, _token1);
 
-            UniswapRouterV2(sushiRouter).addLiquidity(
+            UniswapRouterV2(univ2Router2).addLiquidity(
                 ust,
                 token1,
                 _ust,
