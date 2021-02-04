@@ -5,8 +5,8 @@ import "./strategy-staking-rewards-base.sol";
 
 abstract contract StrategyMirFarmBase is StrategyStakingRewardsBase {
     // Token addresses
-    address public mir = 0x09a3ecafa817268f77be1283176b946c4ff2e608;
-    address public ust = 0xa47c8bf37f92abed4a126bda807a7b7498661acd;
+    address public mir = 0x09a3EcAFa817268f77BE1283176B946C4ff2E608;
+    address public ust = 0xa47c8bf37f92aBed4A126BDA807A7b7498661acD;
 
     // UST/<token1> pair
     address public token1;
