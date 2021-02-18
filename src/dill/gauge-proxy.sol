@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.5;
+pragma solidity ^0.6.7; //^0.7.5;
 
 
 library SafeMath {
@@ -187,7 +187,7 @@ abstract contract ReentrancyGuard {
 
     uint256 private _status;
 
-    constructor () {
+    constructor () public {
         _status = _NOT_ENTERED;
     }
 
@@ -244,7 +244,7 @@ contract Gauge is ReentrancyGuard {
     mapping(address => uint256) public derivedBalances;
     mapping(address => uint) private _base;
     
-    constructor(address _token) {
+    constructor(address _token) public {
         TOKEN = IERC20(_token);
         DISTRIBUTION = msg.sender;
     }
@@ -434,7 +434,7 @@ contract MasterDill {
     /// @notice The standard EIP-20 approval event
     event Approval(address indexed owner, address indexed spender, uint amount);
     
-    constructor() {
+    constructor() public {
         balances[msg.sender] = 1e18;
         emit Transfer(address(0x0), msg.sender, 1e18);
     }
@@ -532,8 +532,8 @@ contract GaugeProxy is ProtocolGovernance {
     address[] internal _tokens;
     mapping(address => address) public gauges; // token => gauge
     mapping(address => uint) public weights; // token => weight
-    mapping(address => uint) public votes; // msg.sender => votes
-    mapping(address => address) public tokenVote;// msg.sender => token
+    mapping(address => mapping(address => uint)) public votes; // msg.sender => votes
+    mapping(address => address[]) public tokenVote;// msg.sender => token
     
     function tokens() external view returns (address[] memory) {
         return _tokens;
@@ -543,7 +543,7 @@ contract GaugeProxy is ProtocolGovernance {
         return gauges[_token];
     }
     
-    constructor() {
+    constructor() public {
         TOKEN = IERC20(address(new MasterDill()));
         governance = msg.sender;
     }
@@ -555,47 +555,52 @@ contract GaugeProxy is ProtocolGovernance {
     
     // Reset votes to 0
     function _reset(address _owner) internal {
-        address _token = tokenVote[_owner];
-        uint _votes = votes[_owner];
-        
-        if (_votes > 0) {
-            totalWeight = totalWeight.sub(_votes);
-            weights[_token] = weights[_token].sub(_votes);
+        address[] storage _tokenVote = tokenVote[_owner];
+        uint256 _tokenVoteCnt = _tokenVote.length;
+
+        for (uint i = 0; i < _tokenVoteCnt; i ++) {
+            address _token = _tokenVote[i];
+            uint _votes = votes[_owner][_token];
             
-            tokenVote[_owner] = address(0x0);
-            votes[_owner] = 0;
+            if (_votes > 0) {
+                totalWeight = totalWeight.sub(_votes);
+                weights[_token] = weights[_token].sub(_votes);
+                
+                votes[_owner][_token] = 0;
+            }
         }
+
+        delete tokenVote[_owner];
     }
     
     // Reset votes to 0
     function poke(address _owner) public {
-        address _token = tokenVote[msg.sender];
-        uint _votes = votes[msg.sender];
-        uint _weight = DILL.balanceOf(msg.sender);
-        
-        if (_votes > _weight) {
-            _vote(_owner, _token);
-        }
-        
+        address[] memory _tokenVote = tokenVote[msg.sender];
+        _vote(_owner, _tokenVote);
     }
     
-    function _vote(address _owner, address _token) internal {
-        address _gauge = gauges[_token];
-        if (_gauge != address(0x0)) {
-            _reset(_owner);
-            
-            uint _weight = DILL.balanceOf(_owner);
-            totalWeight = totalWeight.add(_weight);
-            weights[_token] = weights[_token].add(_weight);
-            tokenVote[_owner] = _token;
-            votes[_owner] = _weight;
+    function _vote(address _owner, address[] memory _tokenVote) internal {
+        _reset(_owner);
+        uint256 _tokenCnt = _tokenVote.length;
+        uint _weight = DILL.balanceOf(_owner).div(_tokenCnt);
+
+        for (uint i = 0; i < _tokenCnt; i ++) {
+            address _token = _tokenVote[i];
+            address _gauge = gauges[_token];
+
+            if (_gauge != address(0x0)) {
+                totalWeight = totalWeight.add(_weight);
+                weights[_token] = weights[_token].add(_weight);
+                tokenVote[_owner].push(_token);
+                votes[_token][_owner] = _weight;
+            }
         }
     }
     
     
     // Vote with DILL on a gauge
-    function vote(address _token) external {
-        _vote(msg.sender, _token);
+    function vote(address[] calldata _tokenVote) external {
+        _vote(msg.sender, _tokenVote);
     }
     
     // Add new token gauge
