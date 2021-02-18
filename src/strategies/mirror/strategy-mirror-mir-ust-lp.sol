@@ -7,7 +7,6 @@ contract StrategyMirrorMirUstLp is StrategyMirFarmBase {
     // Token addresses
     address public mir_rewards = 0x5d447Fc0F8965cED158BAB42414Af10139Edf0AF;
     address public uni_mir_ust_lp = 0x87dA823B6fC8EB8575a235A824690fda94674c88;
-    address public mir = 0x09a3EcAFa817268f77BE1283176B946C4ff2E608;
 
     constructor(
         address _governance,

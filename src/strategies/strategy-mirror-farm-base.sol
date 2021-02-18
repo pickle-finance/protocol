@@ -47,6 +47,9 @@ abstract contract StrategyMirFarmBase is StrategyStakingRewardsBase {
         ust_token1_path = new address[](2);
         ust_token1_path[0] = ust;
         ust_token1_path[1] = token1;
+
+        IERC20(ust).approve(univ2Router2, uint(-1));
+        IERC20(token1).approve(univ2Router2, uint(-1));
     }
 
     // **** Setters ****
@@ -68,32 +71,28 @@ abstract contract StrategyMirFarmBase is StrategyStakingRewardsBase {
         // Collects MIR tokens
         IStakingRewards(rewards).getReward();
         uint256 _mir = IERC20(mir).balanceOf(address(this));
-        if (_mir > 0) {
-            // 10% is locked up for future gov
-            uint256 _keepMIR = _mir.mul(keepMIR).div(keepMIRMax);
-            IERC20(mir).safeTransfer(
-                IController(controller).treasury(),
-                _keepMIR
-            );
-            _swapUniswapWithPath(mir_ust_path, _mir.sub(_keepMIR));
-        }
+        
+        // 10% is locked up for future gov
+        uint256 _keepMIR = _mir.mul(keepMIR).div(keepMIRMax);
+        IERC20(mir).safeTransfer(
+            IController(controller).treasury(),
+            _keepMIR
+        );
+        _mir = _mir.sub(_keepMIR);
 
-        // Swap half UST for token
-        uint256 _ust = IERC20(ust).balanceOf(address(this));
-        if (_ust > 0) {
-            _swapUniswapWithPath(ust_token1_path, _ust.div(2));
+        if (token1 == mir) {
+            _swapUniswapWithPath(mir_ust_path, _mir.div(2));
+        } else {
+            _swapUniswapWithPath(mir_ust_path, _mir);
+
+            // Swap half UST for token
+            _swapUniswapWithPath(ust_token1_path, IERC20(ust).balanceOf(address(this)).div(2));
         }
 
         // Adds in liquidity for UST/Token
-        _ust = IERC20(ust).balanceOf(address(this));
+        uint256 _ust = IERC20(ust).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
         if (_ust > 0 && _token1 > 0) {
-            IERC20(ust).safeApprove(univ2Router2, 0);
-            IERC20(ust).safeApprove(univ2Router2, _ust);
-
-            IERC20(token1).safeApprove(univ2Router2, 0);
-            IERC20(token1).safeApprove(univ2Router2, _token1);
-
             UniswapRouterV2(univ2Router2).addLiquidity(
                 ust,
                 token1,
