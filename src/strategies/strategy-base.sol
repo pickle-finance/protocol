@@ -269,10 +269,6 @@ abstract contract StrategyBase {
     ) internal {
         require(_to != address(0));
 
-        // Swap with uniswap
-        IERC20(_from).safeApprove(univ2Router2, 0);
-        IERC20(_from).safeApprove(univ2Router2, _amount);
-
         address[] memory path;
 
         if (_from == weth || _to == weth) {
@@ -301,10 +297,6 @@ abstract contract StrategyBase {
     ) internal {
         require(path[1] != address(0));
 
-        // Swap with uniswap
-        IERC20(path[0]).safeApprove(univ2Router2, 0);
-        IERC20(path[0]).safeApprove(univ2Router2, _amount);
-
         UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
             _amount,
             0,
@@ -320,10 +312,6 @@ abstract contract StrategyBase {
         uint256 _amount
     ) internal {
         require(_to != address(0));
-
-        // Swap with uniswap
-        IERC20(_from).safeApprove(sushiRouter, 0);
-        IERC20(_from).safeApprove(sushiRouter, _amount);
 
         address[] memory path;
 
@@ -352,10 +340,6 @@ abstract contract StrategyBase {
         uint256 _amount
     ) internal {
         require(path[1] != address(0));
-
-        // Swap with uniswap
-        IERC20(path[0]).safeApprove(sushiRouter, 0);
-        IERC20(path[0]).safeApprove(sushiRouter, _amount);
 
         UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
             _amount,
