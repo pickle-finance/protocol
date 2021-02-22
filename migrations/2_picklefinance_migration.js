@@ -2,7 +2,7 @@ const PickleJar = artifacts.require("PickleJar");
 const ControllerV4 = artifacts.require("ControllerV4");
 const MasterChef = artifacts.require("MasterChef");
 const PickleToken = artifacts.require("PickleToken");
-const StrategySushiEthDaiLp = artifacts.require("StrategySushiEthDaiLp");
+const StrategyPngAvaxSushiLp = artifacts.require("StrategyPngAvaxSushiLp");
 
 module.exports = async function (deployer) {
   let accounts = await web3.eth.getAccounts();
@@ -21,12 +21,13 @@ module.exports = async function (deployer) {
   let pickle = await PickleToken.deployed();
 
   await deployer.deploy(MasterChef, pickle.address, devpool, pickleperblock, startblock, endblock);
+  let masterchef = await MasterChef.deployed();
 
   await deployer.deploy(ControllerV4, governance, strategist, timelock, devpool, treasury);
   let controller = await ControllerV4.deployed();
 
-  await deployer.deploy(StrategySushiEthDaiLp, governance, strategist, controller.address, timelock);
-  let strategy = await StrategySushiEthDaiLp.deployed();
+  await deployer.deploy(StrategyPngAvaxSushiLp, governance, strategist, controller.address, timelock, masterchef.address);
+  let strategy = await StrategyPngAvaxSushiLp.deployed();
 
   let lp = await strategy.want();
 

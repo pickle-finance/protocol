@@ -6,7 +6,7 @@ import "../lib/safe-math.sol";
 import "../interfaces/jar.sol";
 import "../interfaces/staking-rewards.sol";
 import "../interfaces/masterchef.sol";
-import "../interfaces/uniswapv2.sol";
+import "../interfaces/pangolin.sol";
 import "../interfaces/controller.sol";
 
 // Strategy Contract Basics
@@ -34,7 +34,7 @@ abstract contract StrategyBase {
 
     // Tokens
     address public want;
-    address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address public constant wavax = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
 
     // User accounts
     address public governance;
@@ -43,8 +43,7 @@ abstract contract StrategyBase {
     address public timelock;
 
     // Dex
-    address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-    address public sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
+    address public pangolinRouter = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
 
     mapping(address => bool) public harvesters;
 
@@ -262,16 +261,16 @@ abstract contract StrategyBase {
     }
 
     // **** Internal functions ****
-    function _swapUniswap(
+    function _swapPangolin(
         address _from,
         address _to,
         uint256 _amount
     ) internal {
         require(_to != address(0));
 
-        // Swap with uniswap
-        IERC20(_from).safeApprove(univ2Router2, 0);
-        IERC20(_from).safeApprove(univ2Router2, _amount);
+        // Swap with pangolin
+        IERC20(_from).safeApprove(pangolinRouter, 0);
+        IERC20(_from).safeApprove(pangolinRouter, _amount);
 
         address[] memory path;
 
@@ -286,7 +285,7 @@ abstract contract StrategyBase {
             path[2] = _to;
         }
 
-        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
+        PangolinRouter(pangolinRouter).swapExactTokensForTokens(
             _amount,
             0,
             path,
@@ -295,17 +294,17 @@ abstract contract StrategyBase {
         );
     }
 
-    function _swapUniswapWithPath(
+    function _swapPangolinWithPath(
         address[] memory path,
         uint256 _amount
     ) internal {
         require(path[1] != address(0));
 
-        // Swap with uniswap
-        IERC20(path[0]).safeApprove(univ2Router2, 0);
-        IERC20(path[0]).safeApprove(univ2Router2, _amount);
+        // Swap with pangolin
+        IERC20(path[0]).safeApprove(pangolinRouter, 0);
+        IERC20(path[0]).safeApprove(pangolinRouter, _amount);
 
-        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
+        PangolinRouter(pangolinRouter).swapExactTokensForTokens(
             _amount,
             0,
             path,
@@ -321,7 +320,7 @@ abstract contract StrategyBase {
     ) internal {
         require(_to != address(0));
 
-        // Swap with uniswap
+        // Swap with pangolin
         IERC20(_from).safeApprove(sushiRouter, 0);
         IERC20(_from).safeApprove(sushiRouter, _amount);
 
@@ -338,7 +337,7 @@ abstract contract StrategyBase {
             path[2] = _to;
         }
 
-        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
+        PangolinRouter(sushiRouter).swapExactTokensForTokens(
             _amount,
             0,
             path,
@@ -353,11 +352,11 @@ abstract contract StrategyBase {
     ) internal {
         require(path[1] != address(0));
 
-        // Swap with uniswap
+        // Swap with pangolin
         IERC20(path[0]).safeApprove(sushiRouter, 0);
         IERC20(path[0]).safeApprove(sushiRouter, _amount);
 
-        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
+        PangolinRouter(sushiRouter).swapExactTokensForTokens(
             _amount,
             0,
             path,

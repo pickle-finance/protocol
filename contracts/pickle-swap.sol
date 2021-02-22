@@ -4,39 +4,39 @@ pragma solidity ^0.6.7;
 
 import "./lib/erc20.sol";
 
-import "./interfaces/uniswapv2.sol";
+import "./interfaces/pangolin.sol";
 
 contract PickleSwap {
     using SafeERC20 for IERC20;
 
-    UniswapRouterV2 router = UniswapRouterV2(
-        0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
+    IPangolinRouter router = IPangolinRouter(
+        0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106
     );
 
-    address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address public constant wavax = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
 
-    function convertWETHPair(
+    function convertWAVAXPair(
         address fromLP,
         address toLP,
         uint256 value
     ) public {
-        IUniswapV2Pair fromPair = IUniswapV2Pair(fromLP);
-        IUniswapV2Pair toPair = IUniswapV2Pair(toLP);
+        IPangolinPair fromPair = IPangolinPair(fromLP);
+        IPangolinPair toPair = IPangolinPair(toLP);
 
-        // Only for WETH/<TOKEN> pairs
-        if (!(fromPair.token0() == weth || fromPair.token1() == weth)) {
+        // Only for WAVAX/<TOKEN> pairs
+        if (!(fromPair.token0() == wavax || fromPair.token1() == wavax)) {
             revert("!eth-from");
         }
-        if (!(toPair.token0() == weth || toPair.token1() == weth)) {
+        if (!(toPair.token0() == wavax || toPair.token1() == wavax)) {
             revert("!eth-to");
         }
 
         // Get non-eth token from pairs
-        address _from = fromPair.token0() != weth
+        address _from = fromPair.token0() != wavax
             ? fromPair.token0()
             : fromPair.token1();
 
-        address _to = toPair.token0() != weth
+        address _to = toPair.token0() != wavax
             ? toPair.token0()
             : toPair.token1();
 
@@ -59,7 +59,7 @@ contract PickleSwap {
         // Convert to target token
         address[] memory path = new address[](3);
         path[0] = _from;
-        path[1] = weth;
+        path[1] = wavax;
         path[2] = _to;
 
         IERC20(_from).safeApprove(address(router), 0);
@@ -73,15 +73,15 @@ contract PickleSwap {
         );
 
         // Supply liquidity
-        IERC20(weth).safeApprove(address(router), 0);
-        IERC20(weth).safeApprove(address(router), uint256(-1));
+        IERC20(wavax).safeApprove(address(router), 0);
+        IERC20(wavax).safeApprove(address(router), uint256(-1));
 
         IERC20(_to).safeApprove(address(router), 0);
         IERC20(_to).safeApprove(address(router), uint256(-1));
         router.addLiquidity(
-            weth,
+            wavax,
             _to,
-            IERC20(weth).balanceOf(address(this)),
+            IERC20(wavax).balanceOf(address(this)),
             IERC20(_to).balanceOf(address(this)),
             0,
             0,
@@ -90,9 +90,9 @@ contract PickleSwap {
         );
 
         // Refund sender any remaining tokens
-        IERC20(weth).safeTransfer(
+        IERC20(wavax).safeTransfer(
             msg.sender,
-            IERC20(weth).balanceOf(address(this))
+            IERC20(wavax).balanceOf(address(this))
         );
         IERC20(_to).safeTransfer(msg.sender, IERC20(_to).balanceOf(address(this)));
     }
