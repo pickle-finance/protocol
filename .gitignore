@@ -108,3 +108,4 @@ solc-input.json
 build
 
 artifacts
+cache

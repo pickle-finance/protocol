@@ -368,9 +368,11 @@ contract Gauge is ReentrancyGuard {
         if (account != address(0)) {
             rewards[account] = earned(account);
             userRewardPerTokenPaid[account] = rewardPerTokenStored;
-            kick(account);
         }
         _;
+        if (account != address(0)) {
+            kick(account);
+        }
     }
 
     event RewardAdded(uint256 reward);
