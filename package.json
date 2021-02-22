@@ -4,7 +4,8 @@
     "ethers": "^5.0.14",
     "inquirer": "^7.3.3",
     "node-fetch": "^2.6.1",
-    "ora": "^5.1.0"
+    "ora": "^5.1.0",
+    "remixd": "^0.2.4-alpha.0"
   },
   "scripts": {
     "flatten": "npx sol-merger \"./src/**/*.sol\" ./build"
