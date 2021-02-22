@@ -81,7 +81,7 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
             IERC20(token1).safeApprove(pangolinRouter, 0);
             IERC20(token1).safeApprove(pangolinRouter, _token1);
 
-            Pangolin(pangolinRouter).addLiquidity(
+            IPangolinRouter(pangolinRouter).addLiquidity(
                 wavax,
                 token1,
                 _wavax,

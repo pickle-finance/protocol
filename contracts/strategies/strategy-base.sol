@@ -274,18 +274,18 @@ abstract contract StrategyBase {
 
         address[] memory path;
 
-        if (_from == weth || _to == weth) {
+        if (_from == wavax || _to == wavax) {
             path = new address[](2);
             path[0] = _from;
             path[1] = _to;
         } else {
             path = new address[](3);
             path[0] = _from;
-            path[1] = weth;
+            path[1] = wavax;
             path[2] = _to;
         }
 
-        PangolinRouter(pangolinRouter).swapExactTokensForTokens(
+        IPangolinRouter(pangolinRouter).swapExactTokensForTokens(
             _amount,
             0,
             path,
@@ -304,59 +304,7 @@ abstract contract StrategyBase {
         IERC20(path[0]).safeApprove(pangolinRouter, 0);
         IERC20(path[0]).safeApprove(pangolinRouter, _amount);
 
-        PangolinRouter(pangolinRouter).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            now.add(60)
-        );
-    }
-
-    function _swapSushiswap(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal {
-        require(_to != address(0));
-
-        // Swap with pangolin
-        IERC20(_from).safeApprove(sushiRouter, 0);
-        IERC20(_from).safeApprove(sushiRouter, _amount);
-
-        address[] memory path;
-
-        if (_from == weth || _to == weth) {
-            path = new address[](2);
-            path[0] = _from;
-            path[1] = _to;
-        } else {
-            path = new address[](3);
-            path[0] = _from;
-            path[1] = weth;
-            path[2] = _to;
-        }
-
-        PangolinRouter(sushiRouter).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            now.add(60)
-        );
-    }
-
-    function _swapSushiswapWithPath(
-        address[] memory path,
-        uint256 _amount
-    ) internal {
-        require(path[1] != address(0));
-
-        // Swap with pangolin
-        IERC20(path[0]).safeApprove(sushiRouter, 0);
-        IERC20(path[0]).safeApprove(sushiRouter, _amount);
-
-        PangolinRouter(sushiRouter).swapExactTokensForTokens(
+        IPangolinRouter(pangolinRouter).swapExactTokensForTokens(
             _amount,
             0,
             path,
