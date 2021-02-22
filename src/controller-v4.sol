@@ -32,8 +32,8 @@ contract ControllerV4 {
     uint256 public convenienceFee = 100;
     uint256 public constant convenienceFeeMax = 100000;
 
-    mapping(address => address) public jars;
-    mapping(address => address) public strategies;
+    mapping(address => address) public jars; // takes lp address and returns associated jar
+    mapping(address => address) public strategies; // takes lp and returns associated strategy
     mapping(address => mapping(address => address)) public converters;
     mapping(address => mapping(address => bool)) public approvedStrategies;
     mapping(address => bool) public approvedJarConverters;
