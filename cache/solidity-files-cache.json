@@ -4353,8 +4353,8 @@
       ]
     },
     "/Volumes/Data/Workspaces/Pickle/protocol/src/dill/gauge-proxy.sol": {
-      "lastModificationDate": 1613321681270,
-      "contentHash": "7a4adf85b04f7f07fba40396e9aae4a7",
+      "lastModificationDate": 1614635204620,
+      "contentHash": "2564c1fdc032c42e89ae58cf40ae0972",
       "sourceName": "src/dill/gauge-proxy.sol",
       "solcConfig": {
         "version": "0.6.7",

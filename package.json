@@ -7,7 +7,11 @@
     "ora": "^5.1.0"
   },
   "scripts": {
-    "flatten": "npx sol-merger \"./src/**/*.sol\" ./build"
+    "flatten": "npx sol-merger \"./src/**/*.sol\" ./build",
+    "dill:node": "npx hardhat node",
+    "dill:init": "npx hardhat run ./hardhat-scripts/dill-test/1.initialize.js --network localhost",
+    "dill:distribute": "npx hardhat run ./hardhat-scripts/dill-test/2.vote-and-distribute.js --network localhost",
+    "dill:wait": "npx hardhat run ./hardhat-scripts/dill-test/3.wait.js --network localhost"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
