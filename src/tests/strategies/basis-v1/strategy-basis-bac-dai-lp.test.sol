@@ -10,7 +10,7 @@ import "../../../interfaces/uniswapv2.sol";
 
 import "../../../pickle-jar.sol";
 import "../../../controller-v4.sol";
-import "../../../strategies/basis/strategy-basis-bac-dai-lp.sol";
+import "../../../strategies/basis-v1/strategy-basis-bac-dai-lp-v1.sol";
 
 contract StrategyBasisBacDaiLpTest is StrategyBasisFarmTestBase {
     function setUp() public {

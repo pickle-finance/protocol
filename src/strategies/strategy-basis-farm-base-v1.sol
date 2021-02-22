@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "./strategy-staking-rewards-base.sol";
 
-abstract contract StrategyBasisFarmBase is StrategyStakingRewardsBase {
+abstract contract StrategyBasisFarmBaseV1 is StrategyStakingRewardsBase {
     // Token addresses
     address public bas = 0xa7ED29B253D8B4E3109ce07c80fc570f81B63696;
     address public dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;

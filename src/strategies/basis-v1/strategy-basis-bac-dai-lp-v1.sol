@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-basis-farm-base.sol";
+import "../strategy-basis-farm-base-v1.sol";
 
-contract StrategyBasisBacDaiLp is StrategyBasisFarmBase {
+contract StrategyBasisBacDaiLp is StrategyBasisFarmBaseV1 {
     // Token addresses
     address public bas_rewards = 0x067d4D3CE63450E74F880F86b5b52ea3edF9Db0f;
     address public uni_bac_dai_lp = 0xd4405F0704621DBe9d4dEA60E128E0C3b26bddbD;
@@ -16,7 +16,7 @@ contract StrategyBasisBacDaiLp is StrategyBasisFarmBase {
         address _timelock
     )
         public
-        StrategyBasisFarmBase(
+        StrategyBasisFarmBaseV1(
             bac,
             bas_rewards,
             uni_bac_dai_lp,

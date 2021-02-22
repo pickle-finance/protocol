@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-basis-farm-base.sol";
+import "../strategy-basis-farm-base-v2.sol";
 
-contract StrategyBasisBasDaiLp is StrategyBasisFarmBase {
+contract StrategyBasisBacDaiLpV2 is StrategyBasisFarmBaseV2 {
     // Token addresses
-    address public bas_rewards = 0x9569d4CD7AC5B010DA5697E952EFB1EC0Efb0D0a;
-    address public uni_bas_dai_lp = 0x0379dA7a5895D13037B6937b109fA8607a659ADF;
+    address public uni_bac_dai_lp = 0xd4405F0704621DBe9d4dEA60E128E0C3b26bddbD;
+    address public bac = 0x3449FC1Cd036255BA1EB19d65fF4BA2b8903A69a;
 
     constructor(
         address _governance,
@@ -15,10 +15,10 @@ contract StrategyBasisBasDaiLp is StrategyBasisFarmBase {
         address _timelock
     )
         public
-        StrategyBasisFarmBase(
-            bas,
-            bas_rewards,
-            uni_bas_dai_lp,
+        StrategyBasisFarmBaseV2(
+            bac,
+            0, // Basis Staking PID for BAC-DAI lp
+            uni_bac_dai_lp,
             _governance,
             _strategist,
             _controller,
@@ -29,6 +29,6 @@ contract StrategyBasisBasDaiLp is StrategyBasisFarmBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyBasisBasDaiLp";
+        return "StrategyBasisV2BacDaiLp";
     }
 }
