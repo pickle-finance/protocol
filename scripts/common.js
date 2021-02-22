@@ -8,21 +8,21 @@ const path = require("path");
 const { ADDRESSES, ABIS } = require("./constants");
 
 const DEFAULT_PROVIDER = "http://localhost:8545";
-const DEFAULT_MNEMONIC =
-  "myth like bonus scare over problem client lizard pioneer submit female collect";
+// const DEFAULT_MNEMONIC =
+//   "myth like bonus scare over problem client lizard pioneer submit female collect";
 
 const provider = new ethers.providers.JsonRpcProvider(
   process.env.PROVIDER_URL || DEFAULT_PROVIDER
 );
 
-const wallets = Array(10)
-  .fill(0)
-  .map((_, i) =>
-    ethers.Wallet.fromMnemonic(
-      process.env.MNEMONIC || DEFAULT_MNEMONIC,
-      `m/44'/60'/0'/0/${i}`
-    ).connect(provider)
-  );
+// const wallets = Array(10)
+//   .fill(0)
+//   .map((_, i) =>
+//     ethers.Wallet.fromMnemonic(
+//       process.env.MNEMONIC || DEFAULT_MNEMONIC,
+//       `m/44'/60'/0'/0/${i}`
+//     ).connect(provider)
+//   );
 
 const [user, governance, strategist, rewards] = wallets;
 

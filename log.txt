@@ -1,0 +1,447 @@
+downloading Nix 2.3.10 binary tarball for x86_64-darwin from 'https://releases.nixos.org/nix/nix-2.3.10/nix-2.3.10-x86_64-darwin.tar.xz' to '/var/folders/7_/0cwkt1b15qv9cb2znvy5p8_00000gn/T/nix-binary-tarball-unpack.XXXXXXXXXX.Z8lLpRMG'...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0 21 26.6M   21 5870k    0     0  10.2M      0  0:00:02 --:--:--  0:00:02 10.2M100 26.6M  100 26.6M    0     0  17.9M      0  0:00:01  0:00:01 --:--:-- 17.9M
+Note: a multi-user installation is possible. See https://nixos.org/nix/manual/#sect-multi-user-installation
+[1;31mSwitching to the Daemon-based Installer[0m
+[32mWelcome to the Multi-User Nix Installation
+[0m
+This installation tool will set up your computer with the Nix package
+manager. This will happen in a few stages:
+
+1. Make sure your computer doesn't already have Nix. If it does, I
+   will show you instructions on how to clean up your old one.
+
+2. Show you what we are going to install and where. Then we will ask
+   if you are ready to continue.
+
+3. Create the system users and groups that the Nix daemon uses to run
+   builds.
+
+4. Perform the basic installation of the Nix files daemon.
+
+5. Configure your shell to import special Nix Profile files, so you
+   can use Nix.
+
+6. Start the Nix daemon.
+
+[32m[4;32mWould you like to see a more detailed list of what we will do?
+[0m[y/n] 
+
+[34m---- let's talk about sudo -----------------------------------------------------
+[0mThis script is going to call sudo a lot. Every time we do, it'll
+output exactly what it'll do, and why.
+
+Just like this:
+
+[34m---- sudo execution ------------------------------------------------------------
+[0mI am executing:
+
+    $ sudo echo
+
+to demonstrate how our sudo prompts look
+
+
+This might look scary, but everything can be undone by running just a
+few commands. We used to ask you to confirm each time sudo ran, but it
+was too many times. Instead, I'll just ask you this one time:
+
+[32m[4;32mCan we use sudo?
+[0m[y/n] 
+[32mYay! Thanks! Let's get going!
+[0m
+[34m---- sudo execution ------------------------------------------------------------
+[0mI am executing:
+
+    $ sudo test -e /var/root/.nix-defexpr
+
+making sure that /var/root/.nix-defexpr doesn't exist
+
+
+[34m---- sudo execution ------------------------------------------------------------
+[0mI am executing:
+
+    $ sudo test -e /var/root/.nix-channels
+
+making sure that /var/root/.nix-channels doesn't exist
+
+
+[34m---- sudo execution ------------------------------------------------------------
+[0mI am executing:
+
+    $ sudo test -e /var/root/.nix-profile
+
+making sure that /var/root/.nix-profile doesn't exist
+
+
+[34m---- Nix config report ---------------------------------------------------------
+[0m[1m        Temp Dir[0m:	/var/folders/7_/0cwkt1b15qv9cb2znvy5p8_00000gn/T/tmp.XXXXXXXXXX.UPnVKh1V
+[1m        Nix Root[0m:	/nix
+[1m     Build Users[0m:	32
+[1m  Build Group ID[0m:	30000
+[1mBuild Group Name[0m:	nixbld
+
+[4;34mbuild users:
+[0m[1m    Username[0m:	UID
+[1m     nixbld1[0m:	30001
+[1m     nixbld2[0m:	30002
+[1m     nixbld3[0m:	30003
+[1m     nixbld4[0m:	30004
+[1m     nixbld5[0m:	30005
+[1m     nixbld6[0m:	30006
+[1m     nixbld7[0m:	30007
+[1m     nixbld8[0m:	30008
+[1m     nixbld9[0m:	30009
+[1m     nixbld10[0m:	30010
+[1m     nixbld11[0m:	30011
+[1m     nixbld12[0m:	30012
+[1m     nixbld13[0m:	30013
+[1m     nixbld14[0m:	30014
+[1m     nixbld15[0m:	30015
+[1m     nixbld16[0m:	30016
+[1m     nixbld17[0m:	30017
+[1m     nixbld18[0m:	30018
+[1m     nixbld19[0m:	30019
+[1m     nixbld20[0m:	30020
+[1m     nixbld21[0m:	30021
+[1m     nixbld22[0m:	30022
+[1m     nixbld23[0m:	30023
+[1m     nixbld24[0m:	30024
+[1m     nixbld25[0m:	30025
+[1m     nixbld26[0m:	30026
+[1m     nixbld27[0m:	30027
+[1m     nixbld28[0m:	30028
+[1m     nixbld29[0m:	30029
+[1m     nixbld30[0m:	30030
+[1m     nixbld31[0m:	30031
+[1m     nixbld32[0m:	30032
+
+[32m[4;32mReady to continue?
+[0m[y/n] 
+
+[32m~~> Setting up the build group nixbld
+[0m[1m            Exists[0m:	Yes
+
+[32m~~> Setting up the build user nixbld1
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 1
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld2
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 2
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld3
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 3
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld4
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 4
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld5
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 5
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld6
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 6
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld7
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 7
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld8
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 8
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld9
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 9
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld10
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 10
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld11
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 11
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld12
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 12
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld13
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 13
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld14
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 14
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld15
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 15
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld16
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 16
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld17
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 17
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld18
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 18
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld19
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 19
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld20
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 20
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld21
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 21
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld22
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 22
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld23
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 23
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld24
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 24
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld25
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 25
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld26
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 26
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld27
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 27
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld28
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 28
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld29
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 29
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld30
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 30
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld31
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 31
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[32m~~> Setting up the build user nixbld32
+[0m[1m            Exists[0m:	Yes
+[1m            Hidden[0m:	Yes
+[1m    Home Directory[0m:	/var/empty
+[1m              Note[0m:	Nix build user 32
+[1m   Logins Disabled[0m:	Yes
+[1m  Member of nixbld[0m:	Yes
+[1m    PrimaryGroupID[0m:	30000
+
+[34m---- sudo execution ------------------------------------------------------------
+[0mI am executing:
+
+    $ sudo mkdir -pv -m 0755 /nix /nix/var /nix/var/log /nix/var/log/nix /nix/var/log/nix/drvs /nix/var/nix /nix/var/nix/db /nix/var/nix/gcroots /nix/var/nix/profiles /nix/var/nix/temproots /nix/var/nix/userpool /nix/var/nix/gcroots/per-user /nix/var/nix/profiles/per-user
+
+to make the basic directory structure of Nix (part 1)
+
+mkdir: /nix: Read-only file system
+mkdir: /nix/var: Read-only file system
+mkdir: /nix/var/log: Read-only file system
+mkdir: /nix/var/log/nix: Read-only file system
+mkdir: /nix/var/log/nix/drvs: Read-only file system
+mkdir: /nix/var/nix: Read-only file system
+mkdir: /nix/var/nix/db: Read-only file system
+mkdir: /nix/var/nix/gcroots: Read-only file system
+mkdir: /nix/var/nix/profiles: Read-only file system
+mkdir: /nix/var/nix/temproots: Read-only file system
+mkdir: /nix/var/nix/userpool: Read-only file system
+mkdir: /nix/var/nix/gcroots/per-user: Read-only file system
+mkdir: /nix/var/nix/profiles/per-user: Read-only file system
+
+[34m---- oh no! --------------------------------------------------------------------
+[0m[31mJeeze, something went wrong. If you can take all the output and open
+an issue, we'd love to fix the problem so nobody else has this issue.
+
+:(
+[0m
+[31mWe'd love to help if you need it.
+
+If you can, open an issue at https://github.com/nixos/nix/issues
+
+Or feel free to contact the team,
+ - on IRC #nixos on irc.freenode.net
+ - on twitter @nixos_org
+[0m
