@@ -6,7 +6,7 @@ import "./strategy-staking-rewards-base.sol";
 interface IBasisStaking {
     function deposit(uint256 _pid, uint256 _amount) external;
     function withdraw(uint256 _pid, uint256 _amount) external;
-    function claimReward() external;
+    function claimReward(uint256 _pid) external;
     function balanceOf(uint256 _pid, address _owner) external view returns(uint256);
     function rewardEarned(uint256 _pid, address _target) external view returns(uint256);
 }
@@ -24,10 +24,11 @@ abstract contract StrategyBasisFarmBaseV2 is StrategyBase {
     uint256 public constant keepBASMax = 10000;
 
     uint256 public pid;
-    address public rewards = 0x7E7aE8923876955d6Dcb7285c04065A1B9d6ED8c; // Basis V2 Staking
+    address public rewards;
 
     constructor(
         address _token1,
+        address _rewards,
         uint256 _poolId,
         address _lp,
         address _governance,
@@ -40,6 +41,7 @@ abstract contract StrategyBasisFarmBaseV2 is StrategyBase {
     {
         token1 = _token1;
         pid = _poolId;
+        rewards = _rewards;
 
         IERC20(bas).approve(univ2Router2, uint256(-1));
         IERC20(dai).approve(univ2Router2, uint256(-1));
@@ -88,7 +90,7 @@ abstract contract StrategyBasisFarmBaseV2 is StrategyBase {
         address[] memory path = new address[](2);
 
         // Collects BAS tokens
-        IBasisStaking(rewards).claimReward();
+        IBasisStaking(rewards).claimReward(pid);
         uint256 _bas = IERC20(bas).balanceOf(address(this));
         if (_bas > 0) {
             // 10% is locked up for future gov

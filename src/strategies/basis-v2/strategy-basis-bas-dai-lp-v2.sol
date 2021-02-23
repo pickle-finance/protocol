@@ -3,10 +3,9 @@ pragma solidity ^0.6.7;
 
 import "../strategy-basis-farm-base-v2.sol";
 
-contract StrategyBasisBacDaiLpV2 is StrategyBasisFarmBaseV2 {
+contract StrategyBasisBasDaiLpV2 is StrategyBasisFarmBaseV2 {
     // Token addresses
-    address public uni_bac_dai_lp = 0xd4405F0704621DBe9d4dEA60E128E0C3b26bddbD;
-    address public bac = 0x3449FC1Cd036255BA1EB19d65fF4BA2b8903A69a;
+    address public uni_bas_dai_lp = 0x3E78F2E7daDe07ea685F8612F00477FD97162F1e;
 
     constructor(
         address _governance,
@@ -16,10 +15,10 @@ contract StrategyBasisBacDaiLpV2 is StrategyBasisFarmBaseV2 {
     )
         public
         StrategyBasisFarmBaseV2(
-            bac,
-            0x7E7aE8923876955d6Dcb7285c04065A1B9d6ED8c, // Basis V2 Staking,
-            0, // Basis Staking PID for BAC-DAI lp
-            uni_bac_dai_lp,
+            bas,
+            0x5859Adb05988946B9d08dcE2E12ae29af58120C0, // Basis V2 BASv2/DAI lp Staking,
+            1, // Basis Staking PID for BAS-DAI lp
+            uni_bas_dai_lp,
             _governance,
             _strategist,
             _controller,
@@ -30,6 +29,6 @@ contract StrategyBasisBacDaiLpV2 is StrategyBasisFarmBaseV2 {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyBasisV2BacDaiLp";
+        return "StrategyBasisV2BasDaiLp";
     }
 }
