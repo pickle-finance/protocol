@@ -26,7 +26,7 @@ module.exports = async function (deployer) {
   await deployer.deploy(ControllerV4, governance, strategist, timelock, devpool, treasury);
   let controller = await ControllerV4.deployed();
 
-  await deployer.deploy(StrategyPngAvaxSushiLp, governance, strategist, controller.address, timelock, masterchef.address);
+  await deployer.deploy(StrategyPngAvaxSushiLp, governance, strategist, controller.address, timelock);
   let strategy = await StrategyPngAvaxSushiLp.deployed();
 
   let lp = await strategy.want();
