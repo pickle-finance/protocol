@@ -27,8 +27,8 @@ const Web3 = require('web3');
 const protocol = "http";
 const ip = "127.0.0.1";
 const port = 9650;
-const gas = 30000000;
-const gasprice = 5000000000000;
+const gas = 8000000;
+const gasPrice = 470000000000;
 const chainId = "C";
 const endpoint = `ext/bc/${chainId}/rpc`;
 const address = "0x56ec24041531fC6816301952707787248FeE501a";
@@ -63,7 +63,9 @@ module.exports = {
         return new Web3.providers.HttpProvider(`${protocol}://${ip}:${port}/${endpoint}`)
       },
       network_id: "*",
-      from: address
+      from: address,
+      gas: gas,
+      gasPrice: gasPrice
     }
     // Another network with more advanced options...
     // advanced: {
