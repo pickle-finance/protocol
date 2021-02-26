@@ -5,7 +5,7 @@ import "./strategy-staking-rewards-base.sol";
 
 abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
     // Token addresses
-    address public png = 0x60781C2586D68229fde47564546784ab3fACA982;
+    address public png = 0x83080d4b5fc60e22dffa8d14ad3bb41dde48f199;
 
     // WAVAX/<token1> pair
     address public token1;

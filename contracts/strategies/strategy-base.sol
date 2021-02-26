@@ -34,7 +34,7 @@ abstract contract StrategyBase {
 
     // Tokens
     address public want;
-    address public constant wavax = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
+    address public constant wavax = 0xd00ae08403b9bbb9124bb305c09058e32c39a48c;
 
     // User accounts
     address public governance;
@@ -43,7 +43,7 @@ abstract contract StrategyBase {
     address public timelock;
 
     // Dex
-    address public pangolinRouter = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
+    address public pangolinRouter = 0x2D99ABD9008Dc933ff5c0CD271B88309593aB921;
 
     mapping(address => bool) public harvesters;
 

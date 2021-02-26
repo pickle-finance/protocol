@@ -10,10 +10,10 @@ contract PickleSwap {
     using SafeERC20 for IERC20;
 
     IPangolinRouter router = IPangolinRouter(
-        0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106
+        0x2D99ABD9008Dc933ff5c0CD271B88309593aB921
     );
 
-    address public constant wavax = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
+    address public constant wavax = 0xd00ae08403b9bbb9124bb305c09058e32c39a48c;
 
     function convertWAVAXPair(
         address fromLP,
