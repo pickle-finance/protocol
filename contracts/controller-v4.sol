@@ -14,15 +14,13 @@ import "./interfaces/onesplit.sol";
 import "./interfaces/strategy.sol";
 import "./interfaces/converter.sol";
 
-import "../wallets.sol";
-
 contract ControllerV4 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
 
-    address public constant burn = Wallets.burn();
-    address public onesplit = Wallets.onesplit();
+    address public constant burn = 0x000000000000000000000000000000000000dEaD;
+    address public onesplit = 0xC586BeF4a0992C495Cf22e1aeEE4E446CECDee0E;
 
     address public governance;
     address public strategist;

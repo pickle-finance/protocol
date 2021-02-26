@@ -9,8 +9,6 @@ import "../interfaces/masterchef.sol";
 import "../interfaces/pangolin.sol";
 import "../interfaces/controller.sol";
 
-import "../wallets.sol";
-
 // Strategy Contract Basics
 
 abstract contract StrategyBase {
@@ -36,7 +34,7 @@ abstract contract StrategyBase {
 
     // Tokens
     address public want;
-    address public constant wavax = Wallets.wavax();
+    address public constant wavax = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
 
     // User accounts
     address public governance;
@@ -45,7 +43,7 @@ abstract contract StrategyBase {
     address public timelock;
 
     // Dex
-    address public pangolinRouter = Wallets.pangolinRouter;
+    address public pangolinRouter = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
 
     mapping(address => bool) public harvesters;
 

@@ -6,16 +6,14 @@ import "./lib/erc20.sol";
 
 import "./interfaces/pangolin.sol";
 
-import "../wallets.sol";
-
 contract PickleSwap {
     using SafeERC20 for IERC20;
 
     IPangolinRouter router = IPangolinRouter(
-        Wallets.pangolinRouter();
+        0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106
     );
 
-    address public constant wavax = Wallets.wavax();
+    address public constant wavax = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
 
     function convertWAVAXPair(
         address fromLP,
