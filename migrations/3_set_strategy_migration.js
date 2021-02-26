@@ -12,7 +12,7 @@ module.exports = async function (deployer) {
 
 
   let controller = await ControllerV4.deployed();
-  let strategy = await StrategySushiEthDaiLp.deployed();
+  let strategy = await StrategyPngAvaxSushiLp.deployed();
   let jar = await PickleJar.deployed();
   let lp = await strategy.want();
 

@@ -7,9 +7,9 @@ const StrategyPngAvaxSushiLp = artifacts.require("StrategyPngAvaxSushiLp");
 module.exports = async function (deployer) {
   let accounts = await web3.eth.getAccounts();
   const governance = accounts[0];
-  const strategist = accounts[1];
-  const devpool = accounts[3];
-  const treasury = accounts[4];
+  const strategist = accounts[0];
+  const devpool = accounts[0];
+  const treasury = accounts[0];
   const timelock = governance;
 
   let startblock = await web3.eth.getBlockNumber();

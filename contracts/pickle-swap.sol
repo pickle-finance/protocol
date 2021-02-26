@@ -13,7 +13,7 @@ contract PickleSwap {
         0x2D99ABD9008Dc933ff5c0CD271B88309593aB921
     );
 
-    address public constant wavax = 0xd00ae08403b9bbb9124bb305c09058e32c39a48c;
+    address public constant wavax = 0xd00ae08403B9bbb9124bB305C09058E32C39A48c;
 
     function convertWAVAXPair(
         address fromLP,

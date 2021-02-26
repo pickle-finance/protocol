@@ -27,11 +27,11 @@ const Web3 = require('web3');
 const protocol = "http";
 const ip = "127.0.0.1";
 const port = 9650;
-const gas = 3000000;
-const gasprice = 470000000000;
+const gas = 30000000;
+const gasprice = 5000000000000;
 const chainId = "C";
 const endpoint = `ext/bc/${chainId}/rpc`;
-const address = "0x62771fbD58D5B1b9a2Bd486Aee2456494E0B4663";
+const address = "0x56ec24041531fC6816301952707787248FeE501a";
 
 module.exports = {
   /**
