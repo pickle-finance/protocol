@@ -25,10 +25,13 @@
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 const Web3 = require('web3');
 const protocol = "http";
-const ip = "localhost";
-const port = 9651;
+const ip = "127.0.0.1";
+const port = 9650;
 const gas = 3000000;
 const gasprice = 470000000000;
+const chainId = "C";
+const endpoint = `ext/bc/${chainId}/rpc`;
+const address = "0x62771fbD58D5B1b9a2Bd486Aee2456494E0B4663";
 
 module.exports = {
   /**
@@ -57,9 +60,10 @@ module.exports = {
       // host: "174.62.125.162",
       // port: "9651",
       provider: function() {
-        return new Web3.providers.HttpProvider(`${protocol}://${ip}:${port}/ext/bc/C/rpc`)
+        return new Web3.providers.HttpProvider(`${protocol}://${ip}:${port}/${endpoint}`)
       },
       network_id: "*",
+      from: address
     }
     // Another network with more advanced options...
     // advanced: {
