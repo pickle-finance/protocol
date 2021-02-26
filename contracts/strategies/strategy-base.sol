@@ -268,10 +268,6 @@ abstract contract StrategyBase {
     ) internal {
         require(_to != address(0));
 
-        // Swap with pangolin
-        IERC20(_from).safeApprove(pangolinRouter, 0);
-        IERC20(_from).safeApprove(pangolinRouter, _amount);
-
         address[] memory path;
 
         if (_from == wavax || _to == wavax) {
@@ -299,10 +295,6 @@ abstract contract StrategyBase {
         uint256 _amount
     ) internal {
         require(path[1] != address(0));
-
-        // Swap with pangolin
-        IERC20(path[0]).safeApprove(pangolinRouter, 0);
-        IERC20(path[0]).safeApprove(pangolinRouter, _amount);
 
         IPangolinRouter(pangolinRouter).swapExactTokensForTokens(
             _amount,
