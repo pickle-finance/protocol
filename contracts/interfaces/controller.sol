@@ -3,7 +3,7 @@
 pragma solidity ^0.6.0;
 
 interface IController {
-    function jars(address) external view returns (address);
+    function globes(address) external view returns (address);
 
     function rewards() external view returns (address);
 

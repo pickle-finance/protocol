@@ -6,7 +6,7 @@ import "./lib/erc20.sol";
 
 import "./interfaces/pangolin.sol";
 
-contract PickleSwap {
+contract SnowSwap {
     using SafeERC20 for IERC20;
 
     IPangolinRouter router = IPangolinRouter(

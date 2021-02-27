@@ -3,7 +3,7 @@ pragma solidity ^0.6.2;
 
 import "../lib/erc20.sol";
 
-interface IJar is IERC20 {
+interface IGlobe is IERC20 {
     function token() external view returns (address);
 
     function claimInsurance() external; // NOTE: Only yDelegatedVault implements this

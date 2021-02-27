@@ -7,7 +7,7 @@ import "./interfaces/controller.sol";
 import "./lib/erc20.sol";
 import "./lib/safe-math.sol";
 
-contract PickleJar is ERC20 {
+contract SnowGlobe is ERC20 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -63,7 +63,7 @@ contract PickleJar is ERC20 {
         controller = _controller;
     }
 
-    // Custom logic in here for how much the jars allows to be borrowed
+    // Custom logic in here for how much the globes allows to be borrowed
     // Sets minimum required on-hand to keep small withdrawals cheap
     function available() public view returns (uint256) {
         return token.balanceOf(address(this)).mul(min).div(max);

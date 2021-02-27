@@ -1,4 +1,4 @@
-const PickleJar = artifacts.require("PickleJar");
+const SnowGlobe = artifacts.require("SnowGlobe");
 const ControllerV4 = artifacts.require("ControllerV4");
 const StrategyPngAvaxSushiLp = artifacts.require("StrategyPngAvaxSushiLp");
 
@@ -9,10 +9,10 @@ module.exports = async function (deployer) {
 
   let controller = await ControllerV4.deployed();
   let strategy = await StrategyPngAvaxSushiLp.deployed();
-  let jar = await PickleJar.deployed();
+  let globe = await SnowGlobe.deployed();
   let lp = await strategy.want();
 
-  controller.setJar(lp, jar.address).then(() => {
+  controller.setGlobe(lp, globe.address).then(() => {
     controller.approveStrategy(lp, strategy.address).then(() => {
       controller.setStrategy(lp, strategy.address);
     })

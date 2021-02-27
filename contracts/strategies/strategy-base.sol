@@ -3,9 +3,9 @@ pragma solidity ^0.6.7;
 import "../lib/erc20.sol";
 import "../lib/safe-math.sol";
 
-import "../interfaces/jar.sol";
+import "../interfaces/globe.sol";
 import "../interfaces/staking-rewards.sol";
-import "../interfaces/masterchef.sol";
+import "../interfaces/icequeen.sol";
 import "../interfaces/pangolin.sol";
 import "../interfaces/controller.sol";
 
@@ -159,7 +159,7 @@ abstract contract StrategyBase {
         _asset.safeTransfer(controller, balance);
     }
 
-    // Withdraw partial funds, normally used with a jar withdrawal
+    // Withdraw partial funds, normally used with a globe withdrawal
     function withdraw(uint256 _amount) external {
         require(msg.sender == controller, "!controller");
         uint256 _balance = IERC20(want).balanceOf(address(this));
@@ -181,10 +181,10 @@ abstract contract StrategyBase {
             _feeTreasury
         );
 
-        address _jar = IController(controller).jars(address(want));
-        require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
+        address _globe = IController(controller).globes(address(want));
+        require(_globe != address(0), "!globe"); // additional protection so we don't burn the funds
 
-        IERC20(want).safeTransfer(_jar, _amount.sub(_feeDev).sub(_feeTreasury));
+        IERC20(want).safeTransfer(_globe, _amount.sub(_feeDev).sub(_feeTreasury));
     }
 
     // Withdraw funds, used to swap between strategies
@@ -197,9 +197,9 @@ abstract contract StrategyBase {
 
         balance = IERC20(want).balanceOf(address(this));
 
-        address _jar = IController(controller).jars(address(want));
-        require(_jar != address(0), "!jar");
-        IERC20(want).safeTransfer(_jar, balance);
+        address _globe = IController(controller).globes(address(want));
+        require(_globe != address(0), "!globe");
+        IERC20(want).safeTransfer(_globe, balance);
     }
 
     // Withdraw all funds, normally used when migrating strategies
@@ -209,9 +209,9 @@ abstract contract StrategyBase {
 
         balance = IERC20(want).balanceOf(address(this));
 
-        address _jar = IController(controller).jars(address(want));
-        require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
-        IERC20(want).safeTransfer(_jar, balance);
+        address _globe = IController(controller).globes(address(want));
+        require(_globe != address(0), "!globe"); // additional protection so we don't burn the funds
+        IERC20(want).safeTransfer(_globe, balance);
     }
 
     function _withdrawAll() internal {

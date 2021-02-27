@@ -5,9 +5,9 @@ import "../lib/erc20.sol";
 
 import "../interfaces/uniswapv2.sol";
 import "../interfaces/curve.sol";
-import "../interfaces/jar.sol";
+import "../interfaces/globe.sol";
 
-// Converts Primitive tokens to Pickle Jar Tokens
+// Converts Primitive tokens to Snow Globe Tokens
 contract Instabrine {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -29,55 +29,55 @@ contract Instabrine {
 
     // Internal functions
 
-    function _curveLpToPickleJarAndRefund(address curveLp, address pickleJar)
+    function _curveLpToSnowGlobeAndRefund(address curveLp, address snowGlobe)
         internal
         returns (uint256)
     {
         uint256 curveLpAmount = IERC20(curveLp).balanceOf(address(this));
 
-        IERC20(curveLp).safeApprove(pickleJar, 0);
-        IERC20(curveLp).safeApprove(pickleJar, curveLpAmount);
+        IERC20(curveLp).safeApprove(snowGlobe, 0);
+        IERC20(curveLp).safeApprove(snowGlobe, curveLpAmount);
 
-        IJar(pickleJar).depositAll();
+        IGlobe(snowGlobe).depositAll();
 
         // Refund msg.sender
-        uint256 _jar = IJar(pickleJar).balanceOf(address(this));
-        IJar(pickleJar).transfer(msg.sender, _jar);
+        uint256 _globe = IGlobe(snowGlobe).balanceOf(address(this));
+        IGlobe(snowGlobe).transfer(msg.sender, _globe);
 
-        return _jar;
+        return _globe;
     }
 
     // **** Primitive Tokens **** ///
 
-    function primitiveToPickleJar(
+    function primitiveToSnowGlobe(
         address underlying,
         uint256 amount,
-        address jar
+        address globe
     ) public returns (uint256) {
         IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
 
-        IERC20(underlying).safeApprove(jar, 0);
-        IERC20(underlying).safeApprove(jar, amount);
+        IERC20(underlying).safeApprove(globe, 0);
+        IERC20(underlying).safeApprove(globe, amount);
 
-        IJar(jar).deposit(amount);
+        IGlobe(globe).deposit(amount);
         
-        uint256 _jar = IJar(jar).balanceOf(address(this));
-        IERC20(jar).safeTransfer(msg.sender, _jar);
+        uint256 _globe = IGlobe(globe).balanceOf(address(this));
+        IERC20(globe).safeTransfer(msg.sender, _globe);
 
-        return _jar;
+        return _globe;
     }
 
-    function pickleJarToPrimitive(
-        address jar,
+    function snowGlobeToPrimitive(
+        address globe,
         uint256 amount,
         address underlying
     ) public returns (uint256) {
-        IERC20(jar).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(globe).safeTransferFrom(msg.sender, address(this), amount);
 
-        IERC20(jar).safeApprove(jar, 0);
-        IERC20(jar).safeApprove(jar, amount);
+        IERC20(globe).safeApprove(globe, 0);
+        IERC20(globe).safeApprove(globe, amount);
 
-        IJar(jar).withdrawAll();
+        IGlobe(globe).withdrawAll();
         uint256 _underlying = IERC20(underlying).balanceOf(address(this));
         IERC20(underlying).safeTransfer(msg.sender, _underlying);
 
@@ -87,12 +87,12 @@ contract Instabrine {
     // **** Curve **** //
     // Stupid non-standard API
 
-    function primitiveToCurvePickleJar_2(
+    function primitiveToCurveSnowGlobe_2(
         address curve,
         address[2] memory underlying,
         uint256[2] memory underlyingAmounts,
         address curveLp,
-        address pickleJar
+        address snowGlobe
     ) public returns (uint256) {
         // Primitive -> Curve LP
         for (uint256 i = 0; i < underlying.length; i++) {
@@ -108,16 +108,16 @@ contract Instabrine {
 
         ICurveFi_2(curve).add_liquidity(underlyingAmounts, 0);
 
-        // Curve LP -> PickleJar
-        return _curveLpToPickleJarAndRefund(curveLp, pickleJar);
+        // Curve LP -> SnowGlobe
+        return _curveLpToSnowGlobeAndRefund(curveLp, snowGlobe);
     }
 
-    function primitiveToCurvePickleJar_3(
+    function primitiveToCurveSnowGlobe_3(
         address curve,
         address[3] memory underlying,
         uint256[3] memory underlyingAmounts,
         address curveLp,
-        address pickleJar
+        address snowGlobe
     ) public returns (uint256) {
         // Primitive -> Curve LP
         for (uint256 i = 0; i < underlying.length; i++) {
@@ -133,16 +133,16 @@ contract Instabrine {
 
         ICurveFi_3(curve).add_liquidity(underlyingAmounts, 0);
 
-        // Curve LP -> PickleJar
-        return _curveLpToPickleJarAndRefund(curveLp, pickleJar);
+        // Curve LP -> SnowGlobe
+        return _curveLpToSnowGlobeAndRefund(curveLp, snowGlobe);
     }
 
-    function primitiveToCurvePickleJar_4(
+    function primitiveToCurveSnowGlobe_4(
         address curve,
         address[4] memory underlying,
         uint256[4] memory underlyingAmounts,
         address curveLp,
-        address pickleJar
+        address snowGlobe
     ) public returns (uint256) {
         // Primitive -> Curve LP
         for (uint256 i = 0; i < underlying.length; i++) {
@@ -158,26 +158,26 @@ contract Instabrine {
 
         ICurveFi_4(curve).add_liquidity(underlyingAmounts, 0);
 
-        // Curve LP -> PickleJar
-        return _curveLpToPickleJarAndRefund(curveLp, pickleJar);
+        // Curve LP -> SnowGlobe
+        return _curveLpToSnowGlobeAndRefund(curveLp, snowGlobe);
     }
 
-    // **** PickleJar **** //
+    // **** SnowGlobe **** //
 
-    function curvePickleJarToPrimitive_1(
-        address pickleJar,
+    function curveSnowGlobeToPrimitive_1(
+        address snowGlobe,
         uint256 amount,
         address curveLp,
         address curve,
         int128 index,
         address underlying
     ) public returns (uint256) {
-        IERC20(pickleJar).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(snowGlobe).safeTransferFrom(msg.sender, address(this), amount);
 
-        IERC20(pickleJar).safeApprove(pickleJar, 0);
-        IERC20(pickleJar).safeApprove(pickleJar, amount);
+        IERC20(snowGlobe).safeApprove(snowGlobe, 0);
+        IERC20(snowGlobe).safeApprove(snowGlobe, amount);
 
-        IJar(pickleJar).withdraw(amount);
+        IGlobe(snowGlobe).withdraw(amount);
 
         uint256 curveLpAmount = IERC20(curveLp).balanceOf(address(this));
 
@@ -195,19 +195,19 @@ contract Instabrine {
         return _underlying;
     }
 
-    function curvePickleJarToPrimitive_2(
-        address pickleJar,
+    function curveSnowGlobeToPrimitive_2(
+        address snowGlobe,
         uint256 amount,
         address curveLp,
         address curve,
         address[2] memory underlying
     ) public returns (uint256, uint256) {
-        IERC20(pickleJar).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(snowGlobe).safeTransferFrom(msg.sender, address(this), amount);
 
-        IERC20(pickleJar).safeApprove(pickleJar, 0);
-        IERC20(pickleJar).safeApprove(pickleJar, amount);
+        IERC20(snowGlobe).safeApprove(snowGlobe, 0);
+        IERC20(snowGlobe).safeApprove(snowGlobe, amount);
 
-        IJar(pickleJar).withdraw(amount);
+        IGlobe(snowGlobe).withdraw(amount);
 
         uint256 curveLpAmount = IERC20(curveLp).balanceOf(address(this));
 
@@ -230,8 +230,8 @@ contract Instabrine {
         return (ret[0], ret[1]);
     }
 
-    function curvePickleJarToPrimitive_3(
-        address pickleJar,
+    function curveSnowGlobeToPrimitive_3(
+        address snowGlobe,
         uint256 amount,
         address curveLp,
         address curve,
@@ -244,12 +244,12 @@ contract Instabrine {
             uint256
         )
     {
-        IERC20(pickleJar).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(snowGlobe).safeTransferFrom(msg.sender, address(this), amount);
 
-        IERC20(pickleJar).safeApprove(pickleJar, 0);
-        IERC20(pickleJar).safeApprove(pickleJar, amount);
+        IERC20(snowGlobe).safeApprove(snowGlobe, 0);
+        IERC20(snowGlobe).safeApprove(snowGlobe, amount);
 
-        IJar(pickleJar).withdraw(amount);
+        IGlobe(snowGlobe).withdraw(amount);
 
         uint256 curveLpAmount = IERC20(curveLp).balanceOf(address(this));
 
@@ -272,8 +272,8 @@ contract Instabrine {
         return (ret[0], ret[1], ret[2]);
     }
 
-    function curvePickleJarToPrimitive_4(
-        address pickleJar,
+    function curveSnowGlobeToPrimitive_4(
+        address snowGlobe,
         uint256 amount,
         address curveLp,
         address curve,
@@ -287,12 +287,12 @@ contract Instabrine {
             uint256
         )
     {
-        IERC20(pickleJar).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(snowGlobe).safeTransferFrom(msg.sender, address(this), amount);
 
-        IERC20(pickleJar).safeApprove(pickleJar, 0);
-        IERC20(pickleJar).safeApprove(pickleJar, amount);
+        IERC20(snowGlobe).safeApprove(snowGlobe, 0);
+        IERC20(snowGlobe).safeApprove(snowGlobe, amount);
 
-        IJar(pickleJar).withdraw(amount);
+        IGlobe(snowGlobe).withdraw(amount);
 
         uint256 curveLpAmount = IERC20(curveLp).balanceOf(address(this));
 

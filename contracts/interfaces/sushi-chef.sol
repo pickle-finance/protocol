@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-// interface for Sushiswap MasterChef contract
+// interface for Sushiswap Icequeen contract
 interface ISushiChef {
     function BONUS_MULTIPLIER() external view returns (uint256);
 

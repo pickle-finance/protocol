@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-interface IMasterchef {
+interface IIcequeen {
     function BONUS_MULTIPLIER() external view returns (uint256);
 
     function add(
@@ -31,14 +31,14 @@ interface IMasterchef {
 
     function owner() external view returns (address);
 
-    function pendingPickle(uint256 _pid, address _user)
+    function pendingSnow(uint256 _pid, address _user)
         external
         view
         returns (uint256);
 
-    function pickle() external view returns (address);
+    function snow() external view returns (address);
 
-    function picklePerBlock() external view returns (uint256);
+    function snowPerBlock() external view returns (uint256);
 
     function poolInfo(uint256)
         external
@@ -47,7 +47,7 @@ interface IMasterchef {
             address lpToken,
             uint256 allocPoint,
             uint256 lastRewardBlock,
-            uint256 accPicklePerShare
+            uint256 accSnowPerShare
         );
 
     function poolLength() external view returns (uint256);
@@ -64,7 +64,7 @@ interface IMasterchef {
 
     function setDevFundDivRate(uint256 _devFundDivRate) external;
 
-    function setPicklePerBlock(uint256 _picklePerBlock) external;
+    function setSnowPerBlock(uint256 _snowPerBlock) external;
 
     function startBlock() external view returns (uint256);
 

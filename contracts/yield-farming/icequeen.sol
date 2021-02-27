@@ -4,16 +4,16 @@ import "../lib/enumerableSet.sol";
 import "../lib/safe-math.sol";
 import "../lib/erc20.sol";
 import "../lib/ownable.sol";
-import "./pickle-token.sol";
+import "./snow-token.sol";
 
-// MasterChef was the master of pickle. He now governs over PICKLES. He can make Pickles and he is a fair guy.
+// IceQueen governs over SNOW. She can make it snow and she is a fair ruler.
 //
-// Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once PICKLES is sufficiently
-// distributed and the community can show to govern itself.
+// Note that the IceQueen is ownable and the owner wields tremendous power. The ownership
+// will be transferred to a governance smart contract once SNOW is sufficiently
+// distributed and the community can be shown to govern itself.
 //
 // Have fun reading it. Hopefully it's bug-free. God bless.
-contract MasterChef is Ownable {
+contract IceQueen is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -22,13 +22,13 @@ contract MasterChef is Ownable {
         uint256 amount; // How many LP tokens the user has provided.
         uint256 rewardDebt; // Reward debt. See explanation below.
         //
-        // We do some fancy math here. Basically, any point in time, the amount of PICKLEs
-        // entitled to a user but is pending to be distributed is:
+        // We do some fancy math here. Basically, any point in time, the amount of SNOW
+        // entitled to a user but is pending to be distributed as:
         //
-        //   pending reward = (user.amount * pool.accPicklePerShare) - user.rewardDebt
+        //   pending reward = (user.amount * pool.accSnowPerShare) - user.rewardDebt
         //
         // Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
-        //   1. The pool's `accPicklePerShare` (and `lastRewardBlock`) gets updated.
+        //   1. The pool's `accSnowPerShare` (and `lastRewardBlock`) gets updated.
         //   2. User receives the pending reward sent to his/her address.
         //   3. User's `amount` gets updated.
         //   4. User's `rewardDebt` gets updated.
@@ -37,22 +37,22 @@ contract MasterChef is Ownable {
     // Info of each pool.
     struct PoolInfo {
         IERC20 lpToken; // Address of LP token contract.
-        uint256 allocPoint; // How many allocation points assigned to this pool. PICKLEs to distribute per block.
-        uint256 lastRewardBlock; // Last block number that PICKLEs distribution occurs.
-        uint256 accPicklePerShare; // Accumulated PICKLEs per share, times 1e12. See below.
+        uint256 allocPoint; // How many allocation points assigned to this pool. SNOW to distribute per block.
+        uint256 lastRewardBlock; // Last block number that SNOW distribution occurs.
+        uint256 accSnowPerShare; // Accumulated SNOW per share, times 1e12. See below.
     }
 
-    // The PICKLE TOKEN!
-    PickleToken public pickle;
+    // The SNOW TOKEN!
+    SnowToken public snow;
     // Dev fund (2%, initially)
     uint256 public devFundDivRate = 50;
     // Dev address.
     address public devaddr;
-    // Block number when bonus PICKLE period ends.
+    // Block number when bonus SNOW period ends.
     uint256 public bonusEndBlock;
-    // PICKLE tokens created per block.
-    uint256 public picklePerBlock;
-    // Bonus muliplier for early pickle makers.
+    // SNOW tokens created per block.
+    uint256 public snowPerBlock;
+    // Bonus muliplier for early snow makers.
     uint256 public constant BONUS_MULTIPLIER = 10;
 
     // Info of each pool.
@@ -61,7 +61,7 @@ contract MasterChef is Ownable {
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
     // Total allocation points. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint = 0;
-    // The block number when PICKLE mining starts.
+    // The block number when SNOW mining starts.
     uint256 public startBlock;
 
     // Events
@@ -75,15 +75,15 @@ contract MasterChef is Ownable {
     );
 
     constructor(
-        PickleToken _pickle,
+        SnowToken _snow,
         address _devaddr,
-        uint256 _picklePerBlock,
+        uint256 _snowPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock
     ) public {
-        pickle = _pickle;
+        snow = _snow;
         devaddr = _devaddr;
-        picklePerBlock = _picklePerBlock;
+        snowPerBlock = _snowPerBlock;
         bonusEndBlock = _bonusEndBlock;
         startBlock = _startBlock;
     }
@@ -111,12 +111,12 @@ contract MasterChef is Ownable {
                 lpToken: _lpToken,
                 allocPoint: _allocPoint,
                 lastRewardBlock: lastRewardBlock,
-                accPicklePerShare: 0
+                accSnowPerShare: 0
             })
         );
     }
 
-    // Update the given pool's PICKLE allocation point. Can only be called by the owner.
+    // Update the given pool's SNOW allocation point. Can only be called by the owner.
     function set(
         uint256 _pid,
         uint256 _allocPoint,
@@ -149,31 +149,31 @@ contract MasterChef is Ownable {
         }
     }
 
-    // View function to see pending PICKLEs on frontend.
-    function pendingPickle(uint256 _pid, address _user)
+    // View function to see pending SNOW on frontend.
+    function pendingSnow(uint256 _pid, address _user)
         external
         view
         returns (uint256)
     {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
-        uint256 accPicklePerShare = pool.accPicklePerShare;
+        uint256 accSnowPerShare = pool.accSnowPerShare;
         uint256 lpSupply = pool.lpToken.balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && lpSupply != 0) {
             uint256 multiplier = getMultiplier(
                 pool.lastRewardBlock,
                 block.number
             );
-            uint256 pickleReward = multiplier
-                .mul(picklePerBlock)
+            uint256 snowReward = multiplier
+                .mul(snowPerBlock)
                 .mul(pool.allocPoint)
                 .div(totalAllocPoint);
-            accPicklePerShare = accPicklePerShare.add(
-                pickleReward.mul(1e12).div(lpSupply)
+            accSnowPerShare = accSnowPerShare.add(
+                snowReward.mul(1e12).div(lpSupply)
             );
         }
         return
-            user.amount.mul(accPicklePerShare).div(1e12).sub(user.rewardDebt);
+            user.amount.mul(accSnowPerShare).div(1e12).sub(user.rewardDebt);
     }
 
     // Update reward vairables for all pools. Be careful of gas spending!
@@ -196,19 +196,19 @@ contract MasterChef is Ownable {
             return;
         }
         uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-        uint256 pickleReward = multiplier
-            .mul(picklePerBlock)
+        uint256 snowReward = multiplier
+            .mul(snowPerBlock)
             .mul(pool.allocPoint)
             .div(totalAllocPoint);
-        pickle.mint(devaddr, pickleReward.div(devFundDivRate));
-        pickle.mint(address(this), pickleReward);
-        pool.accPicklePerShare = pool.accPicklePerShare.add(
-            pickleReward.mul(1e12).div(lpSupply)
+        snow.mint(devaddr, snowReward.div(devFundDivRate));
+        snow.mint(address(this), snowReward);
+        pool.accSnowPerShare = pool.accSnowPerShare.add(
+            snowReward.mul(1e12).div(lpSupply)
         );
         pool.lastRewardBlock = block.number;
     }
 
-    // Deposit LP tokens to MasterChef for PICKLE allocation.
+    // Deposit LP tokens to IceQueen for SNOW allocation.
     function deposit(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
@@ -216,10 +216,10 @@ contract MasterChef is Ownable {
         if (user.amount > 0) {
             uint256 pending = user
                 .amount
-                .mul(pool.accPicklePerShare)
+                .mul(pool.accSnowPerShare)
                 .div(1e12)
                 .sub(user.rewardDebt);
-            safePickleTransfer(msg.sender, pending);
+            safeSnowTransfer(msg.sender, pending);
         }
         pool.lpToken.safeTransferFrom(
             address(msg.sender),
@@ -227,22 +227,22 @@ contract MasterChef is Ownable {
             _amount
         );
         user.amount = user.amount.add(_amount);
-        user.rewardDebt = user.amount.mul(pool.accPicklePerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accSnowPerShare).div(1e12);
         emit Deposit(msg.sender, _pid, _amount);
     }
 
-    // Withdraw LP tokens from MasterChef.
+    // Withdraw LP tokens from IceQueen.
     function withdraw(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not good");
         updatePool(_pid);
-        uint256 pending = user.amount.mul(pool.accPicklePerShare).div(1e12).sub(
+        uint256 pending = user.amount.mul(pool.accSnowPerShare).div(1e12).sub(
             user.rewardDebt
         );
-        safePickleTransfer(msg.sender, pending);
+        safeSnowTransfer(msg.sender, pending);
         user.amount = user.amount.sub(_amount);
-        user.rewardDebt = user.amount.mul(pool.accPicklePerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accSnowPerShare).div(1e12);
         pool.lpToken.safeTransfer(address(msg.sender), _amount);
         emit Withdraw(msg.sender, _pid, _amount);
     }
@@ -257,13 +257,13 @@ contract MasterChef is Ownable {
         user.rewardDebt = 0;
     }
 
-    // Safe pickle transfer function, just in case if rounding error causes pool to not have enough PICKLEs.
-    function safePickleTransfer(address _to, uint256 _amount) internal {
-        uint256 pickleBal = pickle.balanceOf(address(this));
-        if (_amount > pickleBal) {
-            pickle.transfer(_to, pickleBal);
+    // Safe snow transfer function, just in case if rounding error causes pool to not have enough SNOW.
+    function safeSnowTransfer(address _to, uint256 _amount) internal {
+        uint256 snowBal = snow.balanceOf(address(this));
+        if (_amount > snowBal) {
+            snow.transfer(_to, snowBal);
         } else {
-            pickle.transfer(_to, _amount);
+            snow.transfer(_to, _amount);
         }
     }
 
@@ -273,12 +273,12 @@ contract MasterChef is Ownable {
         devaddr = _devaddr;
     }
 
-    // **** Additional functions separate from the original masterchef contract ****
+    // **** Additional functions separate from the original icequeen contract ****
 
-    function setPicklePerBlock(uint256 _picklePerBlock) public onlyOwner {
-        require(_picklePerBlock > 0, "!picklePerBlock-0");
+    function setSnowPerBlock(uint256 _snowPerBlock) public onlyOwner {
+        require(_snowPerBlock > 0, "!snowPerBlock-0");
 
-        picklePerBlock = _picklePerBlock;
+        snowPerBlock = _snowPerBlock;
     }
 
     function setBonusEndBlock(uint256 _bonusEndBlock) public onlyOwner {

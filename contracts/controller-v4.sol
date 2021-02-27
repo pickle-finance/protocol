@@ -1,4 +1,4 @@
-// https://github.com/iearn-finance/jars/blob/master/contracts/controllers/StrategyControllerV1.sol
+// https://github.com/iearn-finance/globes/blob/master/contracts/controllers/StrategyControllerV1.sol
 
 pragma solidity ^0.6.7;
 pragma experimental ABIEncoderV2;
@@ -8,8 +8,8 @@ import "./interfaces/controller.sol";
 import "./lib/erc20.sol";
 import "./lib/safe-math.sol";
 
-import "./interfaces/jar.sol";
-import "./interfaces/jar-converter.sol";
+import "./interfaces/globe.sol";
+import "./interfaces/globe-converter.sol";
 import "./interfaces/onesplit.sol";
 import "./interfaces/strategy.sol";
 import "./interfaces/converter.sol";
@@ -32,11 +32,11 @@ contract ControllerV4 {
     uint256 public convenienceFee = 100;
     uint256 public constant convenienceFeeMax = 100000;
 
-    mapping(address => address) public jars; // takes lp address and returns associated jar
+    mapping(address => address) public globes; // takes lp address and returns associated globe
     mapping(address => address) public strategies; // takes lp and returns associated strategy
     mapping(address => mapping(address => address)) public converters;
     mapping(address => mapping(address => bool)) public approvedStrategies;
-    mapping(address => bool) public approvedJarConverters;
+    mapping(address => bool) public approvedGlobeConverters;
 
     uint256 public split = 500;
     uint256 public constant max = 10000;
@@ -91,23 +91,23 @@ contract ControllerV4 {
         timelock = _timelock;
     }
 
-    function setJar(address _token, address _jar) public {
+    function setGlobe(address _token, address _globe) public {
         require(
             msg.sender == strategist || msg.sender == governance,
             "!strategist"
         );
-        require(jars[_token] == address(0), "jar");
-        jars[_token] = _jar;
+        require(globes[_token] == address(0), "globe");
+        globes[_token] = _globe;
     }
 
-    function approveJarConverter(address _converter) public {
+    function approveGlobeConverter(address _converter) public {
         require(msg.sender == governance, "!governance");
-        approvedJarConverters[_converter] = true;
+        approvedGlobeConverters[_converter] = true;
     }
 
-    function revokeJarConverter(address _converter) public {
+    function revokeGlobeConverter(address _converter) public {
         require(msg.sender == governance, "!governance");
-        approvedJarConverters[_converter] = false;
+        approvedGlobeConverters[_converter] = false;
     }
 
     function approveStrategy(address _token, address _strategy) public {
@@ -243,16 +243,16 @@ contract ControllerV4 {
     }
 
     function withdraw(address _token, uint256 _amount) public {
-        require(msg.sender == jars[_token], "!jar");
+        require(msg.sender == globes[_token], "!globe");
         IStrategy(strategies[_token]).withdraw(_amount);
     }
 
-    // Function to swap between jars
-    function swapExactJarForJar(
-        address _fromJar, // From which Jar
-        address _toJar, // To which Jar
-        uint256 _fromJarAmount, // How much jar tokens to swap
-        uint256 _toJarMinAmount, // How much jar tokens you'd like at a minimum
+    // Function to swap between globes
+    function swapExactGlobeForGlobe(
+        address _fromGlobe, // From which Globe
+        address _toGlobe, // To which Globe
+        uint256 _fromGlobeAmount, // How much globe tokens to swap
+        uint256 _toGlobeMinAmount, // How much globe tokens you'd like at a minimum
         address payable[] calldata _targets,
         bytes[] calldata _data
     ) external returns (uint256) {
@@ -261,47 +261,47 @@ contract ControllerV4 {
         // Only return last response
         for (uint256 i = 0; i < _targets.length; i++) {
             require(_targets[i] != address(0), "!converter");
-            require(approvedJarConverters[_targets[i]], "!converter");
+            require(approvedGlobeConverters[_targets[i]], "!converter");
         }
 
-        address _fromJarToken = IJar(_fromJar).token();
-        address _toJarToken = IJar(_toJar).token();
+        address _fromGlobeToken = IGlobe(_fromGlobe).token();
+        address _toGlobeToken = IGlobe(_toGlobe).token();
 
         // Get pTokens from msg.sender
-        IERC20(_fromJar).safeTransferFrom(
+        IERC20(_fromGlobe).safeTransferFrom(
             msg.sender,
             address(this),
-            _fromJarAmount
+            _fromGlobeAmount
         );
 
         // Calculate how much underlying
         // is the amount of pTokens worth
-        uint256 _fromJarUnderlyingAmount = _fromJarAmount
-            .mul(IJar(_fromJar).getRatio())
-            .div(10**uint256(IJar(_fromJar).decimals()));
+        uint256 _fromGlobeUnderlyingAmount = _fromGlobeAmount
+            .mul(IGlobe(_fromGlobe).getRatio())
+            .div(10**uint256(IGlobe(_fromGlobe).decimals()));
 
-        // Call 'withdrawForSwap' on Jar's current strategy if Jar
+        // Call 'withdrawForSwap' on Globe's current strategy if Globe
         // doesn't have enough initial capital.
-        // This has moves the funds from the strategy to the Jar's
+        // This has moves the funds from the strategy to the Globe's
         // 'earnable' amount. Enabling 'free' withdrawals
-        uint256 _fromJarAvailUnderlying = IERC20(_fromJarToken).balanceOf(
-            _fromJar
+        uint256 _fromGlobeAvailUnderlying = IERC20(_fromGlobeToken).balanceOf(
+            _fromGlobe
         );
-        if (_fromJarAvailUnderlying < _fromJarUnderlyingAmount) {
-            IStrategy(strategies[_fromJarToken]).withdrawForSwap(
-                _fromJarUnderlyingAmount.sub(_fromJarAvailUnderlying)
+        if (_fromGlobeAvailUnderlying < _fromGlobeUnderlyingAmount) {
+            IStrategy(strategies[_fromGlobeToken]).withdrawForSwap(
+                _fromGlobeUnderlyingAmount.sub(_fromGlobeAvailUnderlying)
             );
         }
 
-        // Withdraw from Jar
+        // Withdraw from Globe
         // Note: this is free since its still within the "earnable" amount
         //       as we transferred the access
-        IERC20(_fromJar).safeApprove(_fromJar, 0);
-        IERC20(_fromJar).safeApprove(_fromJar, _fromJarAmount);
-        IJar(_fromJar).withdraw(_fromJarAmount);
+        IERC20(_fromGlobe).safeApprove(_fromGlobe, 0);
+        IERC20(_fromGlobe).safeApprove(_fromGlobe, _fromGlobeAmount);
+        IGlobe(_fromGlobe).withdraw(_fromGlobeAmount);
 
         // Calculate fee
-        uint256 _fromUnderlyingBalance = IERC20(_fromJarToken).balanceOf(
+        uint256 _fromUnderlyingBalance = IERC20(_fromGlobeToken).balanceOf(
             address(this)
         );
         uint256 _convenienceFee = _fromUnderlyingBalance.mul(convenienceFee).div(
@@ -309,8 +309,8 @@ contract ControllerV4 {
         );
 
         if (_convenienceFee > 1) {
-            IERC20(_fromJarToken).safeTransfer(devfund, _convenienceFee.div(2));
-            IERC20(_fromJarToken).safeTransfer(treasury, _convenienceFee.div(2));
+            IERC20(_fromGlobeToken).safeTransfer(devfund, _convenienceFee.div(2));
+            IERC20(_fromGlobeToken).safeTransfer(treasury, _convenienceFee.div(2));
         }
 
         // Executes sequence of logic
@@ -318,21 +318,21 @@ contract ControllerV4 {
             _execute(_targets[i], _data[i]);
         }
 
-        // Deposit into new Jar
-        uint256 _toBal = IERC20(_toJarToken).balanceOf(address(this));
-        IERC20(_toJarToken).safeApprove(_toJar, 0);
-        IERC20(_toJarToken).safeApprove(_toJar, _toBal);
-        IJar(_toJar).deposit(_toBal);
+        // Deposit into new Globe
+        uint256 _toBal = IERC20(_toGlobeToken).balanceOf(address(this));
+        IERC20(_toGlobeToken).safeApprove(_toGlobe, 0);
+        IERC20(_toGlobeToken).safeApprove(_toGlobe, _toBal);
+        IGlobe(_toGlobe).deposit(_toBal);
 
-        // Send Jar Tokens to user
-        uint256 _toJarBal = IJar(_toJar).balanceOf(address(this));
-        if (_toJarBal < _toJarMinAmount) {
-            revert("!min-jar-amount");
+        // Send Globe Tokens to user
+        uint256 _toGlobeBal = IGlobe(_toGlobe).balanceOf(address(this));
+        if (_toGlobeBal < _toGlobeMinAmount) {
+            revert("!min-globe-amount");
         }
 
-        IJar(_toJar).transfer(msg.sender, _toJarBal);
+        IGlobe(_toGlobe).transfer(msg.sender, _toGlobeBal);
 
-        return _toJarBal;
+        return _toGlobeBal;
     }
 
     function _execute(address _target, bytes memory _data)
