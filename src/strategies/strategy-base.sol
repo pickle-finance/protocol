@@ -46,7 +46,6 @@ abstract contract StrategyBase {
     // Dex
     address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
     address public sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
-    address public oneinchRouter = 0xe069cb01d06ba617bcdf789bf2ff0d5e5ca20c71;
 
     mapping(address => bool) public harvesters;
 
@@ -293,9 +292,9 @@ abstract contract StrategyBase {
         );
     }
 
-    function _oneinchSwap(address calldata _token0, address calldata _token1, uint256 calldata _amount, address _pool) internal {
+    function _oneinchSwap(address _token0, address _token1, uint256 _amount, address _pool) internal {
         require(_pool != address(0), "Pool address is not valid");
-        IMooniswap(_pool).swap(_token0, _token1, _amount, 0, address(0)); //minReturn is 0 currently, referral is 0x0
+        IMooniswap(_pool).swap(IERC20(_token0), IERC20(_token1), _amount, 0, address(0)); //minReturn is 0 currently, referral is 0x0
     }
 
     function _swapUniswapWithPath(

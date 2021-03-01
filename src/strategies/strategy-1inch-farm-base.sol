@@ -10,7 +10,7 @@ abstract contract Strategy1inchFarmBase is StrategyBase {
     // oneinch is not using WETH, tokenA address for 1inch ETH/token1 pool is 0x0000000000000000000000000000000000000000
     // oneinch has farmingrewards pool per one 1inch-lp token
 
-    address public constant oneinch = 0x111111111117dc0aa78b770fa6a738034120c302;
+    address public constant oneinch = 0x111111111117dC0aa78b770fA6A738034120C302;
 
     //use this pool to swap 1inch to ETH (not weth), 1inch doens't use WETH
     address public constant oneinch_eth_pool = 0x0EF1B8a0E726Fc3948E15b23993015eB1627f210;
@@ -49,7 +49,7 @@ abstract contract Strategy1inchFarmBase is StrategyBase {
     }
     
     function balanceOfPool() public override view returns (uint256) {
-        (uint256 amount, ) = IOneInchFarm(oneinchFarmPool).balanceOf(address(this));
+        uint256 amount = IOneInchFarm(oneinchFarmPool).balanceOf(address(this));
         return amount;
     }
 
@@ -121,10 +121,8 @@ abstract contract Strategy1inchFarmBase is StrategyBase {
             IERC20(token1).safeApprove(want, 0);
             IERC20(token1).safeApprove(want, _token1);
 
-            uint256[] memory maxAmounts;
-            uint256[] memory minAmounts;
-            maxAmounts = new uint256[](2);
-            minAmounts = new uint256[](2);
+            uint256[2] memory maxAmounts;
+            uint256[2] memory minAmounts;
             maxAmounts[0] = _eth;
             maxAmounts[1] = _token1;
             minAmounts[0] = 0;

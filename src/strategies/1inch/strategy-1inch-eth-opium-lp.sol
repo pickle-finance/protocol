@@ -7,8 +7,8 @@ contract Strategy1inchEthOpiumLp is Strategy1inchFarmBase {
     
     // Token addresses
     address public oneinch_eth_opium_lp = 0x822E00A929f5A92F3565A16f92581e54af2b90Ea;
-    address public oneinch_eth_opium_staking_pool = 0x18d410f651289bb978fc32f90d2d7e608f4f4560;
-    address public opium = 0x888888888889c00c67689029d7856aac1065ec11;    
+    address public oneinch_eth_opium_staking_pool = 0x18D410f651289BB978Fc32F90D2d7E608F4f4560;
+    address public opium = 0x888888888889C00c67689029D7856AAC1065eC11;    
 
     constructor(
         address _governance,
