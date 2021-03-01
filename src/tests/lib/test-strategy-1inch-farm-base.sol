@@ -73,7 +73,7 @@ contract Strategy1inchFarmTestBase is DSTestApprox {
         IERC20(want).safeApprove(address(pickleJar), _want);
         pickleJar.deposit(_want);
         pickleJar.earn();
-        hevm.warp(block.timestamp + 32 weeks);
+        hevm.warp(block.timestamp + 4 weeks);
         strategy.harvest();
 
         // Checking withdraw
