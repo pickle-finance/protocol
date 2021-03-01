@@ -5,7 +5,6 @@ import "../lib/safe-math.sol";
 
 import "../interfaces/jar.sol";
 import "../interfaces/staking-rewards.sol";
-import "../interfaces/1inch-farm-lp.sol";
 import "../interfaces/masterchef.sol";
 import "../interfaces/uniswapv2.sol";
 import "../interfaces/controller.sol";
@@ -291,12 +290,7 @@ abstract contract StrategyBase {
             now.add(60)
         );
     }
-
-    function _oneinchSwap(address _token0, address _token1, uint256 _amount, address _pool) internal {
-        require(_pool != address(0), "Pool address is not valid");
-        IMooniswap(_pool).swap(IERC20(_token0), IERC20(_token1), _amount, 0, address(0)); //minReturn is 0 currently, referral is 0x0
-    }
-
+    
     function _swapUniswapWithPath(
         address[] memory path,
         uint256 _amount

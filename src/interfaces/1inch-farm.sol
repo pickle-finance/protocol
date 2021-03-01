@@ -22,6 +22,10 @@ interface IOneInchFarm {
     function balanceOf(address account) external view returns (uint256);
 
     function earned(address account) external view returns (uint256);
+    
+    function rewardPerToken() external view returns (uint256);
+    
+    function userRewardPerTokenPaid(address account) external view returns (uint256);
 
     function getReward() external;
 }

@@ -16,7 +16,7 @@ abstract contract Strategy1inchFarmBase is StrategyBase {
     address public constant oneinch_eth_pool = 0x0EF1B8a0E726Fc3948E15b23993015eB1627f210;
 
     //address public constant oneinchFactory = 0xbaf9a5d4b0052359326a6cdab54babaa3a3a9643;
-    address public oneinchFarmPool;
+    address public oneinchFarm;
 
     // ETH/<token1> pair
     address public token1;
@@ -44,17 +44,17 @@ abstract contract Strategy1inchFarmBase is StrategyBase {
             _timelock
         )
     {
-        oneinchFarmPool = _pool;
+        oneinchFarm = _pool;
         token1 = _token1;
     }
     
     function balanceOfPool() public override view returns (uint256) {
-        uint256 amount = IOneInchFarm(oneinchFarmPool).balanceOf(address(this));
+        uint256 amount = IOneInchFarm(oneinchFarm).balanceOf(address(this));
         return amount;
     }
 
     function getHarvestable() external view returns (uint256) {
-        return IOneInchFarm(oneinchFarmPool).earned(address(this));
+        return IOneInchFarm(oneinchFarm).earned(address(this));
     }
 
     // **** Setters ****
@@ -62,9 +62,9 @@ abstract contract Strategy1inchFarmBase is StrategyBase {
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this)); //want means 1inch lp token
         if (_want > 0) {
-            IERC20(want).safeApprove(oneinchFarmPool, 0);
-            IERC20(want).safeApprove(oneinchFarmPool, _want);
-            IOneInchFarm(oneinchFarmPool).stake(_want);
+            IERC20(want).safeApprove(oneinchFarm, 0);
+            IERC20(want).safeApprove(oneinchFarm, _want);
+            IOneInchFarm(oneinchFarm).stake(_want);
         }
     }
 
@@ -73,7 +73,7 @@ abstract contract Strategy1inchFarmBase is StrategyBase {
         override
         returns (uint256)
     {
-        IOneInchFarm(oneinchFarmPool).withdraw(_amount);
+        IOneInchFarm(oneinchFarm).withdraw(_amount);
         return _amount;
     }
 
@@ -87,15 +87,11 @@ abstract contract Strategy1inchFarmBase is StrategyBase {
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But ETH is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
 
         // Collects 1inch tokens
-        IOneInchFarm(oneinchFarmPool).getReward();
+        IOneInchFarm(oneinchFarm).getReward();
         uint256 _oneinch = IERC20(oneinch).balanceOf(address(this));
+
         if (_oneinch > 0) {
             // 10% is locked up for future gov
             uint256 _keep1inch = _oneinch.mul(keep1inch).div(keep1inchMax);
@@ -103,14 +99,17 @@ abstract contract Strategy1inchFarmBase is StrategyBase {
                 IController(controller).treasury(),
                 _keep1inch
             );
-            _oneinchSwap(oneinch, address(0), _oneinch.sub(_keep1inch), oneinch_eth_pool);
+            uint256 swapAmount = _oneinch.sub(_keep1inch);
+            IERC20(oneinch).safeApprove(oneinch_eth_pool, swapAmount);
+            IMooniswap(oneinch_eth_pool).swap(IERC20(oneinch), IERC20(address(0)), swapAmount, 0, address(0));
             //claim Opium functions here
         }
 
         // Swap half ETH for Token1 (e.g. Opium)
         uint256 _eth = address(this).balance;
         if (_eth > 0) {
-            _oneinchSwap(address(0), token1, _eth.div(2), want);
+            uint256 amount = _eth.div(2);
+            IMooniswap(want).swap{value: amount}(IERC20(address(0)), IERC20(token1), amount, 0, address(0));
         }
 
         _eth = address(this).balance;
@@ -128,19 +127,11 @@ abstract contract Strategy1inchFarmBase is StrategyBase {
             minAmounts[0] = 0;
             minAmounts[1] = 0;
 
-            IMooniswap(want).deposit(maxAmounts, minAmounts);
-
-            // Donates DUST
-            address payable _treasury = payable(IController(controller).treasury());
-            _treasury.transfer(address(this).balance); //send ETH to treasury
-
-            IERC20(token1).safeTransfer(
-                _treasury,
-                IERC20(token1).balanceOf(address(this))
-            );
+            IMooniswap(want).deposit{value: _eth}(maxAmounts, minAmounts);
         }
 
         // We want to get back 1inch LP tokens
         _distributePerformanceFeesAndDeposit();
     }
+    receive() external payable {}
 }

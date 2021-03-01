@@ -3,15 +3,18 @@ pragma solidity ^0.6.7;
 import "./hevm.sol";
 import "./user.sol";
 import "./test-approx.sol";
-import "./test-1inch-base.sol";
+import "../../lib/erc20.sol";
 
 import "../../interfaces/strategy.sol";
-import "../../interfaces/1inch-farm.sol";
+import "../../interfaces/1inch-farm-lp.sol";
 
 import "../../pickle-jar.sol";
 import "../../controller-v4.sol";
 
-contract Strategy1inchFarmTestBase is DSTest1inchBase {
+contract Strategy1inchFarmTestBase is DSTestApprox {
+    using SafeERC20 for IERC20;
+    using SafeMath for uint256;
+
     address want;
     address token1;
     address pool;
@@ -23,14 +26,21 @@ contract Strategy1inchFarmTestBase is DSTest1inchBase {
     address devfund;
     address treasury;
 
+    IMooniswap mooniswap;
+
+    uint256 startTime = block.timestamp;
+    Hevm hevm = Hevm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+
     PickleJar pickleJar;
     ControllerV4 controller;
     IStrategy strategy;
-    IOneInchFarm oneinchFarm;
 
     function _getWant(uint256 ethAmount, uint256 amount) internal {
-        _setUp(pool);
-        _getTokenWithEth(token1, amount);
+        mooniswap = IMooniswap(want);
+
+        uint256 inAmount = mooniswap.getReturn(IERC20(token1), IERC20(address(0)), amount); 
+
+        mooniswap.swap{value: inAmount}(IERC20(address(0)), IERC20(token1), inAmount, 0, address(0));
 
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
 
@@ -44,7 +54,7 @@ contract Strategy1inchFarmTestBase is DSTest1inchBase {
         minAmounts[0] = 0;
         minAmounts[1] = 0;
 
-        mooniswap.deposit(maxAmounts, minAmounts);
+        mooniswap.deposit{value: ethAmount}(maxAmounts, minAmounts);
     }
 
     // **** Tests ****
@@ -63,7 +73,7 @@ contract Strategy1inchFarmTestBase is DSTest1inchBase {
         IERC20(want).safeApprove(address(pickleJar), _want);
         pickleJar.deposit(_want);
         pickleJar.earn();
-        hevm.roll(block.number + 1000);
+        hevm.warp(block.timestamp + 32 weeks);
         strategy.harvest();
 
         // Checking withdraw
@@ -77,7 +87,7 @@ contract Strategy1inchFarmTestBase is DSTest1inchBase {
         assertTrue(_after > _before);
 
         // Check if we gained interest
-        assertTrue(_after > _want);
+        assertTrue(_after >= _want);
     }
 
     function _test_get_earn_harvest_rewards() internal {
@@ -88,7 +98,7 @@ contract Strategy1inchFarmTestBase is DSTest1inchBase {
         IERC20(want).safeApprove(address(pickleJar), _want);
         pickleJar.deposit(_want);
         pickleJar.earn();
-        hevm.roll(block.number + 1000);
+        hevm.warp(block.timestamp + 4 weeks);
 
         // Call the harvest function
         uint256 _before = pickleJar.balance();
@@ -120,4 +130,5 @@ contract Strategy1inchFarmTestBase is DSTest1inchBase {
         uint256 _treasuryFund = _treasuryAfter.sub(_treasuryBefore);
         assertEq(_treasuryFund, 0);
     }
+    receive() external payable {}
 }

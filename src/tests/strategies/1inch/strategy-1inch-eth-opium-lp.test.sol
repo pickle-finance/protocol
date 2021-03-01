@@ -60,15 +60,15 @@ contract Strategy1inchEthOpiumLpTest is Strategy1inchFarmTestBase {
 
     // **** Tests ****
 
-    function test_ethyfiv1_timelock() public {
+    function test_ethopiumv1_timelock() public {
         _test_timelock();
     }
 
-    function test_ethyfiv1_withdraw_release() public {
+    function test_ethopiumv1_withdraw_release() public {
         _test_withdraw_release();
     }
 
-    function test_ethyfiv1_get_earn_harvest_rewards() public {
+    function test_ethopiumv1_get_earn_harvest_rewards() public {
         _test_get_earn_harvest_rewards();
     }
 }
