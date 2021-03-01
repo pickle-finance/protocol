@@ -24,8 +24,8 @@ contract SnowGlobe is ERC20 {
     constructor(address _token, address _governance, address _timelock, address _controller)
         public
         ERC20(
-            string(abi.encodePacked("pickling ", ERC20(_token).name())),
-            string(abi.encodePacked("p", ERC20(_token).symbol()))
+            string(abi.encodePacked("freezing ", ERC20(_token).name())),
+            string(abi.encodePacked("s", ERC20(_token).symbol()))
         )
     {
         _setupDecimals(ERC20(_token).decimals());

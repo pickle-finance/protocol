@@ -5,7 +5,7 @@ module.exports = async function (deployer) {
   let accounts = await web3.eth.getAccounts();
   const devpool = accounts[0];
 
-  let startblock = await web3.eth.getBlockNumber();
+  let startblock = (await web3.eth.getBlockNumber())+10;
   let endblock = 200000000;
   const snowperblock = 1000;
 
