@@ -2,7 +2,7 @@ const SnowGlobe = artifacts.require("SnowGlobe");
 const ControllerV4 = artifacts.require("ControllerV4");
 const StrategyPngAvaxSushiLp = artifacts.require("StrategyPngAvaxSushiLp");
 
-module.exports = async function () {
+module.exports = async function (deployer) {
 
   let controller = await ControllerV4.deployed();
   let strategy = await StrategyPngAvaxSushiLp.deployed();
@@ -10,8 +10,6 @@ module.exports = async function () {
   let lp = await strategy.want();
 
   controller.setGlobe(lp, globe.address).then(() => {
-    controller.approveStrategy(lp, strategy.address).then(() => {
-      controller.setStrategy(lp, strategy.address);
-    })
+    controller.approveStrategy(lp, strategy.address)
   })
 };
