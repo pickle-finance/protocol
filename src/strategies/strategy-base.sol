@@ -167,8 +167,10 @@ abstract contract StrategyBase {
         require(_share <= 1, "Withdraw amount exceeds the balance of strategy");
 
         IERC20 baseToken = IERC20(baseAsset);
+        address _jar = getJarAddress();
+        uint256 _totalSupply = IERC20(_jar).totalSupply();
         uint256 _baseBalance = baseToken.balanceOf(address(this));
-        _amount = _share.mul(_baseBalance);        
+        _amount = (_baseBalance.mul(_share)).div(_totalSupply);
     }
 
     function getBaseAsset() external returns(address) {

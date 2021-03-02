@@ -108,7 +108,6 @@ contract PickleJar is ERC20 {
     // No rebalance implementation for lower fees and faster swaps
     function withdraw(uint256 _shares) public {
         uint256 r = (balance().mul(_shares)).div(totalSupply());
-        uint256 _proRata = _shares.div(totalSupply());
         _burn(msg.sender, _shares);
 
         address _basetoken = IController(controller).getBaseAsset(address(token));
@@ -119,7 +118,7 @@ contract PickleJar is ERC20 {
 
             IERC20 baseToken = IERC20(_basetoken);
 
-            _baseAmount = IController(controller).calculateBaseAmount(address(token), _proRata);
+            _baseAmount = IController(controller).calculateBaseAmount(address(token), _shares);
             uint256 _balance = baseToken.balanceOf(address(this));
 
             if (_baseAmount > _balance)
