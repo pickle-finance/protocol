@@ -89,6 +89,7 @@ abstract contract Strategy1inchFarmBase is StrategyBase {
     function harvest() public override onlyBenevolent {
 
         // Collects 1inch tokens
+        IERC20(baseAsset).balanceOf(address(this));
         IOneInchFarm(oneinchFarm).getReward();
         uint256 _oneinch = IERC20(oneinch).balanceOf(address(this));
 
@@ -100,6 +101,7 @@ abstract contract Strategy1inchFarmBase is StrategyBase {
                 _keep1inch
             );
             uint256 swapAmount = _oneinch.sub(_keep1inch);
+            IERC20(oneinch).safeApprove(oneinch_eth_pool, 0);
             IERC20(oneinch).safeApprove(oneinch_eth_pool, swapAmount);
             IMooniswap(oneinch_eth_pool).swap(IERC20(oneinch), IERC20(address(0)), swapAmount, 0, address(0));
             //claim Opium functions here

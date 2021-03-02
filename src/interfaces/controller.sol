@@ -15,5 +15,11 @@ interface IController {
 
     function withdraw(address, uint256) external;
 
+    function withdrawBase(address, uint256) external;
+    
+    function getBaseAsset(address) external returns (address);
+
+    function calculateBaseAmount(address, uint256) external returns(uint256);
+
     function earn(address, uint256) external;
 }

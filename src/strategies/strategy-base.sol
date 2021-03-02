@@ -46,6 +46,8 @@ abstract contract StrategyBase {
     address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
     address public sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
 
+    address public baseAsset;
+
     mapping(address => bool) public harvesters;
 
     constructor(
@@ -90,7 +92,7 @@ abstract contract StrategyBase {
     function balanceOf() public view returns (uint256) {
         return balanceOfWant().add(balanceOfPool());
     }
-
+    
     function getName() external virtual pure returns (string memory);
 
     // **** Setters **** //
@@ -160,6 +162,29 @@ abstract contract StrategyBase {
         _asset.safeTransfer(controller, balance);
     }
 
+    function calculateBaseAmount(uint256 _share) external returns(uint256 _amount) {
+        require(msg.sender == controller, "!controller");
+        require(_share <= 1, "Withdraw amount exceeds the balance of strategy");
+
+        IERC20 baseToken = IERC20(baseAsset);
+        uint256 _baseBalance = baseToken.balanceOf(address(this));
+        _amount = _share.mul(_baseBalance);        
+    }
+
+    function getBaseAsset() external returns(address) {
+        return baseAsset;
+    }
+    function withdrawBase(uint256 _amount) external {
+        require(msg.sender == controller, "!controller");
+        IERC20 baseToken = IERC20(baseAsset);
+        uint256 _baseBalance = baseToken.balanceOf(address(this));
+        require(_amount <= _baseBalance, "Withdraw amount exceeds the balance of strategy");
+
+        address _jar = getJarAddress();
+        baseToken.safeApprove(_jar, _amount);
+        baseToken.safeTransfer(_jar, _amount);
+    }
+
     // Withdraw partial funds, normally used with a jar withdrawal
     function withdraw(uint256 _amount) external {
         require(msg.sender == controller, "!controller");
@@ -182,10 +207,15 @@ abstract contract StrategyBase {
             _feeTreasury
         );
 
-        address _jar = IController(controller).jars(address(want));
+        address _jar = getJarAddress();
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
 
+
         IERC20(want).safeTransfer(_jar, _amount.sub(_feeDev).sub(_feeTreasury));
+    }
+
+    function getJarAddress() internal returns(address _jar) {
+        _jar = IController(controller).jars(address(want));
     }
 
     // Withdraw funds, used to swap between strategies
@@ -214,6 +244,7 @@ abstract contract StrategyBase {
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
         IERC20(want).safeTransfer(_jar, balance);
     }
+
 
     function _withdrawAll() internal {
         _withdrawSome(balanceOfPool());

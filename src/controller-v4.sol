@@ -247,6 +247,21 @@ contract ControllerV4 {
         IStrategy(strategies[_token]).withdraw(_amount);
     }
 
+    function getBaseAsset(address _token) public returns (address){
+        require(msg.sender == jars[_token], "!jar");
+        return IStrategy(strategies[_token]).getBaseAsset();
+    }
+
+    function withdrawBase(address _token, uint256 _amount) public {
+        require(msg.sender == jars[_token], "!jar");
+        IStrategy(strategies[_token]).withdrawBase(_amount);
+    }
+
+    function calculateBaseAmount(address _token, uint256 _share) public returns (uint256 _amount) {
+        require(msg.sender == jars[_token], "!jar");
+        _amount = IStrategy(strategies[_token]).calculateBaseAmount(_share);
+    }
+
     // Function to swap between jars
     function swapExactJarForJar(
         address _fromJar, // From which Jar

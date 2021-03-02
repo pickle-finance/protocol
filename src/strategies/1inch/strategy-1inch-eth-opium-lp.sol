@@ -26,7 +26,9 @@ contract Strategy1inchEthOpiumLp is Strategy1inchFarmBase {
             _controller,
             _timelock
         )
-    {}
+    {
+        baseAsset = opium;
+    }
 
     // **** Views ****
 
