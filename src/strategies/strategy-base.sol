@@ -164,13 +164,11 @@ abstract contract StrategyBase {
 
     function calculateBaseAmount(uint256 _share) external returns(uint256 _amount) {
         require(msg.sender == controller, "!controller");
-        require(_share <= 1, "Withdraw amount exceeds the balance of strategy");
-
         IERC20 baseToken = IERC20(baseAsset);
         address _jar = getJarAddress();
         uint256 _totalSupply = IERC20(_jar).totalSupply();
         uint256 _baseBalance = baseToken.balanceOf(address(this));
-        _amount = (_baseBalance.mul(_share)).div(_totalSupply);
+        _amount = (_baseBalance.mul(_share)).div(_share.add(_totalSupply)); //adding _share because it's already burned and totalSupply is decreased before
     }
 
     function getBaseAsset() external returns(address) {
