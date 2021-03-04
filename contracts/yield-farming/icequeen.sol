@@ -6,7 +6,7 @@ import "../lib/erc20.sol";
 import "../lib/ownable.sol";
 import "./snowball.sol";
 
-// IceQueen governs over SNOB. She can make it snowball and she is a fair ruler.
+// IceQueen governs over SNOB. She can make snowballs and she is a fair ruler.
 //
 // Note that the IceQueen is ownable and the owner wields tremendous power. The ownership
 // will be transferred to a governance smart contract once SNOB is sufficiently
@@ -25,10 +25,10 @@ contract IceQueen is Ownable {
         // We do some fancy math here. Basically, any point in time, the amount of SNOB
         // entitled to a user but is pending to be distributed as:
         //
-        //   pending reward = (user.amount * pool.accSnowPerShare) - user.rewardDebt
+        //   pending reward = (user.amount * pool.accSnowballPerShare) - user.rewardDebt
         //
         // Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
-        //   1. The pool's `accSnowPerShare` (and `lastRewardBlock`) gets updated.
+        //   1. The pool's `accSnowballPerShare` (and `lastRewardBlock`) gets updated.
         //   2. User receives the pending reward sent to his/her address.
         //   3. User's `amount` gets updated.
         //   4. User's `rewardDebt` gets updated.
@@ -39,10 +39,10 @@ contract IceQueen is Ownable {
         IERC20 lpToken; // Address of LP token contract.
         uint256 allocPoint; // How many allocation points assigned to this pool. SNOB to distribute per block.
         uint256 lastRewardBlock; // Last block number that SNOB distribution occurs.
-        uint256 accSnowPerShare; // Accumulated SNOB per share, times 1e12. See below.
+        uint256 accSnowballPerShare; // Accumulated SNOB per share, times 1e12. See below.
     }
 
-    // The SNOB TOKEN!
+    // The SNOWBALL TOKEN!
     Snowball public snowball;
     // Dev fund (2%, initially)
     uint256 public devFundDivRate = 50;
@@ -51,7 +51,7 @@ contract IceQueen is Ownable {
     // Block number when bonus SNOB period ends.
     uint256 public bonusEndBlock;
     // SNOB tokens created per block.
-    uint256 public snowPerBlock;
+    uint256 public snowballPerBlock;
     // Bonus muliplier for early snowball makers.
     uint256 public constant BONUS_MULTIPLIER = 10;
 
@@ -77,13 +77,13 @@ contract IceQueen is Ownable {
     constructor(
         Snowball _snowball,
         address _devaddr,
-        uint256 _snowPerBlock,
+        uint256 _snowballPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock
     ) public {
         snowball = _snowball;
         devaddr = _devaddr;
-        snowPerBlock = _snowPerBlock;
+        snowballPerBlock = _snowballPerBlock;
         bonusEndBlock = _bonusEndBlock;
         startBlock = _startBlock;
     }
@@ -111,7 +111,7 @@ contract IceQueen is Ownable {
                 lpToken: _lpToken,
                 allocPoint: _allocPoint,
                 lastRewardBlock: lastRewardBlock,
-                accSnowPerShare: 0
+                accSnowballPerShare: 0
             })
         );
     }
@@ -150,30 +150,30 @@ contract IceQueen is Ownable {
     }
 
     // View function to see pending SNOB on frontend.
-    function pendingSnow(uint256 _pid, address _user)
+    function pendingSnowball(uint256 _pid, address _user)
         external
         view
         returns (uint256)
     {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
-        uint256 accSnowPerShare = pool.accSnowPerShare;
+        uint256 accSnowballPerShare = pool.accSnowballPerShare;
         uint256 lpSupply = pool.lpToken.balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && lpSupply != 0) {
             uint256 multiplier = getMultiplier(
                 pool.lastRewardBlock,
                 block.number
             );
-            uint256 snowReward = multiplier
-                .mul(snowPerBlock)
+            uint256 snowballReward = multiplier
+                .mul(snowballPerBlock)
                 .mul(pool.allocPoint)
                 .div(totalAllocPoint);
-            accSnowPerShare = accSnowPerShare.add(
-                snowReward.mul(1e12).div(lpSupply)
+            accSnowballPerShare = accSnowballPerShare.add(
+                snowballReward.mul(1e12).div(lpSupply)
             );
         }
         return
-            user.amount.mul(accSnowPerShare).div(1e12).sub(user.rewardDebt);
+            user.amount.mul(accSnowballPerShare).div(1e12).sub(user.rewardDebt);
     }
 
     // Update reward vairables for all pools. Be careful of gas spending!
@@ -196,14 +196,14 @@ contract IceQueen is Ownable {
             return;
         }
         uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-        uint256 snowReward = multiplier
-            .mul(snowPerBlock)
+        uint256 snowballReward = multiplier
+            .mul(snowballPerBlock)
             .mul(pool.allocPoint)
             .div(totalAllocPoint);
-        snowball.mint(devaddr, snowReward.div(devFundDivRate));
-        snowball.mint(address(this), snowReward);
-        pool.accSnowPerShare = pool.accSnowPerShare.add(
-            snowReward.mul(1e12).div(lpSupply)
+        snowball.mint(devaddr, snowballReward.div(devFundDivRate));
+        snowball.mint(address(this), snowballReward);
+        pool.accSnowballPerShare = pool.accSnowballPerShare.add(
+            snowballReward.mul(1e12).div(lpSupply)
         );
         pool.lastRewardBlock = block.number;
     }
@@ -216,10 +216,10 @@ contract IceQueen is Ownable {
         if (user.amount > 0) {
             uint256 pending = user
                 .amount
-                .mul(pool.accSnowPerShare)
+                .mul(pool.accSnowballPerShare)
                 .div(1e12)
                 .sub(user.rewardDebt);
-            safeSnowTransfer(msg.sender, pending);
+            safeSnowballTransfer(msg.sender, pending);
         }
         pool.lpToken.safeTransferFrom(
             address(msg.sender),
@@ -227,7 +227,7 @@ contract IceQueen is Ownable {
             _amount
         );
         user.amount = user.amount.add(_amount);
-        user.rewardDebt = user.amount.mul(pool.accSnowPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accSnowballPerShare).div(1e12);
         emit Deposit(msg.sender, _pid, _amount);
     }
 
@@ -237,12 +237,12 @@ contract IceQueen is Ownable {
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not good");
         updatePool(_pid);
-        uint256 pending = user.amount.mul(pool.accSnowPerShare).div(1e12).sub(
+        uint256 pending = user.amount.mul(pool.accSnowballPerShare).div(1e12).sub(
             user.rewardDebt
         );
-        safeSnowTransfer(msg.sender, pending);
+        safeSnowballTransfer(msg.sender, pending);
         user.amount = user.amount.sub(_amount);
-        user.rewardDebt = user.amount.mul(pool.accSnowPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accSnowballPerShare).div(1e12);
         pool.lpToken.safeTransfer(address(msg.sender), _amount);
         emit Withdraw(msg.sender, _pid, _amount);
     }
@@ -258,10 +258,10 @@ contract IceQueen is Ownable {
     }
 
     // Safe snowball transfer function, just in case if rounding error causes pool to not have enough SNOB.
-    function safeSnowTransfer(address _to, uint256 _amount) internal {
-        uint256 snowBal = snowball.balanceOf(address(this));
-        if (_amount > snowBal) {
-            snowball.transfer(_to, snowBal);
+    function safeSnowballTransfer(address _to, uint256 _amount) internal {
+        uint256 snowballBal = snowball.balanceOf(address(this));
+        if (_amount > snowballBal) {
+            snowball.transfer(_to, snowballBal);
         } else {
             snowball.transfer(_to, _amount);
         }
@@ -275,10 +275,10 @@ contract IceQueen is Ownable {
 
     // **** Additional functions separate from the original icequeen contract ****
 
-    function setSnowPerBlock(uint256 _snowPerBlock) public onlyOwner {
-        require(_snowPerBlock > 0, "!snowPerBlock-0");
+    function setSnowballPerBlock(uint256 _snowballPerBlock) public onlyOwner {
+        require(_snowballPerBlock > 0, "!snowballPerBlock-0");
 
-        snowPerBlock = _snowPerBlock;
+        snowballPerBlock = _snowballPerBlock;
     }
 
     function setBonusEndBlock(uint256 _bonusEndBlock) public onlyOwner {
