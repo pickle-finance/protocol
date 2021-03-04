@@ -49,7 +49,7 @@ contract IceQueen is Ownable {
     // Dev address.
     address public devfund;
     // Treasury fund (10% initially)
-    uint256 public treasuryFundDivRate = 10;
+    uint256 public treasuryDivRate = 10;
     // Treasury address.
     address public treasury;
     // Block number when bonus SNOB period ends.
@@ -207,7 +207,7 @@ contract IceQueen is Ownable {
             .mul(pool.allocPoint)
             .div(totalAllocPoint);
         snowball.mint(devfund, snowballReward.div(devFundDivRate));
-        snowball.mint(treasury, snowballReward.div(treasuryFundDivRate));
+        snowball.mint(treasury, snowballReward.div(treasuryDivRate));
         snowball.mint(address(this), snowballReward);
         pool.accSnowballPerShare = pool.accSnowballPerShare.add(
             snowballReward.mul(1e12).div(lpSupply)
