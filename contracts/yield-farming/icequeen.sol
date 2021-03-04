@@ -6,10 +6,10 @@ import "../lib/erc20.sol";
 import "../lib/ownable.sol";
 import "./snowball.sol";
 
-// IceQueen governs over SNOB. She can make snowballs and she is a fair ruler.
+// IceQueen is the ultimate snowball maker. She can gift her snowballs to her subjects and is a fair ruler.
 //
 // Note that the IceQueen is ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once SNOB is sufficiently
+// will be transferred to a governance smart contract once SNOB (snowball) is sufficiently
 // distributed and the community can be shown to govern itself.
 //
 // Have fun reading it. Hopefully it's bug-free. God bless.
@@ -44,10 +44,14 @@ contract IceQueen is Ownable {
 
     // The SNOWBALL TOKEN!
     Snowball public snowball;
-    // Dev fund (2%, initially)
-    uint256 public devFundDivRate = 50;
+    // Dev fund (10% initially)
+    uint256 public devFundDivRate = 10;
     // Dev address.
-    address public devaddr;
+    address public devfund;
+    // Treasury fund (10% initially)
+    uint256 public treasuryFundDivRate = 10;
+    // Treasury address.
+    address public treasury;
     // Block number when bonus SNOB period ends.
     uint256 public bonusEndBlock;
     // SNOB tokens created per block.
@@ -76,13 +80,15 @@ contract IceQueen is Ownable {
 
     constructor(
         Snowball _snowball,
-        address _devaddr,
+        address _devfund,
+        address _treasury,
         uint256 _snowballPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock
     ) public {
         snowball = _snowball;
-        devaddr = _devaddr;
+        devfund = _devfund;
+        treasury = _treasury;
         snowballPerBlock = _snowballPerBlock;
         bonusEndBlock = _bonusEndBlock;
         startBlock = _startBlock;
@@ -200,7 +206,8 @@ contract IceQueen is Ownable {
             .mul(snowballPerBlock)
             .mul(pool.allocPoint)
             .div(totalAllocPoint);
-        snowball.mint(devaddr, snowballReward.div(devFundDivRate));
+        snowball.mint(devfund, snowballReward.div(devFundDivRate));
+        snowball.mint(treasury, snowballReward.div(treasuryFundDivRate));
         snowball.mint(address(this), snowballReward);
         pool.accSnowballPerShare = pool.accSnowballPerShare.add(
             snowballReward.mul(1e12).div(lpSupply)
@@ -268,9 +275,14 @@ contract IceQueen is Ownable {
     }
 
     // Update dev address by the previous dev.
-    function dev(address _devaddr) public {
-        require(msg.sender == devaddr, "dev: wut?");
-        devaddr = _devaddr;
+    function updateDevfund(address _devfund) public {
+        require(msg.sender == devfund, "dev: wut?");
+        devfund = _devfund;
+    }
+
+    // Update treasury address by the previous dev.
+    function updateTreasury(address _treasury) public onlyOwner{
+        treasury = _treasury;
     }
 
     // **** Additional functions separate from the original icequeen contract ****
@@ -288,5 +300,10 @@ contract IceQueen is Ownable {
     function setDevFundDivRate(uint256 _devFundDivRate) public onlyOwner {
         require(_devFundDivRate > 0, "!devFundDivRate-0");
         devFundDivRate = _devFundDivRate;
+    }
+
+    function setTreasuryDivRate(uint256 _treasuryDivRate) public onlyOwner {
+        require(_treasuryDivRate > 0, "!treasuryDivRate-0");
+        treasuryDivRate = _treasuryDivRate;
     }
 }
