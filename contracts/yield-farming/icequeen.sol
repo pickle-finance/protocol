@@ -4,12 +4,12 @@ import "../lib/enumerableSet.sol";
 import "../lib/safe-math.sol";
 import "../lib/erc20.sol";
 import "../lib/ownable.sol";
-import "./snow-token.sol";
+import "./snowball.sol";
 
-// IceQueen governs over SNOW. She can make it snow and she is a fair ruler.
+// IceQueen governs over SNOB. She can make it snowball and she is a fair ruler.
 //
 // Note that the IceQueen is ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once SNOW is sufficiently
+// will be transferred to a governance smart contract once SNOB is sufficiently
 // distributed and the community can be shown to govern itself.
 //
 // Have fun reading it. Hopefully it's bug-free. God bless.
@@ -22,7 +22,7 @@ contract IceQueen is Ownable {
         uint256 amount; // How many LP tokens the user has provided.
         uint256 rewardDebt; // Reward debt. See explanation below.
         //
-        // We do some fancy math here. Basically, any point in time, the amount of SNOW
+        // We do some fancy math here. Basically, any point in time, the amount of SNOB
         // entitled to a user but is pending to be distributed as:
         //
         //   pending reward = (user.amount * pool.accSnowPerShare) - user.rewardDebt
@@ -37,22 +37,22 @@ contract IceQueen is Ownable {
     // Info of each pool.
     struct PoolInfo {
         IERC20 lpToken; // Address of LP token contract.
-        uint256 allocPoint; // How many allocation points assigned to this pool. SNOW to distribute per block.
-        uint256 lastRewardBlock; // Last block number that SNOW distribution occurs.
-        uint256 accSnowPerShare; // Accumulated SNOW per share, times 1e12. See below.
+        uint256 allocPoint; // How many allocation points assigned to this pool. SNOB to distribute per block.
+        uint256 lastRewardBlock; // Last block number that SNOB distribution occurs.
+        uint256 accSnowPerShare; // Accumulated SNOB per share, times 1e12. See below.
     }
 
-    // The SNOW TOKEN!
-    SnowToken public snow;
+    // The SNOB TOKEN!
+    Snowball public snowball;
     // Dev fund (2%, initially)
     uint256 public devFundDivRate = 50;
     // Dev address.
     address public devaddr;
-    // Block number when bonus SNOW period ends.
+    // Block number when bonus SNOB period ends.
     uint256 public bonusEndBlock;
-    // SNOW tokens created per block.
+    // SNOB tokens created per block.
     uint256 public snowPerBlock;
-    // Bonus muliplier for early snow makers.
+    // Bonus muliplier for early snowball makers.
     uint256 public constant BONUS_MULTIPLIER = 10;
 
     // Info of each pool.
@@ -61,7 +61,7 @@ contract IceQueen is Ownable {
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
     // Total allocation points. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint = 0;
-    // The block number when SNOW mining starts.
+    // The block number when SNOB mining starts.
     uint256 public startBlock;
 
     // Events
@@ -75,13 +75,13 @@ contract IceQueen is Ownable {
     );
 
     constructor(
-        SnowToken _snow,
+        Snowball _snowball,
         address _devaddr,
         uint256 _snowPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock
     ) public {
-        snow = _snow;
+        snowball = _snowball;
         devaddr = _devaddr;
         snowPerBlock = _snowPerBlock;
         bonusEndBlock = _bonusEndBlock;
@@ -116,7 +116,7 @@ contract IceQueen is Ownable {
         );
     }
 
-    // Update the given pool's SNOW allocation point. Can only be called by the owner.
+    // Update the given pool's SNOB allocation point. Can only be called by the owner.
     function set(
         uint256 _pid,
         uint256 _allocPoint,
@@ -149,7 +149,7 @@ contract IceQueen is Ownable {
         }
     }
 
-    // View function to see pending SNOW on frontend.
+    // View function to see pending SNOB on frontend.
     function pendingSnow(uint256 _pid, address _user)
         external
         view
@@ -200,15 +200,15 @@ contract IceQueen is Ownable {
             .mul(snowPerBlock)
             .mul(pool.allocPoint)
             .div(totalAllocPoint);
-        snow.mint(devaddr, snowReward.div(devFundDivRate));
-        snow.mint(address(this), snowReward);
+        snowball.mint(devaddr, snowReward.div(devFundDivRate));
+        snowball.mint(address(this), snowReward);
         pool.accSnowPerShare = pool.accSnowPerShare.add(
             snowReward.mul(1e12).div(lpSupply)
         );
         pool.lastRewardBlock = block.number;
     }
 
-    // Deposit LP tokens to IceQueen for SNOW allocation.
+    // Deposit LP tokens to IceQueen for SNOB allocation.
     function deposit(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
@@ -257,13 +257,13 @@ contract IceQueen is Ownable {
         user.rewardDebt = 0;
     }
 
-    // Safe snow transfer function, just in case if rounding error causes pool to not have enough SNOW.
+    // Safe snowball transfer function, just in case if rounding error causes pool to not have enough SNOB.
     function safeSnowTransfer(address _to, uint256 _amount) internal {
-        uint256 snowBal = snow.balanceOf(address(this));
+        uint256 snowBal = snowball.balanceOf(address(this));
         if (_amount > snowBal) {
-            snow.transfer(_to, snowBal);
+            snowball.transfer(_to, snowBal);
         } else {
-            snow.transfer(_to, _amount);
+            snowball.transfer(_to, _amount);
         }
     }
 

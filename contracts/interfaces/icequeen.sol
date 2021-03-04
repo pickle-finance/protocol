@@ -36,7 +36,7 @@ interface IIcequeen {
         view
         returns (uint256);
 
-    function snow() external view returns (address);
+    function snowball() external view returns (address);
 
     function snowPerBlock() external view returns (uint256);
 

@@ -1,15 +1,15 @@
 const IceQueen = artifacts.require("IceQueen");
-const SnowToken = artifacts.require("SnowToken");
+const Snowball = artifacts.require("Snowball");
 
 module.exports = async function (deployer) {
   let accounts = await web3.eth.getAccounts();
   const devpool = accounts[0];
 
-  let startblock = (await web3.eth.getBlockNumber())+10;
-  let endblock = 200000000;
-  const snowperblock = 1000;
+  let startblock = (await web3.eth.getBlockNumber())+600; // 10 minutes
+  let endblock = (await web3.eth.getBlockNumber()) + 5000600; // to be changed to 5m past launch // hold on gimme a minute
+  const snowballperblock = 1000000000000000000; // 1x in wei
 
-  let snow = await SnowToken.deployed();
+  let snowball = await Snowball.deployed();
 
-  await deployer.deploy(IceQueen, snow.address, devpool, snowperblock, startblock, endblock);
+  await deployer.deploy(IceQueen, snowball.address, devpool, snowballperblock, startblock, endblock);
 }
