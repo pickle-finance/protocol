@@ -16,6 +16,13 @@ abstract contract StrategyBase {
     using Address for address;
     using SafeMath for uint256;
 
+    // Tokens
+    address public want;
+    address public constant wavax = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
+
+    // Dex
+    address public pangolinRouter = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
+
     // Perfomance fees - start with 20%
     uint256 public performanceTreasuryFee = 2000;
     uint256 public constant performanceTreasuryMax = 10000;
@@ -32,18 +39,11 @@ abstract contract StrategyBase {
     uint256 public withdrawalDevFundFee = 0;
     uint256 public constant withdrawalDevFundMax = 100000;
 
-    // Tokens
-    address public want;
-    address public constant wavax = 0xd00ae08403B9bbb9124bB305C09058E32C39A48c;
-
     // User accounts
     address public governance;
     address public controller;
     address public strategist;
     address public timelock;
-
-    // Dex
-    address public pangolinRouter = 0x2D99ABD9008Dc933ff5c0CD271B88309593aB921;
 
     mapping(address => bool) public harvesters;
 

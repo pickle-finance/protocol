@@ -57,7 +57,7 @@ contract IceQueen is Ownable {
     // SNOB tokens created per block.
     uint256 public snowballPerBlock;
     // Bonus muliplier for early snowball makers.
-    uint256 public constant BONUS_MULTIPLIER = 10;
+    uint256 public bonusMultiplier = 5;
 
     // Info of each pool.
     PoolInfo[] public poolInfo;
@@ -129,7 +129,7 @@ contract IceQueen is Ownable {
         bool _withUpdate
     ) public onlyOwner {
         if (_withUpdate) {
-            massUpdatePools();
+            updatePool(_pid);
         }
         totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(
             _allocPoint
@@ -144,15 +144,19 @@ contract IceQueen is Ownable {
         returns (uint256)
     {
         if (_to <= bonusEndBlock) {
-            return _to.sub(_from).mul(BONUS_MULTIPLIER);
+            return _to.sub(_from).mul(bonusMultiplier);
         } else if (_from >= bonusEndBlock) {
             return _to.sub(_from);
         } else {
             return
-                bonusEndBlock.sub(_from).mul(BONUS_MULTIPLIER).add(
+                bonusEndBlock.sub(_from).mul(bonusMultiplier).add(
                     _to.sub(bonusEndBlock)
                 );
         }
+    }
+
+    function setMultiplier(uint256 _mult) public onlyOwner {
+        bonusMultiplier = _mult;
     }
 
     // View function to see pending SNOB on frontend.
