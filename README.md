@@ -1,4 +1,4 @@
-# Snow Protocol
+# Snowball Protocol
 
 Solidity files relating to the Snowball protocol.
 
