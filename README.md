@@ -4,7 +4,7 @@ Solidity files relating to the Snowball protocol.
 
 ## Getting Started
 
-We're using [Truffle]<https://www.trufflesuite.com/> to compile, and test contracts.
+We're using [Truffle](https://www.trufflesuite.com/) to compile, and test contracts.
 
 ```bash
 npm install -g truffle
@@ -20,7 +20,7 @@ npm install -g truffle
 
 ### Via Remix
 
-You can use [truffle-flattener]<https://www.npmjs.com/package/truffle-flattener> to flaten files
+You can use [truffle-flattener](https://www.npmjs.com/package/truffle-flattener) to flaten files
 
 ```bash
 # Flatten
