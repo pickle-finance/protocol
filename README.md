@@ -1,8 +1,8 @@
-# Pickle Protocol
+# Snow Protocol
 
-[![circleci](https://circleci.com/gh/pickle-finance/protocol.svg?style=svg)](https://circleci.com/gh/pickle-finance/protocol)
+[![circleci](https://circleci.com/gh/snow-finance/protocol.svg?style=svg)](https://circleci.com/gh/snow-finance/protocol)
 
-Solidity files relating to the PICKLE protocol.
+Solidity files relating to the SNOW protocol.
 
 ## Getting Started
 
@@ -17,7 +17,7 @@ curl https://dapp.tools/install | sh
 ```
 
 ```bash
-git clone git@github.com:pickle-finance/protocol.git
+git clone git@github.com:snow-finance/protocol.git
 cd protocol
 dapp update
 dapp build
