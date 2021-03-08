@@ -14,6 +14,8 @@ async function main() {
   const pickleLP = "0xdc98556Ce24f007A5eF6dC1CE96322d65832A819";
   const pickleAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5";
 
+  const pyveCRVETH = "0x5eff6d166d66bacbc1bf52e2c54dd391ae6b1f48";
+
   await hre.network.provider.request({
     method: "hardhat_impersonateAccount",
     params: [governanceAddr],
@@ -49,15 +51,19 @@ async function main() {
   console.log("-- Adding PICKLE LP Gauge --");
   await gaugeProxy.addGauge(pickleLP);
 
+  console.log("-- Adding pyveCRVETH Gauge --");
+  await gaugeProxy.addGauge(pyveCRVETH);
+
   console.log("-- Voting on LP Gauge with 100% weight --");
   await hre.network.provider.request({
     method: "hardhat_impersonateAccount",
     params: [userAddr],
   });
+
   const gaugeProxyFromUser = gaugeProxy.connect(userAddr);
   populatedTx = await gaugeProxyFromUser.populateTransaction.vote(
-    [pickleLP],
-    [10000000],
+    [pickleLP, pyveCRVETH],
+    [6000000,4000000],
     {
       gasLimit: 9000000,
     }
@@ -77,11 +83,15 @@ async function main() {
   console.log("-- Distribute PICKLE to gauges --");
   await gaugeProxy.distribute();
 
-  const gaugeAddr = await gaugeProxy.getGauge(pickleLP);
+  const pickleGaugeAddr = await gaugeProxy.getGauge(pickleLP);
+  const yvecrvGaugeAddr = await gaugeProxy.getGauge(pyveCRVETH);
   const pickle = await ethers.getContractAt("PickleToken", pickleAddr);
 
-  const rewards = await pickle.balanceOf(gaugeAddr);
-  console.log(rewards);
+  const pickleRewards = await pickle.balanceOf(pickleGaugeAddr);
+  console.log("rewards to Pickle gauge",pickleRewards);
+
+  const yvecrvRewards = await pickle.balanceOf(yvecrvGaugeAddr);
+  console.log("rewards to pyveCRV gauge",yvecrvRewards);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
