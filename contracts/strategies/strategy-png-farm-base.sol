@@ -62,16 +62,22 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
                 IController(controller).treasury(),
                 _keepPNG
             );
-            _swapPangolin(png, wavax, _png.sub(_keepPNG));
+            
+            if (token1 == png) {
+                _swapPangolin(png, wavax, _png.sub(_keepPNG).div(2));
+            } else {            
+             _swapPangolin(png, wavax, _png.sub(_keepPNG));
+            }
+             
         }
 
-        // Swap half WAVAX for DAI
+        // Swap half WAVAX for token
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             _swapPangolin(wavax, token1, _wavax.div(2));
         }
 
-        // Adds in liquidity for ETH/DAI
+        // Adds in liquidity for WAVAX/token
         _wavax = IERC20(wavax).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
         if (_wavax > 0 && _token1 > 0) {
