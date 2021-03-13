@@ -18,7 +18,7 @@ async function main() {
 
   await hre.network.provider.request({
     method: "hardhat_impersonateAccount",
-    params: [governanceAddr]
+    params: [governanceAddr],
   });
 
   const governanceSigner = ethers.provider.getSigner(governanceAddr);
@@ -57,15 +57,15 @@ async function main() {
   console.log("-- Voting on LP Gauge with 100% weight --");
   await hre.network.provider.request({
     method: "hardhat_impersonateAccount",
-    params: [userAddr]
+    params: [userAddr],
   });
 
   const gaugeProxyFromUser = gaugeProxy.connect(userAddr);
   populatedTx = await gaugeProxyFromUser.populateTransaction.vote(
     [pickleLP, pyveCRVETH],
-    [6000000, 4000000],
+    [6000000,4000000],
     {
-      gasLimit: 9000000
+      gasLimit: 9000000,
     }
   );
   await userSigner.sendTransaction(populatedTx);
@@ -76,7 +76,7 @@ async function main() {
   console.log("-- Wait for 10 blocks to be mined --");
   for (let i = 0; i < 10; i++) {
     await hre.network.provider.request({
-      method: "evm_mine"
+      method: "evm_mine",
     });
   }
 
@@ -88,23 +88,17 @@ async function main() {
   const pickle = await ethers.getContractAt("PickleToken", pickleAddr);
 
   const pickleRewards = await pickle.balanceOf(pickleGaugeAddr);
-  console.log("rewards to Pickle gauge", pickleRewards);
+  console.log("rewards to Pickle gauge",pickleRewards);
 
   const yvecrvRewards = await pickle.balanceOf(yvecrvGaugeAddr);
-  console.log("rewards to pyveCRV gauge", yvecrvRewards);
-
-  const pickleLPWeight = await gaugeProxy.weights(pickleGaugeAddr);
-  console.log(pickleLPWeight);
-
-  const pickleLPWeight2 = await gaugeProxy.weights(pickleLP);
-  console.log(pickleLPWeight2);
+  console.log("rewards to pyveCRV gauge",yvecrvRewards);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 main()
   .then(() => process.exit(0))
-  .catch(error => {
+  .catch((error) => {
     console.error(error);
     process.exit(1);
   });
