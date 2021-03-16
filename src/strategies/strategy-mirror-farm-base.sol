@@ -49,7 +49,9 @@ abstract contract StrategyMirFarmBase is StrategyStakingRewardsBase {
         ust_token1_path[1] = token1;
 
         IERC20(ust).approve(univ2Router2, uint(-1));
-        IERC20(token1).approve(univ2Router2, uint(-1));
+        IERC20(mir).approve(univ2Router2, uint(-1));
+        if (mir != token1)
+            IERC20(token1).approve(univ2Router2, uint(-1));
     }
 
     // **** Setters ****

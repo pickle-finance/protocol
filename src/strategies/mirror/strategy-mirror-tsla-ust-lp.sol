@@ -7,7 +7,8 @@ contract StrategyMirrorTslaUstLp is StrategyMirFarmBase {
     // Token addresses
     address public tsla_rewards = 0x43DFb87a26BA812b0988eBdf44e3e341144722Ab;
     address public uni_tsla_ust_lp = 0x5233349957586A8207c52693A959483F9aeAA50C;
-
+    address public mTSLA = 0x21cA39943E91d704678F5D00b6616650F066fD63;
+    
     constructor(
         address _governance,
         address _strategist,
@@ -16,7 +17,7 @@ contract StrategyMirrorTslaUstLp is StrategyMirFarmBase {
     )
         public
         StrategyMirFarmBase(
-            mir,
+            mTSLA,
             tsla_rewards,
             uni_tsla_ust_lp,
             _governance,
