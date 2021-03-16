@@ -10,12 +10,12 @@ import "../../../interfaces/uniswapv2.sol";
 
 import "../../../pickle-jar.sol";
 import "../../../controller-v4.sol";
-import "../../../strategies/mirror/strategy-mirror-aapl-ust-lp.sol";
+import "../../../strategies/mirror/strategy-mirror-baba-ust-lp.sol";
 
-contract StrategyMirrorAaplUstLpTest is StrategyMirrorFarmTestBase {
+contract StrategyMirrorBabaUstLpTest is StrategyMirrorFarmTestBase {
     function setUp() public {
-        want = 0xB022e08aDc8bA2dE6bA4fECb59C6D502f66e953B; // UST-mAAPL
-        token1 = 0xd36932143F6eBDEDD872D5Fb0651f4B72Fd15a84; // mAAPl
+        want = 0x676Ce85f66aDB8D7b8323AeEfe17087A3b8CB363; // mBABA-UST
+        token1 = 0x56aA298a19C93c6801FDde870fA63EF75Cc0aF72; // mBABA
 
         governance = address(this);
         strategist = address(this);
@@ -33,7 +33,7 @@ contract StrategyMirrorAaplUstLpTest is StrategyMirrorFarmTestBase {
 
         strategy = IStrategy(
             address(
-                new StrategyMirrorAaplUstLp(
+                new StrategyMirrorBabaUstLp(
                     governance,
                     strategist,
                     address(controller),
@@ -59,15 +59,15 @@ contract StrategyMirrorAaplUstLpTest is StrategyMirrorFarmTestBase {
 
     // **** Tests ****
 
-    function test_aaplustv3_1_timelock() public {
+    function test_babaustv3_1_timelock() public {
         _test_timelock();
     }
 
-    function test_aaplustv3_1_withdraw_release() public {
+    function test_babaustv3_1_withdraw_release() public {
         _test_withdraw_release();
     }
 
-    function test_aaplustv3_1_get_earn_harvest_rewards() public {
+    function test_babaustv3_1_get_earn_harvest_rewards() public {
         _test_get_earn_harvest_rewards();
     }
 }
