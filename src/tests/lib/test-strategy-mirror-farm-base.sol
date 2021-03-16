@@ -75,7 +75,7 @@ contract StrategyMirrorFarmTestBase is DSTestDefiBase {
 
     function _test_withdraw_release() internal {
         uint256 decimals = ERC20(token1).decimals();
-        _getWant(10 ether, 10 ether);
+        _getWant(10 ether, 4000 * (10**decimals));
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).safeApprove(address(pickleJar), 0);
         IERC20(want).safeApprove(address(pickleJar), _want);
