@@ -14,8 +14,8 @@ import "../../../strategies/mirror/strategy-mirror-slv-ust-lp.sol";
 
 contract StrategyMirrorSlvUstLpTest is StrategyMirrorFarmTestBase {
     function setUp() public {
-        want = 0x860425bE6ad1345DC7a3e287faCBF32B18bc4fAe; // mBABA-UST
-        token1 = 0x9d1555d8cB3C846Bb4f7D5B1B1080872c3166676; // mBABA
+        want = 0x860425bE6ad1345DC7a3e287faCBF32B18bc4fAe; // mSLV-UST
+        token1 = 0x9d1555d8cB3C846Bb4f7D5B1B1080872c3166676; // mSLV
 
         governance = address(this);
         strategist = address(this);
