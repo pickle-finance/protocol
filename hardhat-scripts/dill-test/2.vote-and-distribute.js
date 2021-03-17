@@ -63,7 +63,7 @@ async function main() {
   const gaugeProxyFromUser = gaugeProxy.connect(userAddr);
   populatedTx = await gaugeProxyFromUser.populateTransaction.vote(
     [pickleLP, pyveCRVETH],
-    [6000000,4000000],
+    [6000000, 4000000],
     {
       gasLimit: 9000000,
     }
@@ -88,10 +88,10 @@ async function main() {
   const pickle = await ethers.getContractAt("PickleToken", pickleAddr);
 
   const pickleRewards = await pickle.balanceOf(pickleGaugeAddr);
-  console.log("rewards to Pickle gauge",pickleRewards);
+  console.log("rewards to Pickle gauge", pickleRewards);
 
   const yvecrvRewards = await pickle.balanceOf(yvecrvGaugeAddr);
-  console.log("rewards to pyveCRV gauge",yvecrvRewards);
+  console.log("rewards to pyveCRV gauge", yvecrvRewards);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
