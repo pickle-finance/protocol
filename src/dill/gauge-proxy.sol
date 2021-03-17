@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7; //^0.7.5;
 
-
 library SafeMath {
     function add(uint a, uint b) internal pure returns (uint) {
         uint c = a + b;
@@ -304,10 +303,10 @@ contract Gauge is ReentrancyGuard {
     
     function _deposit(uint amount) internal nonReentrant updateReward(msg.sender) {
         require(amount > 0, "Cannot stake 0");
-        TOKEN.safeTransferFrom(msg.sender, address(this), amount);
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
         emit Staked(msg.sender, amount);
+        TOKEN.safeTransferFrom(msg.sender, address(this), amount);
     }
     
     function withdrawAll() external {
@@ -379,8 +378,6 @@ contract Gauge is ReentrancyGuard {
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
-    event RewardsDurationUpdated(uint256 newDuration);
-    event Recovered(address token, uint256 amount);
 }
 
 interface MasterChef {
@@ -576,18 +573,17 @@ contract GaugeProxy is ProtocolGovernance {
         delete tokenVote[_owner];
     }
     
-    // Reset votes to 0
+    // Adjusts _owner's votes according to latest _owner's DILL balance
     function poke(address _owner) public {
-        address[] memory _tokenVote = tokenVote[msg.sender];
+        address[] memory _tokenVote = tokenVote[_owner];
         uint256 _tokenCnt = _tokenVote.length;
         uint256[] memory _weights = new uint[](_tokenCnt);
         
         uint256 _prevUsedWeight = usedWeights[_owner];
-        uint256 _weight = DILL.balanceOf(_owner);
-        
+        uint256 _weight = DILL.balanceOf(_owner);        
 
         for (uint256 i = 0; i < _tokenCnt; i ++) {
-            uint256 _prevWeight = votes[_tokenVote[i]][_owner];
+            uint256 _prevWeight = votes[_owner][_tokenVote[i]];
             _weights[i] = _prevWeight.mul(_weight).div(_prevUsedWeight);
         }
 
@@ -616,7 +612,7 @@ contract GaugeProxy is ProtocolGovernance {
                 totalWeight = totalWeight.add(_tokenWeight);
                 weights[_token] = weights[_token].add(_tokenWeight);
                 tokenVote[_owner].push(_token);
-                votes[_token][_owner] = _tokenWeight;
+                votes[_owner][_token] = _tokenWeight;
             }
         }
 
@@ -626,6 +622,7 @@ contract GaugeProxy is ProtocolGovernance {
     
     // Vote with DILL on a gauge
     function vote(address[] calldata _tokenVote, uint256[] calldata _weights) external {
+        require(_tokenVote.length == _weights.length);
         _vote(msg.sender, _tokenVote, _weights);
     }
     
@@ -641,12 +638,15 @@ contract GaugeProxy is ProtocolGovernance {
     // Sets MasterChef PID
     function setPID(uint _pid) external {
         require(msg.sender == governance, "!gov");
+        require(pid == 0, "pid has already been set");
+        require(_pid > 0, "invalid pid");
         pid = _pid;
     }
     
     
     // Deposits mDILL into MasterChef
     function deposit() public {
+        require(pid > 0, "pid not initialized");
         IERC20 _token = TOKEN;
         uint _balance = _token.balanceOf(address(this));
         _token.safeApprove(address(MASTER), 0);
