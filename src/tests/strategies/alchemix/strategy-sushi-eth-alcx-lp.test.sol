@@ -1,18 +1,15 @@
 pragma solidity ^0.6.7;
 
-import "../lib/hevm.sol";
-import "../lib/user.sol";
-import "../lib/test-approx.sol";
-import "../lib/test-defi-base.sol";
+import "../../../interfaces/strategy.sol";
+import "../../../interfaces/curve.sol";
+import "../../../interfaces/uniswapv2.sol";
 
-import "../../interfaces/strategy.sol";
-import "../../interfaces/curve.sol";
-import "../../interfaces/uniswapv2.sol";
+import "../../../pickle-jar.sol";
+import "../../../controller-v4.sol";
+import "../../lib/test-sushi-base.sol";
+import "../../../strategies/alchemix/strategy-sushi-eth-alcx-lp.sol";
 
-import "../../pickle-jar.sol";
-import "../../controller-v4.sol";
-
-contract StrategyAlcxFarmTestBase is DSTestDefiBase {
+contract StrategySushiEthAlcxLpTest is DSTestSushiBase {
     address want;
     address token1;
 
@@ -26,6 +23,53 @@ contract StrategyAlcxFarmTestBase is DSTestDefiBase {
     PickleJar pickleJar;
     ControllerV4 controller;
     IStrategy strategy;
+    
+    function setUp() public {
+        want = 0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8;
+        token1 = 0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF;
+
+        governance = address(this);
+        strategist = address(this);
+        devfund = address(new User());
+        treasury = address(new User());
+        timelock = address(this);
+
+        controller = new ControllerV4(
+            governance,
+            strategist,
+            timelock,
+            devfund,
+            treasury
+        );
+
+        strategy = IStrategy(
+            address(
+                new StrategySushiEthAlcxLp(
+                    governance,
+                    strategist,
+                    address(controller),
+                    timelock
+                )
+            )
+        );
+
+        pickleJar = new PickleJar(
+            strategy.want(),
+            governance,
+            timelock,
+            address(controller)
+        );
+
+        controller.setJar(strategy.want(), address(pickleJar));
+        controller.approveStrategy(strategy.want(), address(strategy));
+        controller.setStrategy(strategy.want(), address(strategy));
+
+        // Set time
+        hevm.warp(startTime);
+
+        uint256 decimals = ERC20(token1).decimals();
+        _getWant(100 ether, 100 * (10**decimals));
+    }
 
     function _getWant(uint256 ethAmount, uint256 amount) internal {
         _getERC20(token1, amount);
@@ -47,15 +91,13 @@ contract StrategyAlcxFarmTestBase is DSTestDefiBase {
 
     // **** Tests ****
 
-    function _test_timelock() internal {
+    function test_ethalcxv1_timelock() public {
         assertTrue(strategy.timelock() == timelock);
         strategy.setTimelock(address(1));
         assertTrue(strategy.timelock() == address(1));
     }
 
-    function _test_withdraw_release() internal {
-        uint256 decimals = ERC20(token1).decimals();
-        _getWant(10 ether, 400 * (10**decimals));
+    function test_ethalcxv1_withdraw_release() public {
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).safeApprove(address(pickleJar), 0);
         IERC20(want).safeApprove(address(pickleJar), _want);
@@ -78,9 +120,7 @@ contract StrategyAlcxFarmTestBase is DSTestDefiBase {
         assertTrue(_after > _want);
     }
 
-    function _test_get_earn_harvest_rewards() internal {
-        uint256 decimals = ERC20(token1).decimals();
-        _getWant(10 ether, 400 * (10**decimals));
+    function test_ethalcxv1_get_earn_harvest_rewards() public {
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).safeApprove(address(pickleJar), 0);
         IERC20(want).safeApprove(address(pickleJar), _want);

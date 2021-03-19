@@ -33,6 +33,7 @@ abstract contract StrategyAlchemixFarmBase is StrategyBase {
         )
     {
         poolId = _poolId;
+        IERC20(alcx).approve(sushiRouter, uint(-1));
     }
     
     function balanceOfPool() public override view returns (uint256) {
