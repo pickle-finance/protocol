@@ -31,14 +31,14 @@ interface IIcequeen {
 
     function owner() external view returns (address);
 
-    function pendingSnow(uint256 _pid, address _user)
+    function pendingSnowball(uint256 _pid, address _user)
         external
         view
         returns (uint256);
 
     function snowball() external view returns (address);
 
-    function snowPerBlock() external view returns (uint256);
+    function snowballPerBlock() external view returns (uint256);
 
     function poolInfo(uint256)
         external
@@ -47,7 +47,7 @@ interface IIcequeen {
             address lpToken,
             uint256 allocPoint,
             uint256 lastRewardBlock,
-            uint256 accSnowPerShare
+            uint256 accSnowballPerShare
         );
 
     function poolLength() external view returns (uint256);
@@ -64,7 +64,7 @@ interface IIcequeen {
 
     function setDevFundDivRate(uint256 _devFundDivRate) external;
 
-    function setSnowPerBlock(uint256 _snowPerBlock) external;
+    function setSnowballPerBlock(uint256 _snowballPerBlock) external;
 
     function startBlock() external view returns (uint256);
 
