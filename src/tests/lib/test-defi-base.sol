@@ -39,6 +39,7 @@ contract DSTestDefiBase is DSTestApprox {
     address usdt = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     address susd = 0x57Ab1ec28D129707052df4dF418D58a2D46d5f51;
     address yfi = 0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e;
+    address sushi = 0x6b3595068778dd592e39a122f4f5a5cf09c90fe2;
     address uni = 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984;
 
     address wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
