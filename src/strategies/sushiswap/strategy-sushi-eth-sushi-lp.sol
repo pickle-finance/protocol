@@ -8,7 +8,6 @@ contract StrategySushiEthSushiLp is StrategySushiFarmBase {
     uint256 public sushi_eth_poolId = 12;
     // Token addresses
     address public sushi_eth_sushi_lp = 0x795065dCc9f64b5614C407a6EFDC400DA6221FB0;
-    address public sushi = 0x6B3595068778DD592e39A122f4f5a5cF09C90fE2;
 
     constructor(
         address _governance,
