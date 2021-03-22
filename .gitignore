@@ -108,7 +108,6 @@ solc-input.json
 build
 cache
 artifacts
-hardhat.config.js
 yarn.lock
 hardhat
 package-lock.json
