@@ -6,6 +6,7 @@ import "../../../interfaces/uniswapv2.sol";
 
 import "../../../pickle-jar.sol";
 import "../../../controller-v4.sol";
+import "../../../lib/erc20.sol";
 import "../../lib/test-sushi-base.sol";
 import "../../../strategies/alchemix/strategy-sushi-eth-alcx-lp.sol";
 
@@ -23,7 +24,7 @@ contract StrategySushiEthAlcxLpTest is DSTestSushiBase {
     PickleJar pickleJar;
     ControllerV4 controller;
     IStrategy strategy;
-    
+
     function setUp() public {
         want = 0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8;
         token1 = 0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF;
@@ -68,7 +69,7 @@ contract StrategySushiEthAlcxLpTest is DSTestSushiBase {
         hevm.warp(startTime);
 
         uint256 decimals = ERC20(token1).decimals();
-        _getWant(100 ether, 100 * (10**decimals));
+        _getWant(100 ether, 50 * (10**decimals));
     }
 
     function _getWant(uint256 ethAmount, uint256 amount) internal {

@@ -24,7 +24,9 @@ contract StrategySushiEthAlcxLp is StrategyAlchemixFarmBase {
             _controller,
             _timelock
         )
-    {}
+    {
+        IERC20(alcx).approve(sushiRouter, uint(-1));
+    }
 
     // **** Views ****
 
@@ -82,7 +84,16 @@ contract StrategySushiEthAlcxLp is StrategyAlchemixFarmBase {
                 IERC20(alcx).balanceOf(address(this))
             );
         }
-
+        
         _distributePerformanceFeesAndDeposit();
     }
+
+    function _withdrawSome(uint256 _amount)
+        internal
+        override
+        returns (uint256)
+    {
+        IStakingPools(stakingPool).withdraw(poolId, _amount);
+        return _amount;
+    }    
 }

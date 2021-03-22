@@ -12,6 +12,8 @@ abstract contract StrategyAlchemixFarmBase is StrategyBase {
     // How much Alcx tokens to keep?
     uint256 public keepAlcx = 0;
     uint256 public constant keepAlcxMax = 10000;
+    
+    uint256 public alcxPoolId = 1;
 
     uint256 public poolId;
 
@@ -33,7 +35,6 @@ abstract contract StrategyAlchemixFarmBase is StrategyBase {
         )
     {
         poolId = _poolId;
-        IERC20(alcx).approve(sushiRouter, uint(-1));
     }
     
     function balanceOfPool() public override view returns (uint256) {
@@ -41,7 +42,7 @@ abstract contract StrategyAlchemixFarmBase is StrategyBase {
         return amount;
     }
 
-    function getHarvestable() external view returns (uint256) {
+    function getHarvestable() public view returns (uint256) {
         return IStakingPools(stakingPool).getStakeTotalUnclaimed(address(this), poolId);
     }
 
@@ -54,15 +55,6 @@ abstract contract StrategyAlchemixFarmBase is StrategyBase {
             IERC20(want).safeApprove(stakingPool, _want);
             IStakingPools(stakingPool).deposit(poolId, _want);
         }
-    }
-
-    function _withdrawSome(uint256 _amount)
-        internal
-        override
-        returns (uint256)
-    {
-        IStakingPools(stakingPool).withdraw(poolId, _amount);
-        return _amount;
     }
 
     // **** Setters ****
