@@ -38,6 +38,8 @@ abstract contract StrategySushiFarmBase is StrategyBase {
     {
         poolId = _poolId;
         token1 = _token1;
+        IERC20(sushi).safeApprove(sushiRouter, uint(-1));
+        IERC20(weth).safeApprove(sushiRouter, uint(-1));
     }
     
     function balanceOfPool() public override view returns (uint256) {
@@ -108,9 +110,6 @@ abstract contract StrategySushiFarmBase is StrategyBase {
         _weth = IERC20(weth).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
         if (_weth > 0 && _token1 > 0) {
-            IERC20(weth).safeApprove(sushiRouter, 0);
-            IERC20(weth).safeApprove(sushiRouter, _weth);
-
             IERC20(token1).safeApprove(sushiRouter, 0);
             IERC20(token1).safeApprove(sushiRouter, _token1);
 
