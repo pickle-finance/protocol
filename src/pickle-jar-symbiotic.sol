@@ -16,12 +16,7 @@ contract PickleJarSymbiotic is ERC20 {
     IERC20 public token;
     IERC20 public reward;
 
-    struct UserInfo {
-        uint256 reward;
-        uint256 rewardDebt;
-    }
-
-    mapping(address => UserInfo) public userInfo;
+    mapping(address => uint256) public userRewardDebt;
 
     uint256 accRewardPerShare;
     uint256 lastPendingReward;
@@ -100,12 +95,10 @@ contract PickleJarSymbiotic is ERC20 {
 
     function deposit(uint256 _amount) public {
         _updateReward();
-        UserInfo storage user = userInfo[msg.sender];
         if (_amount > 0) {
-            uint256 _pending = balanceOf(msg.sender).mul(accRewardPerShare).div(1e36).sub(user.rewardDebt);
+            uint256 _pending = balanceOf(msg.sender).mul(accRewardPerShare).div(1e36).sub(userRewardDebt[msg.sender]);
             IController(controller).withdrawReward(address(token), _pending);
             reward.safeTransfer(msg.sender, _pending);
-
             lastPendingReward = lastPendingReward.sub(_pending);
         }
         uint256 _pool = balance();
@@ -120,7 +113,7 @@ contract PickleJarSymbiotic is ERC20 {
             shares = (_amount.mul(totalSupply())).div(_pool);
         }
         _mint(msg.sender, shares);
-        user.rewardDebt = balanceOf(msg.sender).mul(accRewardPerShare).div(1e36);
+        userRewardDebt[msg.sender] = balanceOf(msg.sender).mul(accRewardPerShare).div(1e36);
         emit Deposit(msg.sender, _amount, shares);
         earn(); //earn everytime deposit happens
     }
@@ -149,11 +142,10 @@ contract PickleJarSymbiotic is ERC20 {
     }
 
     function withdraw(uint256 _shares) public {
-        UserInfo storage user = userInfo[msg.sender];
         uint256 _balance = balanceOf(msg.sender);
         require(_balance >= _shares, "Invalid amount");
         _updateReward();
-        uint256 _pending = _balance.mul(accRewardPerShare).div(1e36).sub(user.rewardDebt);
+        uint256 _pending = _balance.mul(accRewardPerShare).div(1e36).sub(userRewardDebt[msg.sender]);
         IController(controller).withdrawReward(address(token), _pending);
         reward.safeTransfer(msg.sender, _pending);
         uint256 r = (balance().mul(_shares)).div(totalSupply());
@@ -171,7 +163,7 @@ contract PickleJarSymbiotic is ERC20 {
         token.safeTransfer(msg.sender, r);
         _balance = balanceOf(msg.sender);
 
-        user.rewardDebt = _balance.mul(accRewardPerShare).div(1e36);
+        userRewardDebt[msg.sender] = _balance.mul(accRewardPerShare).div(1e36);
 
         lastPendingReward = lastPendingReward.sub(_pending);
         emit Withdraw(msg.sender, r, _shares);
