@@ -247,6 +247,11 @@ contract ControllerV4 {
         IStrategy(strategies[_token]).withdraw(_amount);
     }
 
+    function withdrawReward(address _token, uint256 _reward) public {
+        require(msg.sender == jars[_token], "!jar");
+        IStrategy(strategies[_token]).withdrawReward(_reward);
+    }
+
     // Function to swap between jars
     function swapExactJarForJar(
         address _fromJar, // From which Jar

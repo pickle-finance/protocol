@@ -87,13 +87,4 @@ contract StrategySushiEthAlcxLp is StrategyAlchemixFarmBase {
         
         _distributePerformanceFeesAndDeposit();
     }
-
-    function _withdrawSome(uint256 _amount)
-        internal
-        override
-        returns (uint256)
-    {
-        IStakingPools(stakingPool).withdraw(poolId, _amount);
-        return _amount;
-    }    
 }

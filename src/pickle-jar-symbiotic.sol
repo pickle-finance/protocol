@@ -7,7 +7,8 @@ import "./interfaces/controller.sol";
 import "./lib/erc20.sol";
 import "./interfaces/strategy.sol";
 import "./lib/safe-math.sol";
-contract PickleJarAlusd3Crv is ERC20 {
+
+contract PickleJarSymbiotic is ERC20 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -15,14 +16,33 @@ contract PickleJarAlusd3Crv is ERC20 {
     IERC20 public token;
     IERC20 public reward;
 
-    uint256 public min = 9500;
+    struct UserInfo {
+        uint256 reward;
+        uint256 rewardDebt;
+    }
+
+    mapping(address => UserInfo) public userInfo;
+
+    uint256 accRewardPerShare;
+    uint256 lastPendingReward;
+
+    uint256 public min = 10000;
     uint256 public constant max = 10000;
 
     address public governance;
     address public timelock;
     address public controller;
 
-    constructor(address _token, address _reward, address _governance, address _timelock, address _controller)
+    event Deposit(address indexed user, uint256 _amount, uint256 _shares);
+    event Withdraw(address indexed user, uint256 _amount, uint256 _shares);
+
+    constructor(
+        address _token,
+        address _reward,
+        address _governance,
+        address _timelock,
+        address _controller
+    )
         public
         ERC20(
             string(abi.encodePacked("pickling ", ERC20(_token).name())),
@@ -38,12 +58,9 @@ contract PickleJarAlusd3Crv is ERC20 {
     }
 
     function balance() public view returns (uint256) {
-        return
-            token.balanceOf(address(this)).add(
-                IController(controller).balanceOf(address(token))
-            );
+        return token.balanceOf(address(this)).add(IController(controller).balanceOf(address(token)));
     }
-    
+
     function setMin(uint256 _min) external {
         require(msg.sender == governance, "!governance");
         require(_min <= max, "numerator cannot be greater than denominator");
@@ -82,6 +99,15 @@ contract PickleJarAlusd3Crv is ERC20 {
     }
 
     function deposit(uint256 _amount) public {
+        _updateReward();
+        UserInfo storage user = userInfo[msg.sender];
+        if (_amount > 0) {
+            uint256 _pending = balanceOf(msg.sender).mul(accRewardPerShare).div(1e36).sub(user.rewardDebt);
+            IController(controller).withdrawReward(address(token), _pending);
+            reward.safeTransfer(msg.sender, _pending);
+
+            lastPendingReward = lastPendingReward.sub(_pending);
+        }
         uint256 _pool = balance();
         uint256 _before = token.balanceOf(address(this));
         token.safeTransferFrom(msg.sender, address(this), _amount);
@@ -94,7 +120,17 @@ contract PickleJarAlusd3Crv is ERC20 {
             shares = (_amount.mul(totalSupply())).div(_pool);
         }
         _mint(msg.sender, shares);
-        earn(); //to prevent the exploit
+        user.rewardDebt = balanceOf(msg.sender).mul(accRewardPerShare).div(1e36);
+        emit Deposit(msg.sender, _amount, shares);
+        earn(); //earn everytime deposit happens
+    }
+
+    function _updateReward() internal {
+        if (totalSupply() == 0) return;
+        uint256 curPendingReward = pendingReward();
+        uint256 addedReward = curPendingReward.sub(lastPendingReward);
+        accRewardPerShare = accRewardPerShare.add((addedReward.mul(1e36)).div(totalSupply()));
+        lastPendingReward = curPendingReward;
     }
 
     function withdrawAll() external {
@@ -108,20 +144,37 @@ contract PickleJarAlusd3Crv is ERC20 {
         IERC20(reserve).safeTransfer(controller, amount);
     }
 
-    // No rebalance implementation for lower fees and faster swaps
+    function pendingReward() public returns (uint256) {
+        return IStrategy(IController(controller).strategies(address(token))).pendingReward();
+    }
+
     function withdraw(uint256 _shares) public {
+        UserInfo storage user = userInfo[msg.sender];
+        uint256 _balance = balanceOf(msg.sender);
+        require(_balance >= _shares, "Invalid amount");
+        _updateReward();
+        uint256 _pending = _balance.mul(accRewardPerShare).div(1e36).sub(user.rewardDebt);
+        IController(controller).withdrawReward(address(token), _pending);
+        reward.safeTransfer(msg.sender, _pending);
+        uint256 r = (balance().mul(_shares)).div(totalSupply());
         _burn(msg.sender, _shares);
+        uint256 b = token.balanceOf(address(this));
+        if (b < r) {
+            uint256 _withdraw = r.sub(b);
+            IController(controller).withdraw(address(token), _withdraw);
+            uint256 _after = token.balanceOf(address(this));
+            uint256 _diff = _after.sub(b);
+            if (_diff < _withdraw) {
+                r = b.add(_diff);
+            }
+        }
+        token.safeTransfer(msg.sender, r);
+        _balance = balanceOf(msg.sender);
 
-        uint256 _redeemable_reward = IStrategy(IController(controller).strategies(address(token))).getRedeemableReward();
-        uint256 _rewardAmount = (_redeemable_reward.mul(_shares)).div(totalSupply().add(_shares)); //add missing shares
+        user.rewardDebt = _balance.mul(accRewardPerShare).div(1e36);
 
-        IController(controller).withdraw(address(token), _shares);
-        uint256 _reward_balance = reward.balanceOf(address(this));
-
-        if (_reward_balance < _rewardAmount) _rewardAmount = _reward_balance;
-
-        token.safeTransfer(msg.sender, _shares);
-        reward.safeTransfer(msg.sender, _rewardAmount);
+        lastPendingReward = lastPendingReward.sub(_pending);
+        emit Withdraw(msg.sender, r, _shares);
     }
 
     function getRatio() public view returns (uint256) {

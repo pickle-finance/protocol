@@ -19,7 +19,8 @@
     "chai-as-promised": "^7.1.1",
     "dotenv": "^8.2.0",
     "eslint": "^7.10.0",
-    "hardhat": "^2.1.1"
+    "hardhat": "^2.1.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.6"
   },
   "eslintConfig": {
     "extends": "eslint:recommended",

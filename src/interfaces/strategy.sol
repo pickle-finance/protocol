@@ -16,9 +16,11 @@ interface IStrategy {
 
     function withdraw(address) external;
     
-    function getRedeemableReward() external view returns (uint256);
+    function pendingReward() external view returns (uint256);
     
     function withdraw(uint256) external;
+
+    function withdrawReward(uint256) external;
 
     function skim() external;
 
