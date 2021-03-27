@@ -2,12 +2,12 @@ const hre = require("hardhat");
 var chaiAsPromised = require("chai-as-promised");
 const StrategyCurveAlusd3Crv = hre.artifacts.require("StrategyCurveAlusd3Crv");
 const PickleJarSymbiotic = hre.artifacts.require("PickleJarSymbiotic");
-const ControllerV4 = hre.artifacts.require("ControllerV4");
+const ControllerV5 = hre.artifacts.require("ControllerV5");
+const ProxyAdmin = hre.artifacts.require("ProxyAdmin");
+const AdminUpgradeabilityProxy = hre.artifacts.require("AdminUpgradeabilityProxy");
 
 const {assert} = require("chai").use(chaiAsPromised);
 const {time} = require("@openzeppelin/test-helpers");
-
-const ERC20_ABI = require("./abi/ERC20.json");
 
 const unlockAccount = async (address) => {
     await hre.network.provider.send("hardhat_impersonateAccount", [address]);
@@ -19,7 +19,8 @@ const toWei = (ethAmount) => {
 };
 
 describe("StrategyCurveAlusd3Crv Unit test", () => {
-    let strategy, pickleJar, controller;
+    let strategy, pickleJar;
+    let proxyAdmin, controller;
     const want = "0x43b4FdFD4Ff969587185cDB6f0BD875c5Fc83f8c";
     let alusd_3crv, alusd_3crv_whale;
     let deployer, alice, bob;
@@ -38,7 +39,16 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         strategist = governance;
         timelock = governance;
 
-        controller = await ControllerV4.new(governance, strategist, timelock, devfund, treasury);
+        proxyAdmin = await ProxyAdmin.new();
+        console.log("ProxyAdmin address =====> ", proxyAdmin.address);
+        const controllerImplement = await ControllerV5.new();
+        
+        console.log("Controller implementation =====> ", controllerImplement.address);
+        const controllerProxy = await AdminUpgradeabilityProxy.new(controllerImplement.address, proxyAdmin.address, []);
+
+        controller = await hre.ethers.getContractAt("ControllerV5", controllerProxy.address);
+
+        await controller.initialize(governance, strategist, timelock, devfund, treasury);
         console.log("controller is deployed at =====> ", controller.address);
 
         strategy = await StrategyCurveAlusd3Crv.new(governance, strategist, controller.address, timelock);
@@ -56,8 +66,8 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         await strategy.setKeepAlcx("2000", {from: governance});
 
         alusd_3crv_whale = await unlockAccount("0xBAF18722C137E725327F1376329d3c99F26f6A60");
-        alusd_3crv = await hre.ethers.getContractAt(ERC20_ABI, want);
-        alcx = await hre.ethers.getContractAt(ERC20_ABI, alcx_addr);
+        alusd_3crv = await hre.ethers.getContractAt("ERC20", want);
+        alcx = await hre.ethers.getContractAt("ERC20", alcx_addr);
 
         alusd_3crv.connect(alusd_3crv_whale).transfer(alice.address, toWei(2000));
         assert.equal((await alusd_3crv.balanceOf(alice.address)).toString(), toWei(2000).toString());
@@ -103,7 +113,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
 
         assert.equal(_alcx_after.gt(_alcx_before), true);
 
-        console.log("Pending reward after all withdrawal ====> ", (await strategy.pendingReward()).toString());
+        console.log("\nPending reward after all withdrawal ====> ", (await strategy.pendingReward()).toString());
 
         await time.increase(60 * 60 * 24 * 3);
 
@@ -126,7 +136,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         console.log("Bob alcx balance after =====> ", (await alcx.balanceOf(bob.address)).toString());
         assert.equal(_alcx_after.gt(_alcx_before), true);
 
-        console.log("Pending reward after all withdrawal ====> ", (await strategy.pendingReward()).toString());
+        console.log("\nPending reward after all withdrawal ====> ", (await strategy.pendingReward()).toString());
 
         console.log("\n---------------------------John withdraw---------------------------------------\n");
         console.log("Reward balance of strategy ====> ", (await alcx.balanceOf(strategy.address)).toString());
@@ -139,6 +149,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         _alcx_after = await alcx.balanceOf(john.address);
         console.log("John alcx balance after =====> ", (await alcx.balanceOf(john.address)).toString());
         assert.equal(_alcx_after.gt(_alcx_before), true);
+        console.log("\nPending reward after all withdrawal ====> ", (await strategy.pendingReward()).toString());
 
         console.log("\n---------------------------Alice second withdraw---------------------------------------\n");
         _alcx_before = await alcx.balanceOf(alice.address);
@@ -150,7 +161,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         console.log("Alice alcx balance after =====> ", _alcx_after.toString());
 
         assert.equal(_alcx_after.gt(_alcx_before), true);
-        console.log("Pending reward after all withdrawal ====> ", (await strategy.pendingReward()).toString());
+        console.log("\nPending reward after all withdrawal ====> ", (await strategy.pendingReward()).toString());
     });
 
     it("Should withdraw the want correctly", async () => {

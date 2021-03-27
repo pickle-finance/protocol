@@ -57,16 +57,21 @@ contract StrategyCurveAlusd3Crv is StrategyAlchemixFarmBase {
         require(reward_token == alcx, "Reward token is invalid");
         require(_pendingReward >= _amount, "[withdrawReward] Withdraw amount exceed redeemable amount");
 
+        uint256 _alcxHarvestable = getAlcxFarmHarvestable();
+        uint256 _harvestable = getHarvestable();
+
         _balance = IERC20(alcx).balanceOf(address(this));
-        if (_balance < _amount) IStakingPools(stakingPool).claim(alcxPoolId);
+        if (_balance < _amount && _alcxHarvestable > 0) IStakingPools(stakingPool).claim(alcxPoolId);
+        
+        _balance = IERC20(alcx).balanceOf(address(this));
+        if (_balance < _amount && _harvestable > 0) IStakingPools(stakingPool).claim(poolId);
+
         _balance = IERC20(alcx).balanceOf(address(this));
         if (_balance < _amount) {
             uint256 _r = _amount.sub(_balance);
             uint256 _alcxDeposited = getAlcxDeposited();
             IStakingPools(stakingPool).withdraw(alcxPoolId, _alcxDeposited >= _r ? _r : _alcxDeposited);
         }
-        _balance = IERC20(alcx).balanceOf(address(this));
-        if (_balance < _amount) IStakingPools(stakingPool).claim(poolId);
         _balance = IERC20(alcx).balanceOf(address(this));
         require(_balance >= _amount, "[WithdrawReward] Withdraw amount exceed balance"); //double check
         IERC20(reward_token).safeTransfer(_jar, _amount);
