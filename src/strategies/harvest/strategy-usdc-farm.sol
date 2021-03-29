@@ -61,6 +61,8 @@ contract StrategyFarmUsdcV1 is StrategyBase {
             IERC20(want).safeApprove(usdcVault, _want);
             IVault(usdcVault).deposit(_want);
             uint256 _fWant = IVault(usdcVault).balanceOf(address(this));
+            IERC20(want).safeApprove(staking,0);
+            IERC20(want).safeApprove(staking,_fWant);
             INoMintRewardPool(staking).stake(_fWant);
         }
     }
