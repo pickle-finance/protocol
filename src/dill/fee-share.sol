@@ -47,7 +47,9 @@ contract FeeShare is Ownable {
     }
 
     function claim(address owner) external {
-        _claimUntilEpoch(owner, currentEpoch().sub(1));
+        uint256 epoch = currentEpoch();
+        if (epoch > 0) 
+            _claimUntilEpoch(owner, epoch - 1);
     }
 
     // endingEpoch starts from 0
@@ -56,6 +58,9 @@ contract FeeShare is Ownable {
     }
 
     function getClaimable(address owner) external view returns(uint256) {
+        uint256 epoch = currentEpoch();
+        if (epoch == 0) return 0;
+        
         return _getClaimableUntilEpoch(owner, currentEpoch().sub(1));
     }
 

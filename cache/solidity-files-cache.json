@@ -4245,8 +4245,8 @@
       ]
     },
     "/Volumes/Data/Workspaces/Pickle/protocol/src/dill/fee-share.sol": {
-      "lastModificationDate": 1616680299870,
-      "contentHash": "99daf67b70f081b939c3d5bfc88dddad",
+      "lastModificationDate": 1616680349190,
+      "contentHash": "b4297914807a4d028c3fb12ca15b9afb",
       "sourceName": "src/dill/fee-share.sol",
       "solcConfig": {
         "version": "0.6.7",
@@ -4273,8 +4273,7 @@
       "imports": [
         "../lib/erc20.sol",
         "../lib/ownable.sol",
-        "../interfaces/dill.sol",
-        "hardhat/console.sol"
+        "../interfaces/dill.sol"
       ],
       "versionPragmas": [
         "^0.6.7"
