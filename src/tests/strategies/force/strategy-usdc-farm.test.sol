@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
-
 import "../../lib/hevm.sol";
 import "../../lib/user.sol";
 import "../../lib/test-approx.sol";
@@ -13,7 +12,9 @@ import "../../../interfaces/uniswapv2.sol";
 import "../../../pickle-jar.sol";
 import "../../../controller-v4.sol";
 
-import "../../../strategies/force/strategy-usdc-force";
+import '../../../strategies/force/strategy-usdc-force.sol';
+
+
 
 contract StrategyForceUsdcV1Test is StrategyForceFarmBase {
 
@@ -36,7 +37,7 @@ contract StrategyForceUsdcV1Test is StrategyForceFarmBase {
 
         strategy = IStrategy(
             address(
-                new StrategyForceUsdcV1Test(
+                new StrategyForceUsdcV1(
                     governance,
                     strategist,
                     address(controller),

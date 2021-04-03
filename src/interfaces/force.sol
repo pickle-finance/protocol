@@ -11,7 +11,7 @@ interface IVault {
     function controller() external view returns (address);
     function underlying() external view returns (address);
     function strategy() external view returns (address);
-    function balanceOf() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
 
     function setStrategy(address _strategy) external;
     function setVaultFractionToInvest(uint256 numerator, uint256 denominator) external;
@@ -33,5 +33,6 @@ interface IVault {
 interface INoMintRewardPool {
     function getReward() external;
     function stake(uint256 amount) external;
-    function balanceOf() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function withdraw(uint256 amount) external;
 }

@@ -6,7 +6,7 @@ import "../../lib/safe-math.sol";
 
 import "../../interfaces/jar.sol";
 import "../../interfaces/controller.sol";
-import "../../interfaces/force.sol"
+import "../../interfaces/force.sol";
 import "../strategy-base.sol";
 
 contract StrategyForceUsdcV1 is StrategyBase {
@@ -75,7 +75,7 @@ contract StrategyForceUsdcV1 is StrategyBase {
     {
         INoMintRewardPool(staking).withdraw(_amount);
         uint256 _ppfs = IVault(usdcVault).getPricePerFullShare();
-        uint256 _shares = balanceOfPool().div(amount).mul(_ppfs);
+        uint256 _shares = balanceOfPool().div(_amount).mul(_ppfs);
         IVault(usdcVault).withdraw(_shares);
         return _amount;
     }
