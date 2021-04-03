@@ -1,10 +1,6 @@
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../../lib/hevm.sol";
-import "../../lib/user.sol";
-import "../../lib/test-approx.sol";
-import "../../lib/test-strategy-farm-farm-base.sol";
+import "../../lib/test-strategy-sushi-farm-base.sol";
 
 import "../../../interfaces/strategy.sol";
 import "../../../interfaces/curve.sol";
@@ -12,19 +8,18 @@ import "../../../interfaces/uniswapv2.sol";
 
 import "../../../pickle-jar.sol";
 import "../../../controller-v4.sol";
+import "../../../strategies/basket/strategy-basket-bdpi-eth.sol";
 
-import "../../../strategies/harvest/strategy-usdc-farm";
-
-contract StrategyHarvestUsdcV1Test is StrategyFarmFarmBase {
-
+contract StrategyBasketBdpiEthLpTest is StrategySushiFarmTestBase {
     function setUp() public {
+        want = 0x44564d0bd94343f72E3C8a0D22308B7Fa71DB0Bb;
+        token1 = bdpi;
+
         governance = address(this);
         strategist = address(this);
         devfund = address(new User());
         treasury = address(new User());
         timelock = address(this);
-
-        want = usdc;
 
         controller = new ControllerV4(
             governance,
@@ -36,7 +31,7 @@ contract StrategyHarvestUsdcV1Test is StrategyFarmFarmBase {
 
         strategy = IStrategy(
             address(
-                new StrategyHarvestUsdcV1Test(
+                new StrategyBasketBdpiEth(
                     governance,
                     strategist,
                     address(controller),
@@ -56,16 +51,21 @@ contract StrategyHarvestUsdcV1Test is StrategyFarmFarmBase {
         controller.approveStrategy(strategy.want(), address(strategy));
         controller.setStrategy(strategy.want(), address(strategy));
 
+        // Set time
         hevm.warp(startTime);
     }
 
-    // **** Tests **** //
+    // **** Tests ****
 
-    function test_harvest_usdc_v1_withdraw() public {
-        _test_withdraw();
+    function test_bdpieth_1_timelock() public {
+        _test_timelock();
     }
 
-    function test_harvest_usdc_v1_earn_harvest_rewards() public {
-        _test_earn_harvest_rewards();
+    function test_bdpieth_1_withdraw_release() public {
+        _test_withdraw_release();
+    }
+
+    function test_bdpieth_1_get_earn_harvest_rewards() public {
+        _test_get_earn_harvest_rewards();
     }
 }
