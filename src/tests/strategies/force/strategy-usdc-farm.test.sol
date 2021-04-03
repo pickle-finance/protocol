@@ -4,7 +4,7 @@ pragma solidity ^0.6.7;
 import "../../lib/hevm.sol";
 import "../../lib/user.sol";
 import "../../lib/test-approx.sol";
-import "../../lib/test-strategy-farm-farm-base.sol";
+import "../../lib/test-strategy-force-farm-base.sol";
 
 import "../../../interfaces/strategy.sol";
 import "../../../interfaces/curve.sol";
@@ -13,9 +13,9 @@ import "../../../interfaces/uniswapv2.sol";
 import "../../../pickle-jar.sol";
 import "../../../controller-v4.sol";
 
-import "../../../strategies/harvest/strategy-usdc-farm";
+import "../../../strategies/force/strategy-usdc-force";
 
-contract StrategyHarvestUsdcV1Test is StrategyFarmFarmBase {
+contract StrategyForceUsdcV1Test is StrategyForceFarmBase {
 
     function setUp() public {
         governance = address(this);
@@ -36,7 +36,7 @@ contract StrategyHarvestUsdcV1Test is StrategyFarmFarmBase {
 
         strategy = IStrategy(
             address(
-                new StrategyHarvestUsdcV1Test(
+                new StrategyForceUsdcV1Test(
                     governance,
                     strategist,
                     address(controller),

@@ -6,17 +6,17 @@ import "../../lib/safe-math.sol";
 
 import "../../interfaces/jar.sol";
 import "../../interfaces/controller.sol";
-
+import "../../interfaces/force.sol"
 import "../strategy-base.sol";
 
-contract StrategyFarmUsdcV1 is StrategyBase {
+contract StrategyForceUsdcV1 is StrategyBase {
     address
-        public constant usdcVault = 0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE;
+        public constant usdcVault = 0x51654a8c04e97424724E1643d468b51924f6C40F;
     address
-        public constant staking = 0x4F7c28cCb0F1Dbd1388209C67eEc234273C878Bd;
+        public constant staking = 0x45E60E1bee16Df15f2b87F15F2Acba6F3869462c;
 
     address 
-        public constant farm = 0xa0246c9032bC3A600820415aE600c6388619A14D;
+        public constant force = 0x6807D7f7dF53b7739f6438EABd40Ab8c262c0aa8;
 
     address
         public constant usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
@@ -39,17 +39,17 @@ contract StrategyFarmUsdcV1 is StrategyBase {
     }
 
     function getName() external override pure returns (string memory) {
-        return "StrategyHarvestUsdcV1";
+        return "StrategyForceUsdcV1";
     }
 
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
         INoMintRewardPool(staking).getReward();
-        // FARM -> Want(usdc)
-        uint256 _farm = IERC20(farm).balanceOf(address(this));
-        if (_farm > 0) {
-            _swapUniswap(farm, want, _farm);
+        // force -> Want(usdc)
+        uint256 _force = IERC20(force).balanceOf(address(this));
+        if (_force > 0) {
+            _swapUniswap(force, want, _force);
         }
         _distributePerformanceFeesAndDeposit();
     }
