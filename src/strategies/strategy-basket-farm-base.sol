@@ -2,7 +2,7 @@
 pragma solidity ^0.6.7;
 
 import "./strategy-base.sol";
-import "../interfaces/basket-chef.sol"
+import "../interfaces/basket-chef.sol";
 
 abstract contract StrategyBasketFarmBase is StrategyBase {
     // Token addresses
@@ -38,6 +38,8 @@ abstract contract StrategyBasketFarmBase is StrategyBase {
     {
         poolId = _poolId;
         token1 = _token1;
+        IERC20(basket).safeApprove(sushiRouter, uint(-1));
+        IERC20(weth).safeApprove(sushiRouter, uint(-1));
     }
     
     function balanceOfPool() public override view returns (uint256) {
@@ -87,15 +89,15 @@ abstract contract StrategyBasketFarmBase is StrategyBase {
 
         // Collects SUSHI tokens
         IBasketChef(masterChef).deposit(poolId, 0);
-        uint256 _bask = IERC20(bask).balanceOf(address(this));
+        uint256 _bask = IERC20(basket).balanceOf(address(this));
         if (_bask > 0) {
             // 10% is locked up for future gov
             uint256 _keepBASK = _bask.mul(keepBASK).div(keepBASKMax);
-            IERC20(bask).safeTransfer(
+            IERC20(basket).safeTransfer(
                 IController(controller).treasury(),
                 _keepBASK
             );
-            _swapSushiswap(bask, weth, _bask.sub(_keepBASK));
+            _swapSushiswap(basket, weth, _bask.sub(_keepBASK));
         }
 
         // Swap half WETH for other asset
@@ -108,8 +110,6 @@ abstract contract StrategyBasketFarmBase is StrategyBase {
         _weth = IERC20(weth).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
         if (_weth > 0 && _token1 > 0) {
-            IERC20(weth).safeApprove(sushiRouter, 0);
-            IERC20(weth).safeApprove(sushiRouter, _weth);
 
             IERC20(token1).safeApprove(sushiRouter, 0);
             IERC20(token1).safeApprove(sushiRouter, _token1);

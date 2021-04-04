@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-basket-farm-base.sol";
 
-contract StrategyBaskBdpiEth is StrategyBasketFarmBase {
+contract StrategyBasketBdpiEth is StrategyBasketFarmBase {
     // Token/ETH pool id in MasterChef contract
     uint256 public bdpi_eth_poolId = 3;
     // Token addresses
