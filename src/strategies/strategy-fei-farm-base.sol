@@ -62,16 +62,18 @@ abstract contract StrategyFeiFarmBase is StrategyStakingRewardsBase {
         IStakingRewards(rewards).getReward();
         uint256 _tribe = IERC20(tribe).balanceOf(address(this));
         
-        // 10% is locked up for future gov
-        uint256 _keepTRIBE = _tribe.mul(keepTRIBE).div(keepTRIBEMax);
-        IERC20(tribe).safeTransfer(
-            IController(controller).treasury(),
-            _keepTRIBE
-        );
-        _tribe = _tribe.sub(_keepTRIBE);
+        if(_tribe > 0) {
+            // 10% is locked up for future gov
+            uint256 _keepTRIBE = _tribe.mul(keepTRIBE).div(keepTRIBEMax);
+            IERC20(tribe).safeTransfer(
+                IController(controller).treasury(),
+                _keepTRIBE
+            );
+            _tribe = _tribe.sub(_keepTRIBE);
 
-        _swapUniswapWithPath(tribe_fei_path, _tribe.div(2));
-        
+            _swapUniswapWithPath(tribe_fei_path, _tribe.div(2));
+        }
+
         // Adds in liquidity for FEI/TRIBE
         uint256 _fei = IERC20(fei).balanceOf(address(this));
         _tribe = IERC20(tribe).balanceOf(address(this));
@@ -79,7 +81,7 @@ abstract contract StrategyFeiFarmBase is StrategyStakingRewardsBase {
             UniswapRouterV2(univ2Router2).addLiquidity(
                 fei,
                 tribe,
-                _tribe,
+                _fei,
                 _tribe,
                 0,
                 0,
