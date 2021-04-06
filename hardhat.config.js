@@ -1,4 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-vyper");
+require("hardhat-deploy");
+require("dotenv").config({});
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -14,6 +17,17 @@ module.exports = {
       },
       chainId: 1337,
       timeout: 100000000,
+      accounts: [
+        {
+          privateKey: process.env.DEPLOYER_PRIVATE_KEY,
+          balance: "100000000000000000000",
+        },
+      ],
+    },
+    mainnet: {
+      url:
+        "https://eth-mainnet.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
     },
     localhost: {
       chainId: 1337,
@@ -26,5 +40,13 @@ module.exports = {
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts",
+  },
+  namedAccounts: {
+    deployer: {
+      default: 0,
+    },
+  },
+  vyper: {
+    version: "0.2.7",
   },
 };
