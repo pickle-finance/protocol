@@ -100,13 +100,13 @@ abstract contract StrategySushiFarmBase is StrategyBase {
             _swapSushiswap(sushi, weth, _sushi.sub(_keepSUSHI));
         }
 
-        // Swap half WETH for DAI
+        // Swap half WETH for token1
         uint256 _weth = IERC20(weth).balanceOf(address(this));
         if (_weth > 0) {
             _swapSushiswap(weth, token1, _weth.div(2));
         }
 
-        // Adds in liquidity for ETH/DAI
+        // Adds in liquidity for ETH/token1
         _weth = IERC20(weth).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
         if (_weth > 0 && _token1 > 0) {
