@@ -5108,140 +5108,6 @@
         "PickleSwapTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/dill/fee-share.sol": {
-      "lastModificationDate": 1617382505800,
-      "contentHash": "b8b4bda050270da1cc796d2194f3910d",
-      "sourceName": "src/dill/fee-share.sol",
-      "solcConfig": {
-        "version": "0.6.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../lib/erc20.sol",
-        "../lib/ownable.sol",
-        "../interfaces/dill.sol"
-      ],
-      "versionPragmas": [
-        "^0.6.7"
-      ],
-      "artifacts": [
-        "FeeShare"
-      ]
-    },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/dill.sol": {
-      "lastModificationDate": 1616091182610,
-      "contentHash": "dea59331f2db00f64e607e12b810451e",
-      "sourceName": "src/interfaces/dill.sol",
-      "solcConfig": {
-        "version": "0.6.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.6.7"
-      ],
-      "artifacts": [
-        "IDill"
-      ]
-    },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/dill/dill-lock.test.sol": {
-      "lastModificationDate": 1616091182650,
-      "contentHash": "5b6ed5a3bbf47803bd8ab55f16f8662e",
-      "sourceName": "src/tests/dill/dill-lock.test.sol",
-      "solcConfig": {
-        "version": "0.6.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../lib/test-defi-base.sol",
-        "../../lib/safe-math.sol",
-        "../../interfaces/dill.sol"
-      ],
-      "versionPragmas": [
-        "^0.6.7"
-      ],
-      "artifacts": [
-        "DillLockTest"
-      ]
-    },
     "/Volumes/Data/Workspaces/Pickle/protocol/src/governance/timelock.sol": {
       "lastModificationDate": 1608665024330,
       "contentHash": "4f392b4cf6ef1422af40f8b5c8cc9162",
@@ -5287,8 +5153,8 @@
       ]
     },
     "/Volumes/Data/Workspaces/Pickle/protocol/src/dill/gauge-proxy.sol": {
-      "lastModificationDate": 1617306362470,
-      "contentHash": "a230c11355dcd035b6e6a99f2beb5ac5",
+      "lastModificationDate": 1617987568370,
+      "contentHash": "08253f48fb139df158e863539d13437c",
       "sourceName": "src/dill/gauge-proxy.sol",
       "solcConfig": {
         "version": "0.6.7",
@@ -5542,6 +5408,140 @@
       ],
       "artifacts": [
         "console"
+      ]
+    },
+    "/Volumes/Data/Workspaces/Pickle/protocol/src/dill/fee-share.sol": {
+      "lastModificationDate": 1617987080190,
+      "contentHash": "b8b4bda050270da1cc796d2194f3910d",
+      "sourceName": "src/dill/fee-share.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../lib/erc20.sol",
+        "../lib/ownable.sol",
+        "../interfaces/dill.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "FeeShare"
+      ]
+    },
+    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/dill.sol": {
+      "lastModificationDate": 1617987080230,
+      "contentHash": "dea59331f2db00f64e607e12b810451e",
+      "sourceName": "src/interfaces/dill.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "IDill"
+      ]
+    },
+    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/dill/dill-lock.test.sol": {
+      "lastModificationDate": 1617987080290,
+      "contentHash": "5b6ed5a3bbf47803bd8ab55f16f8662e",
+      "sourceName": "src/tests/dill/dill-lock.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../lib/test-defi-base.sol",
+        "../../lib/safe-math.sol",
+        "../../interfaces/dill.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "DillLockTest"
       ]
     }
   }

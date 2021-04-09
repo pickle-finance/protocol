@@ -3,6 +3,8 @@ require("@nomiclabs/hardhat-vyper");
 require("hardhat-deploy");
 require("dotenv").config({});
 
+const deployer = process.env.DEPLOYER_PRIVATE_KEY;
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
@@ -27,7 +29,7 @@ module.exports = {
     mainnet: {
       url:
         "https://eth-mainnet.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
+      accounts: [deployer],
     },
     localhost: {
       chainId: 1337,
