@@ -2,6 +2,7 @@
 
 pragma solidity ^0.6.7;
 pragma experimental ABIEncoderV2;
+import "./lib/Initializable.sol";
 
 import "./lib/erc20.sol";
 import "./lib/safe-math.sol";
@@ -12,7 +13,7 @@ import "./interfaces/onesplit.sol";
 import "./interfaces/strategy.sol";
 import "./interfaces/converter.sol";
 
-contract ControllerV4 {
+contract ControllerV5 is Initializable {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -39,13 +40,13 @@ contract ControllerV4 {
     uint256 public split = 500;
     uint256 public constant max = 10000;
 
-    constructor(
+    function initialize(
         address _governance,
         address _strategist,
         address _timelock,
         address _devfund,
         address _treasury
-    ) public {
+    ) public initializer {
         governance = _governance;
         strategist = _strategist;
         timelock = _timelock;
@@ -243,6 +244,11 @@ contract ControllerV4 {
     function withdraw(address _token, uint256 _amount) public {
         require(msg.sender == jars[_token], "!jar");
         IStrategy(strategies[_token]).withdraw(_amount);
+    }
+
+    function withdrawReward(address _token, uint256 _reward) public {
+        require(msg.sender == jars[_token], "!jar");
+        IStrategy(strategies[_token]).withdrawReward(_reward);
     }
 
     // Function to swap between jars
