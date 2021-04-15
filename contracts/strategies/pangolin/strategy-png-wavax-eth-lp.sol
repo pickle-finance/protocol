@@ -5,14 +5,9 @@ import "../strategy-png-farm-base.sol";
 
 contract StrategyPngAvaxEthLp is StrategyPngFarmBase {
     // Token addresses
-    address public png_avax_eth_lp_rewards = 0x417C02150b9a31BcaCb201d1D60967653384E1C6; // checksumed!
+    address public png_avax_eth_lp_rewards = 0x417C02150b9a31BcaCb201d1D60967653384E1C6;
     address public png_avax_eth_lp = 0x1aCf1583bEBdCA21C8025E172D8E8f2817343d65;
     address public eth = 0xf20d962a6c8f70c731bd838a3a388D7d48fA6e15;
-
-    // Fuji addresses
-    // address public png_avax_eth_lp_rewards = 0x417c02150b9a31bcacb201d1d60967653384e1c6; // verify
-    // address public png_avax_eth_lp = 0x1aCf1583bEBdCA21C8025E172D8E8f2817343d65;
-    // address public eth = 0xf20d962a6c8f70c731bd838a3a388D7d48fA6e15;
 
     constructor(
         address _governance,
