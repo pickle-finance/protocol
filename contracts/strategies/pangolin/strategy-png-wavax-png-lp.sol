@@ -6,8 +6,14 @@ import "../strategy-png-farm-base.sol";
 
 contract StrategyPngAvaxPngLp is StrategyPngFarmBase {
     // Token addresses
-    address public png_avax_png_rewards = 0x8FD2755c6ae7252753361991bDcd6fF55bDc01CE;
+    address public png_avax_png_rewards = 0x574d3245e36Cf8C9dc86430EaDb0fDB2F385F829; // checksum'd
     address public png_avax_png_lp = 0xd7538cABBf8605BdE1f4901B47B8D42c61DE0367;
+    address public png = 0x0000;
+
+    // Fuji addresses
+    // address public png_avax_png_rewards = 0x8FD2755c6ae7252753361991bDcd6fF55bDc01CE;
+    // address public png_avax_png_lp = 0xd7538cABBf8605BdE1f4901B47B8D42c61DE0367;
+    // address public png = 0x0000;
    
     constructor(
         address _governance,
