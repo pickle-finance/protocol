@@ -1,4 +1,5 @@
 // https://github.com/iearn-finance/vaults/blob/master/contracts/vaults/yVault.sol
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.7;
 

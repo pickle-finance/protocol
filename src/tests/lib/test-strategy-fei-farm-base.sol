@@ -12,11 +12,11 @@ import "../../interfaces/uniswapv2.sol";
 import "../../pickle-jar.sol";
 import "../../controller-v4.sol";
 
-contract StrategyMirrorFarmTestBase is DSTestDefiBase {
+contract StrategyFeiFarmTestBase is DSTestDefiBase {
     address want;
-    address token1;
 
-    address ust = 0xa47c8bf37f92aBed4A126BDA807A7b7498661acD;
+    address fei = 0x956F47F50A910163D8BF957Cf5846D573E7f87CA;
+    address tribe = 0xc7283b66Eb1EB5FB86327f08e1B5816b0720212B;
 
     address governance;
     address strategist;
@@ -29,35 +29,33 @@ contract StrategyMirrorFarmTestBase is DSTestDefiBase {
     ControllerV4 controller;
     IStrategy strategy;
 
-    function _getWant(uint256 ustAmount, uint256 amount) internal {
-        address[] memory ustPath = new address[](3);
-        ustPath[0] = weth;
-        ustPath[1] = usdt;
-        ustPath[2] = ust;
+    function _getWant(uint256 feiAmount, uint256 tribeAmount) internal {
+        address[] memory feiPath = new address[](2);
+        feiPath[0] = weth;
+        feiPath[1] = fei;
 
-        address[] memory token1Path = new address[](4);
-        token1Path[0] = weth;
-        token1Path[1] = usdt;
-        token1Path[2] = ust;
-        token1Path[3] = token1;
+        address[] memory tribePath = new address[](3);
+        tribePath[0] = weth;
+        tribePath[1] = fei;
+        tribePath[2] = tribe;
 
-        _getERC20WithPath(ust, ustAmount, ustPath);
-        _getERC20WithPath(token1, amount, token1Path);
+        _getERC20WithPath(fei, feiAmount, feiPath);
+        _getERC20WithPath(tribe, tribeAmount, tribePath);
 
-        uint256 _ust = IERC20(ust).balanceOf(address(this));
-        uint256 _token1 = IERC20(token1).balanceOf(address(this));
+        uint256 _fei = IERC20(fei).balanceOf(address(this));
+        uint256 _tribe = IERC20(tribe).balanceOf(address(this));
 
-        IERC20(ust).safeApprove(address(univ2), 0);
-        IERC20(ust).safeApprove(address(univ2), _ust);
+        IERC20(fei).safeApprove(address(univ2), 0);
+        IERC20(fei).safeApprove(address(univ2), _fei);
 
-        IERC20(token1).safeApprove(address(univ2), 0);
-        IERC20(token1).safeApprove(address(univ2), _token1);
+        IERC20(tribe).safeApprove(address(univ2), 0);
+        IERC20(tribe).safeApprove(address(univ2), _tribe);
 
         univ2.addLiquidity(
-            ust,
-            token1,
-            _ust,
-            _token1,
+            fei,
+            tribe,
+            _fei,
+            _tribe,
             0,
             0,
             address(this),
@@ -74,7 +72,7 @@ contract StrategyMirrorFarmTestBase is DSTestDefiBase {
     }
 
     function _test_withdraw_release() internal {
-        uint256 decimals = ERC20(token1).decimals();
+        uint256 decimals = ERC20(tribe).decimals();
         _getWant(10 ether, 4000 * (10**decimals));
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).safeApprove(address(pickleJar), 0);
@@ -99,7 +97,7 @@ contract StrategyMirrorFarmTestBase is DSTestDefiBase {
     }
 
     function _test_get_earn_harvest_rewards() internal {
-        uint256 decimals = ERC20(token1).decimals();
+        uint256 decimals = ERC20(tribe).decimals();
         _getWant(10 ether, 4000 * (10**decimals));
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).safeApprove(address(pickleJar), 0);
