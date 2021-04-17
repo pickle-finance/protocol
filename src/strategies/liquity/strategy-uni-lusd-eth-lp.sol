@@ -30,6 +30,6 @@ contract StrategyLusdEthLp is StrategyLiquityFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyUniEthDaiLpV4";
+        return "StrategyLusdEthLp";
     }
 }
