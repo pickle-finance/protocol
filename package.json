@@ -10,7 +10,20 @@
     "flatten": "npx sol-merger \"./src/**/*.sol\" ./build"
   },
   "devDependencies": {
-    "eslint": "^7.10.0"
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-etherscan": "^2.1.1",
+    "@nomiclabs/hardhat-truffle5": "^2.0.0",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
+    "@openzeppelin/contracts": "^3.4.1",
+    "@openzeppelin/contracts-upgradeable": "^3.4.1",
+    "@openzeppelin/test-helpers": "^0.5.10",
+    "chai": "^4.3.4",
+    "chai-as-promised": "^7.1.1",
+    "dotenv": "^8.2.0",
+    "eslint": "^7.10.0",
+    "hardhat": "^2.1.1",
+    "hardhat-deploy": "^0.7.0",
+    "prettier-plugin-solidity": "^1.0.0-beta.6"
   },
   "eslintConfig": {
     "extends": "eslint:recommended",
