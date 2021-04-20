@@ -95,16 +95,22 @@ abstract contract StrategyBase {
 
     // **** Setters **** //
 
-    function whitelistHarvester(address _harvester) external {
+    function whitelistHarvesters(address[] calldata _harvesters) external {
         require(msg.sender == governance ||
-             msg.sender == strategist, "not authorized");
-        harvesters[_harvester] = true;
+             msg.sender == strategist || harvesters[msg.sender], "not authorized");
+             
+        for (uint i = 0; i < _harvesters.length; i ++) {
+            harvesters[_harvesters[i]] = true;
+        }
     }
 
-    function revokeHarvester(address _harvester) external {
+    function revokeHarvesters(address[] calldata _harvesters) external {
         require(msg.sender == governance ||
              msg.sender == strategist, "not authorized");
-        harvesters[_harvester] = false;
+
+        for (uint i = 0; i < _harvesters.length; i ++) {
+            harvesters[_harvesters[i]] = false;
+        }
     }
 
     function setWithdrawalDevFundFee(uint256 _withdrawalDevFundFee) external {
@@ -269,10 +275,6 @@ abstract contract StrategyBase {
     ) internal {
         require(_to != address(0));
 
-        // Swap with uniswap
-        IERC20(_from).safeApprove(univ2Router2, 0);
-        IERC20(_from).safeApprove(univ2Router2, _amount);
-
         address[] memory path;
 
         if (_from == weth || _to == weth) {
@@ -301,10 +303,6 @@ abstract contract StrategyBase {
     ) internal {
         require(path[1] != address(0));
 
-        // Swap with uniswap
-        IERC20(path[0]).safeApprove(univ2Router2, 0);
-        IERC20(path[0]).safeApprove(univ2Router2, _amount);
-
         UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
             _amount,
             0,
@@ -320,10 +318,6 @@ abstract contract StrategyBase {
         uint256 _amount
     ) internal {
         require(_to != address(0));
-
-        // Swap with uniswap
-        IERC20(_from).safeApprove(sushiRouter, 0);
-        IERC20(_from).safeApprove(sushiRouter, _amount);
 
         address[] memory path;
 
@@ -352,10 +346,6 @@ abstract contract StrategyBase {
         uint256 _amount
     ) internal {
         require(path[1] != address(0));
-
-        // Swap with uniswap
-        IERC20(path[0]).safeApprove(sushiRouter, 0);
-        IERC20(path[0]).safeApprove(sushiRouter, _amount);
 
         UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
             _amount,

@@ -1,6 +1,5 @@
-require("@nomiclabs/hardhat-waffle");
-require("@nomiclabs/hardhat-vyper");
 require("hardhat-deploy");
+require("@nomiclabs/hardhat-etherscan");
 require("dotenv").config({});
 
 const deployer = process.env.DEPLOYER_PRIVATE_KEY;
@@ -36,6 +35,9 @@ module.exports = {
       url: "http://127.0.0.1:8545",
       timeout: 100000000,
     },
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_APIKEY,
   },
   paths: {
     sources: "./src",

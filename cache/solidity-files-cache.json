@@ -1,8 +1,8 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/controller-v4.sol": {
-      "lastModificationDate": 1611161800530,
+    "/home/josh/dev/protocol/src/controller-v4.sol": {
+      "lastModificationDate": 1617730499092,
       "contentHash": "7b4dc09d631437754f129ccd6da245bd",
       "sourceName": "src/controller-v4.sol",
       "solcConfig": {
@@ -52,8 +52,8 @@
         "ControllerV4"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/controller.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/interfaces/controller.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "8bacc1734e9b73d19a2cca60865c4d96",
       "sourceName": "src/interfaces/controller.sol",
       "solcConfig": {
@@ -94,8 +94,8 @@
         "IController"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/lib/erc20.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/lib/erc20.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "fa33756a7bb3c51a40a9fbc54774c491",
       "sourceName": "src/lib/erc20.sol",
       "solcConfig": {
@@ -142,8 +142,8 @@
         "SafeERC20"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/lib/safe-math.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/lib/safe-math.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "a2f6b9e3119c423a4907d59f606a7389",
       "sourceName": "src/lib/safe-math.sol",
       "solcConfig": {
@@ -184,8 +184,8 @@
         "SafeMath"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/jar.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/interfaces/jar.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "2945ac6d24b80c16ae5ff364619872ff",
       "sourceName": "src/interfaces/jar.sol",
       "solcConfig": {
@@ -228,8 +228,8 @@
         "IJar"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/jar-converter.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/interfaces/jar-converter.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "54a4143c9ece82884cc042902e045f11",
       "sourceName": "src/interfaces/jar-converter.sol",
       "solcConfig": {
@@ -270,8 +270,8 @@
         "IJarConverter"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/onesplit.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/interfaces/onesplit.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "246cb4c113dd632c324152e039b42709",
       "sourceName": "src/interfaces/onesplit.sol",
       "solcConfig": {
@@ -312,8 +312,8 @@
         "OneSplitAudit"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/strategy.sol": {
-      "lastModificationDate": 1615981422820,
+    "/home/josh/dev/protocol/src/interfaces/strategy.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "20e4e5518f098d7de9462f03a74651ab",
       "sourceName": "src/interfaces/strategy.sol",
       "solcConfig": {
@@ -354,8 +354,8 @@
         "IStrategy"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/converter.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/interfaces/converter.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "a949608e0e55c19c9eab5eef6df96668",
       "sourceName": "src/interfaces/converter.sol",
       "solcConfig": {
@@ -396,8 +396,8 @@
         "Converter"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/lib/context.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/lib/context.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "af1b36323856d0d1550abc7f878a8208",
       "sourceName": "src/lib/context.sol",
       "solcConfig": {
@@ -438,8 +438,8 @@
         "Context"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/uniswapv2/strategy-uni-eth-wbtc-lp-v2.test-inactive.sol": {
-      "lastModificationDate": 1608665024530,
+    "/home/josh/dev/protocol/src/tests/strategies/uniswapv2/strategy-uni-eth-wbtc-lp-v2.test-inactive.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "39f756c12805f5908bb8071976ebdc89",
       "sourceName": "src/tests/strategies/uniswapv2/strategy-uni-eth-wbtc-lp-v2.test-inactive.sol",
       "solcConfig": {
@@ -488,8 +488,8 @@
         "StrategyUniEthWBtcLpV2Test"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/lib/test-strategy-uni-farm-base.sol": {
-      "lastModificationDate": 1608665024370,
+    "/home/josh/dev/protocol/src/tests/lib/test-strategy-uni-farm-base.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "baf30effd174c56f1cadca62aec8412e",
       "sourceName": "src/tests/lib/test-strategy-uni-farm-base.sol",
       "solcConfig": {
@@ -540,8 +540,8 @@
         "StrategyUniFarmTestBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/curve.sol": {
-      "lastModificationDate": 1612360115020,
+    "/home/josh/dev/protocol/src/interfaces/curve.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "90a33c18c2dd960f60c4ec89d5e8e38e",
       "sourceName": "src/interfaces/curve.sol",
       "solcConfig": {
@@ -590,8 +590,8 @@
         "ICurveZap_4"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/uniswapv2.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/interfaces/uniswapv2.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "7ae20f7cd30137b8519b371b16f28e47",
       "sourceName": "src/interfaces/uniswapv2.sol",
       "solcConfig": {
@@ -634,9 +634,9 @@
         "UniswapRouterV2"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/pickle-jar.sol": {
-      "lastModificationDate": 1608665024340,
-      "contentHash": "7a384fe7e4f09a39c14f2e7e5f787968",
+    "/home/josh/dev/protocol/src/pickle-jar.sol": {
+      "lastModificationDate": 1618940597621,
+      "contentHash": "914105367c2680206d8d0f31a295b173",
       "sourceName": "src/pickle-jar.sol",
       "solcConfig": {
         "version": "0.6.7",
@@ -680,8 +680,8 @@
         "PickleJar"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/uniswapv2/strategy-uni-eth-wbtc-lp-v2.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/uniswapv2/strategy-uni-eth-wbtc-lp-v2.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "9f33f1c1f4e4b4a8572354f063695cb1",
       "sourceName": "src/strategies/uniswapv2/strategy-uni-eth-wbtc-lp-v2.sol",
       "solcConfig": {
@@ -724,8 +724,8 @@
         "StrategyUniEthWBtcLpV2"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/lib/hevm.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/tests/lib/hevm.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "a456398f7a2bef0ff5050bdbff95c3bf",
       "sourceName": "src/tests/lib/hevm.sol",
       "solcConfig": {
@@ -766,8 +766,8 @@
         "Hevm"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/lib/user.sol": {
-      "lastModificationDate": 1608665024420,
+    "/home/josh/dev/protocol/src/tests/lib/user.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "8ba8aea2d26bb7628b26d6d4b7e15b08",
       "sourceName": "src/tests/lib/user.sol",
       "solcConfig": {
@@ -808,8 +808,8 @@
         "User"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/lib/test-approx.sol": {
-      "lastModificationDate": 1608665024360,
+    "/home/josh/dev/protocol/src/tests/lib/test-approx.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "10516314713d92aa6ff3093c2cfc9800",
       "sourceName": "src/tests/lib/test-approx.sol",
       "solcConfig": {
@@ -852,9 +852,9 @@
         "DSTestApprox"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/lib/test-defi-base.sol": {
-      "lastModificationDate": 1611171425370,
-      "contentHash": "4b239636989adb83a43a6455c2a7ca7a",
+    "/home/josh/dev/protocol/src/tests/lib/test-defi-base.sol": {
+      "lastModificationDate": 1618940597629,
+      "contentHash": "6ff40bb6ec73ab927fdbf385993bb6eb",
       "sourceName": "src/tests/lib/test-defi-base.sol",
       "solcConfig": {
         "version": "0.6.7",
@@ -905,8 +905,8 @@
         "DSTestDefiBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/lib/test.sol": {
-      "lastModificationDate": 1608665024420,
+    "/home/josh/dev/protocol/src/tests/lib/test.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "87494d51e652b7c61b94882a5cbdfa91",
       "sourceName": "src/tests/lib/test.sol",
       "solcConfig": {
@@ -947,8 +947,8 @@
         "DSTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/usdt.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/interfaces/usdt.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "eb8b7eb361ba92715b524cd47309df1f",
       "sourceName": "src/interfaces/usdt.sol",
       "solcConfig": {
@@ -989,8 +989,8 @@
         "USDT"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/weth.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/interfaces/weth.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "cd14d09fe8a542fced0749795b187831",
       "sourceName": "src/interfaces/weth.sol",
       "solcConfig": {
@@ -1031,8 +1031,8 @@
         "WETH"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/strategy-uni-farm-base.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/strategy-uni-farm-base.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "2c1a047a9948f032e62641583ec99c67",
       "sourceName": "src/strategies/strategy-uni-farm-base.sol",
       "solcConfig": {
@@ -1075,8 +1075,8 @@
         "StrategyUniFarmBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/strategy-staking-rewards-base.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/strategy-staking-rewards-base.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "a8e6d942986240fc2581c94089e8a08f",
       "sourceName": "src/strategies/strategy-staking-rewards-base.sol",
       "solcConfig": {
@@ -1119,9 +1119,9 @@
         "StrategyStakingRewardsBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/strategy-base.sol": {
-      "lastModificationDate": 1616091182620,
-      "contentHash": "0e752442707490444550cad5657fc1af",
+    "/home/josh/dev/protocol/src/strategies/strategy-base.sol": {
+      "lastModificationDate": 1618940597625,
+      "contentHash": "305c454e5b08d2b6cabd1c1084584a7d",
       "sourceName": "src/strategies/strategy-base.sol",
       "solcConfig": {
         "version": "0.6.7",
@@ -1169,9 +1169,9 @@
         "StrategyBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/staking-rewards.sol": {
-      "lastModificationDate": 1614265371810,
-      "contentHash": "f5165bfccf0af788ddf0c3cdacd47343",
+    "/home/josh/dev/protocol/src/interfaces/staking-rewards.sol": {
+      "lastModificationDate": 1618940597617,
+      "contentHash": "b95edec742065dd63f5c326440ee56e3",
       "sourceName": "src/interfaces/staking-rewards.sol",
       "solcConfig": {
         "version": "0.6.7",
@@ -1212,8 +1212,8 @@
         "IStakingRewardsFactory"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/masterchef.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/interfaces/masterchef.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "df2314af1e2f004b940ab5aa96461e3b",
       "sourceName": "src/interfaces/masterchef.sol",
       "solcConfig": {
@@ -1254,8 +1254,8 @@
         "IMasterchef"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/jar-converters/uni-uni.test.sol": {
-      "lastModificationDate": 1611165825840,
+    "/home/josh/dev/protocol/src/tests/jar-converters/uni-uni.test.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "143b68d41f98e8c435b63183b2e110bc",
       "sourceName": "src/tests/jar-converters/uni-uni.test.sol",
       "solcConfig": {
@@ -1312,8 +1312,8 @@
         "StrategyUniUniJarSwapTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/proxy-logic/curve.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/proxy-logic/curve.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "f9854b40f61770c24642a8fbc28fa42f",
       "sourceName": "src/proxy-logic/curve.sol",
       "solcConfig": {
@@ -1359,8 +1359,8 @@
         "CurveProxyLogic"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/proxy-logic/uniswapv2.sol": {
-      "lastModificationDate": 1611165842990,
+    "/home/josh/dev/protocol/src/proxy-logic/uniswapv2.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "3e0d2b1056a313c170407dd70a0b7d7a",
       "sourceName": "src/proxy-logic/uniswapv2.sol",
       "solcConfig": {
@@ -1406,8 +1406,8 @@
         "UniswapV2ProxyLogic"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/uniswapv2/strategy-uni-eth-dai-lp-v4.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/uniswapv2/strategy-uni-eth-dai-lp-v4.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "6b8536f61c73dd6701f3791196632474",
       "sourceName": "src/strategies/uniswapv2/strategy-uni-eth-dai-lp-v4.sol",
       "solcConfig": {
@@ -1450,8 +1450,8 @@
         "StrategyUniEthDaiLpV4"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/uniswapv2/strategy-uni-eth-usdt-lp-v4.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/uniswapv2/strategy-uni-eth-usdt-lp-v4.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "03525d1af9dfa7682aacadf2f29337df",
       "sourceName": "src/strategies/uniswapv2/strategy-uni-eth-usdt-lp-v4.sol",
       "solcConfig": {
@@ -1494,8 +1494,8 @@
         "StrategyUniEthUsdtLpV4"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/uniswapv2/strategy-uni-eth-usdc-lp-v4.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/uniswapv2/strategy-uni-eth-usdc-lp-v4.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "3dcb97706d7dc3d0a50fb71d79a98b59",
       "sourceName": "src/strategies/uniswapv2/strategy-uni-eth-usdc-lp-v4.sol",
       "solcConfig": {
@@ -1538,8 +1538,8 @@
         "StrategyUniEthUsdcLpV4"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/uniswapv2/strategy-uni-eth-usdc-lp-v4.test-inactive.sol": {
-      "lastModificationDate": 1608665024520,
+    "/home/josh/dev/protocol/src/tests/strategies/uniswapv2/strategy-uni-eth-usdc-lp-v4.test-inactive.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "04877b2421ff567b9b120b7389fc1e28",
       "sourceName": "src/tests/strategies/uniswapv2/strategy-uni-eth-usdc-lp-v4.test-inactive.sol",
       "solcConfig": {
@@ -1588,8 +1588,8 @@
         "StrategyUniEthUsdcLpV4Test"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/uniswapv2/strategy-uni-eth-usdt-lp-v4.test-inactive.sol": {
-      "lastModificationDate": 1608665024530,
+    "/home/josh/dev/protocol/src/tests/strategies/uniswapv2/strategy-uni-eth-usdt-lp-v4.test-inactive.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "e7d3ddbc6797294ea0b2460b175c8f27",
       "sourceName": "src/tests/strategies/uniswapv2/strategy-uni-eth-usdt-lp-v4.test-inactive.sol",
       "solcConfig": {
@@ -1638,8 +1638,8 @@
         "StrategyUniEthUsdtLpV4Test"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/jar-converters/uni-curve.sol": {
-      "lastModificationDate": 1611165831830,
+    "/home/josh/dev/protocol/src/tests/jar-converters/uni-curve.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "7df0b24eed3fbc094633660ba0c3b23c",
       "sourceName": "src/tests/jar-converters/uni-curve.sol",
       "solcConfig": {
@@ -1699,8 +1699,8 @@
         "StrategyUniCurveJarSwapTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/curve/strategy-curve-scrv-v3_2.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/curve/strategy-curve-scrv-v3_2.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "ad2d54fed922f3e286faaadae6e2dcc1",
       "sourceName": "src/strategies/curve/strategy-curve-scrv-v3_2.sol",
       "solcConfig": {
@@ -1751,8 +1751,8 @@
         "StrategyCurveSCRVv3_2"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/curve/strategy-curve-rencrv-v2.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/curve/strategy-curve-rencrv-v2.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "c7b5185ea159134dcb4aad056b664c8a",
       "sourceName": "src/strategies/curve/strategy-curve-rencrv-v2.sol",
       "solcConfig": {
@@ -1801,8 +1801,8 @@
         "StrategyCurveRenCRVv2"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/curve/strategy-curve-3crv-v2.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/curve/strategy-curve-3crv-v2.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "71c3ff925d42babd4598e4ebf3e0f1cc",
       "sourceName": "src/strategies/curve/strategy-curve-3crv-v2.sol",
       "solcConfig": {
@@ -1851,8 +1851,8 @@
         "StrategyCurve3CRVv2"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/curve/scrv-voter.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/curve/scrv-voter.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "0ddac4e0854531aa5cb6e72a71291950",
       "sourceName": "src/strategies/curve/scrv-voter.sol",
       "solcConfig": {
@@ -1898,8 +1898,8 @@
         "SCRVVoter"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/curve/crv-locker.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/curve/crv-locker.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "99668652ce25b7b3d01e1b815f7af4ea",
       "sourceName": "src/strategies/curve/crv-locker.sol",
       "solcConfig": {
@@ -1944,8 +1944,8 @@
         "CRVLocker"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/strategy-curve-base.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/strategy-curve-base.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "038d2025b8dc0ca520e41d24b1b4d355",
       "sourceName": "src/strategies/strategy-curve-base.sol",
       "solcConfig": {
@@ -1989,8 +1989,8 @@
         "StrategyCurveBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/curve/strategy-curve-3crv-v2.test.sol": {
-      "lastModificationDate": 1608665024450,
+    "/home/josh/dev/protocol/src/tests/strategies/curve/strategy-curve-3crv-v2.test.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "96939cc098084eede0dae7d3f5ba13a3",
       "sourceName": "src/tests/strategies/curve/strategy-curve-3crv-v2.test.sol",
       "solcConfig": {
@@ -2043,8 +2043,8 @@
         "StrategyCurve3CRVv2Test"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/lib/test-strategy-curve-farm-base.sol": {
-      "lastModificationDate": 1611170596580,
+    "/home/josh/dev/protocol/src/tests/lib/test-strategy-curve-farm-base.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "535264dd9b513ae10db60185b2170e7c",
       "sourceName": "src/tests/lib/test-strategy-curve-farm-base.sol",
       "solcConfig": {
@@ -2095,8 +2095,8 @@
         "StrategyCurveFarmTestBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/uni-curve-converter.sol": {
-      "lastModificationDate": 1608665024530,
+    "/home/josh/dev/protocol/src/uni-curve-converter.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "56c9b10849ff45ef32e468698847c951",
       "sourceName": "src/uni-curve-converter.sol",
       "solcConfig": {
@@ -2142,8 +2142,8 @@
         "UniCurveConverter"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/uniswapv2/strategy-uni-eth-dai-lp-v4.test-inactive.sol": {
-      "lastModificationDate": 1608665024510,
+    "/home/josh/dev/protocol/src/tests/strategies/uniswapv2/strategy-uni-eth-dai-lp-v4.test-inactive.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "abdf86763d9ea216a35724bc6fd5012e",
       "sourceName": "src/tests/strategies/uniswapv2/strategy-uni-eth-dai-lp-v4.test-inactive.sol",
       "solcConfig": {
@@ -2192,8 +2192,8 @@
         "StrategyUniEthDaiLpV4Test"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/jar-converters/curve-uni.sol": {
-      "lastModificationDate": 1611165834780,
+    "/home/josh/dev/protocol/src/tests/jar-converters/curve-uni.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "150e19192582cda7f2d9c0120b1eae24",
       "sourceName": "src/tests/jar-converters/curve-uni.sol",
       "solcConfig": {
@@ -2253,8 +2253,8 @@
         "StrategyCurveUniJarSwapTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/curve/strategy-curve-rencrv-v2.test.sol": {
-      "lastModificationDate": 1608665024450,
+    "/home/josh/dev/protocol/src/tests/strategies/curve/strategy-curve-rencrv-v2.test.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "302d16a01d42911ced85528786d18ab6",
       "sourceName": "src/tests/strategies/curve/strategy-curve-rencrv-v2.test.sol",
       "solcConfig": {
@@ -2307,8 +2307,8 @@
         "StrategyCurveRenCRVv2Test"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/sushiswap/strategy-sushi-eth-yvecrv-lp.test.sol": {
-      "lastModificationDate": 1613614531820,
+    "/home/josh/dev/protocol/src/tests/strategies/sushiswap/strategy-sushi-eth-yvecrv-lp.test.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "d083fba17746d4b880fdb66b4b1a3e80",
       "sourceName": "src/tests/strategies/sushiswap/strategy-sushi-eth-yvecrv-lp.test.sol",
       "solcConfig": {
@@ -2357,8 +2357,8 @@
         "StrategySushiEthYVeCrvLpTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/lib/test-strategy-sushi-farm-base.sol": {
-      "lastModificationDate": 1608665024360,
+    "/home/josh/dev/protocol/src/tests/lib/test-strategy-sushi-farm-base.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "6429618ae53f721283673fee34b0e0a0",
       "sourceName": "src/tests/lib/test-strategy-sushi-farm-base.sol",
       "solcConfig": {
@@ -2409,8 +2409,8 @@
         "StrategySushiFarmTestBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/sushiswap/strategy-sushi-eth-yvecrv-lp.sol": {
-      "lastModificationDate": 1613614531810,
+    "/home/josh/dev/protocol/src/strategies/sushiswap/strategy-sushi-eth-yvecrv-lp.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "7fc0dd4a6f1cf7ce2e4c5be9bf987523",
       "sourceName": "src/strategies/sushiswap/strategy-sushi-eth-yvecrv-lp.sol",
       "solcConfig": {
@@ -2453,8 +2453,8 @@
         "StrategySushiEthYVeCrvLp"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/lib/test-sushi-base.sol": {
-      "lastModificationDate": 1611171425380,
+    "/home/josh/dev/protocol/src/tests/lib/test-sushi-base.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "2eff70dbbec1f4c9905d5995a43f0297",
       "sourceName": "src/tests/lib/test-sushi-base.sol",
       "solcConfig": {
@@ -2507,9 +2507,9 @@
         "DSTestSushiBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/strategy-sushi-farm-base.sol": {
-      "lastModificationDate": 1608665024350,
-      "contentHash": "8cf535a06680c9e7458f0bd91f0d3ba5",
+    "/home/josh/dev/protocol/src/strategies/strategy-sushi-farm-base.sol": {
+      "lastModificationDate": 1618940597629,
+      "contentHash": "f055c46d392c6875f87d1dd0d0ed36c7",
       "sourceName": "src/strategies/strategy-sushi-farm-base.sol",
       "solcConfig": {
         "version": "0.6.7",
@@ -2552,8 +2552,8 @@
         "StrategySushiFarmBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/sushi-chef.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/interfaces/sushi-chef.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "6021057fee46df8ca427433ddebb966b",
       "sourceName": "src/interfaces/sushi-chef.sol",
       "solcConfig": {
@@ -2594,10 +2594,10 @@
         "ISushiChef"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/sushiswap/strategy-sushi-eth-yfi-lp.sol": {
-      "lastModificationDate": 1608665024350,
-      "contentHash": "55cacc80198e3f6d42de789b25b44592",
-      "sourceName": "src/strategies/sushiswap/strategy-sushi-eth-yfi-lp.sol",
+    "/home/josh/dev/protocol/src/strategies/sushiswap/strategy-sushi-eth-yvboost-lp.sol": {
+      "lastModificationDate": 1618940597629,
+      "contentHash": "e97008c274845ec1cbf77ab456824ef5",
+      "sourceName": "src/strategies/sushiswap/strategy-sushi-eth-yvboost-lp.sol",
       "solcConfig": {
         "version": "0.6.7",
         "settings": {
@@ -2635,11 +2635,61 @@
         "^0.6.7"
       ],
       "artifacts": [
-        "StrategySushiEthYfiLp"
+        "StrategySushiEthYvBoostLp"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/sushiswap/strategy-sushi-eth-yfi-lp.test.sol": {
-      "lastModificationDate": 1608665024470,
+    "/home/josh/dev/protocol/src/tests/strategies/sushiswap/strategy-sushi-eth-yvboost-lp.test.sol": {
+      "lastModificationDate": 1618940597637,
+      "contentHash": "ea4446f39cdeba2a826461de8f5e803e",
+      "sourceName": "src/tests/strategies/sushiswap/strategy-sushi-eth-yvboost-lp.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../lib/test-strategy-sushi-farm-base.sol",
+        "../../../interfaces/strategy.sol",
+        "../../../interfaces/curve.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../pickle-jar.sol",
+        "../../../controller-v4.sol",
+        "../../../strategies/sushiswap/strategy-sushi-eth-yvboost-lp.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategySushiEthYvBoostLpTest"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/strategies/sushiswap/strategy-sushi-eth-yfi-lp.test.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "c76e5f7079590c8e7fccbd2902456a90",
       "sourceName": "src/tests/strategies/sushiswap/strategy-sushi-eth-yfi-lp.test.sol",
       "solcConfig": {
@@ -2688,8 +2738,52 @@
         "StrategySushiEthYfiLpV2Test"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/sushiswap/strategy-sushi-eth-wbtc-lp.test.sol": {
-      "lastModificationDate": 1608665024450,
+    "/home/josh/dev/protocol/src/strategies/sushiswap/strategy-sushi-eth-yfi-lp.sol": {
+      "lastModificationDate": 1617730499104,
+      "contentHash": "55cacc80198e3f6d42de789b25b44592",
+      "sourceName": "src/strategies/sushiswap/strategy-sushi-eth-yfi-lp.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-sushi-farm-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategySushiEthYfiLp"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/strategies/sushiswap/strategy-sushi-eth-wbtc-lp.test.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "9c08c90b5bafa143423acea8300bc213",
       "sourceName": "src/tests/strategies/sushiswap/strategy-sushi-eth-wbtc-lp.test.sol",
       "solcConfig": {
@@ -2738,8 +2832,8 @@
         "StrategySushiEthWBtcLpV2Test"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/sushiswap/strategy-sushi-eth-wbtc-lp.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/sushiswap/strategy-sushi-eth-wbtc-lp.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "1a2f5bd0d6c548cef661b2b53cb17f1f",
       "sourceName": "src/strategies/sushiswap/strategy-sushi-eth-wbtc-lp.sol",
       "solcConfig": {
@@ -2782,8 +2876,8 @@
         "StrategySushiEthWBtcLp"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/sushiswap/strategy-sushi-eth-usdt-lp.test.sol": {
-      "lastModificationDate": 1608665024450,
+    "/home/josh/dev/protocol/src/tests/strategies/sushiswap/strategy-sushi-eth-usdt-lp.test.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "6fcdabb6773d69533f832ac73c1dc7a1",
       "sourceName": "src/tests/strategies/sushiswap/strategy-sushi-eth-usdt-lp.test.sol",
       "solcConfig": {
@@ -2832,8 +2926,8 @@
         "StrategySushiEthUsdtLpV4Test"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/sushiswap/strategy-sushi-eth-usdt-lp.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/sushiswap/strategy-sushi-eth-usdt-lp.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "a975ff59671a5e090091383f7d48f9c5",
       "sourceName": "src/strategies/sushiswap/strategy-sushi-eth-usdt-lp.sol",
       "solcConfig": {
@@ -2876,8 +2970,8 @@
         "StrategySushiEthUsdtLp"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/sushiswap/strategy-sushi-eth-usdc-lp.test.sol": {
-      "lastModificationDate": 1608665024450,
+    "/home/josh/dev/protocol/src/tests/strategies/sushiswap/strategy-sushi-eth-usdc-lp.test.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "d86c931ba8157c4196ee6646e5b18650",
       "sourceName": "src/tests/strategies/sushiswap/strategy-sushi-eth-usdc-lp.test.sol",
       "solcConfig": {
@@ -2926,8 +3020,8 @@
         "StrategySushiEthUsdcLpTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/sushiswap/strategy-sushi-eth-usdc-lp.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/sushiswap/strategy-sushi-eth-usdc-lp.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "c577d539f14badd46baa96d86d3a557a",
       "sourceName": "src/strategies/sushiswap/strategy-sushi-eth-usdc-lp.sol",
       "solcConfig": {
@@ -2970,8 +3064,102 @@
         "StrategySushiEthUsdcLp"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/sushiswap/strategy-sushi-eth-dai-lp.test.sol": {
-      "lastModificationDate": 1608665024450,
+    "/home/josh/dev/protocol/src/tests/strategies/sushiswap/strategy-sushi-eth-sushi-lp.test.sol": {
+      "lastModificationDate": 1618940597637,
+      "contentHash": "f5f2f20dcfffc3fb4be78c92d781d5c6",
+      "sourceName": "src/tests/strategies/sushiswap/strategy-sushi-eth-sushi-lp.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../lib/test-strategy-sushi-farm-base.sol",
+        "../../../interfaces/strategy.sol",
+        "../../../interfaces/curve.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../pickle-jar.sol",
+        "../../../controller-v4.sol",
+        "../../../strategies/sushiswap/strategy-sushi-eth-sushi-lp.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategySushiEthSushiLpTest"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/sushiswap/strategy-sushi-eth-sushi-lp.sol": {
+      "lastModificationDate": 1618940597629,
+      "contentHash": "186cf628cd5975ba7aa8dc0a41864b66",
+      "sourceName": "src/strategies/sushiswap/strategy-sushi-eth-sushi-lp.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-sushi-farm-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategySushiEthSushiLp"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/strategies/sushiswap/strategy-sushi-eth-dai-lp.test.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "d7e996eb7ddf0cc8340c5aeade6f170e",
       "sourceName": "src/tests/strategies/sushiswap/strategy-sushi-eth-dai-lp.test.sol",
       "solcConfig": {
@@ -3020,8 +3208,8 @@
         "StrategySushiEthDaiLpTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/sushiswap/strategy-sushi-eth-dai-lp.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/sushiswap/strategy-sushi-eth-dai-lp.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "46a1e0903ec4be3373114d6d73c3dfea",
       "sourceName": "src/strategies/sushiswap/strategy-sushi-eth-dai-lp.sol",
       "solcConfig": {
@@ -3064,8 +3252,8 @@
         "StrategySushiEthDaiLp"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/uni-curve-converter.sol": {
-      "lastModificationDate": 1608665024530,
+    "/home/josh/dev/protocol/src/tests/uni-curve-converter.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "6064647e0fb240890687bed4ca46d9c0",
       "sourceName": "src/tests/uni-curve-converter.sol",
       "solcConfig": {
@@ -3110,8 +3298,8 @@
         "UniCurveConverterTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/yield-farming/masterchef.sol": {
-      "lastModificationDate": 1608665024540,
+    "/home/josh/dev/protocol/src/yield-farming/masterchef.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "e96c09b2b891525cdbd262dce9bcc010",
       "sourceName": "src/yield-farming/masterchef.sol",
       "solcConfig": {
@@ -3158,8 +3346,8 @@
         "MasterChef"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/lib/enumerableSet.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/lib/enumerableSet.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "335c4591d8f63429138e843e91156f03",
       "sourceName": "src/lib/enumerableSet.sol",
       "solcConfig": {
@@ -3200,8 +3388,8 @@
         "EnumerableSet"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/lib/ownable.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/lib/ownable.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "778bd46a6fa6b63558dc36e1117ebd89",
       "sourceName": "src/lib/ownable.sol",
       "solcConfig": {
@@ -3244,8 +3432,8 @@
         "Ownable"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/yield-farming/pickle-token.sol": {
-      "lastModificationDate": 1608665024540,
+    "/home/josh/dev/protocol/src/yield-farming/pickle-token.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "f81f752eb90735018f546d772881f05f",
       "sourceName": "src/yield-farming/pickle-token.sol",
       "solcConfig": {
@@ -3289,8 +3477,8 @@
         "PickleToken"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/lib/mock-erc20.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/tests/lib/mock-erc20.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "dee601183f58680f0a9ea7407020688c",
       "sourceName": "src/tests/lib/mock-erc20.sol",
       "solcConfig": {
@@ -3333,8 +3521,8 @@
         "MockERC20"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/staking-rewards.test.sol": {
-      "lastModificationDate": 1608665024440,
+    "/home/josh/dev/protocol/src/tests/staking-rewards.test.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "3f3bd4b33fd23bdcf228c50cdde25c0b",
       "sourceName": "src/tests/staking-rewards.test.sol",
       "solcConfig": {
@@ -3381,8 +3569,8 @@
         "StakngRewardsTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/staking-rewards.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/staking-rewards.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "d734e6f545c64483c1139baa56dc9feb",
       "sourceName": "src/staking-rewards.sol",
       "solcConfig": {
@@ -3428,8 +3616,8 @@
         "StakingRewards"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/lib/reentrancy-guard.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/lib/reentrancy-guard.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "0f5cdd3742455ad48392d721afacd587",
       "sourceName": "src/lib/reentrancy-guard.sol",
       "solcConfig": {
@@ -3470,8 +3658,8 @@
         "ReentrancyGuard"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/lib/pausable.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/lib/pausable.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "9ee0fc10fe024797694093c0c7bbe9ba",
       "sourceName": "src/lib/pausable.sol",
       "solcConfig": {
@@ -3514,8 +3702,8 @@
         "Pausable"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/lib/owned.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/lib/owned.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "ae174806732df4e13c47d88a0ec81c54",
       "sourceName": "src/lib/owned.sol",
       "solcConfig": {
@@ -3556,8 +3744,8 @@
         "Owned"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/curve/strategy-curve-stecrv.test.sol": {
-      "lastModificationDate": 1612360115050,
+    "/home/josh/dev/protocol/src/tests/strategies/curve/strategy-curve-stecrv.test.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "fc1874a1035dc88cd69ce775c8df0c3c",
       "sourceName": "src/tests/strategies/curve/strategy-curve-stecrv.test.sol",
       "solcConfig": {
@@ -3610,8 +3798,8 @@
         "StrategyCurveSteCRVTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/steth.sol": {
-      "lastModificationDate": 1612360115020,
+    "/home/josh/dev/protocol/src/interfaces/steth.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "6858f2e8dbd6ab3dd356b5cbbe02f9e1",
       "sourceName": "src/interfaces/steth.sol",
       "solcConfig": {
@@ -3654,8 +3842,8 @@
         "IStEth"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/curve/strategy-curve-stecrv.sol": {
-      "lastModificationDate": 1612360115020,
+    "/home/josh/dev/protocol/src/strategies/curve/strategy-curve-stecrv.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "679a2a3111ebc726d8862abb14dfc207",
       "sourceName": "src/strategies/curve/strategy-curve-stecrv.sol",
       "solcConfig": {
@@ -3707,10 +3895,10 @@
         "StrategyCurveSteCRV"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/curve/strategy-curve-scrv-v4_1.sol": {
-      "lastModificationDate": 1608665024350,
-      "contentHash": "75c68451a680545802f0c78abdcaaeaf",
-      "sourceName": "src/strategies/curve/strategy-curve-scrv-v4_1.sol",
+    "/home/josh/dev/protocol/src/strategies/strategy-liquity-farm-base.sol": {
+      "lastModificationDate": 1618940597625,
+      "contentHash": "c73a03d10c206d6e4f430e141ac9d13b",
+      "sourceName": "src/strategies/strategy-liquity-farm-base.sol",
       "solcConfig": {
         "version": "0.6.7",
         "settings": {
@@ -3742,25 +3930,154 @@
         }
       },
       "imports": [
-        "../../lib/erc20.sol",
-        "../../lib/safe-math.sol",
-        "./scrv-voter.sol",
-        "./crv-locker.sol",
-        "../../interfaces/jar.sol",
-        "../../interfaces/curve.sol",
-        "../../interfaces/uniswapv2.sol",
-        "../../interfaces/controller.sol",
-        "../strategy-base.sol"
+        "./strategy-base.sol",
+        "../interfaces/liquity-reward.sol"
       ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyLiquityFarmBase"
+      ]
+    },
+    "/home/josh/dev/protocol/src/interfaces/liquity-reward.sol": {
+      "lastModificationDate": 1618940597617,
+      "contentHash": "391e3e6798d0d1e8b2688ba615f4e20f",
+      "sourceName": "src/interfaces/liquity-reward.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
       "versionPragmas": [
         "^0.6.2"
       ],
       "artifacts": [
-        "StrategyCurveSCRVv4_1"
+        "ILiquityFarmReward"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/curve/strategy-curve-scrv-v4_1.test.sol": {
-      "lastModificationDate": 1608665024450,
+    "/home/josh/dev/protocol/src/strategies/liquity/strategy-uni-lusd-eth-lp.sol": {
+      "lastModificationDate": 1618940597621,
+      "contentHash": "7d194314b726351a8237a8565a70a29e",
+      "sourceName": "src/strategies/liquity/strategy-uni-lusd-eth-lp.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-liquity-farm-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyLusdEthLp"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/strategies/liquity/strategy-uni-lusd-eth.test.sol": {
+      "lastModificationDate": 1618940597633,
+      "contentHash": "812e021ae5b566d703d3939ea7659cf6",
+      "sourceName": "src/tests/strategies/liquity/strategy-uni-lusd-eth.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../lib/test-strategy-uni-farm-base.sol",
+        "../../../interfaces/strategy.sol",
+        "../../../interfaces/curve.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../pickle-jar.sol",
+        "../../../controller-v4.sol",
+        "../../../strategies/liquity/strategy-uni-lusd-eth-lp.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyLusdEthLpTest"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/strategies/curve/strategy-curve-scrv-v4_1.test.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "4e8977ccde5d1e177deafe30bcea96a8",
       "sourceName": "src/tests/strategies/curve/strategy-curve-scrv-v4_1.test.sol",
       "solcConfig": {
@@ -3814,8 +4131,60 @@
         "StrategyCurveSCRVv4Test"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/curve/strategy-curve-scrv-v3_2.test.sol": {
-      "lastModificationDate": 1608665024450,
+    "/home/josh/dev/protocol/src/strategies/curve/strategy-curve-scrv-v4_1.sol": {
+      "lastModificationDate": 1617730499100,
+      "contentHash": "75c68451a680545802f0c78abdcaaeaf",
+      "sourceName": "src/strategies/curve/strategy-curve-scrv-v4_1.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../lib/erc20.sol",
+        "../../lib/safe-math.sol",
+        "./scrv-voter.sol",
+        "./crv-locker.sol",
+        "../../interfaces/jar.sol",
+        "../../interfaces/curve.sol",
+        "../../interfaces/uniswapv2.sol",
+        "../../interfaces/controller.sol",
+        "../strategy-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.2"
+      ],
+      "artifacts": [
+        "StrategyCurveSCRVv4_1"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/strategies/curve/strategy-curve-scrv-v3_2.test.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "f340e6aaf9308396a9e613e189ad4927",
       "sourceName": "src/tests/strategies/curve/strategy-curve-scrv-v3_2.test.sol",
       "solcConfig": {
@@ -3868,8 +4237,8 @@
         "StrategyCurveSCRVv3_2Test"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/compound/strategy-cmpnd-dai-v3.sol": {
-      "lastModificationDate": 1608665024450,
+    "/home/josh/dev/protocol/src/tests/strategies/compound/strategy-cmpnd-dai-v3.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "22090004ded8ea4240c4a835de635c19",
       "sourceName": "src/tests/strategies/compound/strategy-cmpnd-dai-v3.sol",
       "solcConfig": {
@@ -3919,8 +4288,8 @@
         "StrategyCmpndDaiV3"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/compound.sol": {
-      "lastModificationDate": 1608665024330,
+    "/home/josh/dev/protocol/src/interfaces/compound.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "184f73cfbc2de62b8a66f12d082c9280",
       "sourceName": "src/interfaces/compound.sol",
       "solcConfig": {
@@ -3964,8 +4333,8 @@
         "IComptroller"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/compound/strategy-cmpd-dai-v3.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/compound/strategy-cmpd-dai-v3.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "e2a8bd5b3f5f2b7aae3ef819dedcc140",
       "sourceName": "src/strategies/compound/strategy-cmpd-dai-v3.sol",
       "solcConfig": {
@@ -4015,8 +4384,8 @@
         "StrategyCmpdDaiV3"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/lib/exponential.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/lib/exponential.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "6b87d39246f51fc2be961a8a19653c45",
       "sourceName": "src/lib/exponential.sol",
       "solcConfig": {
@@ -4059,8 +4428,8 @@
         "Exponential"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/lib/careful-math.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/lib/careful-math.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "7041106b9b584ee21d6a3e73b8d6a377",
       "sourceName": "src/lib/careful-math.sol",
       "solcConfig": {
@@ -4101,8 +4470,8 @@
         "CarefulMath"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/barnbridge/strategy-bond-usdc-v1.sol": {
-      "lastModificationDate": 1608665024350,
+    "/home/josh/dev/protocol/src/strategies/barnbridge/strategy-bond-usdc-v1.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "2b1585a151194141aba96899f54f1ded",
       "sourceName": "src/strategies/barnbridge/strategy-bond-usdc-v1.sol",
       "solcConfig": {
@@ -4151,8 +4520,8 @@
         "StrategyBondUsdcV1"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/barnbridge.sol": {
-      "lastModificationDate": 1608665024330,
+    "/home/josh/dev/protocol/src/interfaces/barnbridge.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "810f9bf0b44333c6b720fe19a8452a6c",
       "sourceName": "src/interfaces/barnbridge.sol",
       "solcConfig": {
@@ -4194,8 +4563,8 @@
         "IBBYieldFarm"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/barnbridge/strategy-bond-usdc-v1.sol": {
-      "lastModificationDate": 1608665024440,
+    "/home/josh/dev/protocol/src/tests/strategies/barnbridge/strategy-bond-usdc-v1.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "44bad03b2591f44abe0c5ff8a685b2e0",
       "sourceName": "src/tests/strategies/barnbridge/strategy-bond-usdc-v1.sol",
       "solcConfig": {
@@ -4247,8 +4616,8 @@
         "StrategyBondUsdcV1Test"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/lib/test-strategy-bond-farm-base.sol": {
-      "lastModificationDate": 1608665024360,
+    "/home/josh/dev/protocol/src/tests/lib/test-strategy-bond-farm-base.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "ce2a93c5632620b71b226eb51cd200da",
       "sourceName": "src/tests/lib/test-strategy-bond-farm-base.sol",
       "solcConfig": {
@@ -4299,8 +4668,101 @@
         "StrategyBondFarmBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/lib/test-strategy-mith-farm-base.sol": {
-      "lastModificationDate": 1611171425380,
+    "/home/josh/dev/protocol/src/instabrine/instabrine.sol": {
+      "lastModificationDate": 1617730499096,
+      "contentHash": "5b9d0838560166c87e5f2fca993c8e4c",
+      "sourceName": "src/instabrine/instabrine.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../lib/safe-math.sol",
+        "../lib/erc20.sol",
+        "../interfaces/uniswapv2.sol",
+        "../interfaces/curve.sol",
+        "../interfaces/jar.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "Instabrine"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/instabrine/instabrine.test.sol": {
+      "lastModificationDate": 1617730499104,
+      "contentHash": "d14a5141cdb9cf802acc97ff6e0f29b0",
+      "sourceName": "src/tests/instabrine/instabrine.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../lib/test-defi-base.sol",
+        "../../instabrine/instabrine.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "InstabrineTest"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/lib/test-strategy-mith-farm-base.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "bc6bcd61745e6e42333c92864d0400ed",
       "sourceName": "src/tests/lib/test-strategy-mith-farm-base.sol",
       "solcConfig": {
@@ -4351,8 +4813,8 @@
         "StrategyMithFarmTestBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/mith/strategy-mith-mis-usdt-lp.test.sol": {
-      "lastModificationDate": 1612361090740,
+    "/home/josh/dev/protocol/src/tests/strategies/mith/strategy-mith-mis-usdt-lp.test.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "8aa73782f5e26020fac4caceea9298c7",
       "sourceName": "src/tests/strategies/mith/strategy-mith-mis-usdt-lp.test.sol",
       "solcConfig": {
@@ -4401,8 +4863,8 @@
         "StrategyMithMisUsdtLpTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/mith/strategy-mith-mis-usdt-lp.sol": {
-      "lastModificationDate": 1612361090740,
+    "/home/josh/dev/protocol/src/strategies/mith/strategy-mith-mis-usdt-lp.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "97d6c3f1a42a07a488ec521650db8332",
       "sourceName": "src/strategies/mith/strategy-mith-mis-usdt-lp.sol",
       "solcConfig": {
@@ -4445,8 +4907,8 @@
         "StrategyMithMisUsdtLp"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/strategy-mith-farm-base.sol": {
-      "lastModificationDate": 1613614732500,
+    "/home/josh/dev/protocol/src/strategies/strategy-mith-farm-base.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "c30595f8aa4d7163de16c53305d18bd0",
       "sourceName": "src/strategies/strategy-mith-farm-base.sol",
       "solcConfig": {
@@ -4489,10 +4951,10 @@
         "StrategyMithFarmBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/strategy-basis-farm-base.sol": {
-      "lastModificationDate": 1614265371840,
-      "contentHash": "139d6eb353564efb51b74147592fa8c8",
-      "sourceName": "src/strategies/strategy-basis-farm-base.sol",
+    "/home/josh/dev/protocol/src/strategies/strategy-mirror-farm-base.sol": {
+      "lastModificationDate": 1618940597625,
+      "contentHash": "340fa6a311eb83c4ddb16f4d59b43d92",
+      "sourceName": "src/strategies/strategy-mirror-farm-base.sol",
       "solcConfig": {
         "version": "0.6.7",
         "settings": {
@@ -4530,13 +4992,13 @@
         "^0.6.7"
       ],
       "artifacts": [
-        "StrategyBasisFarmBase"
+        "StrategyMirFarmBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/basis/strategy-basis-bas-dai-lp.sol": {
-      "lastModificationDate": 1614265371830,
-      "contentHash": "c2ea838473530bb442121d450552a921",
-      "sourceName": "src/strategies/basis/strategy-basis-bas-dai-lp.sol",
+    "/home/josh/dev/protocol/src/strategies/mirror/strategy-mirror-tsla-ust-lp.sol": {
+      "lastModificationDate": 1618940597625,
+      "contentHash": "863fde744c9144603a6a981230cc687c",
+      "sourceName": "src/strategies/mirror/strategy-mirror-tsla-ust-lp.sol",
       "solcConfig": {
         "version": "0.6.7",
         "settings": {
@@ -4568,19 +5030,870 @@
         }
       },
       "imports": [
-        "../strategy-basis-farm-base.sol"
+        "../strategy-mirror-farm-base.sol"
       ],
       "versionPragmas": [
         "^0.6.7"
       ],
       "artifacts": [
-        "StrategyBasisBasDaiLp"
+        "StrategyMirrorTslaUstLp"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/basis/strategy-basis-bas-dai-lp.test.sol": {
-      "lastModificationDate": 1614265371860,
-      "contentHash": "06b2a5d89616f511257e00c003485ecc",
-      "sourceName": "src/tests/strategies/basis/strategy-basis-bas-dai-lp.test.sol",
+    "/home/josh/dev/protocol/src/tests/strategies/mirror/strategy-mirror-tsla-ust-lp.test.sol": {
+      "lastModificationDate": 1618940597637,
+      "contentHash": "221efbf40cdcdfb1bbd9690cba605e38",
+      "sourceName": "src/tests/strategies/mirror/strategy-mirror-tsla-ust-lp.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../lib/test-strategy-mirror-farm-base.sol",
+        "../../../interfaces/strategy.sol",
+        "../../../interfaces/curve.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../pickle-jar.sol",
+        "../../../controller-v4.sol",
+        "../../../strategies/mirror/strategy-mirror-tsla-ust-lp.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyMirrorTslaUstLpTest"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/lib/test-strategy-mirror-farm-base.sol": {
+      "lastModificationDate": 1618940597629,
+      "contentHash": "ad682f9b4f388d74c2cc54d95cb9547d",
+      "sourceName": "src/tests/lib/test-strategy-mirror-farm-base.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../lib/hevm.sol",
+        "../lib/user.sol",
+        "../lib/test-approx.sol",
+        "../lib/test-defi-base.sol",
+        "../../interfaces/strategy.sol",
+        "../../interfaces/curve.sol",
+        "../../interfaces/uniswapv2.sol",
+        "../../pickle-jar.sol",
+        "../../controller-v4.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyMirrorFarmTestBase"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/strategies/mirror/strategy-mirror-slv-ust-lp.test.sol": {
+      "lastModificationDate": 1618940597637,
+      "contentHash": "c89d3ce77a727e23c957d2729f3aa031",
+      "sourceName": "src/tests/strategies/mirror/strategy-mirror-slv-ust-lp.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../lib/test-strategy-mirror-farm-base.sol",
+        "../../../interfaces/strategy.sol",
+        "../../../interfaces/curve.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../pickle-jar.sol",
+        "../../../controller-v4.sol",
+        "../../../strategies/mirror/strategy-mirror-slv-ust-lp.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyMirrorSlvUstLpTest"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/mirror/strategy-mirror-slv-ust-lp.sol": {
+      "lastModificationDate": 1618940597625,
+      "contentHash": "8bd14470d0478718e86f8ae10f4fd9bb",
+      "sourceName": "src/strategies/mirror/strategy-mirror-slv-ust-lp.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-mirror-farm-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyMirrorSlvUstLp"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/strategies/mirror/strategy-mirror-qqq-ust-lp.test.sol": {
+      "lastModificationDate": 1618940597637,
+      "contentHash": "8b2a40c34a09e78212f95046fb2f4739",
+      "sourceName": "src/tests/strategies/mirror/strategy-mirror-qqq-ust-lp.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../lib/test-strategy-mirror-farm-base.sol",
+        "../../../interfaces/strategy.sol",
+        "../../../interfaces/curve.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../pickle-jar.sol",
+        "../../../controller-v4.sol",
+        "../../../strategies/mirror/strategy-mirror-qqq-ust-lp.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyMirrorQqqUstLpTest"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/mirror/strategy-mirror-qqq-ust-lp.sol": {
+      "lastModificationDate": 1618940597625,
+      "contentHash": "a157fb4b695ef9558f13cffa1abfadce",
+      "sourceName": "src/strategies/mirror/strategy-mirror-qqq-ust-lp.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-mirror-farm-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyMirrorQqqUstLp"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/strategies/mirror/strategy-mirror-mir-ust-lp.test.sol": {
+      "lastModificationDate": 1618940597633,
+      "contentHash": "ea063a6ffc839b9f8500d6f24a90b5d8",
+      "sourceName": "src/tests/strategies/mirror/strategy-mirror-mir-ust-lp.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../lib/test-strategy-mirror-farm-base.sol",
+        "../../../interfaces/strategy.sol",
+        "../../../interfaces/curve.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../pickle-jar.sol",
+        "../../../controller-v4.sol",
+        "../../../strategies/mirror/strategy-mirror-mir-ust-lp.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyMirrorMirUstLpTest"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/mirror/strategy-mirror-mir-ust-lp.sol": {
+      "lastModificationDate": 1618940597621,
+      "contentHash": "91cc4abc0e07d1ae565b0452d2a4eb34",
+      "sourceName": "src/strategies/mirror/strategy-mirror-mir-ust-lp.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-mirror-farm-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyMirrorMirUstLp"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/strategies/mirror/strategy-mirror-baba-ust-lp.test.sol": {
+      "lastModificationDate": 1618940597633,
+      "contentHash": "344cde0aa389d263819f8da3113bba23",
+      "sourceName": "src/tests/strategies/mirror/strategy-mirror-baba-ust-lp.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../lib/test-strategy-mirror-farm-base.sol",
+        "../../../interfaces/strategy.sol",
+        "../../../interfaces/curve.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../pickle-jar.sol",
+        "../../../controller-v4.sol",
+        "../../../strategies/mirror/strategy-mirror-baba-ust-lp.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyMirrorBabaUstLpTest"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/mirror/strategy-mirror-baba-ust-lp.sol": {
+      "lastModificationDate": 1618940597621,
+      "contentHash": "f8d0f4ccf480b537fd6c0ab71ad14c08",
+      "sourceName": "src/strategies/mirror/strategy-mirror-baba-ust-lp.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-mirror-farm-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyMirrorBabaUstLp"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/strategies/mirror/strategy-mirror-aapl-ust-lp.test.sol": {
+      "lastModificationDate": 1618940597633,
+      "contentHash": "73fbd8b6f0eefca77537286ba7eb9c8a",
+      "sourceName": "src/tests/strategies/mirror/strategy-mirror-aapl-ust-lp.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../lib/test-strategy-mirror-farm-base.sol",
+        "../../../interfaces/strategy.sol",
+        "../../../interfaces/curve.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../pickle-jar.sol",
+        "../../../controller-v4.sol",
+        "../../../strategies/mirror/strategy-mirror-aapl-ust-lp.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyMirrorAaplUstLpTest"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/mirror/strategy-mirror-aapl-ust-lp.sol": {
+      "lastModificationDate": 1618940597621,
+      "contentHash": "86d40fc68bdbd68f907fa3b1bcac9a42",
+      "sourceName": "src/strategies/mirror/strategy-mirror-aapl-ust-lp.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-mirror-farm-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyMirrorAaplUstLp"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/strategy-fei-farm-base.sol": {
+      "lastModificationDate": 1618940597625,
+      "contentHash": "d85ec352509949522d77df623b0dfd5a",
+      "sourceName": "src/strategies/strategy-fei-farm-base.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./strategy-staking-rewards-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyFeiFarmBase"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/fei/strategy-fei-tribe-lp.sol": {
+      "lastModificationDate": 1618940597621,
+      "contentHash": "293523201830035165b5b895a30c9133",
+      "sourceName": "src/strategies/fei/strategy-fei-tribe-lp.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-fei-farm-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyFeiTribeLp"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/strategies/fei/strategy-fei-tribe-lp.test.sol": {
+      "lastModificationDate": 1618940597633,
+      "contentHash": "ed101e585cfb9aef8c505cfc40b17f32",
+      "sourceName": "src/tests/strategies/fei/strategy-fei-tribe-lp.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../lib/test-strategy-fei-farm-base.sol",
+        "../../../interfaces/strategy.sol",
+        "../../../interfaces/curve.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../pickle-jar.sol",
+        "../../../controller-v4.sol",
+        "../../../strategies/fei/strategy-fei-tribe-lp.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyFeiTribeLpTest"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/lib/test-strategy-fei-farm-base.sol": {
+      "lastModificationDate": 1618940597629,
+      "contentHash": "4d06816c6f4c1bd8755005e9365182d9",
+      "sourceName": "src/tests/lib/test-strategy-fei-farm-base.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../lib/hevm.sol",
+        "../lib/user.sol",
+        "../lib/test-approx.sol",
+        "../lib/test-defi-base.sol",
+        "../../interfaces/strategy.sol",
+        "../../interfaces/curve.sol",
+        "../../interfaces/uniswapv2.sol",
+        "../../pickle-jar.sol",
+        "../../controller-v4.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyFeiFarmTestBase"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/strategy-basis-farm-base-v2.sol": {
+      "lastModificationDate": 1618940597625,
+      "contentHash": "93d5f3f62671c298fa1787f985c5d661",
+      "sourceName": "src/strategies/strategy-basis-farm-base-v2.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./strategy-staking-rewards-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "IBasisStaking",
+        "StrategyBasisFarmBaseV2"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/basis-v2/strategy-basis-bas-dai-lp-v3.sol": {
+      "lastModificationDate": 1618940597621,
+      "contentHash": "7d1f3693b98cfc2f0547f33a54e9d513",
+      "sourceName": "src/strategies/basis-v2/strategy-basis-bas-dai-lp-v3.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-basis-farm-base-v2.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyBasisBasDaiLpV3"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/strategies/basis-v2/strategy-basis-bas-dai-lp-v3.test.sol": {
+      "lastModificationDate": 1618940597633,
+      "contentHash": "7b5cdd5a3069ccff36384991cdedef0f",
+      "sourceName": "src/tests/strategies/basis-v2/strategy-basis-bas-dai-lp-v3.test.sol",
       "solcConfig": {
         "version": "0.6.7",
         "settings": {
@@ -4618,17 +5931,17 @@
         "../../../interfaces/uniswapv2.sol",
         "../../../pickle-jar.sol",
         "../../../controller-v4.sol",
-        "../../../strategies/basis/strategy-basis-bas-dai-lp.sol"
+        "../../../strategies/basis-v2/strategy-basis-bas-dai-lp-v3.sol"
       ],
       "versionPragmas": [
         "^0.6.7"
       ],
       "artifacts": [
-        "StrategyBasisBasDaiLpTest"
+        "StrategyBasisBasDaiLpV3Test"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/lib/test-strategy-basis-farm-base.sol": {
-      "lastModificationDate": 1611171425380,
+    "/home/josh/dev/protocol/src/tests/lib/test-strategy-basis-farm-base.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "d355449e4771b8952ac3ca1047de7c0f",
       "sourceName": "src/tests/lib/test-strategy-basis-farm-base.sol",
       "solcConfig": {
@@ -4679,10 +5992,10 @@
         "StrategyBasisFarmTestBase"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/basis/strategy-basis-bac-dai-lp.test.sol": {
-      "lastModificationDate": 1614265371860,
-      "contentHash": "77f1fc5c8939d789dab6a6e05892675f",
-      "sourceName": "src/tests/strategies/basis/strategy-basis-bac-dai-lp.test.sol",
+    "/home/josh/dev/protocol/src/tests/strategies/basis-v2/strategy-basis-bac-dai-lp-v3.test.sol": {
+      "lastModificationDate": 1618940597633,
+      "contentHash": "f568375dc1ce45c54f185ba0d0a787f6",
+      "sourceName": "src/tests/strategies/basis-v2/strategy-basis-bac-dai-lp-v3.test.sol",
       "solcConfig": {
         "version": "0.6.7",
         "settings": {
@@ -4720,19 +6033,19 @@
         "../../../interfaces/uniswapv2.sol",
         "../../../pickle-jar.sol",
         "../../../controller-v4.sol",
-        "../../../strategies/basis/strategy-basis-bac-dai-lp.sol"
+        "../../../strategies/basis-v2/strategy-basis-bac-dai-lp-v3.sol"
       ],
       "versionPragmas": [
         "^0.6.7"
       ],
       "artifacts": [
-        "StrategyBasisBacDaiLpTest"
+        "StrategyBasisBacDaiLpV3Test"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/basis/strategy-basis-bac-dai-lp.sol": {
-      "lastModificationDate": 1614265371820,
-      "contentHash": "324e31f78b63e0319ff7b8424b916052",
-      "sourceName": "src/strategies/basis/strategy-basis-bac-dai-lp.sol",
+    "/home/josh/dev/protocol/src/strategies/basis-v2/strategy-basis-bac-dai-lp-v3.sol": {
+      "lastModificationDate": 1618940597621,
+      "contentHash": "a11136e67f282c3153f4ef371c5cf7c5",
+      "sourceName": "src/strategies/basis-v2/strategy-basis-bac-dai-lp-v3.sol",
       "solcConfig": {
         "version": "0.6.7",
         "settings": {
@@ -4764,7 +6077,189 @@
         }
       },
       "imports": [
-        "../strategy-basis-farm-base.sol"
+        "../strategy-basis-farm-base-v2.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyBasisBacDaiLpV3"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/strategies/basis-v1/strategy-basis-bas-dai-lp.test.sol": {
+      "lastModificationDate": 1618940597749,
+      "contentHash": "6c6c78d3f7c8bc23b1ecbb8b4bb38d97",
+      "sourceName": "src/tests/strategies/basis-v1/strategy-basis-bas-dai-lp.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../lib/test-strategy-basis-farm-base.sol",
+        "../../../interfaces/strategy.sol",
+        "../../../interfaces/curve.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../pickle-jar.sol",
+        "../../../controller-v4.sol",
+        "../../../strategies/basis-v1/strategy-basis-bas-dai-lp-v1.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyBasisBasDaiLpTest"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/basis-v1/strategy-basis-bas-dai-lp-v1.sol": {
+      "lastModificationDate": 1618940597757,
+      "contentHash": "c365eebd7d089365f38a3a6d29e9c1d8",
+      "sourceName": "src/strategies/basis-v1/strategy-basis-bas-dai-lp-v1.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-basis-farm-base-v1.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyBasisBasDaiLp"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/strategy-basis-farm-base-v1.sol": {
+      "lastModificationDate": 1618940597757,
+      "contentHash": "53a43fc73a98381f5a6b31de5eef39ad",
+      "sourceName": "src/strategies/strategy-basis-farm-base-v1.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./strategy-staking-rewards-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyBasisFarmBaseV1"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/basis-v1/strategy-basis-bac-dai-lp-v1.sol": {
+      "lastModificationDate": 1618940597757,
+      "contentHash": "066ecb11482a9516de4087cd5d79944d",
+      "sourceName": "src/strategies/basis-v1/strategy-basis-bac-dai-lp-v1.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-basis-farm-base-v1.sol"
       ],
       "versionPragmas": [
         "^0.6.7"
@@ -4773,8 +6268,146 @@
         "StrategyBasisBacDaiLp"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/strategies/mith/strategy-mith-mic-usdt-lp.sol": {
-      "lastModificationDate": 1611171425360,
+    "/home/josh/dev/protocol/src/tests/strategies/basis-v1/strategy-basis-bac-dai-lp.test.sol": {
+      "lastModificationDate": 1618940597749,
+      "contentHash": "bb54470b45a4542da7ad8c46f98d0b38",
+      "sourceName": "src/tests/strategies/basis-v1/strategy-basis-bac-dai-lp.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../lib/test-strategy-basis-farm-base.sol",
+        "../../../interfaces/strategy.sol",
+        "../../../interfaces/curve.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../pickle-jar.sol",
+        "../../../controller-v4.sol",
+        "../../../strategies/basis-v1/strategy-basis-bac-dai-lp-v1.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyBasisBacDaiLpTest"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/basis-v2/strategy-basis-bas-dai-lp-v2.sol": {
+      "lastModificationDate": 1618940597621,
+      "contentHash": "5f03a8f764f00707d4fe0beaa6ee7fc1",
+      "sourceName": "src/strategies/basis-v2/strategy-basis-bas-dai-lp-v2.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-basis-farm-base-v2.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyBasisBasDaiLpV2"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/basis-v2/strategy-basis-bac-dai-lp-v2.sol": {
+      "lastModificationDate": 1618940597621,
+      "contentHash": "dad157fd524cc2c125443b71d01caa89",
+      "sourceName": "src/strategies/basis-v2/strategy-basis-bac-dai-lp-v2.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-basis-farm-base-v2.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyBasisBacDaiLpV2"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/mith/strategy-mith-mic-usdt-lp.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "fb7ca4dbe0c2959308975a22a957bb8f",
       "sourceName": "src/strategies/mith/strategy-mith-mic-usdt-lp.sol",
       "solcConfig": {
@@ -4817,8 +6450,8 @@
         "StrategyMithMicUsdtLp"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/strategies/mith/strategy-mith-mic-usdt-lp.test.sol": {
-      "lastModificationDate": 1612361090740,
+    "/home/josh/dev/protocol/src/tests/strategies/mith/strategy-mith-mic-usdt-lp.test.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "30c902799c87ae8aff81f3a8b4343284",
       "sourceName": "src/tests/strategies/mith/strategy-mith-mic-usdt-lp.test.sol",
       "solcConfig": {
@@ -4867,8 +6500,8 @@
         "StrategyMithMicUsdtLpTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/jar-converters/curve-curve.test.sol": {
-      "lastModificationDate": 1611162322540,
+    "/home/josh/dev/protocol/src/tests/jar-converters/curve-curve.test.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "278931dbea68422fd2ddb5b810db14a7",
       "sourceName": "src/tests/jar-converters/curve-curve.test.sol",
       "solcConfig": {
@@ -4924,101 +6557,8 @@
         "StrategyCurveCurveJarSwapTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/instabrine/instabrine.sol": {
-      "lastModificationDate": 1615848372630,
-      "contentHash": "5b9d0838560166c87e5f2fca993c8e4c",
-      "sourceName": "src/instabrine/instabrine.sol",
-      "solcConfig": {
-        "version": "0.6.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../lib/safe-math.sol",
-        "../lib/erc20.sol",
-        "../interfaces/uniswapv2.sol",
-        "../interfaces/curve.sol",
-        "../interfaces/jar.sol"
-      ],
-      "versionPragmas": [
-        "^0.6.7"
-      ],
-      "artifacts": [
-        "Instabrine"
-      ]
-    },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/instabrine/instabrine.test.sol": {
-      "lastModificationDate": 1611165837560,
-      "contentHash": "d14a5141cdb9cf802acc97ff6e0f29b0",
-      "sourceName": "src/tests/instabrine/instabrine.test.sol",
-      "solcConfig": {
-        "version": "0.6.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../lib/test-defi-base.sol",
-        "../../instabrine/instabrine.sol"
-      ],
-      "versionPragmas": [
-        "^0.6.7"
-      ],
-      "artifacts": [
-        "InstabrineTest"
-      ]
-    },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/pickle-swap.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/pickle-swap.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "f5b934f34a4d32c7052e04325a848c50",
       "sourceName": "src/pickle-swap.sol",
       "solcConfig": {
@@ -5062,8 +6602,8 @@
         "PickleSwap"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/pickle-swap.test.sol": {
-      "lastModificationDate": 1608665024440,
+    "/home/josh/dev/protocol/src/tests/pickle-swap.test.sol": {
+      "lastModificationDate": 1617730499104,
       "contentHash": "03204bbfc5abe1906e62a7a30ab85402",
       "sourceName": "src/tests/pickle-swap.test.sol",
       "solcConfig": {
@@ -5108,8 +6648,142 @@
         "PickleSwapTest"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/governance/timelock.sol": {
-      "lastModificationDate": 1608665024330,
+    "/home/josh/dev/protocol/src/dill/fee-share.sol": {
+      "lastModificationDate": 1618939925772,
+      "contentHash": "b8b4bda050270da1cc796d2194f3910d",
+      "sourceName": "src/dill/fee-share.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../lib/erc20.sol",
+        "../lib/ownable.sol",
+        "../interfaces/dill.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "FeeShare"
+      ]
+    },
+    "/home/josh/dev/protocol/src/interfaces/dill.sol": {
+      "lastModificationDate": 1618939925776,
+      "contentHash": "dea59331f2db00f64e607e12b810451e",
+      "sourceName": "src/interfaces/dill.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "IDill"
+      ]
+    },
+    "/home/josh/dev/protocol/src/tests/dill/dill-lock.test.sol": {
+      "lastModificationDate": 1618939925784,
+      "contentHash": "5b6ed5a3bbf47803bd8ab55f16f8662e",
+      "sourceName": "src/tests/dill/dill-lock.test.sol",
+      "solcConfig": {
+        "version": "0.6.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../lib/test-defi-base.sol",
+        "../../lib/safe-math.sol",
+        "../../interfaces/dill.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "DillLockTest"
+      ]
+    },
+    "/home/josh/dev/protocol/src/governance/timelock.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "4f392b4cf6ef1422af40f8b5c8cc9162",
       "sourceName": "src/governance/timelock.sol",
       "solcConfig": {
@@ -5152,8 +6826,8 @@
         "Timelock"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/dill/gauge-proxy.sol": {
-      "lastModificationDate": 1617987568370,
+    "/home/josh/dev/protocol/src/dill/gauge-proxy.sol": {
+      "lastModificationDate": 1618940836231,
       "contentHash": "08253f48fb139df158e863539d13437c",
       "sourceName": "src/dill/gauge-proxy.sol",
       "solcConfig": {
@@ -5204,8 +6878,8 @@
         "SafeMath"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/proxy.sol": {
-      "lastModificationDate": 1608665024340,
+    "/home/josh/dev/protocol/src/interfaces/proxy.sol": {
+      "lastModificationDate": 1617730499096,
       "contentHash": "163f7a24243bcc647cd9eb1b09fe020b",
       "sourceName": "src/interfaces/proxy.sol",
       "solcConfig": {
@@ -5246,8 +6920,8 @@
         "Proxy"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/proxy.sol": {
-      "lastModificationDate": 1611161829220,
+    "/home/josh/dev/protocol/src/proxy.sol": {
+      "lastModificationDate": 1617730499100,
       "contentHash": "755d5ba988fb3820b155f3f3220c7a7c",
       "sourceName": "src/proxy.sol",
       "solcConfig": {
@@ -5288,8 +6962,8 @@
         "Proxy"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/voting/PicklesInTheCitadel.sol": {
-      "lastModificationDate": 1608665024530,
+    "/home/josh/dev/protocol/src/voting/PicklesInTheCitadel.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "e8f536ec1480c602a3f532b601d92af4",
       "sourceName": "src/voting/PicklesInTheCitadel.sol",
       "solcConfig": {
@@ -5332,8 +7006,8 @@
         "PickleVoteProxy"
       ]
     },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/voting/PicklesInTheCitadelV2.sol": {
-      "lastModificationDate": 1608665024540,
+    "/home/josh/dev/protocol/src/voting/PicklesInTheCitadelV2.sol": {
+      "lastModificationDate": 1617730499108,
       "contentHash": "ea78c4f8c428a16ae7f2675a45fb1639",
       "sourceName": "src/voting/PicklesInTheCitadelV2.sol",
       "solcConfig": {
@@ -5374,174 +7048,6 @@
         "IERC20",
         "PickleVoteProxyV2",
         "StakingRewards"
-      ]
-    },
-    "/Volumes/Data/Workspaces/Pickle/protocol/node_modules/hardhat/console.sol": {
-      "lastModificationDate": 1613513677800,
-      "contentHash": "cc4777addd464ea56fa35b1c45df0591",
-      "sourceName": "hardhat/console.sol",
-      "solcConfig": {
-        "version": "0.6.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        ">=0.4.22 <0.9.0"
-      ],
-      "artifacts": [
-        "console"
-      ]
-    },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/dill/fee-share.sol": {
-      "lastModificationDate": 1617987080190,
-      "contentHash": "b8b4bda050270da1cc796d2194f3910d",
-      "sourceName": "src/dill/fee-share.sol",
-      "solcConfig": {
-        "version": "0.6.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../lib/erc20.sol",
-        "../lib/ownable.sol",
-        "../interfaces/dill.sol"
-      ],
-      "versionPragmas": [
-        "^0.6.7"
-      ],
-      "artifacts": [
-        "FeeShare"
-      ]
-    },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/interfaces/dill.sol": {
-      "lastModificationDate": 1617987080230,
-      "contentHash": "dea59331f2db00f64e607e12b810451e",
-      "sourceName": "src/interfaces/dill.sol",
-      "solcConfig": {
-        "version": "0.6.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.6.7"
-      ],
-      "artifacts": [
-        "IDill"
-      ]
-    },
-    "/Volumes/Data/Workspaces/Pickle/protocol/src/tests/dill/dill-lock.test.sol": {
-      "lastModificationDate": 1617987080290,
-      "contentHash": "5b6ed5a3bbf47803bd8ab55f16f8662e",
-      "sourceName": "src/tests/dill/dill-lock.test.sol",
-      "solcConfig": {
-        "version": "0.6.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../lib/test-defi-base.sol",
-        "../../lib/safe-math.sol",
-        "../../interfaces/dill.sol"
-      ],
-      "versionPragmas": [
-        "^0.6.7"
-      ],
-      "artifacts": [
-        "DillLockTest"
       ]
     }
   }

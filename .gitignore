@@ -106,6 +106,7 @@ dist
 
 solc-input.json
 build
-
 artifacts
-cache
+
+/data
+/cache
