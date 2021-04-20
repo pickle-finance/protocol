@@ -1,6 +1,7 @@
 pragma solidity 0.6.7;
 
 import "./lib/AccessControlMixin.sol";
+import "./lib/EIP712Base.sol";
 import "./lib/ContextMixin.sol";
 import "../lib/erc20.sol";
 import "../lib/ownable.sol";
@@ -18,18 +19,19 @@ contract PickleToken is
     ContextMixin
 {
     bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    
+
     constructor(
+        string memory name_,
+        string memory symbol_,
+        uint8 decimals_,
         address childChainManager,
         address minter
-    ) public ERC20("PickleToken", "PICKLE") {
+    ) public ERC20(name_, symbol_) {
         _setupContractId("ChildMintableERC20");
-        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _setupDecimals(decimals_);
+        _setupRole(DEFAULT_ADMIN_ROLE, minter);
         _setupRole(DEPOSITOR_ROLE, childChainManager);
-
-        _setupRole(MINTER_ROLE, _msgSender());
-        _setupRole(MINTER_ROLE, minter);
+        _initializeEIP712(name_);
     }
 
     // This is to support Native meta transactions
@@ -76,7 +78,7 @@ contract PickleToken is
      * @param user user for whom tokens are being minted
      * @param amount amount of token to mint
      */
-    function mint(address user, uint256 amount) public only(MINTER_ROLE) {
+    function mint(address user, uint256 amount) public only(DEFAULT_ADMIN_ROLE) {
         _mint(user, amount);
     }
 }
