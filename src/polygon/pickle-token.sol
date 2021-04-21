@@ -15,6 +15,7 @@ contract PickleToken is
     ERC20,
     IChildToken,
     Ownable,
+    EIP712Base,
     AccessControlMixin,
     ContextMixin
 {

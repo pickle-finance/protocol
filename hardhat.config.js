@@ -1,4 +1,5 @@
 require("hardhat-deploy");
+require("hardhat-deploy-ethers");
 require("@nomiclabs/hardhat-etherscan");
 require("dotenv").config({});
 
@@ -35,6 +36,11 @@ module.exports = {
       url: "http://127.0.0.1:8545",
       timeout: 100000000,
     },
+    matic: {
+      chainId: 137,
+      url: "https://rpc-mainnet.maticvigil.com/",
+      accounts: [deployer],
+    }
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_APIKEY,
