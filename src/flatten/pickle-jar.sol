@@ -1,5 +1,26 @@
 // SPDX-License-Identifier: MIT
 
+// File src/interfaces/controller.sol
+
+pragma solidity ^0.6.0;
+
+interface IController {
+    function jars(address) external view returns (address);
+
+    function rewards() external view returns (address);
+
+    function devfund() external view returns (address);
+
+    function treasury() external view returns (address);
+
+    function balanceOf(address) external view returns (uint256);
+
+    function withdraw(address, uint256) external;
+
+    function earn(address, uint256) external;
+}
+
+
 // File src/lib/safe-math.sol
 
 pragma solidity ^0.6.0;
@@ -782,755 +803,131 @@ library SafeERC20 {
 }
 
 
-// File src/lib/enumerableSet.sol
+// File src/pickle-jar.sol
 
-pragma solidity ^0.6.0;
-
-/**
- * @dev Library for managing
- * https://en.wikipedia.org/wiki/Set_(abstract_data_type)[sets] of primitive
- * types.
- *
- * Sets have the following properties:
- *
- * - Elements are added, removed, and checked for existence in constant time
- * (O(1)).
- * - Elements are enumerated in O(n). No guarantees are made on the ordering.
- *
- * ```
- * contract Example {
- *     // Add the library methods
- *     using EnumerableSet for EnumerableSet.AddressSet;
- *
- *     // Declare a set state variable
- *     EnumerableSet.AddressSet private mySet;
- * }
- * ```
- *
- * As of v3.0.0, only sets of type `address` (`AddressSet`) and `uint256`
- * (`UintSet`) are supported.
- */
-library EnumerableSet {
-    // To implement this library for multiple types with as little code
-    // repetition as possible, we write it in terms of a generic Set type with
-    // bytes32 values.
-    // The Set implementation uses private functions, and user-facing
-    // implementations (such as AddressSet) are just wrappers around the
-    // underlying Set.
-    // This means that we can only create new EnumerableSets for types that fit
-    // in bytes32.
-
-    struct Set {
-        // Storage of set values
-        bytes32[] _values;
-
-        // Position of the value in the `values` array, plus 1 because index 0
-        // means a value is not in the set.
-        mapping (bytes32 => uint256) _indexes;
-    }
-
-    /**
-     * @dev Add a value to a set. O(1).
-     *
-     * Returns true if the value was added to the set, that is if it was not
-     * already present.
-     */
-    function _add(Set storage set, bytes32 value) private returns (bool) {
-        if (!_contains(set, value)) {
-            set._values.push(value);
-            // The value is stored at length-1, but we add 1 to all indexes
-            // and use 0 as a sentinel value
-            set._indexes[value] = set._values.length;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @dev Removes a value from a set. O(1).
-     *
-     * Returns true if the value was removed from the set, that is if it was
-     * present.
-     */
-    function _remove(Set storage set, bytes32 value) private returns (bool) {
-        // We read and store the value's index to prevent multiple reads from the same storage slot
-        uint256 valueIndex = set._indexes[value];
-
-        if (valueIndex != 0) { // Equivalent to contains(set, value)
-            // To delete an element from the _values array in O(1), we swap the element to delete with the last one in
-            // the array, and then remove the last element (sometimes called as 'swap and pop').
-            // This modifies the order of the array, as noted in {at}.
-
-            uint256 toDeleteIndex = valueIndex - 1;
-            uint256 lastIndex = set._values.length - 1;
-
-            // When the value to delete is the last one, the swap operation is unnecessary. However, since this occurs
-            // so rarely, we still do the swap anyway to avoid the gas cost of adding an 'if' statement.
-
-            bytes32 lastvalue = set._values[lastIndex];
-
-            // Move the last value to the index where the value to delete is
-            set._values[toDeleteIndex] = lastvalue;
-            // Update the index for the moved value
-            set._indexes[lastvalue] = toDeleteIndex + 1; // All indexes are 1-based
-
-            // Delete the slot where the moved value was stored
-            set._values.pop();
-
-            // Delete the index for the deleted slot
-            delete set._indexes[value];
-
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @dev Returns true if the value is in the set. O(1).
-     */
-    function _contains(Set storage set, bytes32 value) private view returns (bool) {
-        return set._indexes[value] != 0;
-    }
-
-    /**
-     * @dev Returns the number of values on the set. O(1).
-     */
-    function _length(Set storage set) private view returns (uint256) {
-        return set._values.length;
-    }
-
-   /**
-    * @dev Returns the value stored at position `index` in the set. O(1).
-    *
-    * Note that there are no guarantees on the ordering of values inside the
-    * array, and it may change when more values are added or removed.
-    *
-    * Requirements:
-    *
-    * - `index` must be strictly less than {length}.
-    */
-    function _at(Set storage set, uint256 index) private view returns (bytes32) {
-        require(set._values.length > index, "EnumerableSet: index out of bounds");
-        return set._values[index];
-    }
-
-    // AddressSet
-
-    struct AddressSet {
-        Set _inner;
-    }
-
-    /**
-     * @dev Add a value to a set. O(1).
-     *
-     * Returns true if the value was added to the set, that is if it was not
-     * already present.
-     */
-    function add(AddressSet storage set, address value) internal returns (bool) {
-        return _add(set._inner, bytes32(uint256(value)));
-    }
-
-    /**
-     * @dev Removes a value from a set. O(1).
-     *
-     * Returns true if the value was removed from the set, that is if it was
-     * present.
-     */
-    function remove(AddressSet storage set, address value) internal returns (bool) {
-        return _remove(set._inner, bytes32(uint256(value)));
-    }
-
-    /**
-     * @dev Returns true if the value is in the set. O(1).
-     */
-    function contains(AddressSet storage set, address value) internal view returns (bool) {
-        return _contains(set._inner, bytes32(uint256(value)));
-    }
-
-    /**
-     * @dev Returns the number of values in the set. O(1).
-     */
-    function length(AddressSet storage set) internal view returns (uint256) {
-        return _length(set._inner);
-    }
-
-   /**
-    * @dev Returns the value stored at position `index` in the set. O(1).
-    *
-    * Note that there are no guarantees on the ordering of values inside the
-    * array, and it may change when more values are added or removed.
-    *
-    * Requirements:
-    *
-    * - `index` must be strictly less than {length}.
-    */
-    function at(AddressSet storage set, uint256 index) internal view returns (address) {
-        return address(uint256(_at(set._inner, index)));
-    }
-
-
-    // UintSet
-
-    struct UintSet {
-        Set _inner;
-    }
-
-    /**
-     * @dev Add a value to a set. O(1).
-     *
-     * Returns true if the value was added to the set, that is if it was not
-     * already present.
-     */
-    function add(UintSet storage set, uint256 value) internal returns (bool) {
-        return _add(set._inner, bytes32(value));
-    }
-
-    /**
-     * @dev Removes a value from a set. O(1).
-     *
-     * Returns true if the value was removed from the set, that is if it was
-     * present.
-     */
-    function remove(UintSet storage set, uint256 value) internal returns (bool) {
-        return _remove(set._inner, bytes32(value));
-    }
-
-    /**
-     * @dev Returns true if the value is in the set. O(1).
-     */
-    function contains(UintSet storage set, uint256 value) internal view returns (bool) {
-        return _contains(set._inner, bytes32(value));
-    }
-
-    /**
-     * @dev Returns the number of values on the set. O(1).
-     */
-    function length(UintSet storage set) internal view returns (uint256) {
-        return _length(set._inner);
-    }
-
-   /**
-    * @dev Returns the value stored at position `index` in the set. O(1).
-    *
-    * Note that there are no guarantees on the ordering of values inside the
-    * array, and it may change when more values are added or removed.
-    *
-    * Requirements:
-    *
-    * - `index` must be strictly less than {length}.
-    */
-    function at(UintSet storage set, uint256 index) internal view returns (uint256) {
-        return uint256(_at(set._inner, index));
-    }
-}
-
-
-// File src/polygon/lib/AccessControl.sol
-
-pragma solidity ^0.6.0;
-
-
-
-/**
- * @dev Contract module that allows children to implement role-based access
- * control mechanisms.
- *
- * Roles are referred to by their `bytes32` identifier. These should be exposed
- * in the external API and be unique. The best way to achieve this is by
- * using `public constant` hash digests:
- *
- * ```
- * bytes32 public constant MY_ROLE = keccak256("MY_ROLE");
- * ```
- *
- * Roles can be used to represent a set of permissions. To restrict access to a
- * function call, use {hasRole}:
- *
- * ```
- * function foo() public {
- *     require(hasRole(MY_ROLE, msg.sender));
- *     ...
- * }
- * ```
- *
- * Roles can be granted and revoked dynamically via the {grantRole} and
- * {revokeRole} functions. Each role has an associated admin role, and only
- * accounts that have a role's admin role can call {grantRole} and {revokeRole}.
- *
- * By default, the admin role for all roles is `DEFAULT_ADMIN_ROLE`, which means
- * that only accounts with this role will be able to grant or revoke other
- * roles. More complex role relationships can be created by using
- * {_setRoleAdmin}.
- *
- * WARNING: The `DEFAULT_ADMIN_ROLE` is also its own admin: it has permission to
- * grant and revoke this role. Extra precautions should be taken to secure
- * accounts that have been granted it.
- */
-abstract contract AccessControl is Context {
-    using EnumerableSet for EnumerableSet.AddressSet;
-    using Address for address;
-
-    struct RoleData {
-        EnumerableSet.AddressSet members;
-        bytes32 adminRole;
-    }
-
-    mapping (bytes32 => RoleData) private _roles;
-
-    bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
-
-    /**
-     * @dev Emitted when `newAdminRole` is set as ``role``'s admin role, replacing `previousAdminRole`
-     *
-     * `DEFAULT_ADMIN_ROLE` is the starting admin for all roles, despite
-     * {RoleAdminChanged} not being emitted signaling this.
-     *
-     * _Available since v3.1._
-     */
-    event RoleAdminChanged(bytes32 indexed role, bytes32 indexed previousAdminRole, bytes32 indexed newAdminRole);
-
-    /**
-     * @dev Emitted when `account` is granted `role`.
-     *
-     * `sender` is the account that originated the contract call, an admin role
-     * bearer except when using {_setupRole}.
-     */
-    event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender);
-
-    /**
-     * @dev Emitted when `account` is revoked `role`.
-     *
-     * `sender` is the account that originated the contract call:
-     *   - if using `revokeRole`, it is the admin role bearer
-     *   - if using `renounceRole`, it is the role bearer (i.e. `account`)
-     */
-    event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender);
-
-    /**
-     * @dev Returns `true` if `account` has been granted `role`.
-     */
-    function hasRole(bytes32 role, address account) public view returns (bool) {
-        return _roles[role].members.contains(account);
-    }
-
-    /**
-     * @dev Returns the number of accounts that have `role`. Can be used
-     * together with {getRoleMember} to enumerate all bearers of a role.
-     */
-    function getRoleMemberCount(bytes32 role) public view returns (uint256) {
-        return _roles[role].members.length();
-    }
-
-    /**
-     * @dev Returns one of the accounts that have `role`. `index` must be a
-     * value between 0 and {getRoleMemberCount}, non-inclusive.
-     *
-     * Role bearers are not sorted in any particular way, and their ordering may
-     * change at any point.
-     *
-     * WARNING: When using {getRoleMember} and {getRoleMemberCount}, make sure
-     * you perform all queries on the same block. See the following
-     * https://forum.openzeppelin.com/t/iterating-over-elements-on-enumerableset-in-openzeppelin-contracts/2296[forum post]
-     * for more information.
-     */
-    function getRoleMember(bytes32 role, uint256 index) public view returns (address) {
-        return _roles[role].members.at(index);
-    }
-
-    /**
-     * @dev Returns the admin role that controls `role`. See {grantRole} and
-     * {revokeRole}.
-     *
-     * To change a role's admin, use {_setRoleAdmin}.
-     */
-    function getRoleAdmin(bytes32 role) public view returns (bytes32) {
-        return _roles[role].adminRole;
-    }
-
-    /**
-     * @dev Grants `role` to `account`.
-     *
-     * If `account` had not been already granted `role`, emits a {RoleGranted}
-     * event.
-     *
-     * Requirements:
-     *
-     * - the caller must have ``role``'s admin role.
-     */
-    function grantRole(bytes32 role, address account) public virtual {
-        require(hasRole(_roles[role].adminRole, _msgSender()), "AccessControl: sender must be an admin to grant");
-
-        _grantRole(role, account);
-    }
-
-    /**
-     * @dev Revokes `role` from `account`.
-     *
-     * If `account` had been granted `role`, emits a {RoleRevoked} event.
-     *
-     * Requirements:
-     *
-     * - the caller must have ``role``'s admin role.
-     */
-    function revokeRole(bytes32 role, address account) public virtual {
-        require(hasRole(_roles[role].adminRole, _msgSender()), "AccessControl: sender must be an admin to revoke");
-
-        _revokeRole(role, account);
-    }
-
-    /**
-     * @dev Revokes `role` from the calling account.
-     *
-     * Roles are often managed via {grantRole} and {revokeRole}: this function's
-     * purpose is to provide a mechanism for accounts to lose their privileges
-     * if they are compromised (such as when a trusted device is misplaced).
-     *
-     * If the calling account had been granted `role`, emits a {RoleRevoked}
-     * event.
-     *
-     * Requirements:
-     *
-     * - the caller must be `account`.
-     */
-    function renounceRole(bytes32 role, address account) public virtual {
-        require(account == _msgSender(), "AccessControl: can only renounce roles for self");
-
-        _revokeRole(role, account);
-    }
-
-    /**
-     * @dev Grants `role` to `account`.
-     *
-     * If `account` had not been already granted `role`, emits a {RoleGranted}
-     * event. Note that unlike {grantRole}, this function doesn't perform any
-     * checks on the calling account.
-     *
-     * [WARNING]
-     * ====
-     * This function should only be called from the constructor when setting
-     * up the initial roles for the system.
-     *
-     * Using this function in any other way is effectively circumventing the admin
-     * system imposed by {AccessControl}.
-     * ====
-     */
-    function _setupRole(bytes32 role, address account) internal virtual {
-        _grantRole(role, account);
-    }
-
-    /**
-     * @dev Sets `adminRole` as ``role``'s admin role.
-     *
-     * Emits a {RoleAdminChanged} event.
-     */
-    function _setRoleAdmin(bytes32 role, bytes32 adminRole) internal virtual {
-        emit RoleAdminChanged(role, _roles[role].adminRole, adminRole);
-        _roles[role].adminRole = adminRole;
-    }
-
-    function _grantRole(bytes32 role, address account) private {
-        if (_roles[role].members.add(account)) {
-            emit RoleGranted(role, account, _msgSender());
-        }
-    }
-
-    function _revokeRole(bytes32 role, address account) private {
-        if (_roles[role].members.remove(account)) {
-            emit RoleRevoked(role, account, _msgSender());
-        }
-    }
-}
-
-
-// File src/polygon/lib/AccessControlMixin.sol
-
-pragma solidity ^0.6.0;
-
-contract AccessControlMixin is AccessControl {
-    string private _revertMsg;
-    function _setupContractId(string memory contractId) internal {
-        _revertMsg = string(abi.encodePacked(contractId, ": INSUFFICIENT_PERMISSIONS"));
-    }
-
-    modifier only(bytes32 role) {
-        require(
-            hasRole(role, _msgSender()),
-            _revertMsg
-        );
-        _;
-    }
-}
-
-
-// File src/polygon/lib/Initializable.sol
-
-pragma solidity ^0.6.0;
-
-contract Initializable {
-    bool inited = false;
-
-    modifier initializer() {
-        require(!inited, "already inited");
-        _;
-        inited = true;
-    }
-}
-
-
-// File src/polygon/lib/EIP712Base.sol
-
-pragma solidity ^0.6.0;
-
-contract EIP712Base is Initializable {
-    struct EIP712Domain {
-        string name;
-        string version;
-        address verifyingContract;
-        bytes32 salt;
-    }
-
-    string constant public ERC712_VERSION = "1";
-
-    bytes32 internal constant EIP712_DOMAIN_TYPEHASH = keccak256(
-        bytes(
-            "EIP712Domain(string name,string version,address verifyingContract,bytes32 salt)"
-        )
-    );
-    bytes32 internal domainSeperator;
-
-    // supposed to be called once while initializing.
-    // one of the contractsa that inherits this contract follows proxy pattern
-    // so it is not possible to do this in a constructor
-    function _initializeEIP712(
-        string memory name
-    )
-        internal
-        initializer
-    {
-        _setDomainSeperator(name);
-    }
-
-    function _setDomainSeperator(string memory name) internal {
-        domainSeperator = keccak256(
-            abi.encode(
-                EIP712_DOMAIN_TYPEHASH,
-                keccak256(bytes(name)),
-                keccak256(bytes(ERC712_VERSION)),
-                address(this),
-                bytes32(getChainId())
-            )
-        );
-    }
-
-    function getDomainSeperator() public view returns (bytes32) {
-        return domainSeperator;
-    }
-
-    function getChainId() public pure returns (uint256) {
-        uint256 id;
-        assembly {
-            id := chainid()
-        }
-        return id;
-    }
-
-    /**
-     * Accept message hash and returns hash message in EIP712 compatible form
-     * So that it can be used to recover signer from signature signed using EIP712 formatted data
-     * https://eips.ethereum.org/EIPS/eip-712
-     * "\\x19" makes the encoding deterministic
-     * "\\x01" is the version byte to make it compatible to EIP-191
-     */
-    function toTypedMessageHash(bytes32 messageHash)
-        internal
-        view
-        returns (bytes32)
-    {
-        return
-            keccak256(
-                abi.encodePacked("\x19\x01", getDomainSeperator(), messageHash)
-            );
-    }
-}
-
-
-// File src/polygon/lib/ContextMixin.sol
-
-pragma solidity ^0.6.0;
-
-abstract contract ContextMixin {
-    function msgSender()
-        internal
-        view
-        returns (address payable sender)
-    {
-        if (msg.sender == address(this)) {
-            bytes memory array = msg.data;
-            uint256 index = msg.data.length;
-            assembly {
-                // Load the 32 bytes word from memory with the address on the lower 20 bytes, and mask those.
-                sender := and(
-                    mload(add(array, index)),
-                    0xffffffffffffffffffffffffffffffffffffffff
-                )
-            }
-        } else {
-            sender = msg.sender;
-        }
-        return sender;
-    }
-}
-
-
-// File src/lib/ownable.sol
-
-pragma solidity ^0.6.0;
-
-/**
- * @dev Contract module which provides a basic access control mechanism, where
- * there is an account (an owner) that can be granted exclusive access to
- * specific functions.
- *
- * By default, the owner account will be the one that deploys the contract. This
- * can later be changed with {transferOwnership}.
- *
- * This module is used through inheritance. It will make available the modifier
- * `onlyOwner`, which can be applied to your functions to restrict their use to
- * the owner.
- */
-contract Ownable is Context {
-    address private _owner;
-
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    /**
-     * @dev Initializes the contract setting the deployer as the initial owner.
-     */
-    constructor () internal {
-        address msgSender = _msgSender();
-        _owner = msgSender;
-        emit OwnershipTransferred(address(0), msgSender);
-    }
-
-    /**
-     * @dev Returns the address of the current owner.
-     */
-    function owner() public view returns (address) {
-        return _owner;
-    }
-
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        require(_owner == _msgSender(), "Ownable: caller is not the owner");
-        _;
-    }
-
-    /**
-     * @dev Leaves the contract without owner. It will not be possible to call
-     * `onlyOwner` functions anymore. Can only be called by the current owner.
-     *
-     * NOTE: Renouncing ownership will leave the contract without an owner,
-     * thereby removing any functionality that is only available to the owner.
-     */
-    function renounceOwnership() public virtual onlyOwner {
-        emit OwnershipTransferred(_owner, address(0));
-        _owner = address(0);
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Can only be called by the current owner.
-     */
-    function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
-        emit OwnershipTransferred(_owner, newOwner);
-        _owner = newOwner;
-    }
-}
-
-
-// File src/polygon/pickle-token.sol
-
+// https://github.com/iearn-finance/vaults/blob/master/contracts/vaults/yVault.sol
 pragma solidity ^0.6.7;
 
-interface IChildToken {
-    function deposit(address user, bytes calldata depositData) external;
-}
 
-// PickleToken with Governance.
-contract PickleToken is 
-    ERC20,
-    IChildToken,
-    Ownable,
-    EIP712Base,
-    AccessControlMixin,
-    ContextMixin
-{
-    bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
+contract PickleJar is ERC20 {
+    using SafeERC20 for IERC20;
+    using Address for address;
+    using SafeMath for uint256;
 
-    constructor(
-        string memory name_,
-        string memory symbol_,
-        uint8 decimals_,
-        address childChainManager,
-        address minter
-    ) public ERC20(name_, symbol_) {
-        _setupContractId("ChildMintableERC20");
-        _setupDecimals(decimals_);
-        _setupRole(DEFAULT_ADMIN_ROLE, minter);
-        _setupRole(DEPOSITOR_ROLE, childChainManager);
-        _initializeEIP712(name_);
-    }
+    IERC20 public token;
 
-    // This is to support Native meta transactions
-    // never use msg.sender directly, use _msgSender() instead
-    function _msgSender()
-        internal
-        override
-        view
-        returns (address payable sender)
+    uint256 public min = 9500;
+    uint256 public constant max = 10000;
+
+    address public governance;
+    address public timelock;
+    address public controller;
+
+    constructor(address _token, address _governance, address _timelock, address _controller)
+        public
+        ERC20(
+            string(abi.encodePacked("pickling ", ERC20(_token).name())),
+            string(abi.encodePacked("p", ERC20(_token).symbol()))
+        )
     {
-        return ContextMixin.msgSender();
+        _setupDecimals(ERC20(_token).decimals());
+        token = IERC20(_token);
+        governance = _governance;
+        timelock = _timelock;
+        controller = _controller;
     }
 
-    /**
-     * @notice called when token is deposited on root chain
-     * @dev Should be callable only by ChildChainManager
-     * Should handle deposit by minting the required amount for user
-     * Make sure minting is done only by this function
-     * @param user user address for whom deposit is being done
-     * @param depositData abi encoded amount
-     */
-    function deposit(address user, bytes calldata depositData)
-        external
-        override
-        only(DEPOSITOR_ROLE)
-    {
-        uint256 amount = abi.decode(depositData, (uint256));
-        _mint(user, amount);
+    function balance() public view returns (uint256) {
+        return
+            token.balanceOf(address(this)).add(
+                IController(controller).balanceOf(address(token))
+            );
     }
 
-    /**
-     * @notice called when user wants to withdraw tokens back to root chain
-     * @dev Should burn user's tokens. This transaction will be verified when exiting on root chain
-     * @param amount amount of tokens to withdraw
-     */
-    function withdraw(uint256 amount) external {
-        _burn(_msgSender(), amount);
+    function setMin(uint256 _min) external {
+        require(msg.sender == governance, "!governance");
+        require(_min <= max, "numerator cannot be greater than denominator");
+        min = _min;
     }
 
-    /**
-     * @notice Example function to handle minting tokens on matic chain
-     * @dev Minting can be done as per requirement,
-     * This implementation allows only admin to mint tokens but it can be changed as per requirement
-     * @param user user for whom tokens are being minted
-     * @param amount amount of token to mint
-     */
-    function mint(address user, uint256 amount) public only(DEFAULT_ADMIN_ROLE) {
-        _mint(user, amount);
+    function setGovernance(address _governance) public {
+        require(msg.sender == governance, "!governance");
+        governance = _governance;
+    }
+
+    function setTimelock(address _timelock) public {
+        require(msg.sender == timelock, "!timelock");
+        timelock = _timelock;
+    }
+
+    function setController(address _controller) public {
+        require(msg.sender == timelock, "!timelock");
+        controller = _controller;
+    }
+
+    // Custom logic in here for how much the jars allows to be borrowed
+    // Sets minimum required on-hand to keep small withdrawals cheap
+    function available() public view returns (uint256) {
+        return token.balanceOf(address(this)).mul(min).div(max);
+    }
+
+    function earn() public {
+        uint256 _bal = available();
+        token.safeTransfer(controller, _bal);
+        IController(controller).earn(address(token), _bal);
+    }
+
+    function depositAll() external {
+        deposit(token.balanceOf(msg.sender));
+    }
+
+    function deposit(uint256 _amount) public {
+        uint256 _pool = balance();
+        uint256 _before = token.balanceOf(address(this));
+        token.safeTransferFrom(msg.sender, address(this), _amount);
+        uint256 _after = token.balanceOf(address(this));
+        _amount = _after.sub(_before); // Additional check for deflationary tokens
+        uint256 shares = 0;
+        if (totalSupply() == 0) {
+            shares = _amount;
+        } else {
+            shares = (_amount.mul(totalSupply())).div(_pool);
+        }
+        _mint(msg.sender, shares);
+    }
+
+    function withdrawAll() external {
+        withdraw(balanceOf(msg.sender));
+    }
+
+    // Used to swap any borrowed reserve over the debt limit to liquidate to 'token'
+    function harvest(address reserve, uint256 amount) external {
+        require(msg.sender == controller, "!controller");
+        require(reserve != address(token), "token");
+        IERC20(reserve).safeTransfer(controller, amount);
+    }
+
+    // No rebalance implementation for lower fees and faster swaps
+    function withdraw(uint256 _shares) public {
+        uint256 r = (balance().mul(_shares)).div(totalSupply());
+        _burn(msg.sender, _shares);
+
+        // Check balance
+        uint256 b = token.balanceOf(address(this));
+        if (b < r) {
+            uint256 _withdraw = r.sub(b);
+            IController(controller).withdraw(address(token), _withdraw);
+            uint256 _after = token.balanceOf(address(this));
+            uint256 _diff = _after.sub(b);
+            if (_diff < _withdraw) {
+                r = b.add(_diff);
+            }
+        }
+
+        token.safeTransfer(msg.sender, r);
+    }
+
+    function getRatio() public view returns (uint256) {
+        return balance().mul(1e18).div(totalSupply());
     }
 }

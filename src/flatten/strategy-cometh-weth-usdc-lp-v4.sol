@@ -782,755 +782,993 @@ library SafeERC20 {
 }
 
 
-// File src/lib/enumerableSet.sol
+// File src/interfaces/jar.sol
+pragma solidity ^0.6.2;
 
-pragma solidity ^0.6.0;
+interface IJar is IERC20 {
+    function token() external view returns (address);
 
-/**
- * @dev Library for managing
- * https://en.wikipedia.org/wiki/Set_(abstract_data_type)[sets] of primitive
- * types.
- *
- * Sets have the following properties:
- *
- * - Elements are added, removed, and checked for existence in constant time
- * (O(1)).
- * - Elements are enumerated in O(n). No guarantees are made on the ordering.
- *
- * ```
- * contract Example {
- *     // Add the library methods
- *     using EnumerableSet for EnumerableSet.AddressSet;
- *
- *     // Declare a set state variable
- *     EnumerableSet.AddressSet private mySet;
- * }
- * ```
- *
- * As of v3.0.0, only sets of type `address` (`AddressSet`) and `uint256`
- * (`UintSet`) are supported.
- */
-library EnumerableSet {
-    // To implement this library for multiple types with as little code
-    // repetition as possible, we write it in terms of a generic Set type with
-    // bytes32 values.
-    // The Set implementation uses private functions, and user-facing
-    // implementations (such as AddressSet) are just wrappers around the
-    // underlying Set.
-    // This means that we can only create new EnumerableSets for types that fit
-    // in bytes32.
+    function claimInsurance() external; // NOTE: Only yDelegatedVault implements this
 
-    struct Set {
-        // Storage of set values
-        bytes32[] _values;
+    function getRatio() external view returns (uint256);
 
-        // Position of the value in the `values` array, plus 1 because index 0
-        // means a value is not in the set.
-        mapping (bytes32 => uint256) _indexes;
-    }
+    function depositAll() external;
 
-    /**
-     * @dev Add a value to a set. O(1).
-     *
-     * Returns true if the value was added to the set, that is if it was not
-     * already present.
-     */
-    function _add(Set storage set, bytes32 value) private returns (bool) {
-        if (!_contains(set, value)) {
-            set._values.push(value);
-            // The value is stored at length-1, but we add 1 to all indexes
-            // and use 0 as a sentinel value
-            set._indexes[value] = set._values.length;
-            return true;
-        } else {
-            return false;
-        }
-    }
+    function deposit(uint256) external;
 
-    /**
-     * @dev Removes a value from a set. O(1).
-     *
-     * Returns true if the value was removed from the set, that is if it was
-     * present.
-     */
-    function _remove(Set storage set, bytes32 value) private returns (bool) {
-        // We read and store the value's index to prevent multiple reads from the same storage slot
-        uint256 valueIndex = set._indexes[value];
+    function withdrawAll() external;
 
-        if (valueIndex != 0) { // Equivalent to contains(set, value)
-            // To delete an element from the _values array in O(1), we swap the element to delete with the last one in
-            // the array, and then remove the last element (sometimes called as 'swap and pop').
-            // This modifies the order of the array, as noted in {at}.
+    function withdraw(uint256) external;
 
-            uint256 toDeleteIndex = valueIndex - 1;
-            uint256 lastIndex = set._values.length - 1;
+    function earn() external;
 
-            // When the value to delete is the last one, the swap operation is unnecessary. However, since this occurs
-            // so rarely, we still do the swap anyway to avoid the gas cost of adding an 'if' statement.
-
-            bytes32 lastvalue = set._values[lastIndex];
-
-            // Move the last value to the index where the value to delete is
-            set._values[toDeleteIndex] = lastvalue;
-            // Update the index for the moved value
-            set._indexes[lastvalue] = toDeleteIndex + 1; // All indexes are 1-based
-
-            // Delete the slot where the moved value was stored
-            set._values.pop();
-
-            // Delete the index for the deleted slot
-            delete set._indexes[value];
-
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @dev Returns true if the value is in the set. O(1).
-     */
-    function _contains(Set storage set, bytes32 value) private view returns (bool) {
-        return set._indexes[value] != 0;
-    }
-
-    /**
-     * @dev Returns the number of values on the set. O(1).
-     */
-    function _length(Set storage set) private view returns (uint256) {
-        return set._values.length;
-    }
-
-   /**
-    * @dev Returns the value stored at position `index` in the set. O(1).
-    *
-    * Note that there are no guarantees on the ordering of values inside the
-    * array, and it may change when more values are added or removed.
-    *
-    * Requirements:
-    *
-    * - `index` must be strictly less than {length}.
-    */
-    function _at(Set storage set, uint256 index) private view returns (bytes32) {
-        require(set._values.length > index, "EnumerableSet: index out of bounds");
-        return set._values[index];
-    }
-
-    // AddressSet
-
-    struct AddressSet {
-        Set _inner;
-    }
-
-    /**
-     * @dev Add a value to a set. O(1).
-     *
-     * Returns true if the value was added to the set, that is if it was not
-     * already present.
-     */
-    function add(AddressSet storage set, address value) internal returns (bool) {
-        return _add(set._inner, bytes32(uint256(value)));
-    }
-
-    /**
-     * @dev Removes a value from a set. O(1).
-     *
-     * Returns true if the value was removed from the set, that is if it was
-     * present.
-     */
-    function remove(AddressSet storage set, address value) internal returns (bool) {
-        return _remove(set._inner, bytes32(uint256(value)));
-    }
-
-    /**
-     * @dev Returns true if the value is in the set. O(1).
-     */
-    function contains(AddressSet storage set, address value) internal view returns (bool) {
-        return _contains(set._inner, bytes32(uint256(value)));
-    }
-
-    /**
-     * @dev Returns the number of values in the set. O(1).
-     */
-    function length(AddressSet storage set) internal view returns (uint256) {
-        return _length(set._inner);
-    }
-
-   /**
-    * @dev Returns the value stored at position `index` in the set. O(1).
-    *
-    * Note that there are no guarantees on the ordering of values inside the
-    * array, and it may change when more values are added or removed.
-    *
-    * Requirements:
-    *
-    * - `index` must be strictly less than {length}.
-    */
-    function at(AddressSet storage set, uint256 index) internal view returns (address) {
-        return address(uint256(_at(set._inner, index)));
-    }
-
-
-    // UintSet
-
-    struct UintSet {
-        Set _inner;
-    }
-
-    /**
-     * @dev Add a value to a set. O(1).
-     *
-     * Returns true if the value was added to the set, that is if it was not
-     * already present.
-     */
-    function add(UintSet storage set, uint256 value) internal returns (bool) {
-        return _add(set._inner, bytes32(value));
-    }
-
-    /**
-     * @dev Removes a value from a set. O(1).
-     *
-     * Returns true if the value was removed from the set, that is if it was
-     * present.
-     */
-    function remove(UintSet storage set, uint256 value) internal returns (bool) {
-        return _remove(set._inner, bytes32(value));
-    }
-
-    /**
-     * @dev Returns true if the value is in the set. O(1).
-     */
-    function contains(UintSet storage set, uint256 value) internal view returns (bool) {
-        return _contains(set._inner, bytes32(value));
-    }
-
-    /**
-     * @dev Returns the number of values on the set. O(1).
-     */
-    function length(UintSet storage set) internal view returns (uint256) {
-        return _length(set._inner);
-    }
-
-   /**
-    * @dev Returns the value stored at position `index` in the set. O(1).
-    *
-    * Note that there are no guarantees on the ordering of values inside the
-    * array, and it may change when more values are added or removed.
-    *
-    * Requirements:
-    *
-    * - `index` must be strictly less than {length}.
-    */
-    function at(UintSet storage set, uint256 index) internal view returns (uint256) {
-        return uint256(_at(set._inner, index));
-    }
+    function decimals() external view returns (uint8);
 }
 
 
-// File src/polygon/lib/AccessControl.sol
+// File src/interfaces/staking-rewards.sol
+pragma solidity ^0.6.2;
 
-pragma solidity ^0.6.0;
+interface IStakingRewards {
+    function balanceOf(address account) external view returns (uint256);
 
+    function earned(address account) external view returns (uint256);
 
+    function exit() external;
 
-/**
- * @dev Contract module that allows children to implement role-based access
- * control mechanisms.
- *
- * Roles are referred to by their `bytes32` identifier. These should be exposed
- * in the external API and be unique. The best way to achieve this is by
- * using `public constant` hash digests:
- *
- * ```
- * bytes32 public constant MY_ROLE = keccak256("MY_ROLE");
- * ```
- *
- * Roles can be used to represent a set of permissions. To restrict access to a
- * function call, use {hasRole}:
- *
- * ```
- * function foo() public {
- *     require(hasRole(MY_ROLE, msg.sender));
- *     ...
- * }
- * ```
- *
- * Roles can be granted and revoked dynamically via the {grantRole} and
- * {revokeRole} functions. Each role has an associated admin role, and only
- * accounts that have a role's admin role can call {grantRole} and {revokeRole}.
- *
- * By default, the admin role for all roles is `DEFAULT_ADMIN_ROLE`, which means
- * that only accounts with this role will be able to grant or revoke other
- * roles. More complex role relationships can be created by using
- * {_setRoleAdmin}.
- *
- * WARNING: The `DEFAULT_ADMIN_ROLE` is also its own admin: it has permission to
- * grant and revoke this role. Extra precautions should be taken to secure
- * accounts that have been granted it.
- */
-abstract contract AccessControl is Context {
-    using EnumerableSet for EnumerableSet.AddressSet;
-    using Address for address;
+    function getReward() external;
 
-    struct RoleData {
-        EnumerableSet.AddressSet members;
-        bytes32 adminRole;
-    }
+    function getRewardForDuration() external view returns (uint256);
 
-    mapping (bytes32 => RoleData) private _roles;
+    function lastTimeRewardApplicable() external view returns (uint256);
 
-    bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
+    function lastUpdateTime() external view returns (uint256);
 
-    /**
-     * @dev Emitted when `newAdminRole` is set as ``role``'s admin role, replacing `previousAdminRole`
-     *
-     * `DEFAULT_ADMIN_ROLE` is the starting admin for all roles, despite
-     * {RoleAdminChanged} not being emitted signaling this.
-     *
-     * _Available since v3.1._
-     */
-    event RoleAdminChanged(bytes32 indexed role, bytes32 indexed previousAdminRole, bytes32 indexed newAdminRole);
+    function notifyRewardAmount(uint256 reward) external;
 
-    /**
-     * @dev Emitted when `account` is granted `role`.
-     *
-     * `sender` is the account that originated the contract call, an admin role
-     * bearer except when using {_setupRole}.
-     */
-    event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender);
+    function periodFinish() external view returns (uint256);
 
-    /**
-     * @dev Emitted when `account` is revoked `role`.
-     *
-     * `sender` is the account that originated the contract call:
-     *   - if using `revokeRole`, it is the admin role bearer
-     *   - if using `renounceRole`, it is the role bearer (i.e. `account`)
-     */
-    event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender);
+    function rewardPerToken() external view returns (uint256);
 
-    /**
-     * @dev Returns `true` if `account` has been granted `role`.
-     */
-    function hasRole(bytes32 role, address account) public view returns (bool) {
-        return _roles[role].members.contains(account);
-    }
+    function rewardPerTokenStored() external view returns (uint256);
 
-    /**
-     * @dev Returns the number of accounts that have `role`. Can be used
-     * together with {getRoleMember} to enumerate all bearers of a role.
-     */
-    function getRoleMemberCount(bytes32 role) public view returns (uint256) {
-        return _roles[role].members.length();
-    }
+    function rewardRate() external view returns (uint256);
 
-    /**
-     * @dev Returns one of the accounts that have `role`. `index` must be a
-     * value between 0 and {getRoleMemberCount}, non-inclusive.
-     *
-     * Role bearers are not sorted in any particular way, and their ordering may
-     * change at any point.
-     *
-     * WARNING: When using {getRoleMember} and {getRoleMemberCount}, make sure
-     * you perform all queries on the same block. See the following
-     * https://forum.openzeppelin.com/t/iterating-over-elements-on-enumerableset-in-openzeppelin-contracts/2296[forum post]
-     * for more information.
-     */
-    function getRoleMember(bytes32 role, uint256 index) public view returns (address) {
-        return _roles[role].members.at(index);
-    }
+    function rewards(address) external view returns (uint256);
 
-    /**
-     * @dev Returns the admin role that controls `role`. See {grantRole} and
-     * {revokeRole}.
-     *
-     * To change a role's admin, use {_setRoleAdmin}.
-     */
-    function getRoleAdmin(bytes32 role) public view returns (bytes32) {
-        return _roles[role].adminRole;
-    }
+    function rewardsDistribution() external view returns (address);
 
-    /**
-     * @dev Grants `role` to `account`.
-     *
-     * If `account` had not been already granted `role`, emits a {RoleGranted}
-     * event.
-     *
-     * Requirements:
-     *
-     * - the caller must have ``role``'s admin role.
-     */
-    function grantRole(bytes32 role, address account) public virtual {
-        require(hasRole(_roles[role].adminRole, _msgSender()), "AccessControl: sender must be an admin to grant");
+    function rewardsDuration() external view returns (uint256);
 
-        _grantRole(role, account);
-    }
+    function rewardsToken() external view returns (address);
 
-    /**
-     * @dev Revokes `role` from `account`.
-     *
-     * If `account` had been granted `role`, emits a {RoleRevoked} event.
-     *
-     * Requirements:
-     *
-     * - the caller must have ``role``'s admin role.
-     */
-    function revokeRole(bytes32 role, address account) public virtual {
-        require(hasRole(_roles[role].adminRole, _msgSender()), "AccessControl: sender must be an admin to revoke");
+    function stake(uint256 amount) external;
 
-        _revokeRole(role, account);
-    }
+    function deposit(uint256 amount) external;
 
-    /**
-     * @dev Revokes `role` from the calling account.
-     *
-     * Roles are often managed via {grantRole} and {revokeRole}: this function's
-     * purpose is to provide a mechanism for accounts to lose their privileges
-     * if they are compromised (such as when a trusted device is misplaced).
-     *
-     * If the calling account had been granted `role`, emits a {RoleRevoked}
-     * event.
-     *
-     * Requirements:
-     *
-     * - the caller must be `account`.
-     */
-    function renounceRole(bytes32 role, address account) public virtual {
-        require(account == _msgSender(), "AccessControl: can only renounce roles for self");
+    function stakeWithPermit(
+        uint256 amount,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external;
 
-        _revokeRole(role, account);
-    }
+    function stakingToken() external view returns (address);
 
-    /**
-     * @dev Grants `role` to `account`.
-     *
-     * If `account` had not been already granted `role`, emits a {RoleGranted}
-     * event. Note that unlike {grantRole}, this function doesn't perform any
-     * checks on the calling account.
-     *
-     * [WARNING]
-     * ====
-     * This function should only be called from the constructor when setting
-     * up the initial roles for the system.
-     *
-     * Using this function in any other way is effectively circumventing the admin
-     * system imposed by {AccessControl}.
-     * ====
-     */
-    function _setupRole(bytes32 role, address account) internal virtual {
-        _grantRole(role, account);
-    }
+    function totalSupply() external view returns (uint256);
 
-    /**
-     * @dev Sets `adminRole` as ``role``'s admin role.
-     *
-     * Emits a {RoleAdminChanged} event.
-     */
-    function _setRoleAdmin(bytes32 role, bytes32 adminRole) internal virtual {
-        emit RoleAdminChanged(role, _roles[role].adminRole, adminRole);
-        _roles[role].adminRole = adminRole;
-    }
+    function userRewardPerTokenPaid(address) external view returns (uint256);
 
-    function _grantRole(bytes32 role, address account) private {
-        if (_roles[role].members.add(account)) {
-            emit RoleGranted(role, account, _msgSender());
-        }
-    }
+    function withdraw(uint256 amount) external;
+}
 
-    function _revokeRole(bytes32 role, address account) private {
-        if (_roles[role].members.remove(account)) {
-            emit RoleRevoked(role, account, _msgSender());
-        }
-    }
+interface IStakingRewardsFactory {
+    function deploy(address stakingToken, uint256 rewardAmount) external;
+
+    function isOwner() external view returns (bool);
+
+    function notifyRewardAmount(address stakingToken) external;
+
+    function notifyRewardAmounts() external;
+
+    function owner() external view returns (address);
+
+    function renounceOwnership() external;
+
+    function rewardsToken() external view returns (address);
+
+    function stakingRewardsGenesis() external view returns (uint256);
+
+    function stakingRewardsInfoByStakingToken(address)
+        external
+        view
+        returns (address stakingRewards, uint256 rewardAmount);
+
+    function stakingTokens(uint256) external view returns (address);
+
+    function transferOwnership(address newOwner) external;
 }
 
 
-// File src/polygon/lib/AccessControlMixin.sol
+// File src/interfaces/masterchef.sol
+pragma solidity ^0.6.7;
 
-pragma solidity ^0.6.0;
+interface IMasterchef {
+    function BONUS_MULTIPLIER() external view returns (uint256);
 
-contract AccessControlMixin is AccessControl {
-    string private _revertMsg;
-    function _setupContractId(string memory contractId) internal {
-        _revertMsg = string(abi.encodePacked(contractId, ": INSUFFICIENT_PERMISSIONS"));
-    }
+    function add(
+        uint256 _allocPoint,
+        address _lpToken,
+        bool _withUpdate
+    ) external;
 
-    modifier only(bytes32 role) {
-        require(
-            hasRole(role, _msgSender()),
-            _revertMsg
+    function bonusEndBlock() external view returns (uint256);
+
+    function deposit(uint256 _pid, uint256 _amount) external;
+
+    function dev(address _devaddr) external;
+
+    function devFundDivRate() external view returns (uint256);
+
+    function devaddr() external view returns (address);
+
+    function emergencyWithdraw(uint256 _pid) external;
+
+    function getMultiplier(uint256 _from, uint256 _to)
+        external
+        view
+        returns (uint256);
+
+    function massUpdatePools() external;
+
+    function owner() external view returns (address);
+
+    function pendingPickle(uint256 _pid, address _user)
+        external
+        view
+        returns (uint256);
+
+    function pickle() external view returns (address);
+
+    function picklePerBlock() external view returns (uint256);
+
+    function poolInfo(uint256)
+        external
+        view
+        returns (
+            address lpToken,
+            uint256 allocPoint,
+            uint256 lastRewardBlock,
+            uint256 accPicklePerShare
         );
-        _;
-    }
+
+    function poolLength() external view returns (uint256);
+
+    function renounceOwnership() external;
+
+    function set(
+        uint256 _pid,
+        uint256 _allocPoint,
+        bool _withUpdate
+    ) external;
+
+    function setBonusEndBlock(uint256 _bonusEndBlock) external;
+
+    function setDevFundDivRate(uint256 _devFundDivRate) external;
+
+    function setPicklePerBlock(uint256 _picklePerBlock) external;
+
+    function startBlock() external view returns (uint256);
+
+    function totalAllocPoint() external view returns (uint256);
+
+    function transferOwnership(address newOwner) external;
+
+    function updatePool(uint256 _pid) external;
+
+    function userInfo(uint256, address)
+        external
+        view
+        returns (uint256 amount, uint256 rewardDebt);
+
+    function withdraw(uint256 _pid, uint256 _amount) external;
 }
 
 
-// File src/polygon/lib/Initializable.sol
+// File src/interfaces/uniswapv2.sol
+pragma solidity ^0.6.2;
 
-pragma solidity ^0.6.0;
+interface UniswapRouterV2 {
+    function swapExactTokensForTokens(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external returns (uint256[] memory amounts);
 
-contract Initializable {
-    bool inited = false;
-
-    modifier initializer() {
-        require(!inited, "already inited");
-        _;
-        inited = true;
-    }
-}
-
-
-// File src/polygon/lib/EIP712Base.sol
-
-pragma solidity ^0.6.0;
-
-contract EIP712Base is Initializable {
-    struct EIP712Domain {
-        string name;
-        string version;
-        address verifyingContract;
-        bytes32 salt;
-    }
-
-    string constant public ERC712_VERSION = "1";
-
-    bytes32 internal constant EIP712_DOMAIN_TYPEHASH = keccak256(
-        bytes(
-            "EIP712Domain(string name,string version,address verifyingContract,bytes32 salt)"
-        )
-    );
-    bytes32 internal domainSeperator;
-
-    // supposed to be called once while initializing.
-    // one of the contractsa that inherits this contract follows proxy pattern
-    // so it is not possible to do this in a constructor
-    function _initializeEIP712(
-        string memory name
+    function addLiquidity(
+        address tokenA,
+        address tokenB,
+        uint256 amountADesired,
+        uint256 amountBDesired,
+        uint256 amountAMin,
+        uint256 amountBMin,
+        address to,
+        uint256 deadline
     )
-        internal
-        initializer
-    {
-        _setDomainSeperator(name);
-    }
-
-    function _setDomainSeperator(string memory name) internal {
-        domainSeperator = keccak256(
-            abi.encode(
-                EIP712_DOMAIN_TYPEHASH,
-                keccak256(bytes(name)),
-                keccak256(bytes(ERC712_VERSION)),
-                address(this),
-                bytes32(getChainId())
-            )
+        external
+        returns (
+            uint256 amountA,
+            uint256 amountB,
+            uint256 liquidity
         );
-    }
 
-    function getDomainSeperator() public view returns (bytes32) {
-        return domainSeperator;
-    }
+    function addLiquidityETH(
+        address token,
+        uint256 amountTokenDesired,
+        uint256 amountTokenMin,
+        uint256 amountETHMin,
+        address to,
+        uint256 deadline
+    )
+        external
+        payable
+        returns (
+            uint256 amountToken,
+            uint256 amountETH,
+            uint256 liquidity
+        );
 
-    function getChainId() public pure returns (uint256) {
-        uint256 id;
-        assembly {
-            id := chainid()
-        }
-        return id;
-    }
+    function removeLiquidity(
+        address tokenA,
+        address tokenB,
+        uint256 liquidity,
+        uint256 amountAMin,
+        uint256 amountBMin,
+        address to,
+        uint256 deadline
+    ) external returns (uint256 amountA, uint256 amountB);
 
-    /**
-     * Accept message hash and returns hash message in EIP712 compatible form
-     * So that it can be used to recover signer from signature signed using EIP712 formatted data
-     * https://eips.ethereum.org/EIPS/eip-712
-     * "\\x19" makes the encoding deterministic
-     * "\\x01" is the version byte to make it compatible to EIP-191
-     */
-    function toTypedMessageHash(bytes32 messageHash)
-        internal
+    function getAmountsOut(uint256 amountIn, address[] calldata path)
+        external
         view
-        returns (bytes32)
-    {
-        return
-            keccak256(
-                abi.encodePacked("\x19\x01", getDomainSeperator(), messageHash)
-            );
-    }
+        returns (uint256[] memory amounts);
+
+    function getAmountsIn(uint256 amountOut, address[] calldata path)
+        external
+        view
+        returns (uint256[] memory amounts);
+
+    function swapETHForExactTokens(
+        uint256 amountOut,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external payable returns (uint256[] memory amounts);
+
+    function swapExactETHForTokens(
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external payable returns (uint256[] memory amounts);
+}
+
+interface IUniswapV2Pair {
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    function name() external pure returns (string memory);
+
+    function symbol() external pure returns (string memory);
+
+    function decimals() external pure returns (uint8);
+
+    function totalSupply() external view returns (uint256);
+
+    function balanceOf(address owner) external view returns (uint256);
+
+    function allowance(address owner, address spender)
+        external
+        view
+        returns (uint256);
+
+    function approve(address spender, uint256 value) external returns (bool);
+
+    function transfer(address to, uint256 value) external returns (bool);
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 value
+    ) external returns (bool);
+
+    function DOMAIN_SEPARATOR() external view returns (bytes32);
+
+    function PERMIT_TYPEHASH() external pure returns (bytes32);
+
+    function nonces(address owner) external view returns (uint256);
+
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external;
+
+    event Mint(address indexed sender, uint256 amount0, uint256 amount1);
+    event Burn(
+        address indexed sender,
+        uint256 amount0,
+        uint256 amount1,
+        address indexed to
+    );
+    event Swap(
+        address indexed sender,
+        uint256 amount0In,
+        uint256 amount1In,
+        uint256 amount0Out,
+        uint256 amount1Out,
+        address indexed to
+    );
+    event Sync(uint112 reserve0, uint112 reserve1);
+
+    function MINIMUM_LIQUIDITY() external pure returns (uint256);
+
+    function factory() external view returns (address);
+
+    function token0() external view returns (address);
+
+    function token1() external view returns (address);
+
+    function getReserves()
+        external
+        view
+        returns (
+            uint112 reserve0,
+            uint112 reserve1,
+            uint32 blockTimestampLast
+        );
+
+    function price0CumulativeLast() external view returns (uint256);
+
+    function price1CumulativeLast() external view returns (uint256);
+
+    function kLast() external view returns (uint256);
+
+    function mint(address to) external returns (uint256 liquidity);
+
+    function burn(address to)
+        external
+        returns (uint256 amount0, uint256 amount1);
+
+    function swap(
+        uint256 amount0Out,
+        uint256 amount1Out,
+        address to,
+        bytes calldata data
+    ) external;
+
+    function skim(address to) external;
+
+    function sync() external;
+}
+
+interface IUniswapV2Factory {
+    event PairCreated(
+        address indexed token0,
+        address indexed token1,
+        address pair,
+        uint256
+    );
+
+    function getPair(address tokenA, address tokenB)
+        external
+        view
+        returns (address pair);
+
+    function allPairs(uint256) external view returns (address pair);
+
+    function allPairsLength() external view returns (uint256);
+
+    function feeTo() external view returns (address);
+
+    function feeToSetter() external view returns (address);
+
+    function createPair(address tokenA, address tokenB)
+        external
+        returns (address pair);
 }
 
 
-// File src/polygon/lib/ContextMixin.sol
+// File src/interfaces/controller.sol
 
 pragma solidity ^0.6.0;
 
-abstract contract ContextMixin {
-    function msgSender()
-        internal
-        view
-        returns (address payable sender)
-    {
-        if (msg.sender == address(this)) {
-            bytes memory array = msg.data;
-            uint256 index = msg.data.length;
-            assembly {
-                // Load the 32 bytes word from memory with the address on the lower 20 bytes, and mask those.
-                sender := and(
-                    mload(add(array, index)),
-                    0xffffffffffffffffffffffffffffffffffffffff
-                )
-            }
-        } else {
-            sender = msg.sender;
-        }
-        return sender;
-    }
+interface IController {
+    function jars(address) external view returns (address);
+
+    function rewards() external view returns (address);
+
+    function devfund() external view returns (address);
+
+    function treasury() external view returns (address);
+
+    function balanceOf(address) external view returns (uint256);
+
+    function withdraw(address, uint256) external;
+
+    function earn(address, uint256) external;
 }
 
 
-// File src/lib/ownable.sol
-
-pragma solidity ^0.6.0;
-
-/**
- * @dev Contract module which provides a basic access control mechanism, where
- * there is an account (an owner) that can be granted exclusive access to
- * specific functions.
- *
- * By default, the owner account will be the one that deploys the contract. This
- * can later be changed with {transferOwnership}.
- *
- * This module is used through inheritance. It will make available the modifier
- * `onlyOwner`, which can be applied to your functions to restrict their use to
- * the owner.
- */
-contract Ownable is Context {
-    address private _owner;
-
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    /**
-     * @dev Initializes the contract setting the deployer as the initial owner.
-     */
-    constructor () internal {
-        address msgSender = _msgSender();
-        _owner = msgSender;
-        emit OwnershipTransferred(address(0), msgSender);
-    }
-
-    /**
-     * @dev Returns the address of the current owner.
-     */
-    function owner() public view returns (address) {
-        return _owner;
-    }
-
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        require(_owner == _msgSender(), "Ownable: caller is not the owner");
-        _;
-    }
-
-    /**
-     * @dev Leaves the contract without owner. It will not be possible to call
-     * `onlyOwner` functions anymore. Can only be called by the current owner.
-     *
-     * NOTE: Renouncing ownership will leave the contract without an owner,
-     * thereby removing any functionality that is only available to the owner.
-     */
-    function renounceOwnership() public virtual onlyOwner {
-        emit OwnershipTransferred(_owner, address(0));
-        _owner = address(0);
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Can only be called by the current owner.
-     */
-    function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
-        emit OwnershipTransferred(_owner, newOwner);
-        _owner = newOwner;
-    }
-}
-
-
-// File src/polygon/pickle-token.sol
+// File src/strategies/polygon/strategy-base.sol
 
 pragma solidity ^0.6.7;
 
-interface IChildToken {
-    function deposit(address user, bytes calldata depositData) external;
-}
 
-// PickleToken with Governance.
-contract PickleToken is 
-    ERC20,
-    IChildToken,
-    Ownable,
-    EIP712Base,
-    AccessControlMixin,
-    ContextMixin
-{
-    bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
+
+
+
+
+// Strategy Contract Basics
+
+abstract contract StrategyBase {
+    using SafeERC20 for IERC20;
+    using Address for address;
+    using SafeMath for uint256;
+
+    // Perfomance fees - start with 20%
+    uint256 public performanceTreasuryFee = 2000;
+    uint256 public constant performanceTreasuryMax = 10000;
+
+    uint256 public performanceDevFee = 0;
+    uint256 public constant performanceDevMax = 10000;
+
+    // Withdrawal fee 0%
+    // - 0% to treasury
+    // - 0% to dev fund
+    uint256 public withdrawalTreasuryFee = 0;
+    uint256 public constant withdrawalTreasuryMax = 100000;
+
+    uint256 public withdrawalDevFundFee = 0;
+    uint256 public constant withdrawalDevFundMax = 100000;
+
+    // Tokens
+    address public want;
+    address public constant weth = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
+
+    // User accounts
+    address public governance;
+    address public controller;
+    address public strategist;
+    address public timelock;
+
+    // Dex
+    address public univ2Router2 = 0x93bcDc45f7e62f89a8e901DC4A0E2c6C427D9F25;
+
+    mapping(address => bool) public harvesters;
 
     constructor(
-        string memory name_,
-        string memory symbol_,
-        uint8 decimals_,
-        address childChainManager,
-        address minter
-    ) public ERC20(name_, symbol_) {
-        _setupContractId("ChildMintableERC20");
-        _setupDecimals(decimals_);
-        _setupRole(DEFAULT_ADMIN_ROLE, minter);
-        _setupRole(DEPOSITOR_ROLE, childChainManager);
-        _initializeEIP712(name_);
+        address _want,
+        address _governance,
+        address _strategist,
+        address _controller,
+        address _timelock
+    ) public {
+        require(_want != address(0));
+        require(_governance != address(0));
+        require(_strategist != address(0));
+        require(_controller != address(0));
+        require(_timelock != address(0));
+
+        want = _want;
+        governance = _governance;
+        strategist = _strategist;
+        controller = _controller;
+        timelock = _timelock;
     }
 
-    // This is to support Native meta transactions
-    // never use msg.sender directly, use _msgSender() instead
-    function _msgSender()
+    // **** Modifiers **** //
+
+    modifier onlyBenevolent {
+        require(
+            harvesters[msg.sender] ||
+                msg.sender == governance ||
+                msg.sender == strategist
+        );
+        _;
+    }
+
+    // **** Views **** //
+
+    function balanceOfWant() public view returns (uint256) {
+        return IERC20(want).balanceOf(address(this));
+    }
+
+    function balanceOfPool() public virtual view returns (uint256);
+
+    function balanceOf() public view returns (uint256) {
+        return balanceOfWant().add(balanceOfPool());
+    }
+
+    function getName() external virtual pure returns (string memory);
+
+    // **** Setters **** //
+
+    function whitelistHarvesters(address[] calldata _harvesters) external {
+        require(msg.sender == governance ||
+             msg.sender == strategist || harvesters[msg.sender], "not authorized");
+             
+        for (uint i = 0; i < _harvesters.length; i ++) {
+            harvesters[_harvesters[i]] = true;
+        }
+    }
+
+    function revokeHarvesters(address[] calldata _harvesters) external {
+        require(msg.sender == governance ||
+             msg.sender == strategist, "not authorized");
+
+        for (uint i = 0; i < _harvesters.length; i ++) {
+            harvesters[_harvesters[i]] = false;
+        }
+    }
+
+    function setWithdrawalDevFundFee(uint256 _withdrawalDevFundFee) external {
+        require(msg.sender == timelock, "!timelock");
+        withdrawalDevFundFee = _withdrawalDevFundFee;
+    }
+
+    function setWithdrawalTreasuryFee(uint256 _withdrawalTreasuryFee) external {
+        require(msg.sender == timelock, "!timelock");
+        withdrawalTreasuryFee = _withdrawalTreasuryFee;
+    }
+
+    function setPerformanceDevFee(uint256 _performanceDevFee) external {
+        require(msg.sender == timelock, "!timelock");
+        performanceDevFee = _performanceDevFee;
+    }
+
+    function setPerformanceTreasuryFee(uint256 _performanceTreasuryFee)
+        external
+    {
+        require(msg.sender == timelock, "!timelock");
+        performanceTreasuryFee = _performanceTreasuryFee;
+    }
+
+    function setStrategist(address _strategist) external {
+        require(msg.sender == governance, "!governance");
+        strategist = _strategist;
+    }
+
+    function setGovernance(address _governance) external {
+        require(msg.sender == governance, "!governance");
+        governance = _governance;
+    }
+
+    function setTimelock(address _timelock) external {
+        require(msg.sender == timelock, "!timelock");
+        timelock = _timelock;
+    }
+
+    function setController(address _controller) external {
+        require(msg.sender == timelock, "!timelock");
+        controller = _controller;
+    }
+
+    // **** State mutations **** //
+    function deposit() public virtual;
+
+    // Controller only function for creating additional rewards from dust
+    function withdraw(IERC20 _asset) external returns (uint256 balance) {
+        require(msg.sender == controller, "!controller");
+        require(want != address(_asset), "want");
+        balance = _asset.balanceOf(address(this));
+        _asset.safeTransfer(controller, balance);
+    }
+
+    // Withdraw partial funds, normally used with a jar withdrawal
+    function withdraw(uint256 _amount) external {
+        require(msg.sender == controller, "!controller");
+        uint256 _balance = IERC20(want).balanceOf(address(this));
+        if (_balance < _amount) {
+            _amount = _withdrawSome(_amount.sub(_balance));
+            _amount = _amount.add(_balance);
+        }
+
+        uint256 _feeDev = _amount.mul(withdrawalDevFundFee).div(
+            withdrawalDevFundMax
+        );
+        IERC20(want).safeTransfer(IController(controller).devfund(), _feeDev);
+
+        uint256 _feeTreasury = _amount.mul(withdrawalTreasuryFee).div(
+            withdrawalTreasuryMax
+        );
+        IERC20(want).safeTransfer(
+            IController(controller).treasury(),
+            _feeTreasury
+        );
+
+        address _jar = IController(controller).jars(address(want));
+        require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
+
+        IERC20(want).safeTransfer(_jar, _amount.sub(_feeDev).sub(_feeTreasury));
+    }
+
+    // Withdraw funds, used to swap between strategies
+    function withdrawForSwap(uint256 _amount)
+        external
+        returns (uint256 balance)
+    {
+        require(msg.sender == controller, "!controller");
+        _withdrawSome(_amount);
+
+        balance = IERC20(want).balanceOf(address(this));
+
+        address _jar = IController(controller).jars(address(want));
+        require(_jar != address(0), "!jar");
+        IERC20(want).safeTransfer(_jar, balance);
+    }
+
+    // Withdraw all funds, normally used when migrating strategies
+    function withdrawAll() external returns (uint256 balance) {
+        require(msg.sender == controller, "!controller");
+        _withdrawAll();
+
+        balance = IERC20(want).balanceOf(address(this));
+
+        address _jar = IController(controller).jars(address(want));
+        require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
+        IERC20(want).safeTransfer(_jar, balance);
+    }
+
+    function _withdrawAll() internal {
+        _withdrawSome(balanceOfPool());
+    }
+
+    function _withdrawSome(uint256 _amount) internal virtual returns (uint256);
+
+    function harvest() public virtual;
+
+    // **** Emergency functions ****
+
+    function execute(address _target, bytes memory _data)
+        public
+        payable
+        returns (bytes memory response)
+    {
+        require(msg.sender == timelock, "!timelock");
+        require(_target != address(0), "!target");
+
+        // call contract in current context
+        assembly {
+            let succeeded := delegatecall(
+                sub(gas(), 5000),
+                _target,
+                add(_data, 0x20),
+                mload(_data),
+                0,
+                0
+            )
+            let size := returndatasize()
+
+            response := mload(0x40)
+            mstore(
+                0x40,
+                add(response, and(add(add(size, 0x20), 0x1f), not(0x1f)))
+            )
+            mstore(response, size)
+            returndatacopy(add(response, 0x20), 0, size)
+
+            switch iszero(succeeded)
+                case 1 {
+                    // throw if delegatecall failed
+                    revert(add(response, 0x20), size)
+                }
+        }
+    }
+
+    // **** Internal functions ****
+    function _swapUniswap(
+        address _from,
+        address _to,
+        uint256 _amount
+    ) internal {
+        require(_to != address(0));
+
+        address[] memory path;
+
+        if (_from == weth || _to == weth) {
+            path = new address[](2);
+            path[0] = _from;
+            path[1] = _to;
+        } else {
+            path = new address[](3);
+            path[0] = _from;
+            path[1] = weth;
+            path[2] = _to;
+        }
+
+        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
+            _amount,
+            0,
+            path,
+            address(this),
+            now.add(60)
+        );
+    }
+
+    function _swapUniswapWithPath(
+        address[] memory path,
+        uint256 _amount
+    ) internal {
+        require(path[1] != address(0));
+
+        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
+            _amount,
+            0,
+            path,
+            address(this),
+            now.add(60)
+        );
+    }
+
+    function _distributePerformanceFeesAndDeposit() internal {
+        uint256 _want = IERC20(want).balanceOf(address(this));
+
+        if (_want > 0) {
+            // Treasury fees
+            IERC20(want).safeTransfer(
+                IController(controller).treasury(),
+                _want.mul(performanceTreasuryFee).div(performanceTreasuryMax)
+            );
+
+            // Performance fee
+            IERC20(want).safeTransfer(
+                IController(controller).devfund(),
+                _want.mul(performanceDevFee).div(performanceDevMax)
+            );
+
+            deposit();
+        }
+    }
+}
+
+
+// File src/strategies/polygon/strategy-staking-rewards-base.sol
+
+pragma solidity ^0.6.7;
+
+// Base contract for SNX Staking rewards contract interfaces
+
+abstract contract StrategyStakingRewardsBase is StrategyBase {
+    address public rewards;
+
+    // **** Getters ****
+    constructor(
+        address _rewards,
+        address _want,
+        address _governance,
+        address _strategist,
+        address _controller,
+        address _timelock
+    )
+        public
+        StrategyBase(_want, _governance, _strategist, _controller, _timelock)
+    {
+        rewards = _rewards;
+    }
+
+    function balanceOfPool() public override view returns (uint256) {
+        return IStakingRewards(rewards).balanceOf(address(this));
+    }
+
+    function getHarvestable() external view returns (uint256) {
+        return IStakingRewards(rewards).earned(address(this));
+    }
+
+    // **** Setters ****
+
+    function deposit() public override {
+        uint256 _want = IERC20(want).balanceOf(address(this));
+        if (_want > 0) {
+            IERC20(want).safeApprove(rewards, 0);
+            IERC20(want).safeApprove(rewards, _want);
+            IStakingRewards(rewards).stake(_want);
+        }
+    }
+
+    function _withdrawSome(uint256 _amount)
         internal
         override
-        view
-        returns (address payable sender)
+        returns (uint256)
     {
-        return ContextMixin.msgSender();
+        IStakingRewards(rewards).withdraw(_amount);
+        return _amount;
     }
+}
 
-    /**
-     * @notice called when token is deposited on root chain
-     * @dev Should be callable only by ChildChainManager
-     * Should handle deposit by minting the required amount for user
-     * Make sure minting is done only by this function
-     * @param user user address for whom deposit is being done
-     * @param depositData abi encoded amount
-     */
-    function deposit(address user, bytes calldata depositData)
-        external
-        override
-        only(DEPOSITOR_ROLE)
+
+// File src/strategies/polygon/strategy-cometh-farm-base.sol
+pragma solidity ^0.6.7;
+
+
+abstract contract StrategyComethFarmBase is StrategyStakingRewardsBase {
+    // Token addresses
+    address public must = 0x9C78EE466D6Cb57A4d01Fd887D2b5dFb2D46288f;
+
+    // How much MUST tokens to keep?
+    uint256 public keepMUST = 0;
+    uint256 public constant keepMUSTMax = 10000;
+
+    // Uniswap swap paths
+    address token0;
+    address token1;
+    address[] public must_token0_path;
+    address[] public token0_token1_path;
+
+    constructor(
+        address _rewards,
+        address _lp,
+        address _governance,
+        address _strategist,
+        address _controller,
+        address _timelock
+    )
+        public
+        StrategyStakingRewardsBase(
+            _rewards,
+            _lp,
+            _governance,
+            _strategist,
+            _controller,
+            _timelock
+        )
     {
-        uint256 amount = abi.decode(depositData, (uint256));
-        _mint(user, amount);
+        address _token0 = IUniswapV2Pair(_lp).token0();
+        address _token1 = IUniswapV2Pair(_lp).token1();
+
+        // weth should be token0, must should be token1
+        if (_token1 == weth || _token0 == must) {
+            token0 = _token1;
+            token1 = _token0;
+        } else {
+            token0 = _token0;
+            token1 = _token1;
+        }
+
+        must_token0_path = new address[](2);
+        must_token0_path[0] = must;
+        must_token0_path[1] = token0;
+
+        token0_token1_path = new address[](2);
+        token0_token1_path[0] = token0;
+        token0_token1_path[1] = token1;
     }
 
-    /**
-     * @notice called when user wants to withdraw tokens back to root chain
-     * @dev Should burn user's tokens. This transaction will be verified when exiting on root chain
-     * @param amount amount of tokens to withdraw
-     */
-    function withdraw(uint256 amount) external {
-        _burn(_msgSender(), amount);
+    // **** Setters ****
+
+    function setKeepMUST(uint256 _keepMUST) external {
+        require(msg.sender == timelock, "!timelock");
+        keepMUST = _keepMUST;
     }
 
-    /**
-     * @notice Example function to handle minting tokens on matic chain
-     * @dev Minting can be done as per requirement,
-     * This implementation allows only admin to mint tokens but it can be changed as per requirement
-     * @param user user for whom tokens are being minted
-     * @param amount amount of token to mint
-     */
-    function mint(address user, uint256 amount) public only(DEFAULT_ADMIN_ROLE) {
-        _mint(user, amount);
+    // **** State Mutations ****
+
+    function harvest() public override onlyBenevolent {
+        // Anyone can harvest it at any given time.
+        // I understand the possibility of being frontrun
+        // But ETH is a dark forest, and I wanna see how this plays out
+        // i.e. will be be heavily frontrunned?
+        //      if so, a new strategy will be deployed.
+
+        // Collects MSUT tokens
+        IStakingRewards(rewards).getReward();
+        uint256 _must = IERC20(must).balanceOf(address(this));
+
+        if (_must > 0) {
+            // 10% is locked up for future gov
+            uint256 _keepMUST = _must.mul(keepMUST).div(keepMUSTMax);
+            if (_keepMUST > 0) {
+                IERC20(must).safeTransfer(
+                    IController(controller).treasury(),
+                    _keepMUST
+                );
+                _must = _must.sub(_keepMUST);
+            }
+        }
+
+        if (token1 == must) {
+            IERC20(must).safeApprove(univ2Router2, 0);
+            IERC20(must).safeApprove(univ2Router2, _must.div(2));
+            _swapUniswapWithPath(must_token0_path, _must.div(2));
+        } else {
+            IERC20(must).safeApprove(univ2Router2, 0);
+            IERC20(must).safeApprove(univ2Router2, _must);
+            _swapUniswapWithPath(must_token0_path, _must);
+
+            uint256 swapAmount = IERC20(token0).balanceOf(address(this)).div(2);
+            IERC20(token0).safeApprove(univ2Router2, 0);
+            IERC20(token0).safeApprove(univ2Router2, swapAmount);
+            _swapUniswapWithPath(token0_token1_path, swapAmount);
+        }
+
+        // Adds in liquidity for ETH/DAI
+        uint256 _token0 = IERC20(token0).balanceOf(address(this));
+        uint256 _token1 = IERC20(token1).balanceOf(address(this));
+        if (_token0 > 0 && _token1 > 0) {
+            IERC20(token0).safeApprove(univ2Router2, 0);
+            IERC20(token0).safeApprove(univ2Router2, _token0);
+
+            IERC20(token1).safeApprove(univ2Router2, 0);
+            IERC20(token1).safeApprove(univ2Router2, _token1);
+
+            UniswapRouterV2(univ2Router2).addLiquidity(
+                token0,
+                token1,
+                _token0,
+                _token1,
+                0,
+                0,
+                address(this),
+                now + 60
+            );
+
+            // Donates DUST
+            IERC20(token0).transfer(
+                IController(controller).treasury(),
+                IERC20(token0).balanceOf(address(this))
+            );
+            IERC20(token1).safeTransfer(
+                IController(controller).treasury(),
+                IERC20(token1).balanceOf(address(this))
+            );
+        }
+
+        // We want to get back UNI LP tokens
+        _distributePerformanceFeesAndDeposit();
+    }
+}
+
+
+// File src/strategies/polygon/cometh/strategy-cometh-weth-usdc-lp-v4.sol
+pragma solidity ^0.6.7;
+
+contract StrategyComethWethUsdcLpV4 is StrategyComethFarmBase {
+    // Token addresses
+    address public cometh_rewards = 0x1c30Cfe08506BA215c02bc2723C6D310671BAb62;
+    address public cometh_weth_usdc_lp = 0x1Edb2D8f791D2a51D56979bf3A25673D6E783232;
+    address public usdc = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
+
+    constructor(
+        address _governance,
+        address _strategist,
+        address _controller,
+        address _timelock
+    )
+        public
+        StrategyComethFarmBase(
+            cometh_rewards,
+            cometh_weth_usdc_lp,
+            _governance,
+            _strategist,
+            _controller,
+            _timelock
+        )
+    {}
+
+    // **** Views ****
+
+    function getName() external override pure returns (string memory) {
+        return "StrategyComethWethUsdcLpV4";
     }
 }

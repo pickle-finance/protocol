@@ -22,16 +22,16 @@ const deployPickleToken = async () => {
 };
 
 const deployMasterChef = async () => {
-  console.log("deploying master chef...");
+  console.log("deploying masterchef...");
 
-  const pickle = "0x835804CC589E07FBbbCE7B8c830F219Dac407F63";
+  const pickle = "0x6c551cAF1099b08993fFDB5247BE74bE39741B82";
   const devaddr = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
   const picklePerBlock = 1000000000000;
-  const startBlock = 13560000;
+  const startBlock = 13620000;
   const bonusEndBlock = 0;
 
   const MasterChefFactory = await ethers.getContractFactory(
-    "src/polygon/masterchef.sol:MasterChef"
+    "src/flatten/masterchef.sol:MasterChef"
   );
   const MasterChef = await MasterChefFactory.deploy(
     pickle,
@@ -40,11 +40,11 @@ const deployMasterChef = async () => {
     startBlock,
     bonusEndBlock
   );
-  console.log("master chef deployed at ", MasterChef.address);
+  console.log("masterchef deployed at ", MasterChef.address);
 };
 
 const handOverPermsToMasterChef = async () => {
-  console.log("grant mint role to master chef...");
+  console.log("grant mint role to masterchef...");
 
   const pickle = "0x835804CC589E07FBbbCE7B8c830F219Dac407F63";
   const masterchef = "0x52076435D07DDa4c43dD87E76B624c5D0ce4B01D";
@@ -52,7 +52,7 @@ const handOverPermsToMasterChef = async () => {
     "0x0000000000000000000000000000000000000000000000000000000000000000";
 
   const pickleToken = await ethers.getContractAt(
-    "src/polygon/pickle-token.sol:PickleToken",
+    "src/flatten/pickle-token.sol:PickleToken",
     pickle
   );
   const prevAdmin = new ethers.Wallet(
@@ -101,12 +101,84 @@ const deployControllerV4 = async () => {
   console.log("ControllerV4 deployed at ", ControllerV4.address);
 };
 
+const deployComethWethUsdcStrategy = async () => {
+  console.log("Cometh: WETH/USDC deploying strategy...");
+
+  const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+  const strategist = "0x88d226A9FC7485Ae0856AE51C3Db15d7ad242a3f";
+  const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
+  const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
+
+  const StrategyComethWethUsdcLpV4Factory = await ethers.getContractFactory(
+    "src/flatten/strategy-cometh-weth-usdc-lp-v4.sol:StrategyComethWethUsdcLpV4"
+  );
+  const StrategyComethWethUsdcLpV4 = await StrategyComethWethUsdcLpV4Factory.deploy(
+    governance,
+    strategist,
+    controller,
+    timelock
+  );
+  console.log(
+    "Cometh: WETH/USDC strategy deployed at ",
+    StrategyComethWethUsdcLpV4.address
+  );
+};
+
+const deployPickleJar = async () => {
+  console.log("deploying PickleJar...");
+
+  const want = "0x1Edb2D8f791D2a51D56979bf3A25673D6E783232";
+  const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+  const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
+  const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
+
+  const PickleJarFactory = await ethers.getContractFactory(
+    "src/flatten/pickle-jar.sol:PickleJar"
+  );
+  const PickleJar = await PickleJarFactory.deploy(
+    want,
+    governance,
+    timelock,
+    controller
+  );
+  console.log("PickleJar deployed at ", PickleJar.address);
+};
+
+const setJar = async () => {
+  const want = "0x1Edb2D8f791D2a51D56979bf3A25673D6E783232";
+  const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
+  const picklejar = "0x9eD7e3590F2fB9EEE382dfC55c71F9d3DF12556c";
+
+  const ControllerV4 = await ethers.getContractAt(
+    "src/flatten/controller-v4.sol:ControllerV4",
+    controller
+  );
+
+  const strategy = "0x51cF19A126E642948B5c5747471fd722B2EdCa25";
+
+  const deployer = new ethers.Wallet(
+    process.env.DEPLOYER_PRIVATE_KEY,
+    ethers.provider
+  );
+
+  console.log("setJar");
+  await ControllerV4.connect(deployer).setJar(want, picklejar);
+  // this should be done on governance,
+  // console.log("approveStrategy");
+  // await ControllerV4.connect(deployer).approveStrategy(want, strategy);
+  // console.log("setStrategy");
+  // await ControllerV4.connect(deployer).setStrategy(want, strategy);
+};
+
 const main = async () => {
   // await deployPickleToken();
   // await deployMasterChef();
   // await handOverPermsToMasterChef();
   // await deployTimelock();
-  await deployControllerV4();
+  // await deployControllerV4();
+  // await deployComethWethUsdcStrategy();
+  // await deployPickleJar();
+  await setJar();
 };
 
 main()
