@@ -1,20 +1,21 @@
+const { BigNumber } = require("@ethersproject/bignumber");
 const hre = require("hardhat");
 const ethers = hre.ethers;
 
 const deployPickleToken = async () => {
   console.log("deploying pickle token...");
 
-  const childChainManager = "0x195fe6EE6639665CCeB15BCCeB9980FC445DFa0B";
+  const childChainManagerProxy = "0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa";
   const minter = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
 
   const PickleTokenFactory = await ethers.getContractFactory(
-    "src/polygon/pickle-token.sol:PickleToken"
+    "src/flatten/pickle-token.sol:PickleToken"
   );
   const PickleToken = await PickleTokenFactory.deploy(
     "PickleToken",
     "PICKLE",
     18,
-    childChainManager,
+    childChainManagerProxy,
     minter
   );
   console.log("pickle token deployed at ", PickleToken.address);
@@ -65,10 +66,24 @@ const handOverPermsToMasterChef = async () => {
   console.log("mint role granted!");
 };
 
+const deployTimelock = async () => {
+  console.log("deploying timelock...");
+
+  const admin = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+  const delay = BigNumber.from("43200");
+
+  const TimelockFactory = await ethers.getContractFactory(
+    "src/flatten/timelock.sol:Timelock"
+  );
+  const Timelock = await TimelockFactory.deploy(admin, delay);
+  console.log("timelock deployed at ", Timelock.address);
+};
+
 const main = async () => {
   // await deployPickleToken();
   // await deployMasterChef();
-  await handOverPermsToMasterChef();
+  // await handOverPermsToMasterChef();
+  await deployTimelock();
 };
 
 main()
