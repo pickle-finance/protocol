@@ -79,11 +79,34 @@ const deployTimelock = async () => {
   console.log("timelock deployed at ", Timelock.address);
 };
 
+const deployControllerV4 = async () => {
+  console.log("deploying ControllerV4...");
+
+  const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+  const strategist = "0x88d226A9FC7485Ae0856AE51C3Db15d7ad242a3f";
+  const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
+  const devfund = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+  const treasury = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+
+  const ControllerV4Factory = await ethers.getContractFactory(
+    "src/flatten/controller-v4.sol:ControllerV4"
+  );
+  const ControllerV4 = await ControllerV4Factory.deploy(
+    governance,
+    strategist,
+    timelock,
+    devfund,
+    treasury
+  );
+  console.log("ControllerV4 deployed at ", ControllerV4.address);
+};
+
 const main = async () => {
   // await deployPickleToken();
   // await deployMasterChef();
   // await handOverPermsToMasterChef();
-  await deployTimelock();
+  // await deployTimelock();
+  await deployControllerV4();
 };
 
 main()
