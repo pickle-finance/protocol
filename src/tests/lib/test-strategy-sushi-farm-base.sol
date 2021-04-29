@@ -92,6 +92,10 @@ contract StrategySushiFarmTestBase is DSTestSushiBase {
         uint256 _before = pickleJar.balance();
         uint256 _treasuryBefore = IERC20(want).balanceOf(treasury);
         strategy.harvest();
+        
+        hevm.roll(block.number + 1000);
+
+        strategy.harvest();
         uint256 _after = pickleJar.balance();
         uint256 _treasuryAfter = IERC20(want).balanceOf(treasury);
 

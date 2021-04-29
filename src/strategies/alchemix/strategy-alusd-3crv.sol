@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-alcx-farm-base.sol";
+import "./strategy-alcx-farm-symbiotic.sol";
 
-contract StrategyCurveAlusd3Crv is StrategyAlchemixFarmBase {
+contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
     uint256 public alusd_3crv_poolId = 4;
 
     address public alusd_3crv = 0x43b4FdFD4Ff969587185cDB6f0BD875c5Fc83f8c;
@@ -13,14 +13,14 @@ contract StrategyCurveAlusd3Crv is StrategyAlchemixFarmBase {
         address _strategist,
         address _controller,
         address _timelock
-    ) public StrategyAlchemixFarmBase(alusd_3crv_poolId, alusd_3crv, _governance, _strategist, _controller, _timelock) {
+    ) public StrategyAlcxSymbioticFarmBase(alusd_3crv_poolId, alusd_3crv, _governance, _strategist, _controller, _timelock) {
         IERC20(alcx).approve(stakingPool, uint256(-1));
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyCurveAlusd3Crv";
+        return "StrategyAlusd3Crv";
     }
 
     function getAlcxFarmHarvestable() public view returns (uint256) {

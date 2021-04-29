@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "./strategy-base-symbiotic.sol";
-import "../interfaces/alcx-farm.sol";
+import "../strategy-base-symbiotic.sol";
+import "../../interfaces/alcx-farm.sol";
 
-abstract contract StrategyAlchemixFarmBase is StrategyBaseSymbiotic {
+abstract contract StrategyAlcxSymbioticFarmBase is StrategyBaseSymbiotic {
     // Token addresses
     address public constant alcx = 0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF;
     address public constant stakingPool = 0xAB8e74017a8Cc7c15FFcCd726603790d26d7DeCa;
@@ -55,6 +55,7 @@ abstract contract StrategyAlchemixFarmBase is StrategyBaseSymbiotic {
 
     function __redeposit() internal override {
         uint256 _balance = IERC20(alcx).balanceOf(address(this));
+        IERC20(alcx).safeApprove(stakingPool, _balance);
         if (_balance > 0) IStakingPools(stakingPool).deposit(alcxPoolId, _balance); //stake to alcx farm
     }
 
