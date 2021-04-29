@@ -3668,7 +3668,7 @@
       ]
     },
     "/Users/fantasy/Documents/Project/pickle/protocol/src/tests/strategies/polygon/cometh/strategy-cometh-weth-usdc-lp-v4.test-inactive.sol": {
-      "lastModificationDate": 1619173046093,
+      "lastModificationDate": 1619661249186,
       "contentHash": "1a01a180eff4b45308540385e9b508f0",
       "sourceName": "src/tests/strategies/polygon/cometh/strategy-cometh-weth-usdc-lp-v4.test-inactive.sol",
       "solcConfig": {
@@ -3719,8 +3719,8 @@
       ]
     },
     "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/polygon/cometh/strategy-cometh-weth-usdc-lp-v4.sol": {
-      "lastModificationDate": 1619173046092,
-      "contentHash": "43ae6162686e11df2979de23599ef1c6",
+      "lastModificationDate": 1619639228762,
+      "contentHash": "924ea0b9eb72cae2ff93d9b4829cc3ac",
       "sourceName": "src/strategies/polygon/cometh/strategy-cometh-weth-usdc-lp-v4.sol",
       "solcConfig": {
         "version": "0.6.12",
@@ -3754,155 +3754,13 @@
         }
       },
       "imports": [
-        "../strategy-cometh-farm-base.sol"
+        "./strategy-cometh-farm-base.sol"
       ],
       "versionPragmas": [
         "^0.6.7"
       ],
       "artifacts": [
         "StrategyComethWethUsdcLpV4"
-      ]
-    },
-    "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/polygon/strategy-cometh-farm-base.sol": {
-      "lastModificationDate": 1619173046092,
-      "contentHash": "b2204586d02c5d12de763236bacdda8d",
-      "sourceName": "src/strategies/polygon/strategy-cometh-farm-base.sol",
-      "solcConfig": {
-        "version": "0.6.12",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "istanbul",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "./strategy-staking-rewards-base.sol",
-        "../../interfaces/uniswapv2.sol"
-      ],
-      "versionPragmas": [
-        "^0.6.7"
-      ],
-      "artifacts": [
-        "StrategyComethFarmBase"
-      ]
-    },
-    "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/polygon/strategy-staking-rewards-base.sol": {
-      "lastModificationDate": 1619173046092,
-      "contentHash": "a8e6d942986240fc2581c94089e8a08f",
-      "sourceName": "src/strategies/polygon/strategy-staking-rewards-base.sol",
-      "solcConfig": {
-        "version": "0.6.12",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "istanbul",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "./strategy-base.sol"
-      ],
-      "versionPragmas": [
-        "^0.6.7"
-      ],
-      "artifacts": [
-        "StrategyStakingRewardsBase"
-      ]
-    },
-    "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/polygon/strategy-base.sol": {
-      "lastModificationDate": 1619173046092,
-      "contentHash": "5f6407fc84c57d8ff20b8f63ceeea734",
-      "sourceName": "src/strategies/polygon/strategy-base.sol",
-      "solcConfig": {
-        "version": "0.6.12",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "istanbul",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../../lib/erc20.sol",
-        "../../lib/safe-math.sol",
-        "../../interfaces/jar.sol",
-        "../../interfaces/staking-rewards.sol",
-        "../../interfaces/masterchef.sol",
-        "../../interfaces/uniswapv2.sol",
-        "../../interfaces/controller.sol"
-      ],
-      "versionPragmas": [
-        "^0.6.7"
-      ],
-      "artifacts": [
-        "StrategyBase"
       ]
     },
     "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/curve/strategy-curve-stecrv.sol": {
@@ -4657,7 +4515,7 @@
       ]
     },
     "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/compound/strategy-cmpd-dai-v3.sol": {
-      "lastModificationDate": 1619113289486,
+      "lastModificationDate": 1619482448717,
       "contentHash": "e2a8bd5b3f5f2b7aae3ef819dedcc140",
       "sourceName": "src/strategies/compound/strategy-cmpd-dai-v3.sol",
       "solcConfig": {
@@ -7916,6 +7774,298 @@
         "IERC20",
         "PickleVoteProxyV2",
         "StakingRewards"
+      ]
+    },
+    "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/polygon/cometh/strategy-cometh-farm-base.sol": {
+      "lastModificationDate": 1619639222530,
+      "contentHash": "14233d9f011b1073589148f9e85d5c45",
+      "sourceName": "src/strategies/polygon/cometh/strategy-cometh-farm-base.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "istanbul",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./strategy-staking-rewards-base.sol",
+        "../../../interfaces/uniswapv2.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyComethFarmBase"
+      ]
+    },
+    "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/polygon/cometh/strategy-staking-rewards-base.sol": {
+      "lastModificationDate": 1619639166527,
+      "contentHash": "a8e6d942986240fc2581c94089e8a08f",
+      "sourceName": "src/strategies/polygon/cometh/strategy-staking-rewards-base.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "istanbul",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./strategy-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyStakingRewardsBase"
+      ]
+    },
+    "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/polygon/cometh/strategy-base.sol": {
+      "lastModificationDate": 1619639218101,
+      "contentHash": "2cbd45d8ab51ebcd2863eca99a78728b",
+      "sourceName": "src/strategies/polygon/cometh/strategy-base.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "istanbul",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../../lib/erc20.sol",
+        "../../../lib/safe-math.sol",
+        "../../../interfaces/jar.sol",
+        "../../../interfaces/staking-rewards.sol",
+        "../../../interfaces/masterchef.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../interfaces/controller.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyBase"
+      ]
+    },
+    "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/polygon/aave/strategy-base.sol": {
+      "lastModificationDate": 1619662655788,
+      "contentHash": "8ed31122876e3a25035c65f9136d4004",
+      "sourceName": "src/strategies/polygon/aave/strategy-base.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "istanbul",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../../lib/erc20.sol",
+        "../../../lib/safe-math.sol",
+        "../../../interfaces/jar.sol",
+        "../../../interfaces/staking-rewards.sol",
+        "../../../interfaces/masterchef.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../interfaces/controller.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyBase"
+      ]
+    },
+    "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/polygon/aave/strategy-aave-dai-v3.sol": {
+      "lastModificationDate": 1619662739397,
+      "contentHash": "8ef2072d8f029ac0c3e7f3368f5b8adb",
+      "sourceName": "src/strategies/polygon/aave/strategy-aave-dai-v3.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "istanbul",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../../lib/erc20.sol",
+        "../../../lib/safe-math.sol",
+        "../../../lib/exponential.sol",
+        "../../../interfaces/jar.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../interfaces/controller.sol",
+        "../../../interfaces/aave.sol",
+        "./strategy-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.2"
+      ],
+      "artifacts": [
+        "StrategyAaveDaiV3"
+      ]
+    },
+    "/Users/fantasy/Documents/Project/pickle/protocol/src/interfaces/aave.sol": {
+      "lastModificationDate": 1619639272026,
+      "contentHash": "065b89b059ddf53b7cb4aa43defdb729",
+      "sourceName": "src/interfaces/aave.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "istanbul",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.6.0"
+      ],
+      "artifacts": [
+        "DataTypes",
+        "IAaveIncentivesController",
+        "ILendingPool",
+        "ILendingPoolAddressesProvider",
+        "IScaledBalanceToken"
       ]
     }
   }
