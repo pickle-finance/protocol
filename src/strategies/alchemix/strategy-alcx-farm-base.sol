@@ -82,10 +82,12 @@ abstract contract StrategyAlcxFarmBase is StrategyBase {
         if (_alcx > 0) {
             // 10% is locked up for future gov
             uint256 _keepAlcx = _alcx.mul(keepAlcx).div(keepAlcxMax);
-            IERC20(alcx).safeTransfer(
-                IController(controller).treasury(),
-                _keepAlcx
-            );
+            if (_keepAlcx > 0) {
+                IERC20(alcx).safeApprove(IController(controller).treasury(), 0);
+                IERC20(alcx).safeApprove(IController(controller).treasury(), _keepAlcx);
+                
+                IERC20(alcx).safeTransfer(IController(controller).treasury(), _keepAlcx);
+            }
             uint256 _amount = (_alcx.sub(_keepAlcx)).div(2);
             
             if (_amount > 0) {
