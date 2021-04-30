@@ -18,8 +18,8 @@ contract StrategyPngAvaxDaiLp is StrategyPngFarmBase {
         public
         StrategyPngFarmBase(
             aave,
-            png_avax_dai_aave_rewards,
-            png_avax_dai_aave,
+            png_avax_aave_lp_rewards,
+            png_avax_aave_lp,
             _governance,
             _strategist,
             _controller,
