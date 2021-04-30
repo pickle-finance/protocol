@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-farm-base.sol";
 
-contract StrategyPngAvaxDaiLp is StrategyPngFarmBase {
+contract StrategyPngAvaxAaveLp is StrategyPngFarmBase {
     // Token addresses
     address public png_avax_aave_lp_rewards = 0x4dF32F1F8469648e89E62789F4246f73fe768b8E;
     address public png_avax_aave_lp = 0x5F233A14e1315955f48C5750083D9A44b0DF8B50;
