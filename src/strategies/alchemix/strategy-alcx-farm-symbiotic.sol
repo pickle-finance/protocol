@@ -5,9 +5,6 @@ import "../strategy-base-symbiotic.sol";
 import "../../interfaces/alcx-farm.sol";
 
 abstract contract StrategyAlcxSymbioticFarmBase is StrategyBaseSymbiotic {
-    // Token addresses
-    address public constant alcx = 0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF;
-    address public constant stakingPool = 0xAB8e74017a8Cc7c15FFcCd726603790d26d7DeCa;
 
     // How much Alcx tokens to keep?
     uint256 public keepAlcx = 0;
@@ -53,10 +50,18 @@ abstract contract StrategyAlcxSymbioticFarmBase is StrategyBaseSymbiotic {
         return _amount;
     }
 
+    function _withdrawSomeReward(uint256 _amount) internal override returns (uint256) {
+        IStakingPools(stakingPool).withdraw(alcxPoolId, _amount);
+        return _amount;
+    }
+
     function __redeposit() internal override {
         uint256 _balance = IERC20(alcx).balanceOf(address(this));
-        IERC20(alcx).safeApprove(stakingPool, _balance);
-        if (_balance > 0) IStakingPools(stakingPool).deposit(alcxPoolId, _balance); //stake to alcx farm
+        if (_balance > 0) {
+            IERC20(alcx).safeApprove(stakingPool, 0);
+            IERC20(alcx).safeApprove(stakingPool, _balance);
+            IStakingPools(stakingPool).deposit(alcxPoolId, _balance); //stake to alcx farm
+        }
     }
 
     // **** Setters ****

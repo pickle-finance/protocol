@@ -13,9 +13,7 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
         address _strategist,
         address _controller,
         address _timelock
-    ) public StrategyAlcxSymbioticFarmBase(alusd_3crv_poolId, alusd_3crv, _governance, _strategist, _controller, _timelock) {
-        IERC20(alcx).approve(stakingPool, uint256(-1));
-    }
+    ) public StrategyAlcxSymbioticFarmBase(alusd_3crv_poolId, alusd_3crv, _governance, _strategist, _controller, _timelock) {}
 
     // **** Views ****
 
@@ -43,6 +41,9 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
             uint256 _keepAlcx = _alcx.mul(keepAlcx).div(keepAlcxMax);
             IERC20(alcx).safeTransfer(IController(controller).treasury(), _keepAlcx);
             uint256 _amount = _alcx.sub(_keepAlcx);
+
+            IERC20(alcx).safeApprove(stakingPool, 0);
+            IERC20(alcx).safeApprove(stakingPool, _amount);
             IStakingPools(stakingPool).deposit(alcxPoolId, _amount); //stake to alcx farm
         }
     }
@@ -78,7 +79,7 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
         __redeposit();
     }
 
-    function getAlcxDeposited() public view returns (uint256) {
+    function getAlcxDeposited() public view override returns (uint256) {
         return IStakingPools(stakingPool).getStakeTotalDeposited(address(this), alcxPoolId);
     }
 

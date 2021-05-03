@@ -46,6 +46,10 @@ abstract contract StrategyBaseSymbiotic {
     address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
     address public sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
 
+    // Token addresses
+    address public constant alcx = 0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF;
+    address public constant stakingPool = 0xAB8e74017a8Cc7c15FFcCd726603790d26d7DeCa;
+
     mapping(address => bool) public harvesters;
 
     constructor(
@@ -82,6 +86,8 @@ abstract contract StrategyBaseSymbiotic {
     }
 
     function balanceOfPool() public view virtual returns (uint256);
+
+    function getAlcxDeposited() public view virtual returns (uint256);
 
     function balanceOf() public view returns (uint256) {
         return balanceOfWant().add(balanceOfPool());
@@ -193,19 +199,28 @@ abstract contract StrategyBaseSymbiotic {
     function withdrawAll() external returns (uint256 balance) {
         require(msg.sender == controller, "!controller");
         _withdrawAll();
+        _withdrawAllReward();
 
         balance = IERC20(want).balanceOf(address(this));
 
         address _jar = IController(controller).jars(address(want));
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
         IERC20(want).safeTransfer(_jar, balance);
+        
+        IERC20(alcx).safeTransfer(_jar, IERC20(alcx).balanceOf(address(this)));
     }
 
     function _withdrawAll() internal {
         _withdrawSome(balanceOfPool());
     }
 
+    function _withdrawAllReward() internal {
+        _withdrawSomeReward(getAlcxDeposited());
+    }
+
     function _withdrawSome(uint256 _amount) internal virtual returns (uint256);
+
+    function _withdrawSomeReward(uint256 _amount) internal virtual returns (uint256);
 
     function harvest() public virtual;
 

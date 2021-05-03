@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 var chaiAsPromised = require("chai-as-promised");
-const StrategyCurveAlusd3Crv = hre.artifacts.require("StrategyCurveAlusd3Crv");
+const StrategyCurveAlusd3Crv = hre.artifacts.require("StrategyAlusd3Crv");
 const PickleJarSymbiotic = hre.artifacts.require("PickleJarSymbiotic");
 const ControllerV5 = hre.artifacts.require("ControllerV5");
 const ProxyAdmin = hre.artifacts.require("ProxyAdmin");
@@ -27,6 +27,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
     let alcx,
         alcx_addr = "0xdbdb4d16eda451d0503b854cf79d55697f90c8df";
     let governance, strategist, devfund, treasury, timelock;
+    let preTestSnapshotID;
 
     before("Deploy contracts", async () => {
         [governance, devfund, treasury] = await web3.eth.getAccounts();
@@ -65,7 +66,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
 
         await strategy.setKeepAlcx("2000", {from: governance});
 
-        alusd_3crv_whale = await unlockAccount("0xBAF18722C137E725327F1376329d3c99F26f6A60");
+        alusd_3crv_whale = await unlockAccount("0x8e47eE0D580a86a9A7D0e155Cb497E926ad0eC96");
         alusd_3crv = await hre.ethers.getContractAt("ERC20", want);
         alcx = await hre.ethers.getContractAt("ERC20", alcx_addr);
 
@@ -77,6 +78,14 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         assert.equal((await alusd_3crv.balanceOf(john.address)).toString(), toWei(2500).toString());
     });
 
+    beforeEach(async () => {
+        preTestSnapshotID = await hre.network.provider.send("evm_snapshot");
+    });
+
+    afterEach(async () => {
+        await hre.network.provider.send("evm_revert", [preTestSnapshotID]);
+    });
+    
     it("Should harvest the reward correctly", async () => {
         console.log("\n---------------------------Alice deposit---------------------------------------\n");
         await alusd_3crv.connect(alice).approve(pickleJar.address, toWei(2000));
@@ -162,6 +171,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
 
         assert.equal(_alcx_after.gt(_alcx_before), true);
         console.log("\nPending reward after all withdrawal ====> ", (await strategy.pendingReward()).toString());
+        console.log("\nPickle Jar Pending reward after all withdrawal ====> ", (await pickleJar.pendingReward()).toString());
     });
 
     it("Should withdraw the want correctly", async () => {
@@ -210,6 +220,8 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         _alcx_after = await alcx.balanceOf(bob.address);
         console.log("Bob alcx balance after =====> ", (await alcx.balanceOf(bob.address)).toString());
         assert.equal(_alcx_after.gt(_alcx_before), true);
+        console.log("\nStrategy Pending reward after all withdrawal ====> ", (await strategy.pendingReward()).toString());
+        console.log("\nPickle Jar Pending reward after all withdrawal ====> ", (await pickleJar.pendingReward()).toString());
     });
 
     const harvest = async () => {
