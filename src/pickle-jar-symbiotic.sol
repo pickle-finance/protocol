@@ -18,9 +18,9 @@ contract PickleJarSymbiotic is ERC20 {
 
     mapping(address => uint256) public userRewardDebt;
 
-    uint256 private accRewardPerShare;
-    uint256 private lastPendingReward;
-    uint256 private curPendingReward;
+    uint256 public accRewardPerShare;
+    uint256 public lastPendingReward;
+    uint256 public curPendingReward;
 
     uint256 public min = 10000;
     uint256 public constant max = 10000;
@@ -120,6 +120,8 @@ contract PickleJarSymbiotic is ERC20 {
     function _updateAccPerShare() internal {
         if (totalSupply() == 0) return;
         curPendingReward = pendingReward();
+        require(curPendingReward >= lastPendingReward, "Alchemix protocol failed");
+        
         uint256 addedReward = curPendingReward.sub(lastPendingReward);
         accRewardPerShare = accRewardPerShare.add((addedReward.mul(1e36)).div(totalSupply()));
     }

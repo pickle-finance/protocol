@@ -85,8 +85,8 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
 
     function pendingReward() public view returns (uint256) {
         return
-            IStakingPools(stakingPool).getStakeTotalDeposited(address(this), alcxPoolId).add(
-                getHarvestable().add(getAlcxFarmHarvestable())
+            IERC20(alcx).balanceOf(address(this)).add(IStakingPools(stakingPool).getStakeTotalDeposited(address(this), alcxPoolId).add(
+                getHarvestable().add(getAlcxFarmHarvestable()))
             );
     }
 }
