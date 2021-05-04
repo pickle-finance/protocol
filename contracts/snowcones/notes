@@ -1,1 +1,30 @@
+DILL
+
+External SmartWalletChecklist includes the interface SmartWalletChecker
+https://etherscan.io/address/0xca719728ef172d0961768581fdf35cb116e0b7a4#code
+
+
+Alter Maxtime to 2 weeks - Line 85
+MAXTIME: constant(uint256) = 4 * 365 * 86400  # 4 years
+
+
+I believe ts is timestamp
+
+
+Line 121 - Parameter of the Token should be ERC20SNOB
+ @param token_addr `ERC20CRV` token address
+
+
+
+
+Fee Distributor
+
+line 55
+Tokens per week? -tokens_per_week: public(uint256[1000000000000000])
+
+
+
+
+
+mDill is part of the Gauge Proxy. Ice Queen gets updated to route all of its rewards to mDill which then provides the proxy
 
