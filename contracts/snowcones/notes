@@ -28,3 +28,18 @@ Tokens per week? -tokens_per_week: public(uint256[1000000000000000])
 
 mDill is part of the Gauge Proxy. Ice Queen gets updated to route all of its rewards to mDill which then provides the proxy
 
+
+
+Fuji Testnet Deployment - Attempt 1
+snowcones
+0x9a37dC4f28C38813A6D31391721376066FbB401d
+gaugeproxy
+0xDeb45cf04058F3Ed69AD69C283DD69122E4123c9
+MakeSnowcones
+0xe2d2Bb0381aB9199D538621F272E513BFB045b21
+
+Avax-Snowball Gauge - Contract Verified
+0x684aEd2d08bbF2160d568c69Ad35c030504bA1C5
+
+Fuji Testnet - Tundra3Pool Gauge - Contract  Verified
+0x2e6Ae946D163C87254aaf2358A16553c08794f11
