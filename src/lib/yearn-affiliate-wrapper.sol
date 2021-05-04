@@ -139,31 +139,50 @@ abstract contract YearnAffiliateWrapper {
     RegistryAPI public registry;
 
     // ERC20 Unlimited Approvals (short-circuits VaultAPI.transferFrom)
-    uint256 constant UNLIMITED_APPROVAL = uint256(-1);
+    uint256 constant UNLIMITED_APPROVAL = type(uint256).max;
     // Sentinal values used to save gas on deposit/withdraw/migrate
     // NOTE: DEPOSIT_EVERYTHING == WITHDRAW_EVERYTHING == MIGRATE_EVERYTHING
-    uint256 constant DEPOSIT_EVERYTHING = uint256(-1);
-    uint256 constant WITHDRAW_EVERYTHING = uint256(-1);
-    uint256 constant MIGRATE_EVERYTHING = uint256(-1);
+    uint256 constant DEPOSIT_EVERYTHING = type(uint256).max;
+    uint256 constant WITHDRAW_EVERYTHING = type(uint256).max;
+    uint256 constant MIGRATE_EVERYTHING = type(uint256).max;
     // VaultsAPI.depositLimit is unlimited
-    uint256 constant UNCAPPED_DEPOSITS = uint256(-1);
+    uint256 constant UNCAPPED_DEPOSITS = type(uint256).max;
 
     constructor(address _token, address _registry) public {
+        // Recommended to use a token with a `Registry.latestVault(_token) != address(0)`
         token = IERC20(_token);
-        // v2.registry.ychad.eth
+        // Recommended to use `v2.registry.ychad.eth`
         registry = RegistryAPI(_registry);
     }
 
+    /**
+     * @notice
+     *  Used to update the yearn registry.
+     * @param _registry The new _registry address.
+     */
     function setRegistry(address _registry) external {
         require(msg.sender == registry.governance());
         // In case you want to override the registry instead of re-deploying
         registry = RegistryAPI(_registry);
+        // Make sure there's no change in governance
+        // NOTE: Also avoid bricking the wrapper from setting a bad registry
+        require(msg.sender == registry.governance());
     }
 
+    /**
+     * @notice
+     *  Used to get the most revent vault for the token using the registry.
+     * @return An instance of a VaultAPI
+     */
     function bestVault() public virtual view returns (VaultAPI) {
         return VaultAPI(registry.latestVault(address(token)));
     }
 
+    /**
+     * @notice
+     *  Used to get all vaults from the registery for the token
+     * @return An array containing instances of VaultAPI
+     */
     function allVaults() public virtual view returns (VaultAPI[] memory) {
         uint256 cache_length = _cachedVaults.length;
         uint256 num_vaults = registry.numVaults(address(token));
@@ -187,11 +206,21 @@ abstract contract YearnAffiliateWrapper {
     }
 
     function _updateVaultCache(VaultAPI[] memory vaults) internal {
+        // NOTE: even though `registry` is update-able by Yearn, the intended behavior
+        //       is that any future upgrades to the registry will replay the version
+        //       history so that this cached value does not get out of date.
         if (vaults.length > _cachedVaults.length) {
             _cachedVaults = vaults;
         }
     }
 
+    /**
+     * @notice
+     *  Used to get the balance of an account accross all the vaults for a token.
+     *  @dev will be used to get the wrapper balance using totalVaultBalance(address(this)).
+     *  @param account The address of the account.
+     *  @return balance of token for the account accross all the vaults.
+     */
     function totalVaultBalance(address account) public view returns (uint256 balance) {
         VaultAPI[] memory vaults = allVaults();
 
@@ -200,6 +229,11 @@ abstract contract YearnAffiliateWrapper {
         }
     }
 
+    /**
+     * @notice
+     *  Used to get the TVL on the underlying vaults.
+     *  @return assets the sum of all the assets managed by the underlying vaults.
+     */
     function totalAssets() public view returns (uint256 assets) {
         VaultAPI[] memory vaults = allVaults();
 
@@ -217,10 +251,15 @@ abstract contract YearnAffiliateWrapper {
         VaultAPI _bestVault = bestVault();
 
         if (pullFunds) {
-            token.safeTransferFrom(depositor, address(this), amount);
+            if (amount != DEPOSIT_EVERYTHING) {
+                token.safeTransferFrom(depositor, address(this), amount);
+            } else {
+                token.safeTransferFrom(depositor, address(this), token.balanceOf(depositor));
+            }
         }
 
         if (token.allowance(address(this), address(_bestVault)) < amount) {
+            token.safeApprove(address(_bestVault), 0); // Avoid issues with some tokens requiring 0
             token.safeApprove(address(_bestVault), UNLIMITED_APPROVAL); // Vaults are trusted
         }
 
@@ -241,7 +280,7 @@ abstract contract YearnAffiliateWrapper {
         deposited = beforeBal.sub(afterBal);
         // `receiver` now has shares of `_bestVault` as balance, converted to `token` here
         // Issue a refund if not everything was deposited
-        if (depositor != address(this) && afterBal > 0) token.transfer(depositor, afterBal);
+        if (depositor != address(this) && afterBal > 0) token.safeTransfer(depositor, afterBal);
     }
 
     function _withdraw(
@@ -255,6 +294,13 @@ abstract contract YearnAffiliateWrapper {
         VaultAPI[] memory vaults = allVaults();
         _updateVaultCache(vaults);
 
+        // NOTE: This loop will attempt to withdraw from each Vault in `allVaults` that `sender`
+        //       is deposited in, up to `amount` tokens. The withdraw action can be expensive,
+        //       so it if there is a denial of service issue in withdrawing, the downstream usage
+        //       of this wrapper contract must give an alternative method of withdrawing using
+        //       this function so that `amount` is less than the full amount requested to withdraw
+        //       (e.g. "piece-wise withdrawals"), leading to less loop iterations such that the
+        //       DoS issue is mitigated (at a tradeoff of requiring more txns from the end user).
         for (uint256 id = 0; id < vaults.length; id++) {
             if (!withdrawFromBest && vaults[id] == _bestVault) {
                 continue; // Don't withdraw from the best
@@ -285,8 +331,13 @@ abstract contract YearnAffiliateWrapper {
                         .div(vaults[id].pricePerShare()); // NOTE: Every Vault is different
 
                     // Limit amount to withdraw to the maximum made available to this contract
-                    uint256 shares = Math.min(estimatedShares, availableShares);
-                    withdrawn = withdrawn.add(vaults[id].withdraw(shares));
+                    // NOTE: Avoid corner case where `estimatedShares` isn't precise enough
+                    // NOTE: If `0 < estimatedShares < 1` but `availableShares > 1`, this will withdraw more than necessary
+                    if (estimatedShares > 0 && estimatedShares < availableShares) {
+                        withdrawn = withdrawn.add(vaults[id].withdraw(estimatedShares));
+                    } else {
+                        withdrawn = withdrawn.add(vaults[id].withdraw(availableShares));
+                    }
                 } else {
                     withdrawn = withdrawn.add(vaults[id].withdraw());
                 }
