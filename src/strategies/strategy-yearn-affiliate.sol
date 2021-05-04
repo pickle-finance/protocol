@@ -74,6 +74,7 @@ contract StrategyYearnAffiliate is YearnAffiliateWrapper {
     }
 
     function deposit() public {
+        require(msg.sender == controller, "!controller");
         uint256 _want = IERC20(want).balanceOf(address(this));
         _deposit(address(this), address(this), _want, false);
     }

@@ -62,6 +62,7 @@ contract StrategyYearnV1Affiliate {
     }
 
     function deposit() public {
+        require(msg.sender == controller, "!controller");
         uint256 _want = IERC20(want).balanceOf(address(this));
         IYearnVault(yVault).depositAll();
     }
