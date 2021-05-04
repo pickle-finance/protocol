@@ -792,8 +792,8 @@
       ]
     },
     "/Users/fantasy/Documents/Project/pickle/protocol/src/interfaces/curve.sol": {
-      "lastModificationDate": 1619113289443,
-      "contentHash": "90a33c18c2dd960f60c4ec89d5e8e38e",
+      "lastModificationDate": 1619801936888,
+      "contentHash": "3518e36b49233cb7a523c71b8871857b",
       "sourceName": "src/interfaces/curve.sol",
       "solcConfig": {
         "version": "0.6.12",
@@ -1976,7 +1976,7 @@
       ]
     },
     "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/curve/strategy-curve-scrv-v3_2.sol": {
-      "lastModificationDate": 1619113289488,
+      "lastModificationDate": 1619793014037,
       "contentHash": "ad2d54fed922f3e286faaadae6e2dcc1",
       "sourceName": "src/strategies/curve/strategy-curve-scrv-v3_2.sol",
       "solcConfig": {
@@ -2131,7 +2131,7 @@
       ]
     },
     "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/curve/scrv-voter.sol": {
-      "lastModificationDate": 1619113289487,
+      "lastModificationDate": 1619786214996,
       "contentHash": "0ddac4e0854531aa5cb6e72a71291950",
       "sourceName": "src/strategies/curve/scrv-voter.sol",
       "solcConfig": {
@@ -2272,7 +2272,7 @@
       ]
     },
     "/Users/fantasy/Documents/Project/pickle/protocol/src/tests/strategies/curve/strategy-curve-3crv-v2.test.sol": {
-      "lastModificationDate": 1619113289542,
+      "lastModificationDate": 1619795060944,
       "contentHash": "96939cc098084eede0dae7d3f5ba13a3",
       "sourceName": "src/tests/strategies/curve/strategy-curve-3crv-v2.test.sol",
       "solcConfig": {
@@ -8174,10 +8174,10 @@
         "StrategyAaveDaiV3Test"
       ]
     },
-    "/Users/fantasy/Documents/Project/pickle/protocol/src/flatten/controller-v4.sol": {
-      "lastModificationDate": 1619707849927,
-      "contentHash": "6f398e454e944b11b70d8bca2462008b",
-      "sourceName": "src/flatten/controller-v4.sol",
+    "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/polygon/curve/strategy-curve-am3crv-v2.sol": {
+      "lastModificationDate": 1619800063831,
+      "contentHash": "bbd8874f683d40b9ae2c8ddd5167fbe1",
+      "sourceName": "src/strategies/polygon/curve/strategy-curve-am3crv-v2.sol",
       "solcConfig": {
         "version": "0.6.12",
         "settings": {
@@ -8209,304 +8209,26 @@
           }
         }
       },
-      "imports": [],
-      "versionPragmas": [
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.2",
-        "^0.6.2",
-        "^0.6.2",
-        "^0.6.2",
-        "^0.6.7"
+      "imports": [
+        "../../../lib/erc20.sol",
+        "../../../lib/safe-math.sol",
+        "../../../interfaces/jar.sol",
+        "../../../interfaces/curve.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../interfaces/controller.sol",
+        "./strategy-curve-base.sol"
       ],
-      "artifacts": [
-        "Address",
-        "Context",
-        "ControllerV4",
-        "Converter",
-        "ERC20",
-        "IController",
-        "IERC20",
-        "IJar",
-        "IJarConverter",
-        "IStrategy",
-        "SafeERC20",
-        "SafeMath"
-      ]
-    },
-    "/Users/fantasy/Documents/Project/pickle/protocol/src/flatten/masterchef.sol": {
-      "lastModificationDate": 1619707849928,
-      "contentHash": "64dc159a1a9b79871bcaff5b5d36cd44",
-      "sourceName": "src/flatten/masterchef.sol",
-      "solcConfig": {
-        "version": "0.6.12",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "istanbul",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
       "versionPragmas": [
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.7",
-        "^0.6.7"
-      ],
-      "artifacts": [
-        "AccessControl",
-        "AccessControlMixin",
-        "Address",
-        "Context",
-        "ContextMixin",
-        "EIP712Base",
-        "ERC20",
-        "EnumerableSet",
-        "IChildToken",
-        "IERC20",
-        "Initializable",
-        "MasterChef",
-        "Ownable",
-        "PickleToken",
-        "SafeERC20",
-        "SafeMath"
-      ]
-    },
-    "/Users/fantasy/Documents/Project/pickle/protocol/src/flatten/pickle-jar.sol": {
-      "lastModificationDate": 1619707849924,
-      "contentHash": "19abb1e44ba2665f629207879e46a07b",
-      "sourceName": "src/flatten/pickle-jar.sol",
-      "solcConfig": {
-        "version": "0.6.12",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "istanbul",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.7"
-      ],
-      "artifacts": [
-        "Address",
-        "Context",
-        "ERC20",
-        "IController",
-        "IERC20",
-        "PickleJar",
-        "SafeERC20",
-        "SafeMath"
-      ]
-    },
-    "/Users/fantasy/Documents/Project/pickle/protocol/src/flatten/pickle-token.sol": {
-      "lastModificationDate": 1619707957912,
-      "contentHash": "5c74cb93b9547ae4a3f50b0ff347e1dc",
-      "sourceName": "src/flatten/pickle-token.sol",
-      "solcConfig": {
-        "version": "0.6.12",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "istanbul",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.7"
-      ],
-      "artifacts": [
-        "AccessControl",
-        "AccessControlMixin",
-        "Address",
-        "Context",
-        "ContextMixin",
-        "EIP712Base",
-        "ERC20",
-        "EnumerableSet",
-        "IChildToken",
-        "IERC20",
-        "Initializable",
-        "Ownable",
-        "PickleToken",
-        "SafeERC20",
-        "SafeMath"
-      ]
-    },
-    "/Users/fantasy/Documents/Project/pickle/protocol/src/flatten/strategy-aave-dai-v3.sol": {
-      "lastModificationDate": 1619707939918,
-      "contentHash": "a6ada5968c9e2ea616f7dafecdcc5fc7",
-      "sourceName": "src/flatten/strategy-aave-dai-v3.sol",
-      "solcConfig": {
-        "version": "0.6.12",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "istanbul",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.2",
-        "^0.6.2",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.2",
-        "^0.6.7",
-        "^0.6.7",
         "^0.6.2"
       ],
       "artifacts": [
-        "Address",
-        "CarefulMath",
-        "Context",
-        "DataTypes",
-        "ERC20",
-        "Exponential",
-        "IAaveIncentivesController",
-        "IController",
-        "IERC20",
-        "IJar",
-        "ILendingPool",
-        "ILendingPoolAddressesProvider",
-        "IMasterchef",
-        "IScaledBalanceToken",
-        "IStakingRewards",
-        "IStakingRewardsFactory",
-        "IUniswapV2Factory",
-        "IUniswapV2Pair",
-        "SafeERC20",
-        "SafeMath",
-        "StrategyAaveDaiV3",
-        "StrategyBase",
-        "UniswapRouterV2"
+        "StrategyCurveAm3CRVv2"
       ]
     },
-    "/Users/fantasy/Documents/Project/pickle/protocol/src/flatten/strategy-cometh-weth-usdc-lp-v4.sol": {
-      "lastModificationDate": 1619707849929,
-      "contentHash": "5bc4f5d9f0f80b2ab26437032630e67a",
-      "sourceName": "src/flatten/strategy-cometh-weth-usdc-lp-v4.sol",
+    "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/polygon/curve/strategy-curve-base.sol": {
+      "lastModificationDate": 1619799935490,
+      "contentHash": "63769501b7fd5db818454787c6e2fe6f",
+      "sourceName": "src/strategies/polygon/curve/strategy-curve-base.sol",
       "solcConfig": {
         "version": "0.6.12",
         "settings": {
@@ -8538,46 +8260,21 @@
           }
         }
       },
-      "imports": [],
+      "imports": [
+        "./strategy-base.sol",
+        "../../../interfaces/curve.sol"
+      ],
       "versionPragmas": [
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.0",
-        "^0.6.2",
-        "^0.6.2",
-        "^0.6.7",
-        "^0.6.2",
-        "^0.6.0",
-        "^0.6.7",
-        "^0.6.7",
-        "^0.6.7",
         "^0.6.7"
       ],
       "artifacts": [
-        "Address",
-        "Context",
-        "ERC20",
-        "IController",
-        "IERC20",
-        "IJar",
-        "IMasterchef",
-        "IStakingRewards",
-        "IStakingRewardsFactory",
-        "IUniswapV2Factory",
-        "IUniswapV2Pair",
-        "SafeERC20",
-        "SafeMath",
-        "StrategyBase",
-        "StrategyComethFarmBase",
-        "StrategyComethWethUsdcLpV4",
-        "StrategyStakingRewardsBase",
-        "UniswapRouterV2"
+        "StrategyCurveBase"
       ]
     },
-    "/Users/fantasy/Documents/Project/pickle/protocol/src/flatten/timelock.sol": {
-      "lastModificationDate": 1619707849926,
-      "contentHash": "4ec59f01b9c0ac74897223ba114274d0",
-      "sourceName": "src/flatten/timelock.sol",
+    "/Users/fantasy/Documents/Project/pickle/protocol/src/strategies/polygon/curve/strategy-base.sol": {
+      "lastModificationDate": 1619793132507,
+      "contentHash": "730b93f76621ee829775216a5edd7730",
+      "sourceName": "src/strategies/polygon/curve/strategy-base.sol",
       "solcConfig": {
         "version": "0.6.12",
         "settings": {
@@ -8609,14 +8306,182 @@
           }
         }
       },
-      "imports": [],
+      "imports": [
+        "../../../lib/erc20.sol",
+        "../../../lib/safe-math.sol",
+        "../../../interfaces/jar.sol",
+        "../../../interfaces/staking-rewards.sol",
+        "../../../interfaces/masterchef.sol",
+        "../../../interfaces/uniswapv2.sol",
+        "../../../interfaces/controller.sol"
+      ],
       "versionPragmas": [
-        "^0.6.0",
-        "^0.6.0"
+        "^0.6.7"
       ],
       "artifacts": [
-        "SafeMath",
-        "Timelock"
+        "StrategyBase"
+      ]
+    },
+    "/Users/fantasy/Documents/Project/pickle/protocol/src/tests/lib/polygon/curve/test-defi-base.sol": {
+      "lastModificationDate": 1619795352790,
+      "contentHash": "2ca897804d89af991a8afa2c4c66934b",
+      "sourceName": "src/tests/lib/polygon/curve/test-defi-base.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "istanbul",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../../../lib/safe-math.sol",
+        "../../../../lib/erc20.sol",
+        "../../hevm.sol",
+        "../../user.sol",
+        "../../test-approx.sol",
+        "../../../../interfaces/usdt.sol",
+        "../../../../interfaces/weth.sol",
+        "../../../../interfaces/strategy.sol",
+        "../../../../interfaces/curve.sol",
+        "../../../../interfaces/uniswapv2.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "DSTestDefiBase"
+      ]
+    },
+    "/Users/fantasy/Documents/Project/pickle/protocol/src/tests/strategies/polygon/curve/strategy-curve-am3crv-v2.test.sol": {
+      "lastModificationDate": 1619801929009,
+      "contentHash": "8163c858c340fac4b68c5a621bc728cc",
+      "sourceName": "src/tests/strategies/polygon/curve/strategy-curve-am3crv-v2.test.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "istanbul",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../../lib/hevm.sol",
+        "../../../lib/user.sol",
+        "../../../lib/test-approx.sol",
+        "../../../lib/polygon/curve/test-defi-base.sol",
+        "../../../lib/polygon/curve/test-strategy-curve-farm-base.sol",
+        "../../../../interfaces/strategy.sol",
+        "../../../../interfaces/curve.sol",
+        "../../../../interfaces/uniswapv2.sol",
+        "../../../../pickle-jar.sol",
+        "../../../../controller-v4.sol",
+        "../../../../strategies/polygon/curve/strategy-curve-am3crv-v2.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyCurveAm3CRVv2Test"
+      ]
+    },
+    "/Users/fantasy/Documents/Project/pickle/protocol/src/tests/lib/polygon/curve/test-strategy-curve-farm-base.sol": {
+      "lastModificationDate": 1619794963741,
+      "contentHash": "da2b0b79c0cc1b480c2bf56f94ca5ffd",
+      "sourceName": "src/tests/lib/polygon/curve/test-strategy-curve-farm-base.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "istanbul",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../../lib/hevm.sol",
+        "../../../lib/user.sol",
+        "../../../lib/test-approx.sol",
+        "../../../../interfaces/strategy.sol",
+        "../../../../interfaces/curve.sol",
+        "../../../../interfaces/uniswapv2.sol",
+        "../../../../pickle-jar.sol",
+        "../../../../controller-v4.sol",
+        "./test-defi-base.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyCurveFarmTestBase"
       ]
     }
   }
