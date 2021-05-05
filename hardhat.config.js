@@ -1,4 +1,5 @@
 require("hardhat-deploy");
+require("hardhat-deploy-ethers");
 require("@nomiclabs/hardhat-etherscan");
 require("dotenv").config({});
 
@@ -8,7 +9,30 @@ const deployer = process.env.DEPLOYER_PRIVATE_KEY;
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.6.7",
+  solidity: {
+    compilers: [
+      {
+        version: "0.6.7",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          evmVersion: "istanbul",
+        },
+      },
+      {
+        version: "0.6.12",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          evmVersion: "istanbul",
+        },
+      },
+    ],
+  },
   networks: {
     hardhat: {
       forking: {
@@ -34,6 +58,11 @@ module.exports = {
       chainId: 1337,
       url: "http://127.0.0.1:8545",
       timeout: 100000000,
+    },
+    matic: {
+      chainId: 137,
+      url: "https://rpc-mainnet.maticvigil.com/",
+      accounts: [deployer],
     },
   },
   etherscan: {
