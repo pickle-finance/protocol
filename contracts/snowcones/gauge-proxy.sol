@@ -536,7 +536,7 @@ contract GaugeProxy is ProtocolGovernance {
     address[] internal _tokens;
     mapping(address => address) public gauges; // token => gauge
     mapping(address => uint) public weights; // token => weight
-    mapping(address => mapping(address => uint)) public votes; // msg.sender => votes
+    mapping(address => mapping(address => uint)) public votes; // msg.sender => token => votes
     mapping(address => address[]) public tokenVote;// msg.sender => token
     mapping(address => uint) public usedWeights;  // msg.sender => total voting weight of user
     
@@ -626,6 +626,8 @@ contract GaugeProxy is ProtocolGovernance {
     
     
     // Vote with SNOWCONE on a gauge
+    // _tokenVote: the array of tokens which will recieve tokens
+    // _weights: the weights to associate with the tokens listed in _tokenVote
     function vote(address[] calldata _tokenVote, uint256[] calldata _weights) external {
         require(_tokenVote.length == _weights.length);
         _vote(msg.sender, _tokenVote, _weights);
