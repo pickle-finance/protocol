@@ -58,6 +58,8 @@ contract StrategyCurveAm3CRVv2Test is StrategyCurveFarmTestBase, ReentrancyGuard
         controller.setStrategy(strategy.want(), address(strategy));
 
         hevm.warp(startTime);
+
+        _getWant(100 ether);
     }
 
     function _getWant(uint256 daiAmount) nonReentrant internal {
@@ -67,19 +69,17 @@ contract StrategyCurveAm3CRVv2Test is StrategyCurveFarmTestBase, ReentrancyGuard
         IERC20(dai).approve(three_pool, liquidity[0]);
         (bool success, ) = three_pool.call{gas: 3000000}(abi.encodeWithSignature("add_liquidity(uint256[3],uint256,bool)", liquidity, 0, true));
         if (!success) {
-            // three_pool.call(abi.encodeWithSignature("add_liquidity(uint256[3],uint256,bool)", liquidity, 0, true));
+            // add_liquidity fails at the first time but not from second time.
             ICurveFi_Polygon_3(three_pool).add_liquidity(liquidity, 0, true);
         }
     }
 
     // **** Tests **** //
     function test_3crv_withdraw() public {
-        _getWant(100 ether);
         _test_withdraw();
     }
 
     function test_3crv_earn_harvest_rewards() public {
-        _getWant(100 ether);
         _test_get_earn_harvest_rewards();
     }
 }
