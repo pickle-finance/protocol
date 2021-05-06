@@ -7,7 +7,7 @@ import "../../../../interfaces/curve.sol";
 import "../../../../interfaces/uniswapv2.sol";
 
 import "../../../../pickle-jar.sol";
-import "../../../../controller-v4.sol";
+import "../../../../polygon/controller-v4.sol";
 import "../../../../strategies/polygon/cometh/strategy-cometh-weth-usdc-lp-v4.sol";
 
 contract StrategyComethWethUsdcLpV4Test is StrategyComethFarmTestBase {

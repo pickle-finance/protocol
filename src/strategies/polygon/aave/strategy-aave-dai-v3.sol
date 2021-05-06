@@ -20,7 +20,7 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
     address public constant lendingPool = 0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf;
     address public constant incentivesController = 0x357D51124f59836DeD84c8a1730D72B749d8BC23;
 
-    uint256 public constant DAI_COLFACTOR = 750000000000000000;
+    uint256 public daiColFactor;
     uint16 public constant REFERRAL_CODE = 0xaa;
 
     // Require a 0.04 buffer between
@@ -42,6 +42,7 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
         public
         StrategyBase(dai, _governance, _strategist, _controller, _timelock)
     {
+        daiColFactor = 750000000000000000;
     }
 
     // **** Modifiers **** //
@@ -100,7 +101,12 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
     }
 
     function getMarketColFactor() public view returns (uint256) {
-        return DAI_COLFACTOR;
+        return daiColFactor;
+    }
+
+    function setMarketColFactor(uint256 _daiColFactor) public onlyKeepers returns (bool) {
+        daiColFactor = _daiColFactor;
+        return true;
     }
 
     // Max leverage we can go up to, w.r.t safe buffer
@@ -289,6 +295,10 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
 
         // How much can we redeem
         uint256 _redeemAndRepay = getRedeemable();
+
+        IERC20(dai).safeApprove(lendingPool, 0);
+        IERC20(dai).safeApprove(lendingPool, uint256(-1));
+
         while (supplied > _supplyAmount) {
             // If the amount we're redeeming is exceeding the
             // target supplyAmount, adjust accordingly
@@ -299,17 +309,16 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
             // withdraw
             require (ILendingPool(lendingPool).withdraw(dai, _redeemAndRepay, address(this)) != 0, "!withdraw");
 
-            IERC20(dai).safeApprove(lendingPool, 0);
-            IERC20(dai).safeApprove(lendingPool, _redeemAndRepay);
-            
             // repay
             require(ILendingPool(lendingPool).repay(dai, _redeemAndRepay, uint256(DataTypes.InterestRateMode.VARIABLE), address(this)) != 0, "!repay");
-
+            
             supplied = supplied.sub(_redeemAndRepay);
             
             // After each deleverage we can redeem more (the colFactor)
             _redeemAndRepay = _redeemAndRepay.mul(1e18).div(marketColFactor);
         }
+
+        IERC20(dai).safeApprove(lendingPool, 0);
     }
 
     function harvest() public override onlyBenevolent {

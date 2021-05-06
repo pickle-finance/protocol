@@ -11,7 +11,7 @@ import "../../../lib/test-approx.sol";
 import "../../../../interfaces/aave.sol";
 
 import "../../../../pickle-jar.sol";
-import "../../../../controller-v4.sol";
+import "../../../../polygon/controller-v4.sol";
 
 import "../../../../strategies/polygon/aave/strategy-aave-dai-v3.sol";
 
