@@ -126,36 +126,36 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
        results by calling `callStatic`.
     */
 
-    function getMaticAccrued() public returns (uint256) {
+    function getMaticAccrued() public view returns (uint256) {
         address[] memory amTokens = new address[](1);
         amTokens[0] = amdai;
 
         return IAaveIncentivesController(incentivesController).getRewardsBalance(amTokens, address(this));
     }
 
-    function getColFactor() public returns (uint256) {
+    function getColFactor() public view returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
 
         return borrowed.mul(1e18).div(supplied);
     }
 
-    function getSuppliedUnleveraged() public returns (uint256) {
+    function getSuppliedUnleveraged() public view returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
 
         return supplied.sub(borrowed);
     }
 
-    function getSupplied() public returns (uint256) {
+    function getSupplied() public view returns (uint256) {
         return IERC20(amdai).balanceOf(address(this));
     }
 
-    function getBorrowed() public returns (uint256) {
+    function getBorrowed() public view returns (uint256) {
         return IERC20(variableDebtDai).balanceOf(address(this));
     }
 
-    function getBorrowable() public returns (uint256) {
+    function getBorrowable() public view returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
         uint256 marketColFactor = getMarketColFactor();
@@ -167,7 +167,7 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
             );
     }
 
-    function getRedeemable() public returns (uint256) {
+    function getRedeemable() public view returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
         uint256 marketColFactor = getMarketColFactor();
@@ -179,7 +179,7 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
             );
     }
 
-    function getCurrentLeverage() public returns (uint256) {
+    function getCurrentLeverage() public view returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
 

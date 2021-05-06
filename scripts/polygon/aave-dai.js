@@ -7,7 +7,7 @@ const deployAaveDaiStrategy = async () => {
 
   const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
   const strategist = "0x88d226A9FC7485Ae0856AE51C3Db15d7ad242a3f";
-  const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
+  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
   const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
 
   const StrategyAaveDaiV3Factory = await ethers.getContractFactory(
@@ -28,7 +28,7 @@ const deployPickleJar = async () => {
   const want = "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063"; // DAI
   const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
   const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
-  const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
+  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
 
   const PickleJarFactory = await ethers.getContractFactory(
     "src/flatten/pickle-jar.sol:PickleJar"
@@ -44,8 +44,8 @@ const deployPickleJar = async () => {
 
 const setJar = async () => {
   const want = "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063"; // DAI
-  const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
-  const picklejar = "0x9eD7e3590F2fB9EEE382dfC55c71F9d3DF12556c";
+  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
+  const picklejar = "0x0519848e57Ba0469AA5275283ec0712c91e20D8E";
 
   const ControllerV4 = await ethers.getContractAt(
     "src/flatten/controller-v4.sol:ControllerV4",
@@ -59,8 +59,8 @@ const setJar = async () => {
     ethers.provider
   );
 
-  console.log("setJar");
   await ControllerV4.connect(deployer).setJar(want, picklejar);
+  console.log("setJar");
   // this should be done on governance,
   // console.log("approveStrategy");
   // await ControllerV4.connect(deployer).approveStrategy(want, strategy);
