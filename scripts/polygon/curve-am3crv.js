@@ -7,7 +7,7 @@ const deployAm3crvStrategy = async () => {
 
   const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
   const strategist = "0x88d226A9FC7485Ae0856AE51C3Db15d7ad242a3f";
-  const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
+  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
   const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
 
   const StrategyCurveAm3CRVv2Factory = await ethers.getContractFactory(
@@ -31,7 +31,7 @@ const deployPickleJar = async () => {
   const want = "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171"; // am3crv lp
   const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
   const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
-  const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
+  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
 
   const PickleJarFactory = await ethers.getContractFactory(
     "src/flatten/pickle-jar.sol:PickleJar"
@@ -47,8 +47,8 @@ const deployPickleJar = async () => {
 
 const setJar = async () => {
   const want = "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171"; // am3crv lp
-  const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
-  const picklejar = "0xA6c8AAA4Ae98777A751270E9053fDCaAacF97a6a";
+  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
+  const picklejar = "0x261b5619d85B710f1c2570b65ee945975E2cC221";
 
   const ControllerV4 = await ethers.getContractAt(
     "src/flatten/controller-v4.sol:ControllerV4",
