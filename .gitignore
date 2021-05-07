@@ -107,3 +107,7 @@ dist
 solc-input.json
 build
 artifacts
+
+/data
+/cache
+/src/flatten

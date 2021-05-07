@@ -2,7 +2,7 @@ pragma solidity ^0.6.7;
 
 
 
-import "../../lib/test-strategy-basis-farm-base.sol";
+import "../../lib/test-strategy-fei-farm-base.sol";
 
 import "../../../interfaces/strategy.sol";
 import "../../../interfaces/curve.sol";
@@ -10,12 +10,11 @@ import "../../../interfaces/uniswapv2.sol";
 
 import "../../../pickle-jar.sol";
 import "../../../controller-v4.sol";
-import "../../../strategies/basis/strategy-basis-bas-dai-lp.sol";
+import "../../../strategies/fei/strategy-fei-tribe-lp.sol";
 
-contract StrategyBasisBasDaiLpTest is StrategyBasisFarmTestBase {
+contract StrategyFeiTribeLpTest is StrategyFeiFarmTestBase {
     function setUp() public {
-        want = 0x0379dA7a5895D13037B6937b109fA8607a659ADF;
-        token1 = 0xa7ED29B253D8B4E3109ce07c80fc570f81B63696; // Bas
+        want = 0x9928e4046d7c6513326cCeA028cD3e7a91c7590A; // FEI-TRIBE
 
         governance = address(this);
         strategist = address(this);
@@ -33,7 +32,7 @@ contract StrategyBasisBasDaiLpTest is StrategyBasisFarmTestBase {
 
         strategy = IStrategy(
             address(
-                new StrategyBasisBasDaiLp(
+                new StrategyFeiTribeLp(
                     governance,
                     strategist,
                     address(controller),
@@ -59,15 +58,15 @@ contract StrategyBasisBasDaiLpTest is StrategyBasisFarmTestBase {
 
     // **** Tests ****
 
-    function test_basdaiv3_1_timelock() public {
+    function test_feitribev1_timelock() public {
         _test_timelock();
     }
 
-    function test_basdaiv3_1_withdraw_release() public {
+    function test_feitribev1_withdraw_release() public {
         _test_withdraw_release();
     }
 
-    function test_basdaiv3_1_get_earn_harvest_rewards() public {
+    function test_feitribev1_get_earn_harvest_rewards() public {
         _test_get_earn_harvest_rewards();
     }
 }

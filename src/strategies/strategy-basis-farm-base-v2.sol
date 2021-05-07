@@ -3,9 +3,17 @@ pragma solidity ^0.6.7;
 
 import "./strategy-staking-rewards-base.sol";
 
-abstract contract StrategyBasisFarmBase is StrategyStakingRewardsBase {
+interface IBasisStaking {
+    function deposit(uint256 _pid, uint256 _amount) external;
+    function withdraw(uint256 _pid, uint256 _amount) external;
+    function claimReward(uint256 _pid) external;
+    function balanceOf(uint256 _pid, address _owner) external view returns(uint256);
+    function rewardEarned(uint256 _pid, address _target) external view returns(uint256);
+}
+
+abstract contract StrategyBasisFarmBaseV2 is StrategyBase {
     // Token addresses
-    address public bas = 0xa7ED29B253D8B4E3109ce07c80fc570f81B63696;
+    address public bas = 0x106538CC16F938776c7c180186975BCA23875287; // BAS v2
     address public dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
 
     // DAI/<token1> pair
@@ -15,9 +23,13 @@ abstract contract StrategyBasisFarmBase is StrategyStakingRewardsBase {
     uint256 public keepBAS = 0;
     uint256 public constant keepBASMax = 10000;
 
+    uint256 public pid;
+    address public rewards;
+
     constructor(
         address _token1,
         address _rewards,
+        uint256 _poolId,
         address _lp,
         address _governance,
         address _strategist,
@@ -25,26 +37,49 @@ abstract contract StrategyBasisFarmBase is StrategyStakingRewardsBase {
         address _timelock
     )
         public
-        StrategyStakingRewardsBase(
-            _rewards,
-            _lp,
-            _governance,
-            _strategist,
-            _controller,
-            _timelock
-        )
+        StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
     {
         token1 = _token1;
+        pid = _poolId;
+        rewards = _rewards;
+
+        IERC20(bas).approve(univ2Router2, uint256(-1));
+        IERC20(dai).approve(univ2Router2, uint256(-1));
+        IERC20(token1).approve(univ2Router2, uint256(-1));
+        IERC20(_lp).approve(rewards, uint256(-1));
+    }
+
+    function balanceOfPool() public override view returns (uint256) {
+        return IBasisStaking(rewards).balanceOf(pid, address(this));
+    }
+
+    // Used only for displaying purpose
+    function getHarvestable() external view returns (uint256) {
+        return IBasisStaking(rewards).rewardEarned(pid, address(this));
     }
 
     // **** Setters ****
+
+    function deposit() public override {
+        uint256 _want = IERC20(want).balanceOf(address(this));
+        if (_want > 0) {
+            IBasisStaking(rewards).deposit(pid, _want);
+        }
+    }
+
+    function _withdrawSome(uint256 _amount)
+        internal
+        override
+        returns (uint256)
+    {
+        IBasisStaking(rewards).withdraw(pid, _amount);
+        return _amount;
+    }
 
     function setKeepBAS(uint256 _keepBAS) external {
         require(msg.sender == timelock, "!timelock");
         keepBAS = _keepBAS;
     }
-
-    // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
         // Anyone can harvest it at any given time.
@@ -55,7 +90,7 @@ abstract contract StrategyBasisFarmBase is StrategyStakingRewardsBase {
         address[] memory path = new address[](2);
 
         // Collects BAS tokens
-        IStakingRewards(rewards).getReward();
+        IBasisStaking(rewards).claimReward(pid);
         uint256 _bas = IERC20(bas).balanceOf(address(this));
         if (_bas > 0) {
             // 10% is locked up for future gov
@@ -81,12 +116,6 @@ abstract contract StrategyBasisFarmBase is StrategyStakingRewardsBase {
         _dai = IERC20(dai).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
         if (_dai > 0 && _token1 > 0) {
-            IERC20(dai).safeApprove(univ2Router2, 0);
-            IERC20(dai).safeApprove(univ2Router2, _dai);
-
-            IERC20(token1).safeApprove(univ2Router2, 0);
-            IERC20(token1).safeApprove(univ2Router2, _token1);
-
             UniswapRouterV2(univ2Router2).addLiquidity(
                 dai,
                 token1,
@@ -96,16 +125,6 @@ abstract contract StrategyBasisFarmBase is StrategyStakingRewardsBase {
                 0,
                 address(this),
                 now + 60
-            );
-
-            // Donates DUST
-            IERC20(dai).transfer(
-                IController(controller).treasury(),
-                IERC20(dai).balanceOf(address(this))
-            );
-            IERC20(token1).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(token1).balanceOf(address(this))
             );
         }
 

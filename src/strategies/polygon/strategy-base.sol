@@ -1,13 +1,13 @@
 pragma solidity ^0.6.7;
 
-import "../lib/erc20.sol";
-import "../lib/safe-math.sol";
+import "../../lib/erc20.sol";
+import "../../lib/safe-math.sol";
 
-import "../interfaces/jar.sol";
-import "../interfaces/staking-rewards.sol";
-import "../interfaces/masterchef.sol";
-import "../interfaces/uniswapv2.sol";
-import "../interfaces/controller.sol";
+import "../../interfaces/jar.sol";
+import "../../interfaces/staking-rewards.sol";
+import "../../interfaces/masterchef.sol";
+import "../../interfaces/uniswapv2.sol";
+import "../../interfaces/controller.sol";
 
 // Strategy Contract Basics
 
@@ -34,7 +34,7 @@ abstract contract StrategyBase {
 
     // Tokens
     address public want;
-    address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address public constant weth = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
 
     // User accounts
     address public governance;
@@ -43,8 +43,7 @@ abstract contract StrategyBase {
     address public timelock;
 
     // Dex
-    address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-    address public sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
+    address public univ2Router2 = 0x93bcDc45f7e62f89a8e901DC4A0E2c6C427D9F25;
 
     mapping(address => bool) public harvesters;
 
@@ -304,50 +303,6 @@ abstract contract StrategyBase {
         require(path[1] != address(0));
 
         UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            now.add(60)
-        );
-    }
-
-    function _swapSushiswap(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal {
-        require(_to != address(0));
-
-        address[] memory path;
-
-        if (_from == weth || _to == weth) {
-            path = new address[](2);
-            path[0] = _from;
-            path[1] = _to;
-        } else {
-            path = new address[](3);
-            path[0] = _from;
-            path[1] = weth;
-            path[2] = _to;
-        }
-
-        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            now.add(60)
-        );
-    }
-
-    function _swapSushiswapWithPath(
-        address[] memory path,
-        uint256 _amount
-    ) internal {
-        require(path[1] != address(0));
-
-        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
             _amount,
             0,
             path,
