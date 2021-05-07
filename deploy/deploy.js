@@ -9,13 +9,13 @@ const harvesters = [
   "0xb4522eB2cA49963De9c3dC69023cBe6D53489C98",
 ];
 
-const want = "0x3E78F2E7daDe07ea685F8612F00477FD97162F1e";
+const want = "0x06325440D014e39736583c165C2963BA99fAf14E";
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy, execute } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  await deploy("StrategyBasisBasDaiLpV3", {
+  await deploy("StrategyYearnCrvSteth", {
     from: deployer,
     args: [governance, strategist, controller, timelock],
     log: true,
@@ -28,7 +28,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   });
 
   await execute(
-    "StrategyBasisBasDaiLpV3",
+    "StrategyYearnCrvSteth",
     { from: deployer, log: true },
     "whitelistHarvesters",
     harvesters
