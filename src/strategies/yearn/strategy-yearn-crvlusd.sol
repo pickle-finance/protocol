@@ -16,7 +16,7 @@ contract StrategyYearnCrvLusd is StrategyYearnAffiliate {
     )
         public
         StrategyYearnAffiliate(
-            crv_frax_lp,
+            crv_lusd_lp,
             yearn_registry,
             _governance,
             _strategist,
