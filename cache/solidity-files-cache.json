@@ -3906,7 +3906,7 @@
       ]
     },
     "/home/josh/dev/protocol/src/strategies/strategy-yearn-v1-affiliate.sol": {
-      "lastModificationDate": 1620362134942,
+      "lastModificationDate": 1620417963691,
       "contentHash": "8905ea8da0ef4e9dcdb71c8c0c22ea13",
       "sourceName": "src/strategies/strategy-yearn-v1-affiliate.sol",
       "solcConfig": {
@@ -3953,7 +3953,7 @@
       ]
     },
     "/home/josh/dev/protocol/src/interfaces/yearn-vault.sol": {
-      "lastModificationDate": 1620362134938,
+      "lastModificationDate": 1620417963683,
       "contentHash": "522a0feab40b0f2c70ed62b4093225d4",
       "sourceName": "src/interfaces/yearn-vault.sol",
       "solcConfig": {
@@ -7782,7 +7782,7 @@
       ]
     },
     "/home/josh/dev/protocol/src/lib/yearn-affiliate-wrapper.sol": {
-      "lastModificationDate": 1620362134938,
+      "lastModificationDate": 1620417963687,
       "contentHash": "f28536e93c625d28c7493e52692b79b6",
       "sourceName": "src/lib/yearn-affiliate-wrapper.sol",
       "solcConfig": {
@@ -7831,7 +7831,7 @@
       ]
     },
     "/home/josh/dev/protocol/src/lib/math.sol": {
-      "lastModificationDate": 1620362134938,
+      "lastModificationDate": 1620417963683,
       "contentHash": "e5c844515b04deabacef7eb872abc384",
       "sourceName": "src/lib/math.sol",
       "solcConfig": {
@@ -7874,7 +7874,7 @@
       ]
     },
     "/home/josh/dev/protocol/src/strategies/strategy-yearn-affiliate.sol": {
-      "lastModificationDate": 1620362134942,
+      "lastModificationDate": 1620417963691,
       "contentHash": "7432f017be1b06e48e06da9c3d04b4a5",
       "sourceName": "src/strategies/strategy-yearn-affiliate.sol",
       "solcConfig": {
@@ -7921,8 +7921,8 @@
       ]
     },
     "/home/josh/dev/protocol/src/strategies/yearn/strategy-yearn-crvsteth.sol": {
-      "lastModificationDate": 1620416176937,
-      "contentHash": "83aad52b99f98dbd8a647172f7fe49f6",
+      "lastModificationDate": 1620425017268,
+      "contentHash": "48582205fb7ce269cf4c99652712fc12",
       "sourceName": "src/strategies/yearn/strategy-yearn-crvsteth.sol",
       "solcConfig": {
         "version": "0.6.12",
@@ -7966,8 +7966,8 @@
       ]
     },
     "/home/josh/dev/protocol/src/strategies/yearn/strategy-yearn-crvlusd.sol": {
-      "lastModificationDate": 1620416164509,
-      "contentHash": "8a20cda261679b926a33352d1effe5e2",
+      "lastModificationDate": 1620425019628,
+      "contentHash": "a38423afbe97a46cfea388630db899d0",
       "sourceName": "src/strategies/yearn/strategy-yearn-crvlusd.sol",
       "solcConfig": {
         "version": "0.6.12",
@@ -8011,8 +8011,8 @@
       ]
     },
     "/home/josh/dev/protocol/src/strategies/yearn/strategy-yearn-crvfrax.sol": {
-      "lastModificationDate": 1620416169085,
-      "contentHash": "eb319151bbe75e4afa478bbf0849e269",
+      "lastModificationDate": 1620425022256,
+      "contentHash": "492f96c4396b5c451ba54240c1d77f13",
       "sourceName": "src/strategies/yearn/strategy-yearn-crvfrax.sol",
       "solcConfig": {
         "version": "0.6.12",
@@ -8282,6 +8282,51 @@
         "IERC20",
         "PickleVoteProxyV2",
         "StakingRewards"
+      ]
+    },
+    "/home/josh/dev/protocol/src/strategies/yearn/strategy-yearn-usdc-v2.sol": {
+      "lastModificationDate": 1620425014788,
+      "contentHash": "234613b44384a9c636c7dd71bf2687e1",
+      "sourceName": "src/strategies/yearn/strategy-yearn-usdc-v2.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "istanbul",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../strategy-yearn-affiliate.sol"
+      ],
+      "versionPragmas": [
+        "^0.6.7"
+      ],
+      "artifacts": [
+        "StrategyYearnUsdcV2"
       ]
     }
   }

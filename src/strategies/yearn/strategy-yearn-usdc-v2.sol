@@ -3,9 +3,9 @@ pragma solidity ^0.6.7;
 
 import "../strategy-yearn-affiliate.sol";
 
-contract StrategyYearnCrvFrax is StrategyYearnAffiliate {
+contract StrategyYearnUsdcV2 is StrategyYearnAffiliate {
     // Token addresses
-    address public crv_frax_lp = 0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B;
+    address public usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     address public yearn_registry = 0x50c1a2eA0a861A967D9d0FFE2AE4012c2E053804;
 
     constructor(
@@ -16,7 +16,7 @@ contract StrategyYearnCrvFrax is StrategyYearnAffiliate {
     )
         public
         StrategyYearnAffiliate(
-            crv_frax_lp,
+            usdc,
             yearn_registry,
             _governance,
             _strategist,
