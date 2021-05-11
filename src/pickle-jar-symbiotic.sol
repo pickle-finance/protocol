@@ -114,7 +114,6 @@ contract PickleJarSymbiotic is ERC20 {
         _mint(msg.sender, shares);
         userRewardDebt[msg.sender] = balanceOf(msg.sender).mul(accRewardPerShare).div(1e36);
         emit Deposit(msg.sender, _amount, shares);
-        earn(); //earn everytime deposit happens
     }
 
     function _updateAccPerShare() internal {

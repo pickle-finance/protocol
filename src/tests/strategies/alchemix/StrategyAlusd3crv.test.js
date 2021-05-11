@@ -64,18 +64,20 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         });
         await controller.setStrategy(want, strategy.address, {from: governance});
 
-        await strategy.setKeepAlcx("2000", {from: governance});
-
-        alusd_3crv_whale = await unlockAccount("0x8e47eE0D580a86a9A7D0e155Cb497E926ad0eC96");
+        await strategy.setKeepAlcx("2000", { from: governance });
+        
+        const whaleAddr = "0xbFeb87721f0076e6F8c4EC2DaBdc9E2F18472E7b";
+        
+        alusd_3crv_whale = await unlockAccount(whaleAddr);
         alusd_3crv = await hre.ethers.getContractAt("ERC20", want);
         alcx = await hre.ethers.getContractAt("ERC20", alcx_addr);
 
-        alusd_3crv.connect(alusd_3crv_whale).transfer(alice.address, toWei(2000));
-        assert.equal((await alusd_3crv.balanceOf(alice.address)).toString(), toWei(2000).toString());
-        alusd_3crv.connect(alusd_3crv_whale).transfer(bob.address, toWei(1000));
-        assert.equal((await alusd_3crv.balanceOf(bob.address)).toString(), toWei(1000).toString());
-        alusd_3crv.connect(alusd_3crv_whale).transfer(john.address, toWei(2500));
-        assert.equal((await alusd_3crv.balanceOf(john.address)).toString(), toWei(2500).toString());
+        alusd_3crv.connect(alusd_3crv_whale).transfer(alice.address, toWei(50));
+        assert.equal((await alusd_3crv.balanceOf(alice.address)).toString(), toWei(50).toString());
+        alusd_3crv.connect(alusd_3crv_whale).transfer(bob.address, toWei(50));
+        assert.equal((await alusd_3crv.balanceOf(bob.address)).toString(), toWei(50).toString());
+        alusd_3crv.connect(alusd_3crv_whale).transfer(john.address, toWei(50));
+        assert.equal((await alusd_3crv.balanceOf(john.address)).toString(), toWei(50).toString());
     });
 
     beforeEach(async () => {
@@ -88,24 +90,24 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
     
     it("Should harvest the reward correctly", async () => {
         console.log("\n---------------------------Alice deposit---------------------------------------\n");
-        await alusd_3crv.connect(alice).approve(pickleJar.address, toWei(2000));
-        await pickleJar.deposit(toWei(2000), {from: alice.address});
+        await alusd_3crv.connect(alice).approve(pickleJar.address, toWei(50));
+        await pickleJar.deposit(toWei(50), {from: alice.address});
         console.log("alice pToken balance =====> ", (await pickleJar.balanceOf(alice.address)).toString());
-        // await pickleJar.earn({ from: alice.address });
+        //await pickleJar.earn({ from: alice.address });
 
         await harvest();
 
         console.log("\n---------------------------Bob deposit---------------------------------------\n");
-        await alusd_3crv.connect(bob).approve(pickleJar.address, toWei(1000));
-        await pickleJar.deposit(toWei(1000), {from: bob.address});
+        await alusd_3crv.connect(bob).approve(pickleJar.address, toWei(30));
+        await pickleJar.deposit(toWei(30), {from: bob.address});
         console.log("bob pToken balance =====> ", (await pickleJar.balanceOf(bob.address)).toString());
-        // await pickleJar.earn({ from: bob.address });
+        await pickleJar.earn({ from: bob.address });
 
         await time.increase(60 * 60 * 24 * 7);
 
         console.log("\n---------------------------John deposit---------------------------------------\n");
-        await alusd_3crv.connect(john).approve(pickleJar.address, toWei(2500));
-        await pickleJar.deposit(toWei(2500), {from: john.address});
+        await alusd_3crv.connect(john).approve(pickleJar.address, toWei(50));
+        await pickleJar.deposit(toWei(50), {from: john.address});
         console.log("bob pToken balance =====> ", (await pickleJar.balanceOf(john.address)).toString());
 
         await harvest();
@@ -114,6 +116,8 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         console.log("Reward balance of strategy ====> ", (await alcx.balanceOf(strategy.address)).toString());
         let _alcx_before = await alcx.balanceOf(alice.address);
         console.log("Alice alcx balance before =====> ", _alcx_before.toString());
+
+        // console.log("\nPending reward before withdraw ====> ", (await strategy.pendingReward()).toString());
 
         await pickleJar.withdrawAll({from: alice.address});
 
@@ -127,8 +131,9 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         await time.increase(60 * 60 * 24 * 3);
 
         console.log("\n---------------------------Alice Redeposit---------------------------------------\n");
-        await alusd_3crv.connect(alice).approve(pickleJar.address, toWei(2000));
-        await pickleJar.deposit(toWei(2000), {from: alice.address});
+        await alusd_3crv.connect(alice).approve(pickleJar.address, toWei(50));
+        await pickleJar.deposit(toWei(50), {from: alice.address});
+        //await pickleJar.earn({ from: alice.address });
         console.log("alice pToken balance =====> ", (await pickleJar.balanceOf(alice.address)).toString());
 
         await time.increase(60 * 60 * 24 * 4);
@@ -176,16 +181,15 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
 
     it("Should withdraw the want correctly", async () => {
         console.log("\n---------------------------Alice deposit---------------------------------------\n");
-        await alusd_3crv.connect(alice).approve(pickleJar.address, toWei(2000));
-        await pickleJar.deposit(toWei(2000), {from: alice.address});
+        await alusd_3crv.connect(alice).approve(pickleJar.address, toWei(50));
+        await pickleJar.deposit(toWei(50), {from: alice.address});
         console.log("alice pToken balance =====> ", (await pickleJar.balanceOf(alice.address)).toString());
-        await pickleJar.earn({from: alice.address});
 
         await harvest();
 
         console.log("\n---------------------------Bob deposit---------------------------------------\n");
-        await alusd_3crv.connect(bob).approve(pickleJar.address, toWei(1000));
-        await pickleJar.deposit(toWei(1000), {from: bob.address});
+        await alusd_3crv.connect(bob).approve(pickleJar.address, toWei(30));
+        await pickleJar.deposit(toWei(30), {from: bob.address});
         console.log("bob pToken balance =====> ", (await pickleJar.balanceOf(bob.address)).toString());
         await pickleJar.earn({from: bob.address});
         await harvest();
