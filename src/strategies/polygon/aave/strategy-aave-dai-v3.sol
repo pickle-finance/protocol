@@ -19,9 +19,9 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
     address public constant wmatic = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
     address public constant lendingPool = 0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf;
     address public constant incentivesController = 0x357D51124f59836DeD84c8a1730D72B749d8BC23;
+    address public constant dataProvider = 0x7551b5D2763519d4e37e8B81929D336De671d46d;
 
-    uint256 public daiColFactor;
-    uint16 public constant REFERRAL_CODE = 0xaa;
+    uint16 public constant REFERRAL_CODE = 0x0;
 
     // Require a 0.04 buffer between
     // market collateral factor and strategy's collateral factor
@@ -42,7 +42,6 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
         public
         StrategyBase(dai, _governance, _strategist, _controller, _timelock)
     {
-        daiColFactor = 750000000000000000;
     }
 
     // **** Modifiers **** //
@@ -101,12 +100,8 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
     }
 
     function getMarketColFactor() public view returns (uint256) {
-        return daiColFactor;
-    }
-
-    function setMarketColFactor(uint256 _daiColFactor) public onlyKeepers returns (bool) {
-        daiColFactor = _daiColFactor;
-        return true;
+        (, uint256 ltv, , , , , , , , ) = ILendingPoolDataProvider(dataProvider).getReserveConfigurationData(dai); // returns 7500
+        return ltv.mul(10**14);
     }
 
     // Max leverage we can go up to, w.r.t safe buffer
