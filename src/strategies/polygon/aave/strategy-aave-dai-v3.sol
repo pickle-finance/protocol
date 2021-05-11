@@ -272,6 +272,14 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
     function deleverageToMin() public {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         deleverageUntil(unleveragedSupply);
+
+        uint256 borrowed = getBorrowed();
+        if (borrowed > 0) {
+            require (ILendingPool(lendingPool).withdraw(dai, borrowed, address(this)) != 0, "!withdraw");
+            IERC20(dai).safeApprove(lendingPool, 0);
+            IERC20(dai).safeApprove(lendingPool, borrowed);
+            require(ILendingPool(lendingPool).repay(dai, borrowed, uint256(DataTypes.InterestRateMode.VARIABLE), address(this)) != 0, "!repay");
+        }
     }
 
     // Deleverages until we're supplying <x> amount
@@ -288,13 +296,13 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
         // Market collateral factor
         uint256 marketColFactor = getMarketColFactor();
 
-        // How much can we redeem
-        uint256 _redeemAndRepay = getRedeemable();
-
         IERC20(dai).safeApprove(lendingPool, 0);
         IERC20(dai).safeApprove(lendingPool, uint256(-1));
 
         while (supplied > _supplyAmount) {
+            // How much can we redeem
+            uint256 _redeemAndRepay = getRedeemable();
+
             // If the amount we're redeeming is exceeding the
             // target supplyAmount, adjust accordingly
             if (supplied.sub(_redeemAndRepay) < _supplyAmount) {
@@ -307,10 +315,7 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
             // repay
             require(ILendingPool(lendingPool).repay(dai, _redeemAndRepay, uint256(DataTypes.InterestRateMode.VARIABLE), address(this)) != 0, "!repay");
             
-            supplied = supplied.sub(_redeemAndRepay);
-            
-            // After each deleverage we can redeem more (the colFactor)
-            _redeemAndRepay = _redeemAndRepay.mul(1e18).div(marketColFactor);
+            supplied = getSupplied();
         }
 
         IERC20(dai).safeApprove(lendingPool, 0);
@@ -365,6 +370,11 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
                 this.deleverageUntil(supplied.sub(borrowedToBeFree));
             }
 
+            supplied = getSupplied();
+            if (_redeem > supplied) {
+                _redeem = supplied;
+            }
+            
             // withdraw
             require (ILendingPool(lendingPool).withdraw(dai, _redeem, address(this)) != 0, "!withdraw");
         }
