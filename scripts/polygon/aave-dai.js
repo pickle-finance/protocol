@@ -52,7 +52,7 @@ const setJar = async () => {
     controller
   );
 
-  const strategy = "0x51cF19A126E642948B5c5747471fd722B2EdCa25";
+  const strategy = "0x0b198b5EE64aB29c98A094380c867079d5a1682e";
 
   const deployer = new ethers.Wallet(
     process.env.DEPLOYER_PRIVATE_KEY,
@@ -69,9 +69,9 @@ const setJar = async () => {
 };
 
 const main = async () => {
-  // await deployAaveDaiStrategy();
+  await deployAaveDaiStrategy();
   // await deployPickleJar();
-  await setJar();
+  // await setJar();
 };
 
 main()

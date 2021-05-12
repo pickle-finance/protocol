@@ -293,9 +293,6 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
             "!deleverage"
         );
 
-        // Market collateral factor
-        uint256 marketColFactor = getMarketColFactor();
-
         IERC20(dai).safeApprove(lendingPool, 0);
         IERC20(dai).safeApprove(lendingPool, uint256(-1));
 
