@@ -139,14 +139,14 @@ abstract contract YearnAffiliateWrapper {
     RegistryAPI public registry;
 
     // ERC20 Unlimited Approvals (short-circuits VaultAPI.transferFrom)
-    uint256 constant UNLIMITED_APPROVAL = type(uint256).max;
+    uint256 constant UNLIMITED_APPROVAL = uint(-1);
     // Sentinal values used to save gas on deposit/withdraw/migrate
     // NOTE: DEPOSIT_EVERYTHING == WITHDRAW_EVERYTHING == MIGRATE_EVERYTHING
-    uint256 constant DEPOSIT_EVERYTHING = type(uint256).max;
-    uint256 constant WITHDRAW_EVERYTHING = type(uint256).max;
-    uint256 constant MIGRATE_EVERYTHING = type(uint256).max;
+    uint256 constant DEPOSIT_EVERYTHING = uint(-1);
+    uint256 constant WITHDRAW_EVERYTHING = uint(-1);
+    uint256 constant MIGRATE_EVERYTHING = uint(-1);
     // VaultsAPI.depositLimit is unlimited
-    uint256 constant UNCAPPED_DEPOSITS = type(uint256).max;
+    uint256 constant UNCAPPED_DEPOSITS = uint(-1);
 
     constructor(address _token, address _registry) public {
         // Recommended to use a token with a `Registry.latestVault(_token) != address(0)`
