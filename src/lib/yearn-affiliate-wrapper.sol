@@ -307,7 +307,7 @@ abstract contract YearnAffiliateWrapper {
             }
 
             // Start with the total shares that `sender` has
-            uint256 availableShares = vaults[id].balanceOf(sender);
+            uint256 availableShares = Math.min(vaults[id].balanceOf(sender), amount.sub(withdrawn));
 
             // Restrict by the allowance that `sender` has to this contract
             // NOTE: No need for allowance check if `sender` is this contract
