@@ -117,9 +117,12 @@ contract PickleJarSymbiotic is ERC20 {
     }
 
     function _updateAccPerShare() internal {
-        if (totalSupply() == 0) return;
         curPendingReward = pendingReward();
-        require(curPendingReward >= lastPendingReward, "Alchemix protocol failed");
+        require(curPendingReward >= lastPendingReward, "Alchemix protocol failed");        
+        if (totalSupply() == 0) {
+            accRewardPerShare = 0;
+            return;
+        }
         
         uint256 addedReward = curPendingReward.sub(lastPendingReward);
         accRewardPerShare = accRewardPerShare.add((addedReward.mul(1e36)).div(totalSupply()));
@@ -139,6 +142,15 @@ contract PickleJarSymbiotic is ERC20 {
     function pendingReward() public view returns (uint256) {
         return reward.balanceOf(address(this)).add(IStrategy(IController(controller).strategies(address(token))).pendingReward());
     }
+
+    function pendingRewardOfUser(address user) external view returns (uint256) {
+        if (totalSupply() == 0) return 0;
+        uint256 allPendingReward = pendingReward();
+        if (allPendingReward < lastPendingReward) return 0;
+        uint256 addedReward = allPendingReward.sub(lastPendingReward);
+        uint256 newAccRewardPerShare = accRewardPerShare.add((addedReward.mul(1e36)).div(totalSupply()));
+        return balanceOf(user).mul(newAccRewardPerShare).div(1e36).sub(userRewardDebt[user]);
+    } 
 
     function _withdrawReward() internal {
         uint256 _pending = balanceOf(msg.sender).mul(accRewardPerShare).div(1e36).sub(userRewardDebt[msg.sender]);

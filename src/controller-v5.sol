@@ -95,7 +95,6 @@ contract ControllerV5 is Initializable {
             msg.sender == strategist || msg.sender == governance,
             "!strategist"
         );
-        require(jars[_token] == address(0), "jar");
         jars[_token] = _jar;
     }
 

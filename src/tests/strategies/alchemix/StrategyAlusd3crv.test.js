@@ -93,7 +93,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         await alusd_3crv.connect(alice).approve(pickleJar.address, toWei(50));
         await pickleJar.deposit(toWei(50), {from: alice.address});
         console.log("alice pToken balance =====> ", (await pickleJar.balanceOf(alice.address)).toString());
-        //await pickleJar.earn({ from: alice.address });
+        await pickleJar.earn({ from: alice.address });
 
         await harvest();
 
@@ -111,14 +111,16 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         console.log("bob pToken balance =====> ", (await pickleJar.balanceOf(john.address)).toString());
 
         await harvest();
+        
+        
 
         console.log("\n---------------------------Alice withdraw---------------------------------------\n");
         console.log("Reward balance of strategy ====> ", (await alcx.balanceOf(strategy.address)).toString());
         let _alcx_before = await alcx.balanceOf(alice.address);
         console.log("Alice alcx balance before =====> ", _alcx_before.toString());
-
         // console.log("\nPending reward before withdraw ====> ", (await strategy.pendingReward()).toString());
 
+        // console.log("Alice pending rewards => ", (await pickleJar.pendingRewardOfUser(alice.address)).toString());
         await pickleJar.withdrawAll({from: alice.address});
 
         let _alcx_after = await alcx.balanceOf(alice.address);
@@ -133,7 +135,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         console.log("\n---------------------------Alice Redeposit---------------------------------------\n");
         await alusd_3crv.connect(alice).approve(pickleJar.address, toWei(50));
         await pickleJar.deposit(toWei(50), {from: alice.address});
-        //await pickleJar.earn({ from: alice.address });
+        await pickleJar.earn({ from: alice.address });
         console.log("alice pToken balance =====> ", (await pickleJar.balanceOf(alice.address)).toString());
 
         await time.increase(60 * 60 * 24 * 4);
@@ -144,6 +146,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         _alcx_before = await alcx.balanceOf(bob.address);
         console.log("Bob alcx balance before =====> ", _alcx_before.toString());
 
+        // console.log("Bob pending rewards => ", (await pickleJar.pendingRewardOfUser(bob.address)).toString());
         await pickleJar.withdrawAll({from: bob.address});
 
         _alcx_after = await alcx.balanceOf(bob.address);
@@ -158,12 +161,15 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         _alcx_before = await alcx.balanceOf(john.address);
         console.log("John alcx balance before =====> ", _alcx_before.toString());
 
+        // console.log("John pending rewards => ", (await pickleJar.pendingRewardOfUser(john.address)).toString());
         await pickleJar.withdrawAll({from: john.address});
 
         _alcx_after = await alcx.balanceOf(john.address);
         console.log("John alcx balance after =====> ", (await alcx.balanceOf(john.address)).toString());
         assert.equal(_alcx_after.gt(_alcx_before), true);
         console.log("\nPending reward after all withdrawal ====> ", (await strategy.pendingReward()).toString());
+
+        // console.log("Alice pending rewards => ", (await pickleJar.pendingRewardOfUser(alice.address)).toString());
 
         console.log("\n---------------------------Alice second withdraw---------------------------------------\n");
         _alcx_before = await alcx.balanceOf(alice.address);
@@ -177,6 +183,44 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
         assert.equal(_alcx_after.gt(_alcx_before), true);
         console.log("\nPending reward after all withdrawal ====> ", (await strategy.pendingReward()).toString());
         console.log("\nPickle Jar Pending reward after all withdrawal ====> ", (await pickleJar.pendingReward()).toString());
+        console.log("\nPickle Jar curPendingReward after all withdrawal ====> ", (await pickleJar.curPendingReward()).toString());
+        console.log("\nPickle Jar lastPendingReward after all withdrawal ====> ", (await pickleJar.lastPendingReward()).toString());
+
+        console.log("\n---------------------------Alice deposit---------------------------------------\n");
+        await alusd_3crv.connect(alice).approve(pickleJar.address, toWei(50));
+        await pickleJar.deposit(toWei(50), { from: alice.address });
+        
+        console.log("\n---------------------------Bob deposit---------------------------------------\n");
+        await alusd_3crv.connect(bob).approve(pickleJar.address, toWei(30));
+        await pickleJar.deposit(toWei(30), { from: bob.address });
+        await pickleJar.earn({ from: bob.address });
+        
+        await harvest();
+        // console.log("Alice pending rewards => ", (await pickleJar.pendingRewardOfUser(alice.address)).toString());
+        // console.log("bob pending rewards => ", (await pickleJar.pendingRewardOfUser(bob.address)).toString());
+
+        console.log("\n---------------------------Alice Withdraw---------------------------------------\n");
+        _alcx_before = await alcx.balanceOf(alice.address);
+        console.log("Alice alcx balance before =====> ", _alcx_before.toString());
+
+        await pickleJar.withdrawAll({from: alice.address});
+
+        _alcx_after = await alcx.balanceOf(alice.address);
+        console.log("Alice alcx balance after =====> ", _alcx_after.toString());
+
+        console.log("\n---------------------------Bob Withdraw---------------------------------------\n");
+        _alcx_before = await alcx.balanceOf(bob.address);
+        console.log("Bob alcx balance before =====> ", _alcx_before.toString());
+
+        await pickleJar.withdrawAll({from: bob.address});
+
+        _alcx_after = await alcx.balanceOf(bob.address);
+        console.log("Bob alcx balance after =====> ", (await alcx.balanceOf(bob.address)).toString());
+
+        console.log("\nPending reward after all withdrawal ====> ", (await strategy.pendingReward()).toString());
+        console.log("\nPickle Jar Pending reward after all withdrawal ====> ", (await pickleJar.pendingReward()).toString());
+        console.log("\nPickle Jar curPendingReward after all withdrawal ====> ", (await pickleJar.curPendingReward()).toString());
+        console.log("\nPickle Jar lastPendingReward after all withdrawal ====> ", (await pickleJar.lastPendingReward()).toString());
     });
 
     it("Should withdraw the want correctly", async () => {
