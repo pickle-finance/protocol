@@ -23,13 +23,15 @@ contract StrategyYearnV1Affiliate {
     constructor(
         address _want,
         address _yVault,
-        address _controller
+        address _controller,
+        address _timelock
     ) public {
         require(_want != address(0));
         require(_controller != address(0));
 
         want = _want;
         controller = _controller;
+        timelock = _timelock;
 
         yVault = _yVault;
         name = string(abi.encodePacked("y", ERC20(_want).symbol(), " v1 Affiliate Strategy"));

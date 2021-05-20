@@ -9,28 +9,15 @@ const harvesters = [
   "0xb4522eB2cA49963De9c3dC69023cBe6D53489C98",
 ];
 
-const want = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+const want = "0x194ebd173f6cdace046c53eacce9b953f28411d1";
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy, execute } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  await deploy("StrategyYearnCrvSteth", {
+  await deploy("StrategyYearnCrvEurs", {
     from: deployer,
-    args: [governance, strategist, controller, timelock],
-    log: true,
-  });
-
-
-  await deploy("StrategyYearnCrvLusd", {
-    from: deployer,
-    args: [governance, strategist, controller, timelock],
-    log: true,
-  });
-
-  await deploy("StrategyYearnUsdcV2", {
-    from: deployer,
-    args: [governance, strategist, controller, timelock],
+    args: [controller, timelock],
     log: true,
   });
 
