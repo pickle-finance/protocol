@@ -45,7 +45,9 @@ contract StrategyYearnV1Affiliate {
     }
 
     function balanceOf() public view returns (uint256) {
-        return IYearnVault(yVault).balance();
+        return IYearnVault(yVault).balance(address(this))
+            .mul(IYearnVault(yVault).getPricePerFullShare())
+            .div(1e18);
     }
 
     function balanceOfPool() public view returns (uint256) {
@@ -120,7 +122,7 @@ contract StrategyYearnV1Affiliate {
 
     function _withdrawSome(uint256 _amount) internal {
         uint256 estimatedShares = _amount
-                        .mul(10**18)
+                        .mul(1e18)
                         .div(IYearnVault(yVault).getPricePerFullShare());
         IYearnVault(yVault).withdraw(estimatedShares);
     }
