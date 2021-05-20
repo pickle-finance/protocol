@@ -45,7 +45,7 @@ contract StrategyYearnV1Affiliate {
     }
 
     function balanceOf() public view returns (uint256) {
-        return IYearnVault(yVault).balance(address(this))
+        return IYearnVault(yVault).balanceOf(address(this))
             .mul(IYearnVault(yVault).getPricePerFullShare())
             .div(1e18);
     }
