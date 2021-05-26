@@ -18,7 +18,7 @@ contract StrategyComethPickleMustLpV4 is StrategyComethFarmBase {
         public
         StrategyComethFarmBase(
             cometh_rewards,
-            cometh_wmatic_must_lp,
+            cometh_pickle_must_lp,
             _governance,
             _strategist,
             _controller,

@@ -1,7 +1,6 @@
 pragma solidity ^0.6.7;
 
-import "../../../lib/polygon/cometh/test-strategy-cometh-farm-base.sol";
-import "../../../lib/polygon/cometh/test-strategy-cometh-farm-base-v2.sol";
+import "../../../lib/polygon/cometh/test-strategy-cometh-farm-base-v3.sol";
 
 import "../../../../interfaces/strategy.sol";
 import "../../../../interfaces/curve.sol";
@@ -11,7 +10,7 @@ import "../../../../pickle-jar.sol";
 import "../../../../controller-v4.sol";
 import "../../../../strategies/polygon/cometh/strategy-cometh-pickle-must-lp-v4.sol";
 
-contract StrategyComethPickleMustLpV4Test is StrategyComethFarmTestBaseV2 {
+contract StrategyComethPickleMustLpV4Test is StrategyComethFarmTestBaseV3 {
     function setUp() public {
         want = 0xb0b5E3Bd18eb1E316bcD0bBa876570b3c1779C55;
 
