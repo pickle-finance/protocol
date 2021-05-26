@@ -4,11 +4,11 @@ pragma solidity ^0.6.7;
 
 import "./interfaces/controller.sol";
 
-import "./lib/erc20.sol";
+import "./lib/erc20symbiotic.sol";
 import "./interfaces/strategy.sol";
 import "./lib/safe-math.sol";
 
-contract PickleJarSymbiotic is ERC20 {
+contract PickleJarSymbiotic is ERC20Symbiotic {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -40,12 +40,12 @@ contract PickleJarSymbiotic is ERC20 {
         address _controller
     )
         public
-        ERC20(
-            string(abi.encodePacked("pickling ", ERC20(_token).name())),
-            string(abi.encodePacked("p", ERC20(_token).symbol()))
+        ERC20Symbiotic(
+            string(abi.encodePacked("pickling ", IERC20(_token).name())),
+            string(abi.encodePacked("p", IERC20(_token).symbol()))
         )
     {
-        _setupDecimals(ERC20(_token).decimals());
+        _setupDecimals(IERC20(_token).decimals());
         token = IERC20(_token);
         reward = IERC20(_reward);
         governance = _governance;
@@ -55,6 +55,12 @@ contract PickleJarSymbiotic is ERC20 {
 
     function balance() public view returns (uint256) {
         return token.balanceOf(address(this)).add(IController(controller).balanceOf(address(token)));
+    }
+
+    function setGauge(address _gauge) external {
+        require(msg.sender == governance, "!governance");
+        require(_gauge != address(0), "invalid gauge");
+        gauge = _gauge;
     }
 
     function setMin(uint256 _min) external {

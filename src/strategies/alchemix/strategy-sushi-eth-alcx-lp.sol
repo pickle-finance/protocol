@@ -5,7 +5,7 @@ import "./strategy-alcx-farm-base.sol";
 
 contract StrategySushiEthAlcxLp is StrategyAlcxFarmBase {
 
-    uint256 public sushi_alcx_poolId = 2;
+    uint256 public sushi_alcx_poolId = 0;
 
     address public sushi_eth_alcx_lp = 0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8;
 
