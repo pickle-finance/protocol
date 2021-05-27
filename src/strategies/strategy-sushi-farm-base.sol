@@ -97,7 +97,10 @@ abstract contract StrategySushiFarmBase is StrategyBase {
                 IController(controller).treasury(),
                 _keepSUSHI
             );
-            _swapSushiswap(sushi, weth, _sushi.sub(_keepSUSHI));
+            uint256 _swap = _sushi.sub(_keepSUSHI);
+            IERC20(sushi).safeApprove(sushiRouter, 0);
+            IERC20(sushi).safeApprove(sushiRouter, _swap);
+            _swapSushiswap(sushi, weth, _swap);
         }
 
         // Swap half WETH for token1
