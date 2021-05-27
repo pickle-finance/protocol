@@ -35,6 +35,7 @@ abstract contract StrategyBase {
     // Tokens
     address public want;
     address public constant weth = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
+    address public constant wmatic = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
 
     // User accounts
     address public governance;
@@ -44,6 +45,7 @@ abstract contract StrategyBase {
 
     // Dex
     address public univ2Router2 = 0x93bcDc45f7e62f89a8e901DC4A0E2c6C427D9F25;
+    address public sushiRouter = 0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506;
 
     mapping(address => bool) public harvesters;
 
@@ -303,6 +305,50 @@ abstract contract StrategyBase {
         require(path[1] != address(0));
 
         UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
+            _amount,
+            0,
+            path,
+            address(this),
+            now.add(60)
+        );
+    }
+
+    function _swapSushiswap(
+        address _from,
+        address _to,
+        uint256 _amount
+    ) internal {
+        require(_to != address(0));
+
+        address[] memory path;
+
+        if (_from == weth || _to == weth) {
+            path = new address[](2);
+            path[0] = _from;
+            path[1] = _to;
+        } else {
+            path = new address[](3);
+            path[0] = _from;
+            path[1] = weth;
+            path[2] = _to;
+        }
+
+        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
+            _amount,
+            0,
+            path,
+            address(this),
+            now.add(60)
+        );
+    }
+
+    function _swapSushiswapWithPath(
+        address[] memory path,
+        uint256 _amount
+    ) internal {
+        require(path[1] != address(0));
+
+        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
             _amount,
             0,
             path,
