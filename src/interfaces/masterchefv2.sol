@@ -5,13 +5,21 @@ pragma solidity ^0.6.7;
 interface IMasterchefV2 {
     function MASTER_PID() external view returns (uint256);
 
+    function MASTER_CHEF() external view returns (address);
+
+    function rewarder(uint256 pid) external view returns (address);
+
     function add(
         uint256 _allocPoint,
         address _lpToken,
         address _rewarder
     ) external;
 
-    function deposit(uint256 _pid, uint256 _amount, address _to) external;
+    function deposit(
+        uint256 _pid,
+        uint256 _amount,
+        address _to
+    ) external;
 
     function pendingSushi(uint256 _pid, address _user)
         external
@@ -51,7 +59,15 @@ interface IMasterchefV2 {
         view
         returns (uint256 amount, uint256 rewardDebt);
 
-    function withdraw(uint256 _pid, uint256 _amount, address _to) external;
+    function withdraw(
+        uint256 _pid,
+        uint256 _amount,
+        address _to
+    ) external;
 
-    function withdrawAndHarvest(uint256 _pid, uint256 _amount, address _to) external;
+    function withdrawAndHarvest(
+        uint256 _pid,
+        uint256 _amount,
+        address _to
+    ) external;
 }
