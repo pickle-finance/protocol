@@ -2,6 +2,8 @@
 pragma solidity ^0.6.7;
 pragma experimental ABIEncoderV2;
 
+import "./IRewarder.sol";
+
 interface IMiniChefV2 {
     struct UserInfo {
         uint256 amount;
@@ -14,6 +16,7 @@ interface IMiniChefV2 {
         uint64 allocPoint;
     }
 
+    function rewarder(uint256 _pid) external view returns (IRewarder);
     function poolLength() external view returns (uint256);
     function updatePool(uint256 pid) external returns (IMiniChefV2.PoolInfo memory);
     function userInfo(uint256 _pid, address _user) external view returns (uint256, uint256);

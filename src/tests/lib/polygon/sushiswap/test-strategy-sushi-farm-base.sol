@@ -25,7 +25,7 @@ contract StrategySushiFarmTestBase is DSTestSushiBase {
 
     PickleJar pickleJar;
     ControllerV4 controller;
-    IStrategy strategy;
+    ISushiStrategy strategy;
 
     function _getWant(address token0, uint256 token0Amount, address token1, uint256 token1Amount) internal {
         if (token0 == weth) {
@@ -115,6 +115,11 @@ contract StrategySushiFarmTestBase is DSTestSushiBase {
         // Call the harvest function
         uint256 _before = pickleJar.balance();
         uint256 _treasuryBefore = IERC20(want).balanceOf(treasury);
+        
+        (uint256 _pendingSushi, uint256 _pendingMatic) = strategy.getHarvestable();
+        assertTrue(_pendingSushi > 0);
+        assertTrue(_pendingMatic > 0);
+
         strategy.harvest();
         uint256 _after = pickleJar.balance();
         uint256 _treasuryAfter = IERC20(want).balanceOf(treasury);

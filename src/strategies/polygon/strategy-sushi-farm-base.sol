@@ -3,6 +3,7 @@ pragma solidity ^0.6.7;
 
 import "./strategy-base.sol";
 import "../../interfaces/minichefv2.sol";
+import "../../interfaces/IRewarder.sol";
 
 abstract contract StrategySushiFarmBase is StrategyBase {
     // Token addresses
@@ -51,8 +52,17 @@ abstract contract StrategySushiFarmBase is StrategyBase {
         return amount;
     }
 
-    function getHarvestable() external view returns (uint256) {
-        return IMiniChefV2(miniChef).pendingSushi(poolId, address(this));
+    function getHarvestable() external view returns (uint256, uint256) {
+        uint256 _pendingSushi = IMiniChefV2(miniChef).pendingSushi(poolId, address(this));
+        IRewarder rewarder = IMiniChefV2(miniChef).rewarder(poolId);
+        (, uint256[] memory _rewardAmounts) = rewarder.pendingTokens(poolId, address(this), 0);
+
+        uint256 _pendingMatic;
+        if (_rewardAmounts.length > 0) {
+            _pendingMatic = _rewardAmounts[0];
+        }
+        // return IMiniChefV2(miniChef).pendingSushi(poolId, address(this));
+        return (_pendingSushi, _pendingMatic);
     }
 
     // **** Setters ****

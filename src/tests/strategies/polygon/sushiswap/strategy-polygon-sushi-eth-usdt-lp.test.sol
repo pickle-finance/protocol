@@ -4,7 +4,7 @@ pragma solidity ^0.6.7;
 
 import "../../../lib/polygon/sushiswap/test-strategy-sushi-farm-base.sol";
 
-import "../../../../interfaces/strategy.sol";
+import "../../../../interfaces/sushi-strategy.sol";
 import "../../../../interfaces/curve.sol";
 import "../../../../interfaces/uniswapv2.sol";
 
@@ -30,7 +30,7 @@ contract StrategySushiEthUsdtLpTest is StrategySushiFarmTestBase {
             treasury
         );
 
-        strategy = IStrategy(
+        strategy = ISushiStrategy(
             address(
                 new StrategySushiEthUsdtLp(
                     governance,

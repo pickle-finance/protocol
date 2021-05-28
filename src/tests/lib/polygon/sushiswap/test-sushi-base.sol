@@ -9,7 +9,7 @@ import "../../test-approx.sol";
 
 import "../../../../interfaces/usdt.sol";
 import "../../../../interfaces/weth.sol";
-import "../../../../interfaces/strategy.sol";
+import "../../../../interfaces/sushi-strategy.sol";
 import "../../../../interfaces/curve.sol";
 import "../../../../interfaces/uniswapv2.sol";
 
