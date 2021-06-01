@@ -28,13 +28,13 @@ contract StrategySushiFarmTestBase is DSTestSushiBase {
     ISushiStrategy strategy;
 
     function _getWant(address token0, uint256 token0Amount, address token1, uint256 token1Amount) internal {
-        if (token0 == weth) {
+        if (token0 == weth || token0 == wmatic) {
             _getERC20WithMatic(token0, token0Amount);
         } else {
             _getERC20(token0, token0Amount);
         }
 
-        if (token1 == weth) {
+        if (token1 == weth || token1 == wmatic) {
             _getERC20WithMatic(token1, token1Amount);
         } else {
             _getERC20(token1, token1Amount);
