@@ -2,16 +2,16 @@
 pragma solidity ^0.6.7;
 
 import "../strategy-base.sol";
-import "../../interfaces/alcx-farm.sol";
+import "../../interfaces/masterchefv2.sol";
+import "../../interfaces/alcx-rewarder.sol";
 
 abstract contract StrategyAlcxFarmBase is StrategyBase {
     // Token addresses
     address public constant alcx = 0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF;
-    address public constant stakingPool = 0xAB8e74017a8Cc7c15FFcCd726603790d26d7DeCa;
+    address public constant sushi = 0x6B3595068778DD592e39A122f4f5a5cF09C90fE2;
 
-    // How much ALCX tokens to keep?
-    uint256 public keepAlcx = 0;
-    uint256 public constant keepAlcxMax = 10000;
+    address public constant masterChef =
+        0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d;
 
     uint256 public poolId;
 
@@ -24,25 +24,24 @@ abstract contract StrategyAlcxFarmBase is StrategyBase {
         address _timelock
     )
         public
-        StrategyBase(
-            _lp,
-            _governance,
-            _strategist,
-            _controller,
-            _timelock
-        )
+        StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
     {
         poolId = _poolId;
     }
-    
 
     function balanceOfPool() public view override returns (uint256) {
-        uint256 amount = IStakingPools(stakingPool).getStakeTotalDeposited(address(this), poolId);
+        (uint256 amount, ) =
+            IMasterchefV2(masterChef).userInfo(poolId, address(this));
         return amount;
     }
 
     function getHarvestable() public view returns (uint256) {
-        return IStakingPools(stakingPool).getStakeTotalUnclaimed(address(this), poolId);
+        return IMasterchefV2(masterChef).pendingSushi(poolId, address(this));
+    }
+
+    function getHarvestableAlcx() public view returns (uint256) {
+        address rewarder = IMasterchefV2(masterChef).rewarder(poolId);
+        return IAlcxRewarder(rewarder).pendingToken(poolId, address(this));
     }
 
     // **** Setters ****
@@ -50,23 +49,21 @@ abstract contract StrategyAlcxFarmBase is StrategyBase {
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(stakingPool, 0);
-            IERC20(want).safeApprove(stakingPool, _want);
-            IStakingPools(stakingPool).deposit(poolId, _want);
+            IERC20(want).safeApprove(masterChef, 0);
+            IERC20(want).safeApprove(masterChef, _want);
+            IMasterchefV2(masterChef).deposit(poolId, _want, address(this));
         }
     }
 
-
-    function _withdrawSome(uint256 _amount) internal override returns (uint256) {
-        IStakingPools(stakingPool).withdraw(poolId, _amount);
+    function _withdrawSome(uint256 _amount)
+        internal
+        override
+        returns (uint256)
+    {
+        IMasterchefV2(masterChef).withdraw(poolId, _amount, address(this));
         return _amount;
     }
-    // **** Setters ****
 
-    function setKeepAlcx(uint256 _keepAlcx) external {
-        require(msg.sender == timelock, "!timelock");
-        keepAlcx = _keepAlcx;
-    }
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
@@ -76,26 +73,30 @@ abstract contract StrategyAlcxFarmBase is StrategyBase {
         // i.e. will be be heavily frontrunned?
         //      if so, a new strategy will be deployed.
 
-        // Collects ALCX tokens
-        IStakingPools(stakingPool).claim(poolId);
+        // Collects Sushi and ALCX tokens
+        IMasterchefV2(masterChef).harvest(poolId, address(this));
+
         uint256 _alcx = IERC20(alcx).balanceOf(address(this));
         if (_alcx > 0) {
-            // 10% is locked up for future gov
-            uint256 _keepAlcx = _alcx.mul(keepAlcx).div(keepAlcxMax);
-            IERC20(alcx).safeTransfer(IController(controller).treasury(), _keepAlcx);
-            
-            uint256 _amount = (_alcx.sub(_keepAlcx)).div(2);
-            
-            if (_amount > 0) {
-                IERC20(alcx).safeApprove(sushiRouter, 0);
-                IERC20(alcx).safeApprove(sushiRouter, _amount);                
-                _swapSushiswap(alcx, weth, _amount);
-            }
+            uint256 _amount = _alcx.div(2);
+            IERC20(alcx).safeApprove(sushiRouter, 0);
+            IERC20(alcx).safeApprove(sushiRouter, _amount);
+            _swapSushiswap(alcx, weth, _amount);
+        }
+
+        uint256 _sushi = IERC20(sushi).balanceOf(address(this));
+        if (_sushi > 0) {
+            uint256 _amount = _sushi.div(2);
+            IERC20(sushi).safeApprove(sushiRouter, 0);
+            IERC20(sushi).safeApprove(sushiRouter, _sushi);
+
+            _swapSushiswap(sushi, weth, _amount);
+            _swapSushiswap(sushi, alcx, _amount);
         }
 
         // Adds in liquidity for WETH/ALCX
         uint256 _weth = IERC20(weth).balanceOf(address(this));
-        
+
         _alcx = IERC20(alcx).balanceOf(address(this));
 
         if (_weth > 0 && _alcx > 0) {
@@ -126,7 +127,7 @@ abstract contract StrategyAlcxFarmBase is StrategyBase {
                 IERC20(alcx).balanceOf(address(this))
             );
         }
-        
+
         _distributePerformanceFeesAndDeposit();
     }
 }
