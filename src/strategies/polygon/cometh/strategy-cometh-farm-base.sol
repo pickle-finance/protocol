@@ -2,7 +2,7 @@
 pragma solidity ^0.6.7;
 
 import "./strategy-staking-rewards-base.sol";
-import "../../interfaces/uniswapv2.sol";
+import "../../../interfaces/uniswapv2.sol";
 
 abstract contract StrategyComethFarmBase is StrategyStakingRewardsBase {
     // Token addresses
