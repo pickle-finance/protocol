@@ -13,7 +13,17 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
         address _strategist,
         address _controller,
         address _timelock
-    ) public StrategyAlcxSymbioticFarmBase(alusd_3crv_poolId, alusd_3crv, _governance, _strategist, _controller, _timelock) {}
+    )
+        public
+        StrategyAlcxSymbioticFarmBase(
+            alusd_3crv_poolId,
+            alusd_3crv,
+            _governance,
+            _strategist,
+            _controller,
+            _timelock
+        )
+    {}
 
     // **** Views ****
 
@@ -22,7 +32,11 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
     }
 
     function getAlcxFarmHarvestable() public view returns (uint256) {
-        return IStakingPools(stakingPool).getStakeTotalUnclaimed(address(this), alcxPoolId);
+        return
+            IStakingPools(stakingPool).getStakeTotalUnclaimed(
+                address(this),
+                alcxPoolId
+            );
     }
 
     // **** State Mutations ****
@@ -39,7 +53,10 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
         if (_alcx > 0) {
             // 10% is locked up for future gov
             uint256 _keepAlcx = _alcx.mul(keepAlcx).div(keepAlcxMax);
-            IERC20(alcx).safeTransfer(IController(controller).treasury(), _keepAlcx);
+            IERC20(alcx).safeTransfer(
+                IController(controller).treasury(),
+                _keepAlcx
+            );
             uint256 _amount = _alcx.sub(_keepAlcx);
 
             IERC20(alcx).safeApprove(stakingPool, 0);
@@ -54,39 +71,59 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
         address reward_token = IJar(_jar).reward();
         uint256 _balance = IERC20(alcx).balanceOf(address(this));
         uint256 _pendingReward = pendingReward();
-        require(reward_token != address(0), "Reward token is not set in the pickle jar");
+        require(
+            reward_token != address(0),
+            "Reward token is not set in the pickle jar"
+        );
         require(reward_token == alcx, "Reward token is invalid");
-        require(_pendingReward >= _amount, "[withdrawReward] Withdraw amount exceed redeemable amount");
+        require(
+            _pendingReward >= _amount,
+            "[withdrawReward] Withdraw amount exceed redeemable amount"
+        );
 
         uint256 _alcxHarvestable = getAlcxFarmHarvestable();
         uint256 _harvestable = getHarvestable();
 
         _balance = IERC20(alcx).balanceOf(address(this));
-        if (_balance < _amount && _alcxHarvestable > 0) IStakingPools(stakingPool).claim(alcxPoolId);
-        
+        if (_balance < _amount && _alcxHarvestable > 0)
+            IStakingPools(stakingPool).claim(alcxPoolId);
+
         _balance = IERC20(alcx).balanceOf(address(this));
-        if (_balance < _amount && _harvestable > 0) IStakingPools(stakingPool).claim(poolId);
+        if (_balance < _amount && _harvestable > 0)
+            IStakingPools(stakingPool).claim(poolId);
 
         _balance = IERC20(alcx).balanceOf(address(this));
         if (_balance < _amount) {
             uint256 _r = _amount.sub(_balance);
             uint256 _alcxDeposited = getAlcxDeposited();
-            IStakingPools(stakingPool).withdraw(alcxPoolId, _alcxDeposited >= _r ? _r : _alcxDeposited);
+            IStakingPools(stakingPool).withdraw(
+                alcxPoolId,
+                _alcxDeposited >= _r ? _r : _alcxDeposited
+            );
         }
         _balance = IERC20(alcx).balanceOf(address(this));
-        require(_balance >= _amount, "[WithdrawReward] Withdraw amount exceed balance"); //double check
+        require(
+            _balance >= _amount,
+            "[WithdrawReward] Withdraw amount exceed balance"
+        ); //double check
         IERC20(reward_token).safeTransfer(_jar, _amount);
         __redeposit();
     }
 
     function getAlcxDeposited() public view override returns (uint256) {
-        return IStakingPools(stakingPool).getStakeTotalDeposited(address(this), alcxPoolId);
+        return
+            IStakingPools(stakingPool).getStakeTotalDeposited(
+                address(this),
+                alcxPoolId
+            );
     }
 
     function pendingReward() public view returns (uint256) {
         return
-            IERC20(alcx).balanceOf(address(this)).add(IStakingPools(stakingPool).getStakeTotalDeposited(address(this), alcxPoolId).add(
-                getHarvestable().add(getAlcxFarmHarvestable()))
+            IERC20(alcx).balanceOf(address(this)).add(
+                IStakingPools(stakingPool)
+                    .getStakeTotalDeposited(address(this), alcxPoolId)
+                    .add(getHarvestable().add(getAlcxFarmHarvestable()))
             );
     }
 }

@@ -35,7 +35,7 @@ abstract contract StrategyAlcxFarmBase is StrategyBase {
         return amount;
     }
 
-    function getHarvestable() public view returns (uint256) {
+    function getHarvestableSushi() public view returns (uint256) {
         return IMasterchefV2(masterChef).pendingSushi(poolId, address(this));
     }
 
