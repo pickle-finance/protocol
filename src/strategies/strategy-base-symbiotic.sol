@@ -48,7 +48,13 @@ abstract contract StrategyBaseSymbiotic {
 
     // Token addresses
     address public constant alcx = 0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF;
-    address public constant stakingPool = 0xAB8e74017a8Cc7c15FFcCd726603790d26d7DeCa;
+    address public constant cvx = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
+    address public constant crv = 0xD533a949740bb3306d119CC777fa900bA034cd52;
+
+    address public constant stakingPool =
+        0xAB8e74017a8Cc7c15FFcCd726603790d26d7DeCa;
+    address public constant convexBooster =
+        0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
 
     mapping(address => bool) public harvesters;
 
@@ -75,7 +81,11 @@ abstract contract StrategyBaseSymbiotic {
     // **** Modifiers **** //
 
     modifier onlyBenevolent {
-        require(harvesters[msg.sender] || msg.sender == governance || msg.sender == strategist);
+        require(
+            harvesters[msg.sender] ||
+                msg.sender == governance ||
+                msg.sender == strategist
+        );
         _;
     }
 
@@ -98,12 +108,18 @@ abstract contract StrategyBaseSymbiotic {
     // **** Setters **** //
 
     function whitelistHarvester(address _harvester) external {
-        require(msg.sender == governance || msg.sender == strategist, "not authorized");
+        require(
+            msg.sender == governance || msg.sender == strategist,
+            "not authorized"
+        );
         harvesters[_harvester] = true;
     }
 
     function revokeHarvester(address _harvester) external {
-        require(msg.sender == governance || msg.sender == strategist, "not authorized");
+        require(
+            msg.sender == governance || msg.sender == strategist,
+            "not authorized"
+        );
         harvesters[_harvester] = false;
     }
 
@@ -122,7 +138,9 @@ abstract contract StrategyBaseSymbiotic {
         performanceDevFee = _performanceDevFee;
     }
 
-    function setPerformanceTreasuryFee(uint256 _performanceTreasuryFee) external {
+    function setPerformanceTreasuryFee(uint256 _performanceTreasuryFee)
+        external
+    {
         require(msg.sender == timelock, "!timelock");
         performanceTreasuryFee = _performanceTreasuryFee;
     }
@@ -169,11 +187,16 @@ abstract contract StrategyBaseSymbiotic {
             _amount = _amount.add(_balance);
         }
 
-        uint256 _feeDev = _amount.mul(withdrawalDevFundFee).div(withdrawalDevFundMax);
+        uint256 _feeDev =
+            _amount.mul(withdrawalDevFundFee).div(withdrawalDevFundMax);
         IERC20(want).safeTransfer(IController(controller).devfund(), _feeDev);
 
-        uint256 _feeTreasury = _amount.mul(withdrawalTreasuryFee).div(withdrawalTreasuryMax);
-        IERC20(want).safeTransfer(IController(controller).treasury(), _feeTreasury);
+        uint256 _feeTreasury =
+            _amount.mul(withdrawalTreasuryFee).div(withdrawalTreasuryMax);
+        IERC20(want).safeTransfer(
+            IController(controller).treasury(),
+            _feeTreasury
+        );
 
         address _jar = IController(controller).jars(address(want));
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
@@ -184,7 +207,10 @@ abstract contract StrategyBaseSymbiotic {
     }
 
     // Withdraw funds, used to swap between strategies
-    function withdrawForSwap(uint256 _amount) external returns (uint256 balance) {
+    function withdrawForSwap(uint256 _amount)
+        external
+        returns (uint256 balance)
+    {
         require(msg.sender == controller, "!controller");
         _withdrawSome(_amount);
 
@@ -206,7 +232,7 @@ abstract contract StrategyBaseSymbiotic {
         address _jar = IController(controller).jars(address(want));
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
         IERC20(want).safeTransfer(_jar, balance);
-        
+
         IERC20(alcx).safeTransfer(_jar, IERC20(alcx).balanceOf(address(this)));
     }
 
@@ -220,23 +246,40 @@ abstract contract StrategyBaseSymbiotic {
 
     function _withdrawSome(uint256 _amount) internal virtual returns (uint256);
 
-    function _withdrawSomeReward(uint256 _amount) internal virtual returns (uint256);
+    function _withdrawSomeReward(uint256 _amount)
+        internal
+        virtual
+        returns (uint256);
 
     function harvest() public virtual;
 
     // **** Emergency functions ****
 
-    function execute(address _target, bytes memory _data) public payable returns (bytes memory response) {
+    function execute(address _target, bytes memory _data)
+        public
+        payable
+        returns (bytes memory response)
+    {
         require(msg.sender == timelock, "!timelock");
         require(_target != address(0), "!target");
 
         // call contract in current context
         assembly {
-            let succeeded := delegatecall(sub(gas(), 5000), _target, add(_data, 0x20), mload(_data), 0, 0)
+            let succeeded := delegatecall(
+                sub(gas(), 5000),
+                _target,
+                add(_data, 0x20),
+                mload(_data),
+                0,
+                0
+            )
             let size := returndatasize()
 
             response := mload(0x40)
-            mstore(0x40, add(response, and(add(add(size, 0x20), 0x1f), not(0x1f))))
+            mstore(
+                0x40,
+                add(response, and(add(add(size, 0x20), 0x1f), not(0x1f)))
+            )
             mstore(response, size)
             returndatacopy(add(response, 0x20), 0, size)
 
@@ -269,13 +312,27 @@ abstract contract StrategyBaseSymbiotic {
             path[2] = _to;
         }
 
-        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
+        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
+            _amount,
+            0,
+            path,
+            address(this),
+            now.add(60)
+        );
     }
 
-    function _swapUniswapWithPath(address[] memory path, uint256 _amount) internal {
+    function _swapUniswapWithPath(address[] memory path, uint256 _amount)
+        internal
+    {
         require(path[1] != address(0));
 
-        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
+        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
+            _amount,
+            0,
+            path,
+            address(this),
+            now.add(60)
+        );
     }
 
     function _swapSushiswap(
@@ -298,13 +355,27 @@ abstract contract StrategyBaseSymbiotic {
             path[2] = _to;
         }
 
-        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
+        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
+            _amount,
+            0,
+            path,
+            address(this),
+            now.add(60)
+        );
     }
 
-    function _swapSushiswapWithPath(address[] memory path, uint256 _amount) internal {
+    function _swapSushiswapWithPath(address[] memory path, uint256 _amount)
+        internal
+    {
         require(path[1] != address(0));
 
-        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
+        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
+            _amount,
+            0,
+            path,
+            address(this),
+            now.add(60)
+        );
     }
 
     function _distributePerformanceFeesAndDeposit() internal {
