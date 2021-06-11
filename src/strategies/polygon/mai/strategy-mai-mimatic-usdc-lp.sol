@@ -33,7 +33,7 @@ contract StrategyMaiMiMaticUsdcLp is StrategyGeneralMasterChefBase {
         _timelock
       )
     {
-      uniswapRoutes[mimatic] = [qi, quick, usdc, mimatic];
+      uniswapRoutes[mimatic] = [qi, mimatic];
       uniswapRoutes[usdc] = [qi, quick, usdc];
       sushiRouter = quickRouter; // use quickswap router instead of sushi router
     }
@@ -45,8 +45,6 @@ contract StrategyMaiMiMaticUsdcLp is StrategyGeneralMasterChefBase {
     }
 
     function getHarvestable() external override view returns (uint256) {
-        IMasterchef(masterchef).userInfo(poolId, address(this));
-        IMasterchef(masterchef).poolInfo(poolId);
         uint256 _pendingReward = IMasterchef(masterchef).pending(poolId, address(this));
         return _pendingReward;
     }

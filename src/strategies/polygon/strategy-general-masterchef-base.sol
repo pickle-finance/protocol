@@ -66,7 +66,6 @@ abstract contract StrategyGeneralMasterChefBase is StrategyBase {
             IERC20(want).safeApprove(masterchef, _want);
             IMasterchef(masterchef).deposit(poolId, _want);
         }
-        _want = IERC20(want).balanceOf(address(this));
     }
 
     function _withdrawSome(uint256 _amount)
