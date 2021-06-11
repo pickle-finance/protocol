@@ -36,6 +36,16 @@ interface IMasterchef {
         view
         returns (uint256);
 
+    function pendingReward(uint256 _pid, address _user)
+        external
+        view
+        returns (uint256);
+
+    function pending(uint256 _pid, address _user)
+        external
+        view
+        returns (uint256);
+
     function pickle() external view returns (address);
 
     function picklePerBlock() external view returns (uint256);
