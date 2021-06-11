@@ -2,7 +2,6 @@
 pragma solidity ^0.6.7;
 
 import "./strategy-alcx-farm-symbiotic.sol";
-import "hardhat/console.sol";
 
 contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
     address public alusd_3crv = 0x43b4FdFD4Ff969587185cDB6f0BD875c5Fc83f8c;
@@ -29,6 +28,57 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
         return "StrategyAlusd3Crv";
     }
 
+    function get_crv_earned() public view returns (uint256) {
+        return IBaseRewardPool(getCrvRewardContract()).earned(address(this));
+    }
+
+    function get_alcx_earned() public view returns (uint256) {
+        return
+            IVirtualBalanceRewardPool(getAlcxRewardContract()).earned(
+                address(this)
+            );
+    }
+
+    function get_cvx_earned() public view returns (uint256) {
+        uint256 crv_earned = get_crv_earned();
+
+        uint256 supply = IConvexToken(cvx).totalSupply();
+        if (supply == 0) {
+            return crv_earned;
+        }
+        uint256 reductionPerCliff = IConvexToken(cvx).reductionPerCliff();
+        uint256 totalCliffs = IConvexToken(cvx).totalCliffs();
+        uint256 cliff = supply.div(reductionPerCliff);
+
+        uint256 maxSupply = IConvexToken(cvx).maxSupply();
+
+        if (cliff < totalCliffs) {
+            uint256 reduction = totalCliffs.sub(cliff);
+            uint256 _amount = crv_earned;
+
+            _amount = _amount.mul(reduction).div(totalCliffs);
+            //supply cap check
+            uint256 amtTillMax = maxSupply.sub(supply);
+            if (_amount > amtTillMax) {
+                _amount = amtTillMax;
+            }
+            return _amount;
+        }
+        return 0;
+    }
+
+    function getHarvestable()
+        public
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        return (get_crv_earned(), get_cvx_earned(), get_alcx_earned());
+    }
+
     function getAlcxFarmHarvestable() public view returns (uint256) {
         return
             IStakingPools(stakingPool).getStakeTotalUnclaimed(
@@ -41,31 +91,29 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
 
     function harvest() public override onlyBenevolent {
         // Collects Alcx tokens
-        uint256 _alcxHarvestable = getAlcxFarmHarvestable();
-        if (_alcxHarvestable > 0) IStakingPools(stakingPool).claim(alcxPoolId); //claim from alcx staking pool
 
-        uint256 _harvestable = getHarvestable();
-        console.log(
-            "   [strategy_alusd] [harvest] _harvestable => ",
-            _harvestable
-        );
-        // if (_harvestable > 0)
-        IBaseRewardPool(getCrvRewardContract()).getReward(); //claim from alusd_3crv staking pool
+        if (getAlcxFarmHarvestable() > 0)
+            IStakingPools(stakingPool).claim(alcxPoolId); //claim from alcx staking pool
 
-        console.log(
-            "   [strategy_alusd] [harvest] _alcx before => ",
-            IERC20(alcx).balanceOf(address(this))
-        );
+        (
+            uint256 _crvHarvestable,
+            uint256 _cvxHarvestable,
+            uint256 _alcxHarvestable
+        ) = getHarvestable();
+
+        if (_crvHarvestable > 0 || _cvxHarvestable > 0 || _alcxHarvestable > 0)
+            IBaseRewardPool(getCrvRewardContract()).getReward(
+                address(this),
+                true
+            ); //claim from alusd_3crv staking pool
 
         uint256 _cvx = IERC20(cvx).balanceOf(address(this));
-        console.log("   [strategy_alusd] [harvest] _cvx => ", _cvx);
         if (_cvx > 0) {
             IERC20(cvx).safeApprove(sushiRouter, 0);
             IERC20(cvx).safeApprove(sushiRouter, _cvx);
             _swapSushiswap(cvx, alcx, _cvx);
         }
         uint256 _crv = IERC20(crv).balanceOf(address(this));
-        console.log("   [strategy_alusd] [harvest] _crv => ", _crv);
 
         if (_crv > 0) {
             IERC20(crv).safeApprove(sushiRouter, 0);
@@ -74,7 +122,6 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
         }
 
         uint256 _alcx = IERC20(alcx).balanceOf(address(this));
-        console.log("   [strategy_alusd] [harvest] _alcx after => ", _alcx);
         if (_alcx > 0) {
             // 10% is locked up for future gov
             uint256 _keepAlcx = _alcx.mul(keepAlcx).div(keepAlcxMax);
@@ -96,10 +143,6 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
         address reward_token = IJar(_jar).reward();
         uint256 _balance = IERC20(alcx).balanceOf(address(this));
         uint256 _pendingReward = pendingReward();
-        console.log(
-            "   [strategy_alusd] [withdrawReward] _pendingReward => ",
-            _pendingReward
-        );
         require(
             reward_token != address(0),
             "Reward token is not set in the pickle jar"
@@ -112,10 +155,6 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
 
         uint256 _alcxHarvestable = getAlcxFarmHarvestable();
         uint256 _alcx_earned = get_alcx_earned();
-        console.log(
-            "   [strategy_alusd] [withdrawReward] _alcx_earned => ",
-            _alcx_earned
-        );
 
         _balance = IERC20(alcx).balanceOf(address(this));
         if (_balance < _amount && _alcxHarvestable > 0)
@@ -123,7 +162,9 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
 
         _balance = IERC20(alcx).balanceOf(address(this));
         if (_balance < _amount && _alcx_earned > 0)
-            IVirtualBalanceRewardPool(getAlcxRewardContract()).getReward();
+            IVirtualBalanceRewardPool(getAlcxRewardContract()).getReward(
+                address(this)
+            );
 
         _balance = IERC20(alcx).balanceOf(address(this));
         if (_balance < _amount) {

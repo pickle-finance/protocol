@@ -54,7 +54,10 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
     }
 
     function balance() public view returns (uint256) {
-        return token.balanceOf(address(this)).add(IController(controller).balanceOf(address(token)));
+        return
+            token.balanceOf(address(this)).add(
+                IController(controller).balanceOf(address(token))
+            );
     }
 
     function setGauge(address _gauge) external {
@@ -103,7 +106,7 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
     function deposit(uint256 _amount) public {
         require(_amount > 0, "Invalid amount");
         _updateAccPerShare();
-        
+
         _withdrawReward();
 
         uint256 _pool = balance();
@@ -118,20 +121,27 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
             shares = (_amount.mul(totalSupply())).div(_pool);
         }
         _mint(msg.sender, shares);
-        userRewardDebt[msg.sender] = balanceOf(msg.sender).mul(accRewardPerShare).div(1e36);
+        userRewardDebt[msg.sender] = balanceOf(msg.sender)
+            .mul(accRewardPerShare)
+            .div(1e36);
         emit Deposit(msg.sender, _amount, shares);
     }
 
     function _updateAccPerShare() internal {
         curPendingReward = pendingReward();
-        require(curPendingReward >= lastPendingReward, "Alchemix protocol failed");        
+        require(
+            curPendingReward >= lastPendingReward,
+            "Convex protocol failed"
+        );
         if (totalSupply() == 0) {
             accRewardPerShare = 0;
             return;
         }
-        
+
         uint256 addedReward = curPendingReward.sub(lastPendingReward);
-        accRewardPerShare = accRewardPerShare.add((addedReward.mul(1e36)).div(totalSupply()));
+        accRewardPerShare = accRewardPerShare.add(
+            (addedReward.mul(1e36)).div(totalSupply())
+        );
     }
 
     function withdrawAll() external {
@@ -146,7 +156,11 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
     }
 
     function pendingReward() public view returns (uint256) {
-        return reward.balanceOf(address(this)).add(IStrategy(IController(controller).strategies(address(token))).pendingReward());
+        return
+            reward.balanceOf(address(this)).add(
+                IStrategy(IController(controller).strategies(address(token)))
+                    .pendingReward()
+            );
     }
 
     function pendingRewardOfUser(address user) external view returns (uint256) {
@@ -154,12 +168,19 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
         uint256 allPendingReward = pendingReward();
         if (allPendingReward < lastPendingReward) return 0;
         uint256 addedReward = allPendingReward.sub(lastPendingReward);
-        uint256 newAccRewardPerShare = accRewardPerShare.add((addedReward.mul(1e36)).div(totalSupply()));
-        return balanceOf(user).mul(newAccRewardPerShare).div(1e36).sub(userRewardDebt[user]);
-    } 
+        uint256 newAccRewardPerShare =
+            accRewardPerShare.add((addedReward.mul(1e36)).div(totalSupply()));
+        return
+            balanceOf(user).mul(newAccRewardPerShare).div(1e36).sub(
+                userRewardDebt[user]
+            );
+    }
 
     function _withdrawReward() internal {
-        uint256 _pending = balanceOf(msg.sender).mul(accRewardPerShare).div(1e36).sub(userRewardDebt[msg.sender]);
+        uint256 _pending =
+            balanceOf(msg.sender).mul(accRewardPerShare).div(1e36).sub(
+                userRewardDebt[msg.sender]
+            );
         uint256 _balance = reward.balanceOf(address(this));
         if (_balance < _pending) {
             uint256 _withdraw = _pending.sub(_balance);
@@ -193,7 +214,9 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
         }
         token.safeTransfer(msg.sender, r);
 
-        userRewardDebt[msg.sender] = balanceOf(msg.sender).mul(accRewardPerShare).div(1e36);
+        userRewardDebt[msg.sender] = balanceOf(msg.sender)
+            .mul(accRewardPerShare)
+            .div(1e36);
 
         emit Withdraw(msg.sender, r, _shares);
     }

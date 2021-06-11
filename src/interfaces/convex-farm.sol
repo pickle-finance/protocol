@@ -59,3 +59,11 @@ interface IVirtualBalanceRewardPool {
 
     function earned(address) external view returns (uint256);
 }
+
+interface IConvexToken is IERC20 {
+    function reductionPerCliff() external view returns (uint256);
+
+    function totalCliffs() external view returns (uint256);
+
+    function maxSupply() external view returns (uint256);
+}

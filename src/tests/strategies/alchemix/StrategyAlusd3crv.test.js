@@ -138,28 +138,28 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
       "alice pToken balance =====> ",
       (await pickleJar.balanceOf(alice.address)).toString()
     );
-    await pickleJar.earn({ from: alice.address });
+    // await pickleJar.earn({ from: alice.address });
 
-    await harvest();
+    // await harvest();
 
     console.log(
       "\n---------------------------Bob deposit---------------------------------------\n"
     );
-    await alusd_3crv.connect(bob).approve(pickleJar.address, toWei(30));
-    await pickleJar.deposit(toWei(30), { from: bob.address });
+    await alusd_3crv.connect(bob).approve(pickleJar.address, toWei(10000));
+    await pickleJar.deposit(toWei(10000), { from: bob.address });
     console.log(
       "bob pToken balance =====> ",
       (await pickleJar.balanceOf(bob.address)).toString()
     );
     await pickleJar.earn({ from: bob.address });
 
-    await time.increase(60 * 60 * 24 * 7);
+    await harvest();
 
     console.log(
       "\n---------------------------John deposit---------------------------------------\n"
     );
-    await alusd_3crv.connect(john).approve(pickleJar.address, toWei(10000));
-    await pickleJar.deposit(toWei(10000), { from: john.address });
+    await alusd_3crv.connect(john).approve(pickleJar.address, toWei(25000));
+    await pickleJar.deposit(toWei(25000), { from: john.address });
     await pickleJar.earn({ from: john.address });
     console.log(
       "bob pToken balance =====> ",
@@ -192,7 +192,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
       (await strategy.pendingReward()).toString()
     );
 
-    await time.increase(60 * 60 * 24 * 3);
+    await travelTime(60 * 60 * 24 * 3);
 
     console.log(
       "\n---------------------------Alice Redeposit---------------------------------------\n"
@@ -365,14 +365,14 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
     console.log(
       "\n---------------------------Bob deposit---------------------------------------\n"
     );
-    await alusd_3crv.connect(bob).approve(pickleJar.address, toWei(30));
-    await pickleJar.deposit(toWei(30), { from: bob.address });
+    await alusd_3crv.connect(bob).approve(pickleJar.address, toWei(10000));
+    await pickleJar.deposit(toWei(10000), { from: bob.address });
     await pickleJar.earn({ from: bob.address });
     console.log(
       "bob pToken balance =====> ",
       (await pickleJar.balanceOf(bob.address)).toString()
     );
-    await pickleJar.earn({ from: bob.address });
+
     await harvest();
 
     console.log(
@@ -423,14 +423,16 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
   });
 
   const harvest = async () => {
-    await time.increase(60 * 60 * 24 * 15); //15 days
+    await travelTime(60 * 60 * 24 * 15); //15 days
     const _balance = await strategy.balanceOfPool();
     console.log("Deposited amount of strategy ===> ", _balance.toString());
 
-    let _alcx = await strategy.getHarvestable();
+    let harvestable = await strategy.getHarvestable();
     console.log(
-      "Alusd3Crv Farm harvestable of strategy of the first harvest ===> ",
-      _alcx.toString()
+      "Alusd3Crv Farm harvestable of strategy of the first harvest ===> _crv %s, _cvx %s, _alcx %s",
+      harvestable[0].toString(),
+      harvestable[1].toString(),
+      harvestable[2].toString()
     );
     let _alcx2 = await strategy.getAlcxFarmHarvestable();
     console.log(
@@ -439,12 +441,14 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
     );
 
     await strategy.harvest({ from: governance });
-    await time.increase(60 * 60 * 24 * 15);
+    await travelTime(60 * 60 * 24 * 15);
 
-    _alcx = await strategy.getHarvestable();
+    harvestable = await strategy.getHarvestable();
     console.log(
-      "Alusd3Crv Farm harvestable of strategy of the second harvest ===> ",
-      _alcx.toString()
+      "Alusd3Crv Farm harvestable of strategy of the second harvest ===> _crv %s, _cvx %s, _alcx %s",
+      harvestable[0].toString(),
+      harvestable[1].toString(),
+      harvestable[2].toString()
     );
 
     _alcx2 = await strategy.getAlcxFarmHarvestable();
@@ -458,10 +462,10 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
 
   const travelTime = async (sec) => {
     const avgTime = 13.2;
-    await hre.network.provider.send("evm_increaseTime", [sec]);
     const blockNumber = Math.round(sec / avgTime);
     for (let i = 0; i < blockNumber; i++) {
       await hre.network.provider.send("evm_mine");
     }
+    await hre.network.provider.send("evm_increaseTime", [sec]);
   };
 });

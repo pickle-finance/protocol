@@ -4,7 +4,6 @@ pragma solidity ^0.6.7;
 import "../strategy-base-symbiotic.sol";
 import "../../interfaces/alcx-farm.sol";
 import "../../interfaces/convex-farm.sol";
-import "hardhat/console.sol";
 
 abstract contract StrategyAlcxSymbioticFarmBase is StrategyBaseSymbiotic {
     // How much Alcx tokens to keep?
@@ -50,21 +49,6 @@ abstract contract StrategyAlcxSymbioticFarmBase is StrategyBaseSymbiotic {
         return amount;
     }
 
-    function get_cvx_crv_earned() public view returns (uint256) {
-        return IBaseRewardPool(getCrvRewardContract()).earned(address(this));
-    }
-
-    function get_alcx_earned() public view returns (uint256) {
-        return
-            IVirtualBalanceRewardPool(getAlcxRewardContract()).earned(
-                address(this)
-            );
-    }
-
-    function getHarvestable() public view returns (uint256) {
-        return get_cvx_crv_earned().add(get_alcx_earned());
-    }
-
     // **** Setters ****
 
     function deposit() public override {
@@ -72,10 +56,6 @@ abstract contract StrategyAlcxSymbioticFarmBase is StrategyBaseSymbiotic {
         if (_want > 0) {
             IERC20(want).safeApprove(convexBooster, 0);
             IERC20(want).safeApprove(convexBooster, _want);
-            console.log(
-                "   [strategy_alcx_farm_symbiotic] [harvest] _want => ",
-                _want
-            );
 
             IConvexBooster(convexBooster).deposit(alusdPoolId, _want, true);
         }
