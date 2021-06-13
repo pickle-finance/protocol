@@ -31,7 +31,8 @@
     "dotenv": "^8.2.0",
     "eslint": "^7.10.0",
     "hardhat": "^2.1.1",
-    "hardhat-deploy": "^0.7.0",
+    "hardhat-deploy": "^0.7.2",
+    "hardhat-deploy-ethers": "^0.3.0-beta.7",
     "prettier-plugin-solidity": "^1.0.0-beta.9"
   },
   "eslintConfig": {

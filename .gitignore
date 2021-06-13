@@ -107,7 +107,9 @@ dist
 solc-input.json
 build
 artifacts
+cache
 
 /data
 /cache
+/src/flatten
 hardhat/
