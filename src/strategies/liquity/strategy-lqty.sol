@@ -29,8 +29,6 @@ contract StrategyLqty is StrategyBase {
     }
 
     function harvest() public override onlyBenevolent {
-        (uint256 lusdGain, uint256 ethGain) = getHarvestable();
-
         ILiquityStaking(lqty_staking).unstake(0);
         uint256 _lusd = IERC20(lusd).balanceOf(address(this));
 
