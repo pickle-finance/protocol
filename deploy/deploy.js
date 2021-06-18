@@ -12,8 +12,6 @@ const wmatic = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270";
 const rewardPerSecond = 0;
 const minichef = "0x20b2a3fc7b13ca0ccf7af81a68a14cb3116e8749"
 
-const want = "0x05767d9EF41dC40689678fFca0608878fb3dE906";
-
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy, execute } = deployments;
   const { deployer } = await getNamedAccounts();
@@ -23,5 +21,4 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     args: [wmatic, rewardPerSecond, minichef],
     log: true,
   });
-
 };
