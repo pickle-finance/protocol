@@ -17,17 +17,12 @@ const deployPickleToken = async () => {
 const deployMasterChef = async () => {
   console.log("deploying master chef...");
   
-  const pickle = "0x6c551cAF1099b08993fFDB5247BE74bE39741B82";
-  const devaddr = "0xacfe4511ce883c14c4ea40563f176c3c09b4c47c";
-  const picklePerBlock = 1000000000000;
-  const startBlock = 13560000;
-  const bonusEndBlock = 0;
+  const pickle = "0x2b88aD57897A8b496595925F43048301C37615Da";
 
-  const MasterChefFactory = await ethers.getContractFactory("src/polygon/masterchef.sol:MasterChef");
+  const MasterChefFactory = await ethers.getContractFactory("src/polygon/minichefv2.sol:MiniChefV2");
   const MasterChef = await MasterChefFactory.deploy(
-    pickle, devaddr, picklePerBlock, startBlock, bonusEndBlock
-  );
-  console.log("master chef deployed at ", MasterChef.address);
+    pickle);
+  console.log("minichef deployed at ", MasterChef.address);
   return MasterChef.address;
 };
 
@@ -48,10 +43,7 @@ const addJars = async () => {
 };
 
 const main = async () => {
-  // await deployPickleToken();
-  // const address = await deployMasterChef();
-  await addJars();
-
+  await deployMasterChef();
 };
 
 main()
