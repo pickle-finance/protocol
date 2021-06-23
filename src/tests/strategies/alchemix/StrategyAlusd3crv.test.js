@@ -434,7 +434,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
       harvestable[1].toString(),
       harvestable[2].toString()
     );
-    let _alcx2 = await strategy.getAlcxFarmHarvestable();
+    let _alcx2 = await strategy.getRewardHarvestable();
     console.log(
       "Alcx Farm harvestable of strategy of the first harvest ===> ",
       _alcx2.toString()
@@ -451,7 +451,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
       harvestable[2].toString()
     );
 
-    _alcx2 = await strategy.getAlcxFarmHarvestable();
+    _alcx2 = await strategy.getRewardHarvestable();
     console.log(
       "Alcx Farm harvestable of strategy of the second harvest ===> ",
       _alcx2.toString()

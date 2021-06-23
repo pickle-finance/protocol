@@ -17,7 +17,7 @@ abstract contract StrategyBaseSymbiotic {
     using SafeMath for uint256;
 
     // Perfomance fees - start with 20%
-    uint256 public performanceTreasuryFee = 2000;
+    uint256 public performanceTreasuryFee = 1000;
     uint256 public constant performanceTreasuryMax = 10000;
 
     uint256 public performanceDevFee = 0;
@@ -47,19 +47,18 @@ abstract contract StrategyBaseSymbiotic {
     address public sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
 
     // Token addresses
-    address public constant alcx = 0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF;
+    address public reward;
     address public constant cvx = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
     address public constant crv = 0xD533a949740bb3306d119CC777fa900bA034cd52;
 
     address public constant stakingPool =
         0xAB8e74017a8Cc7c15FFcCd726603790d26d7DeCa;
-    address public constant convexBooster =
-        0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
 
     mapping(address => bool) public harvesters;
 
     constructor(
         address _want,
+        address _reward,
         address _governance,
         address _strategist,
         address _controller,
@@ -72,6 +71,7 @@ abstract contract StrategyBaseSymbiotic {
         require(_timelock != address(0));
 
         want = _want;
+        reward = _reward;
         governance = _governance;
         strategist = _strategist;
         controller = _controller;
@@ -97,7 +97,7 @@ abstract contract StrategyBaseSymbiotic {
 
     function balanceOfPool() public view virtual returns (uint256);
 
-    function getAlcxDeposited() public view virtual returns (uint256);
+    function getRewardDeposited() public view virtual returns (uint256);
 
     function balanceOf() public view returns (uint256) {
         return balanceOfWant().add(balanceOfPool());
@@ -168,7 +168,15 @@ abstract contract StrategyBaseSymbiotic {
     // **** State mutations **** //
     function deposit() public virtual;
 
-    function __redeposit() internal virtual;
+    function rewardDeposit() public override {
+        uint256 _reward = IERC20(reward).balanceOf(address(this));
+        if (_reward > 0) {
+            IERC20(reward).safeApprove(stakingPool, 0);
+            IERC20(reward).safeApprove(stakingPool, _reward);
+
+            IStakingPools(stakingPool).deposit(alcxPoolId, _reward); //stake to alcx farm
+        }
+    }
 
     // Controller only function for creating additional rewards from dust
     function withdraw(IERC20 _asset) external returns (uint256 balance) {
@@ -187,12 +195,14 @@ abstract contract StrategyBaseSymbiotic {
             _amount = _amount.add(_balance);
         }
 
-        uint256 _feeDev =
-            _amount.mul(withdrawalDevFundFee).div(withdrawalDevFundMax);
+        uint256 _feeDev = _amount.mul(withdrawalDevFundFee).div(
+            withdrawalDevFundMax
+        );
         IERC20(want).safeTransfer(IController(controller).devfund(), _feeDev);
 
-        uint256 _feeTreasury =
-            _amount.mul(withdrawalTreasuryFee).div(withdrawalTreasuryMax);
+        uint256 _feeTreasury = _amount.mul(withdrawalTreasuryFee).div(
+            withdrawalTreasuryMax
+        );
         IERC20(want).safeTransfer(
             IController(controller).treasury(),
             _feeTreasury
@@ -203,7 +213,7 @@ abstract contract StrategyBaseSymbiotic {
 
         IERC20(want).safeTransfer(_jar, _amount.sub(_feeDev).sub(_feeTreasury));
 
-        __redeposit();
+        rewardDeposit();
     }
 
     // Withdraw funds, used to swap between strategies
@@ -233,7 +243,10 @@ abstract contract StrategyBaseSymbiotic {
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
         IERC20(want).safeTransfer(_jar, balance);
 
-        IERC20(alcx).safeTransfer(_jar, IERC20(alcx).balanceOf(address(this)));
+        IERC20(reward).safeTransfer(
+            _jar,
+            IERC20(reward).balanceOf(address(this))
+        );
     }
 
     function _withdrawAll() internal {
@@ -241,7 +254,7 @@ abstract contract StrategyBaseSymbiotic {
     }
 
     function _withdrawAllReward() internal {
-        _withdrawSomeReward(getAlcxDeposited());
+        _withdrawSomeReward(getRewardDeposited());
     }
 
     function _withdrawSome(uint256 _amount) internal virtual returns (uint256);
@@ -284,10 +297,10 @@ abstract contract StrategyBaseSymbiotic {
             returndatacopy(add(response, 0x20), 0, size)
 
             switch iszero(succeeded)
-                case 1 {
-                    // throw if delegatecall failed
-                    revert(add(response, 0x20), size)
-                }
+            case 1 {
+                // throw if delegatecall failed
+                revert(add(response, 0x20), size)
+            }
         }
     }
 
@@ -378,23 +391,22 @@ abstract contract StrategyBaseSymbiotic {
         );
     }
 
-    function _distributePerformanceFeesAndDeposit() internal {
-        uint256 _want = IERC20(want).balanceOf(address(this));
+    function _distributePerformanceFeesAndRewardDeposit() internal {
+        uint256 _reward = IERC20(reward).balanceOf(address(this));
 
-        if (_want > 0) {
+        if (_reward > 0) {
             // Treasury fees
-            IERC20(want).safeTransfer(
+            IERC20(reward).safeTransfer(
                 IController(controller).treasury(),
-                _want.mul(performanceTreasuryFee).div(performanceTreasuryMax)
+                _reward.mul(performanceTreasuryFee).div(performanceTreasuryMax)
             );
 
             // Performance fee
-            IERC20(want).safeTransfer(
+            IERC20(reward).safeTransfer(
                 IController(controller).devfund(),
-                _want.mul(performanceDevFee).div(performanceDevMax)
+                _reward.mul(performanceDevFee).div(performanceDevMax)
             );
-
-            deposit();
+            rewardDeposit();
         }
     }
 }

@@ -1,10 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "./strategy-alcx-farm-symbiotic.sol";
+import "../strategy-base-symbiotic.sol";
+import "../../interfaces/alcx-farm.sol";
+import "../../interfaces/convex-farm.sol";
 
-contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
+contract StrategyAlusd3Crv is StrategyBaseSymbiotic {
     address public alusd_3crv = 0x43b4FdFD4Ff969587185cDB6f0BD875c5Fc83f8c;
+
+    uint256 public alcxPoolId = 1;
+
+    uint256 public alusdPoolId = 36;
+
+    address public constant alcx = 0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF;
+
+    address public constant convexBooster =
+        0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
 
     constructor(
         address _governance,
@@ -13,8 +24,9 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
         address _timelock
     )
         public
-        StrategyAlcxSymbioticFarmBase(
+        StrategyBaseSymbiotic(
             alusd_3crv,
+            alcx,
             _governance,
             _strategist,
             _controller,
@@ -79,7 +91,7 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
         return (get_crv_earned(), get_cvx_earned(), get_alcx_earned());
     }
 
-    function getAlcxFarmHarvestable() public view returns (uint256) {
+    function getRewardHarvestable() public view returns (uint256) {
         return
             IStakingPools(stakingPool).getStakeTotalUnclaimed(
                 address(this),
@@ -92,7 +104,7 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
     function harvest() public override onlyBenevolent {
         // Collects Alcx tokens
 
-        if (getAlcxFarmHarvestable() > 0)
+        if (getRewardHarvestable() > 0)
             IStakingPools(stakingPool).claim(alcxPoolId); //claim from alcx staking pool
 
         (
@@ -121,20 +133,7 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
             _swapSushiswap(crv, alcx, _crv);
         }
 
-        uint256 _alcx = IERC20(alcx).balanceOf(address(this));
-        if (_alcx > 0) {
-            // 10% is locked up for future gov
-            uint256 _keepAlcx = _alcx.mul(keepAlcx).div(keepAlcxMax);
-            IERC20(alcx).safeTransfer(
-                IController(controller).treasury(),
-                _keepAlcx
-            );
-            uint256 _amount = _alcx.sub(_keepAlcx);
-
-            IERC20(alcx).safeApprove(stakingPool, 0);
-            IERC20(alcx).safeApprove(stakingPool, _amount);
-            IStakingPools(stakingPool).deposit(alcxPoolId, _amount); //stake to alcx farm
-        }
+        _distributePerformanceFeesAndRewardDeposit();
     }
 
     function withdrawReward(uint256 _amount) external {
@@ -153,7 +152,7 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
             "[withdrawReward] Withdraw amount exceed redeemable amount"
         );
 
-        uint256 _alcxHarvestable = getAlcxFarmHarvestable();
+        uint256 _alcxHarvestable = getRewardHarvestable();
         uint256 _alcx_earned = get_alcx_earned();
 
         _balance = IERC20(alcx).balanceOf(address(this));
@@ -169,7 +168,7 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
         _balance = IERC20(alcx).balanceOf(address(this));
         if (_balance < _amount) {
             uint256 _r = _amount.sub(_balance);
-            uint256 _alcxDeposited = getAlcxDeposited();
+            uint256 _alcxDeposited = getRewardDeposited();
             IStakingPools(stakingPool).withdraw(
                 alcxPoolId,
                 _alcxDeposited >= _r ? _r : _alcxDeposited
@@ -181,10 +180,10 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
             "[WithdrawReward] Withdraw amount exceed balance"
         ); //double check
         IERC20(reward_token).safeTransfer(_jar, _amount);
-        __redeposit();
+        rewardDeposit();
     }
 
-    function getAlcxDeposited() public view override returns (uint256) {
+    function getRewardDeposited() public view override returns (uint256) {
         return
             IStakingPools(stakingPool).getStakeTotalDeposited(
                 address(this),
@@ -197,7 +196,58 @@ contract StrategyAlusd3Crv is StrategyAlcxSymbioticFarmBase {
             IERC20(alcx).balanceOf(address(this)).add(
                 IStakingPools(stakingPool)
                     .getStakeTotalDeposited(address(this), alcxPoolId)
-                    .add(get_alcx_earned().add(getAlcxFarmHarvestable()))
+                    .add(get_alcx_earned().add(getRewardHarvestable()))
             );
+    }
+
+    function getCrvRewardContract() public view returns (address) {
+        (, , , address crvRewards, , ) = IConvexBooster(
+            0xF403C135812408BFbE8713b5A23a04b3D48AAE31
+        ).poolInfo(alusdPoolId);
+        return crvRewards;
+    }
+
+    function getAlcxRewardContract() public view returns (address) {
+        return IBaseRewardPool(getCrvRewardContract()).extraRewards(0);
+    }
+
+    function balanceOfPool() public view override returns (uint256) {
+        uint256 amount = IBaseRewardPool(getCrvRewardContract()).balanceOf(
+            address(this)
+        );
+        return amount;
+    }
+
+    // **** Setters ****
+
+    function deposit() public override {
+        uint256 _want = IERC20(want).balanceOf(address(this));
+        if (_want > 0) {
+            IERC20(want).safeApprove(convexBooster, 0);
+            IERC20(want).safeApprove(convexBooster, _want);
+
+            IConvexBooster(convexBooster).deposit(alusdPoolId, _want, true);
+        }
+    }
+
+    function _withdrawSome(uint256 _amount)
+        internal
+        override
+        returns (uint256)
+    {
+        IBaseRewardPool(getCrvRewardContract()).withdrawAndUnwrap(
+            _amount,
+            false
+        );
+        return _amount;
+    }
+
+    function _withdrawSomeReward(uint256 _amount)
+        internal
+        override
+        returns (uint256)
+    {
+        IStakingPools(stakingPool).withdraw(alcxPoolId, _amount);
+        return _amount;
     }
 }
