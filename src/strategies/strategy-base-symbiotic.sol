@@ -168,15 +168,7 @@ abstract contract StrategyBaseSymbiotic {
     // **** State mutations **** //
     function deposit() public virtual;
 
-    function rewardDeposit() public override {
-        uint256 _reward = IERC20(reward).balanceOf(address(this));
-        if (_reward > 0) {
-            IERC20(reward).safeApprove(stakingPool, 0);
-            IERC20(reward).safeApprove(stakingPool, _reward);
-
-            IStakingPools(stakingPool).deposit(alcxPoolId, _reward); //stake to alcx farm
-        }
-    }
+    function rewardDeposit() public virtual;
 
     // Controller only function for creating additional rewards from dust
     function withdraw(IERC20 _asset) external returns (uint256 balance) {

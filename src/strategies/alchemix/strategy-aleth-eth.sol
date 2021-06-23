@@ -11,6 +11,8 @@ contract StrategySaddleAlethEth is StrategyBaseSymbiotic {
 
     uint256 public alEthPoolId = 6;
 
+    address public constant alcx = 0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF;
+
     constructor(
         address _governance,
         address _strategist,
@@ -20,6 +22,7 @@ contract StrategySaddleAlethEth is StrategyBaseSymbiotic {
         public
         StrategyBaseSymbiotic(
             alethEthlp,
+            alcx,
             _governance,
             _strategist,
             _controller,
@@ -33,15 +36,7 @@ contract StrategySaddleAlethEth is StrategyBaseSymbiotic {
         return "StrategySaddleAlethEth";
     }
 
-    function getHarvestable()
-        public
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
-    {
+    function getHarvestable() public view returns (uint256) {
         return
             IStakingPools(stakingPool).getStakeTotalUnclaimed(
                 address(this),
@@ -74,27 +69,27 @@ contract StrategySaddleAlethEth is StrategyBaseSymbiotic {
         require(msg.sender == controller, "!controller");
         address _jar = IController(controller).jars(address(want));
         address reward_token = IJar(_jar).reward();
-        uint256 _balance = IERC20(alcx).balanceOf(address(this));
+        uint256 _balance = IERC20(reward).balanceOf(address(this));
         uint256 _pendingReward = pendingReward();
         require(
             reward_token != address(0),
             "Reward token is not set in the pickle jar"
         );
-        require(reward_token == alcx, "Reward token is invalid");
+        require(reward_token == reward, "Reward token is invalid");
         require(
             _pendingReward >= _amount,
             "[withdrawReward] Withdraw amount exceed redeemable amount"
         );
 
-        _balance = IERC20(alcx).balanceOf(address(this));
+        _balance = IERC20(reward).balanceOf(address(this));
         if (_balance < _amount && getRewardHarvestable() > 0)
             IStakingPools(stakingPool).claim(alcxPoolId);
 
-        _balance = IERC20(alcx).balanceOf(address(this));
+        _balance = IERC20(reward).balanceOf(address(this));
         if (_balance < _amount && getHarvestable() > 0)
             IStakingPools(stakingPool).claim(alEthPoolId);
 
-        _balance = IERC20(alcx).balanceOf(address(this));
+        _balance = IERC20(reward).balanceOf(address(this));
         if (_balance < _amount) {
             uint256 _r = _amount.sub(_balance);
             uint256 _alcxDeposited = getRewardDeposited();
@@ -123,7 +118,7 @@ contract StrategySaddleAlethEth is StrategyBaseSymbiotic {
 
     function pendingReward() public view returns (uint256) {
         return
-            IERC20(alcx).balanceOf(address(this)).add(
+            IERC20(reward).balanceOf(address(this)).add(
                 IStakingPools(stakingPool)
                     .getStakeTotalDeposited(address(this), alcxPoolId)
                     .add(getHarvestable().add(getRewardHarvestable()))
@@ -147,6 +142,16 @@ contract StrategySaddleAlethEth is StrategyBaseSymbiotic {
             IERC20(want).safeApprove(stakingPool, _want);
 
             IStakingPools(stakingPool).deposit(alEthPoolId, _want);
+        }
+    }
+
+    function rewardDeposit() public override {
+        uint256 _reward = IERC20(reward).balanceOf(address(this));
+        if (_reward > 0) {
+            IERC20(reward).safeApprove(stakingPool, 0);
+            IERC20(reward).safeApprove(stakingPool, _reward);
+
+            IStakingPools(stakingPool).deposit(alcxPoolId, _reward); //stake to alcx farm
         }
     }
 

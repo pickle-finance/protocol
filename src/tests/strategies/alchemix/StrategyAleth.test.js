@@ -1,7 +1,7 @@
 const hre = require("hardhat");
 
 var chaiAsPromised = require("chai-as-promised");
-const StrategyCurveAlusd3Crv = hre.artifacts.require("StrategyAlusd3Crv");
+const StrategySaddleAlethEth = hre.artifacts.require("StrategySaddleAlethEth");
 const PickleJarSymbiotic = hre.artifacts.require("PickleJarSymbiotic");
 const ControllerV5 = hre.artifacts.require("ControllerV5");
 const ProxyAdmin = hre.artifacts.require("ProxyAdmin");
@@ -22,11 +22,11 @@ const toWei = (ethAmount) => {
   );
 };
 
-describe("StrategyCurveAlusd3Crv Unit test", () => {
+describe("StrategySaddleAlethEth Unit test", () => {
   let strategy, pickleJar;
   let proxyAdmin, controller;
-  const want = "0x43b4FdFD4Ff969587185cDB6f0BD875c5Fc83f8c";
-  let alusd_3crv, alusd_3crv_whale;
+  const want = "0xc9da65931ABf0Ed1b74Ce5ad8c041C4220940368";
+  let aleth, aleth_whale;
   let deployer, alice, bob;
   let alcx,
     alcx_addr = "0xdbdb4d16eda451d0503b854cf79d55697f90c8df";
@@ -72,7 +72,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
     );
     console.log("controller is deployed at =====> ", controller.address);
 
-    strategy = await StrategyCurveAlusd3Crv.new(
+    strategy = await StrategySaddleAlethEth.new(
       governance,
       strategist,
       controller.address,
@@ -95,26 +95,26 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
     });
     await controller.setStrategy(want, strategy.address, { from: governance });
 
-    const whaleAddr = "0xd44A4999DF99FB92Db7CdfE7Dea352a28bceDb63";
+    const whaleAddr = "0xF67371E3a2d8b309a4e89e9C7fFD2222D5648707";
 
-    alusd_3crv_whale = await unlockAccount(whaleAddr);
-    alusd_3crv = await hre.ethers.getContractAt("ERC20", want);
+    aleth_whale = await unlockAccount(whaleAddr);
+    aleth = await hre.ethers.getContractAt("ERC20", want);
     alcx = await hre.ethers.getContractAt("ERC20", alcx_addr);
 
-    alusd_3crv.connect(alusd_3crv_whale).transfer(alice.address, toWei(30000));
+    aleth.connect(aleth_whale).transfer(alice.address, toWei(5));
     assert.equal(
-      (await alusd_3crv.balanceOf(alice.address)).toString(),
-      toWei(30000).toString()
+      (await aleth.balanceOf(alice.address)).toString(),
+      toWei(5).toString()
     );
-    alusd_3crv.connect(alusd_3crv_whale).transfer(bob.address, toWei(30000));
+    aleth.connect(aleth_whale).transfer(bob.address, toWei(5));
     assert.equal(
-      (await alusd_3crv.balanceOf(bob.address)).toString(),
-      toWei(30000).toString()
+      (await aleth.balanceOf(bob.address)).toString(),
+      toWei(5).toString()
     );
-    alusd_3crv.connect(alusd_3crv_whale).transfer(john.address, toWei(30000));
+    aleth.connect(aleth_whale).transfer(john.address, toWei(5));
     assert.equal(
-      (await alusd_3crv.balanceOf(john.address)).toString(),
-      toWei(30000).toString()
+      (await aleth.balanceOf(john.address)).toString(),
+      toWei(5).toString()
     );
   });
 
@@ -130,21 +130,19 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
     console.log(
       "\n---------------------------Alice deposit---------------------------------------\n"
     );
-    await alusd_3crv.connect(alice).approve(pickleJar.address, toWei(10000));
-    await pickleJar.deposit(toWei(10000), { from: alice.address });
+    await aleth.connect(alice).approve(pickleJar.address, toWei(3));
+    await pickleJar.deposit(toWei(3), { from: alice.address });
     console.log(
       "alice pToken balance =====> ",
       (await pickleJar.balanceOf(alice.address)).toString()
     );
-    // await pickleJar.earn({ from: alice.address });
-
-    // await harvest();
+    await pickleJar.earn({ from: alice.address });
 
     console.log(
       "\n---------------------------Bob deposit---------------------------------------\n"
     );
-    await alusd_3crv.connect(bob).approve(pickleJar.address, toWei(10000));
-    await pickleJar.deposit(toWei(10000), { from: bob.address });
+    await aleth.connect(bob).approve(pickleJar.address, toWei(5));
+    await pickleJar.deposit(toWei(5), { from: bob.address });
     console.log(
       "bob pToken balance =====> ",
       (await pickleJar.balanceOf(bob.address)).toString()
@@ -156,8 +154,8 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
     console.log(
       "\n---------------------------John deposit---------------------------------------\n"
     );
-    await alusd_3crv.connect(john).approve(pickleJar.address, toWei(25000));
-    await pickleJar.deposit(toWei(25000), { from: john.address });
+    await aleth.connect(john).approve(pickleJar.address, toWei(4));
+    await pickleJar.deposit(toWei(4), { from: john.address });
     await pickleJar.earn({ from: john.address });
     console.log(
       "bob pToken balance =====> ",
@@ -195,8 +193,8 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
     console.log(
       "\n---------------------------Alice Redeposit---------------------------------------\n"
     );
-    await alusd_3crv.connect(alice).approve(pickleJar.address, toWei(10000));
-    await pickleJar.deposit(toWei(10000), { from: alice.address });
+    await aleth.connect(alice).approve(pickleJar.address, toWei(5));
+    await pickleJar.deposit(toWei(5), { from: alice.address });
     await pickleJar.earn({ from: alice.address });
     console.log(
       "alice pToken balance =====> ",
@@ -290,15 +288,15 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
     console.log(
       "\n---------------------------Alice deposit---------------------------------------\n"
     );
-    await alusd_3crv.connect(alice).approve(pickleJar.address, toWei(20000));
-    await pickleJar.deposit(toWei(10000), { from: alice.address });
+    await aleth.connect(alice).approve(pickleJar.address, toWei(4));
+    await pickleJar.deposit(toWei(4), { from: alice.address });
     await pickleJar.earn({ from: alice.address });
 
     console.log(
       "\n---------------------------Bob deposit---------------------------------------\n"
     );
-    await alusd_3crv.connect(bob).approve(pickleJar.address, toWei(20000));
-    await pickleJar.deposit(toWei(20000), { from: bob.address });
+    await aleth.connect(bob).approve(pickleJar.address, toWei(5));
+    await pickleJar.deposit(toWei(5), { from: bob.address });
     await pickleJar.earn({ from: bob.address });
 
     await harvest();
@@ -350,8 +348,8 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
     console.log(
       "\n---------------------------Alice deposit---------------------------------------\n"
     );
-    await alusd_3crv.connect(alice).approve(pickleJar.address, toWei(10000));
-    await pickleJar.deposit(toWei(10000), { from: alice.address });
+    await aleth.connect(alice).approve(pickleJar.address, toWei(5));
+    await pickleJar.deposit(toWei(5), { from: alice.address });
     await pickleJar.earn({ from: alice.address });
     console.log(
       "alice pToken balance =====> ",
@@ -363,8 +361,8 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
     console.log(
       "\n---------------------------Bob deposit---------------------------------------\n"
     );
-    await alusd_3crv.connect(bob).approve(pickleJar.address, toWei(10000));
-    await pickleJar.deposit(toWei(10000), { from: bob.address });
+    await aleth.connect(bob).approve(pickleJar.address, toWei(1));
+    await pickleJar.deposit(toWei(1), { from: bob.address });
     await pickleJar.earn({ from: bob.address });
     console.log(
       "bob pToken balance =====> ",
@@ -377,9 +375,7 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
       "\n---------------------------Alice withdraw---------------------------------------\n"
     );
 
-    let _jar_before = await alusd_3crv.balanceOf(pickleJar.address);
-    await controller.withdrawAll(alusd_3crv.address, { from: governance });
-    let _jar_after = await alusd_3crv.balanceOf(pickleJar.address);
+    await controller.withdrawAll(aleth.address, { from: governance });
 
     let _alcx_before = await alcx.balanceOf(alice.address);
     console.log("Alice alcx balance before =====> ", _alcx_before.toString());
@@ -396,11 +392,11 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
     _alcx_before = await alcx.balanceOf(bob.address);
     console.log("Bob alcx balance before =====> ", _alcx_before.toString());
 
-    _jar_before = await alusd_3crv.balanceOf(pickleJar.address);
+    _jar_before = await aleth.balanceOf(pickleJar.address);
 
-    await controller.withdrawAll(alusd_3crv.address, { from: governance });
+    await controller.withdrawAll(aleth.address, { from: governance });
 
-    _jar_after = await alusd_3crv.balanceOf(pickleJar.address);
+    _jar_after = await aleth.balanceOf(pickleJar.address);
 
     await pickleJar.withdrawAll({ from: bob.address });
 
@@ -427,10 +423,8 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
 
     let harvestable = await strategy.getHarvestable();
     console.log(
-      "Alusd3Crv Farm harvestable of strategy of the first harvest ===> _crv %s, _cvx %s, _alcx %s",
-      harvestable[0].toString(),
-      harvestable[1].toString(),
-      harvestable[2].toString()
+      "Aleth Farm harvestable of strategy of the first harvest ===> _alcx %s",
+      harvestable.toString()
     );
     let _alcx2 = await strategy.getRewardHarvestable();
     console.log(
@@ -443,10 +437,8 @@ describe("StrategyCurveAlusd3Crv Unit test", () => {
 
     harvestable = await strategy.getHarvestable();
     console.log(
-      "Alusd3Crv Farm harvestable of strategy of the second harvest ===> _crv %s, _cvx %s, _alcx %s",
-      harvestable[0].toString(),
-      harvestable[1].toString(),
-      harvestable[2].toString()
+      "Aleth Farm harvestable of strategy of the second harvest ===> _alcx %s",
+      harvestable.toString()
     );
 
     _alcx2 = await strategy.getRewardHarvestable();

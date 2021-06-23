@@ -140,13 +140,13 @@ contract StrategyAlusd3Crv is StrategyBaseSymbiotic {
         require(msg.sender == controller, "!controller");
         address _jar = IController(controller).jars(address(want));
         address reward_token = IJar(_jar).reward();
-        uint256 _balance = IERC20(alcx).balanceOf(address(this));
+        uint256 _balance = IERC20(reward).balanceOf(address(this));
         uint256 _pendingReward = pendingReward();
         require(
             reward_token != address(0),
             "Reward token is not set in the pickle jar"
         );
-        require(reward_token == alcx, "Reward token is invalid");
+        require(reward_token == reward, "Reward token is invalid");
         require(
             _pendingReward >= _amount,
             "[withdrawReward] Withdraw amount exceed redeemable amount"
@@ -155,17 +155,17 @@ contract StrategyAlusd3Crv is StrategyBaseSymbiotic {
         uint256 _alcxHarvestable = getRewardHarvestable();
         uint256 _alcx_earned = get_alcx_earned();
 
-        _balance = IERC20(alcx).balanceOf(address(this));
+        _balance = IERC20(reward).balanceOf(address(this));
         if (_balance < _amount && _alcxHarvestable > 0)
             IStakingPools(stakingPool).claim(alcxPoolId);
 
-        _balance = IERC20(alcx).balanceOf(address(this));
+        _balance = IERC20(reward).balanceOf(address(this));
         if (_balance < _amount && _alcx_earned > 0)
             IVirtualBalanceRewardPool(getAlcxRewardContract()).getReward(
                 address(this)
             );
 
-        _balance = IERC20(alcx).balanceOf(address(this));
+        _balance = IERC20(reward).balanceOf(address(this));
         if (_balance < _amount) {
             uint256 _r = _amount.sub(_balance);
             uint256 _alcxDeposited = getRewardDeposited();
@@ -174,7 +174,7 @@ contract StrategyAlusd3Crv is StrategyBaseSymbiotic {
                 _alcxDeposited >= _r ? _r : _alcxDeposited
             );
         }
-        _balance = IERC20(alcx).balanceOf(address(this));
+        _balance = IERC20(reward).balanceOf(address(this));
         require(
             _balance >= _amount,
             "[WithdrawReward] Withdraw amount exceed balance"
@@ -193,7 +193,7 @@ contract StrategyAlusd3Crv is StrategyBaseSymbiotic {
 
     function pendingReward() public view returns (uint256) {
         return
-            IERC20(alcx).balanceOf(address(this)).add(
+            IERC20(reward).balanceOf(address(this)).add(
                 IStakingPools(stakingPool)
                     .getStakeTotalDeposited(address(this), alcxPoolId)
                     .add(get_alcx_earned().add(getRewardHarvestable()))
@@ -227,6 +227,16 @@ contract StrategyAlusd3Crv is StrategyBaseSymbiotic {
             IERC20(want).safeApprove(convexBooster, _want);
 
             IConvexBooster(convexBooster).deposit(alusdPoolId, _want, true);
+        }
+    }
+
+    function rewardDeposit() public override {
+        uint256 _reward = IERC20(reward).balanceOf(address(this));
+        if (_reward > 0) {
+            IERC20(reward).safeApprove(stakingPool, 0);
+            IERC20(reward).safeApprove(stakingPool, _reward);
+
+            IStakingPools(stakingPool).deposit(alcxPoolId, _reward); //stake to alcx farm
         }
     }
 

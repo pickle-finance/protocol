@@ -122,17 +122,22 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
         }
         _mint(msg.sender, shares);
         userRewardDebt[msg.sender] = balanceOf(msg.sender)
-            .mul(accRewardPerShare)
-            .div(1e36);
+        .mul(accRewardPerShare)
+        .div(1e36);
         emit Deposit(msg.sender, _amount, shares);
     }
 
     function _updateAccPerShare() internal {
         curPendingReward = pendingReward();
-        require(
-            curPendingReward >= lastPendingReward,
-            "Convex protocol failed"
-        );
+
+        if (lastPendingReward > 0 && curPendingReward < lastPendingReward) {
+            curPendingReward = 0;
+            lastPendingReward = 0;
+            accRewardPerShare = 0;
+            userRewardDebt[msg.sender] = 0;
+            return;
+        }
+
         if (totalSupply() == 0) {
             accRewardPerShare = 0;
             return;
@@ -168,8 +173,9 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
         uint256 allPendingReward = pendingReward();
         if (allPendingReward < lastPendingReward) return 0;
         uint256 addedReward = allPendingReward.sub(lastPendingReward);
-        uint256 newAccRewardPerShare =
-            accRewardPerShare.add((addedReward.mul(1e36)).div(totalSupply()));
+        uint256 newAccRewardPerShare = accRewardPerShare.add(
+            (addedReward.mul(1e36)).div(totalSupply())
+        );
         return
             balanceOf(user).mul(newAccRewardPerShare).div(1e36).sub(
                 userRewardDebt[user]
@@ -177,10 +183,10 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
     }
 
     function _withdrawReward() internal {
-        uint256 _pending =
-            balanceOf(msg.sender).mul(accRewardPerShare).div(1e36).sub(
-                userRewardDebt[msg.sender]
-            );
+        uint256 _pending = balanceOf(msg.sender)
+        .mul(accRewardPerShare)
+        .div(1e36)
+        .sub(userRewardDebt[msg.sender]);
         uint256 _balance = reward.balanceOf(address(this));
         if (_balance < _pending) {
             uint256 _withdraw = _pending.sub(_balance);
@@ -215,8 +221,8 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
         token.safeTransfer(msg.sender, r);
 
         userRewardDebt[msg.sender] = balanceOf(msg.sender)
-            .mul(accRewardPerShare)
-            .div(1e36);
+        .mul(accRewardPerShare)
+        .div(1e36);
 
         emit Withdraw(msg.sender, r, _shares);
     }
