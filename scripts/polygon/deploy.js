@@ -42,8 +42,20 @@ const addJars = async () => {
   console.log("all jars added!", ethers.utils.formatEther(picklePerBlock));
 };
 
+const deployRewarder = async () => {
+  const wmatic = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270";
+const rewardPerSecond = 0;
+const minichef = "0x20b2a3fc7b13ca0ccf7af81a68a14cb3116e8749";
+
+const RewarderFactory = await ethers.getContractFactory("src/polygon/PickleRewarder.sol:PickleRewarder");
+  const Rewarder = await RewarderFactory.deploy(
+    wmatic, rewardPerSecond, minichef);
+  console.log("minichef deployed at ", Rewarder.address);
+  return Rewarder.address;
+}
+
 const main = async () => {
-  await deployMasterChef();
+  await deployRewarder();
 };
 
 main()
