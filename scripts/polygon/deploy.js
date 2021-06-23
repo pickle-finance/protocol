@@ -17,17 +17,12 @@ const deployPickleToken = async () => {
 const deployMasterChef = async () => {
   console.log("deploying master chef...");
   
-  const pickle = "0x6c551cAF1099b08993fFDB5247BE74bE39741B82";
-  const devaddr = "0xacfe4511ce883c14c4ea40563f176c3c09b4c47c";
-  const picklePerBlock = 1000000000000;
-  const startBlock = 13560000;
-  const bonusEndBlock = 0;
+  const pickle = "0x2b88aD57897A8b496595925F43048301C37615Da";
 
-  const MasterChefFactory = await ethers.getContractFactory("src/polygon/masterchef.sol:MasterChef");
+  const MasterChefFactory = await ethers.getContractFactory("src/polygon/minichefv2.sol:MiniChefV2");
   const MasterChef = await MasterChefFactory.deploy(
-    pickle, devaddr, picklePerBlock, startBlock, bonusEndBlock
-  );
-  console.log("master chef deployed at ", MasterChef.address);
+    pickle);
+  console.log("minichef deployed at ", MasterChef.address);
   return MasterChef.address;
 };
 
@@ -47,11 +42,20 @@ const addJars = async () => {
   console.log("all jars added!", ethers.utils.formatEther(picklePerBlock));
 };
 
-const main = async () => {
-  // await deployPickleToken();
-  // const address = await deployMasterChef();
-  await addJars();
+const deployRewarder = async () => {
+  const wmatic = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270";
+const rewardPerSecond = 0;
+const minichef = "0x20b2a3fc7b13ca0ccf7af81a68a14cb3116e8749";
 
+const RewarderFactory = await ethers.getContractFactory("src/polygon/PickleRewarder.sol:PickleRewarder");
+  const Rewarder = await RewarderFactory.deploy(
+    wmatic, rewardPerSecond, minichef);
+  console.log("minichef deployed at ", Rewarder.address);
+  return Rewarder.address;
+}
+
+const main = async () => {
+  await deployRewarder();
 };
 
 main()

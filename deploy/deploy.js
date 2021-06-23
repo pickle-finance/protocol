@@ -8,36 +8,17 @@ const harvesters = [
   "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C",
   "0xb4522eB2cA49963De9c3dC69023cBe6D53489C98",
 ];
-
-const want = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+const wmatic = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270";
+const rewardPerSecond = 0;
+const minichef = "0x20b2a3fc7b13ca0ccf7af81a68a14cb3116e8749"
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy, execute } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  await deploy("StrategyYearnCrvSteth", {
+  await deploy("PickleRewarder", {
     from: deployer,
-    args: [governance, strategist, controller, timelock],
+    args: [wmatic, rewardPerSecond, minichef],
     log: true,
   });
-
-
-  await deploy("StrategyYearnCrvLusd", {
-    from: deployer,
-    args: [governance, strategist, controller, timelock],
-    log: true,
-  });
-
-  await deploy("StrategyYearnUsdcV2", {
-    from: deployer,
-    args: [governance, strategist, controller, timelock],
-    log: true,
-  });
-
-  await deploy("PickleJar", {
-    from: deployer,
-    args: [want, governance, timelock, controller],
-    log: true,
-  });
-
 };
