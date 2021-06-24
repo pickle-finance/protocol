@@ -1,4 +1,4 @@
-pragma solidity 0.6.12;
+pragma solidity ^0.6.7;
 
 import "./lib/AccessControlMixin.sol";
 import "./lib/EIP712Base.sol";

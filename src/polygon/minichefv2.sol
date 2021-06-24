@@ -4,7 +4,7 @@
 
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.12;
+pragma solidity ^0.6.7;
 // a library for performing overflow-safe math, updated with awesomeness from of DappHub (https://github.com/dapphub/ds-math)
 library BoringMath {
     function add(uint256 a, uint256 b) internal pure returns (uint256 c) {require((c = a + b) >= b, "BoringMath: Add Overflow");}
@@ -42,7 +42,7 @@ library BoringMath32 {
 
 // File @boringcrypto/boring-solidity/contracts/interfaces/IERC20.sol@v1.0.4
 
-pragma solidity 0.6.12;
+pragma solidity ^0.6.7;
 
 interface IERC20 {
     function totalSupply() external view returns (uint256);
@@ -59,7 +59,7 @@ interface IERC20 {
 
 // File @boringcrypto/boring-solidity/contracts/libraries/BoringERC20.sol@v1.0.4
 
-pragma solidity 0.6.12;
+pragma solidity ^0.6.7;
 library BoringERC20 {
     function safeSymbol(IERC20 token) internal view returns(string memory) {
         (bool success, bytes memory data) = address(token).staticcall(abi.encodeWithSelector(0x95d89b41));
@@ -93,7 +93,7 @@ library BoringERC20 {
 // Audit on 5-Jan-2021 by Keno and BoringCrypto
 
 // P1 - P3: OK
-pragma solidity 0.6.12;
+pragma solidity ^0.6.7;
 // solhint-disable avoid-low-level-calls
 // T1 - T4: OK
 contract BaseBoringBatchable {
@@ -146,7 +146,7 @@ contract BoringBatchable is BaseBoringBatchable {
 // Audit on 5-Jan-2021 by Keno and BoringCrypto
 
 // P1 - P3: OK
-pragma solidity 0.6.12;
+pragma solidity ^0.6.7;
 
 // Source: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol + Claimable.sol
 // Edited by BoringCrypto
@@ -211,7 +211,7 @@ contract BoringOwnable is BoringOwnableData {
 
 // File contracts/libraries/SignedSafeMath.sol
 
-pragma solidity 0.6.12;
+pragma solidity ^0.6.7;
 
 library SignedSafeMath {
     int256 constant private _INT256_MIN = -2**255;
@@ -306,7 +306,7 @@ library SignedSafeMath {
 
 // File contracts/interfaces/IRewarder.sol
 
-pragma solidity 0.6.12;
+pragma solidity ^0.6.7;
 
 interface IRewarder {
     using BoringERC20 for IERC20;
@@ -317,7 +317,7 @@ interface IRewarder {
 
 // File contracts/interfaces/IMasterChef.sol
 
-pragma solidity 0.6.12;
+pragma solidity ^0.6.7;
 pragma experimental ABIEncoderV2;
 
 interface IMasterChef {
@@ -342,7 +342,7 @@ interface IMasterChef {
 
 // File contracts/MiniChefV2.sol
 
-pragma solidity 0.6.12;
+pragma solidity ^0.6.7;
 
 interface IMigratorChef {
     // Take the current LP token address and return the new LP token address.
