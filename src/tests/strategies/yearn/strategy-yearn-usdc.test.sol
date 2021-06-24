@@ -5,6 +5,7 @@ import "../../lib/user.sol";
 import "../../lib/test-approx.sol";
 
 import "../../../interfaces/strategy.sol";
+import "../../../interfaces/yearn-strategy.sol";
 import "../../../interfaces/curve.sol";
 import "../../../interfaces/uniswapv2.sol";
 
@@ -13,6 +14,7 @@ import "../../../controller-v4.sol";
 
 import "../../lib/test-defi-base.sol";
 import "../../../strategies/yearn/strategy-yearn-usdc-v2.sol";
+import "../../../strategies/convex/strategy-sushi-cvx-eth-lp.sol";
 
 contract StrategyYearnUsdcV2Test is DSTestDefiBase {
     
@@ -27,7 +29,7 @@ contract StrategyYearnUsdcV2Test is DSTestDefiBase {
 
     PickleJar pickleJar;
     ControllerV4 controller;
-    IStrategy strategy;
+    IYearnStrategy strategy;
 
     function setUp() public {
         want = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
@@ -46,7 +48,7 @@ contract StrategyYearnUsdcV2Test is DSTestDefiBase {
             treasury
         );
 
-        strategy = IStrategy(
+        strategy = IYearnStrategy(
             address(
                 new StrategyYearnUsdcV2(
                     governance,
@@ -79,11 +81,6 @@ contract StrategyYearnUsdcV2Test is DSTestDefiBase {
 
     // **** Tests ****
 
-    function test_timelock() public {
-        assertTrue(strategy.timelock() == timelock);
-        strategy.setTimelock(address(1));
-        assertTrue(strategy.timelock() == address(1));
-    }
 
     function test_withdraw_release() public {
         uint256 decimals = ERC20(want).decimals();
