@@ -4,7 +4,6 @@ import "../../lib/hevm.sol";
 import "../../lib/user.sol";
 import "../../lib/test-approx.sol";
 
-import "../../../interfaces/strategy.sol";
 import "../../../interfaces/yearn-strategy.sol";
 import "../../../interfaces/curve.sol";
 import "../../../interfaces/uniswapv2.sol";
@@ -82,28 +81,35 @@ contract StrategyYearnUsdcV2Test is DSTestDefiBase {
     // **** Tests ****
 
 
-    function test_withdraw_release() public {
+    function test_withdraw_all() public {
         uint256 decimals = ERC20(want).decimals();
         _getWant(4000 * (10**decimals));
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).safeApprove(address(pickleJar), 0);
         IERC20(want).safeApprove(address(pickleJar), _want);
+        uint256 _before = IERC20(want).balanceOf(address(this));
         pickleJar.deposit(_want);
         pickleJar.earn();
-        hevm.warp(block.timestamp + 1 weeks);
 
         // Checking withdraw
-        uint256 _before = IERC20(want).balanceOf(address(pickleJar));
-        controller.withdrawAll(want);
-        uint256 _after = IERC20(want).balanceOf(address(pickleJar));
-        assertTrue(_after > _before);
-        _before = IERC20(want).balanceOf(address(this));
         pickleJar.withdrawAll();
-        _after = IERC20(want).balanceOf(address(this));
-        assertTrue(_after > _before);
-
-        // Check if we gained interest
-        assertTrue(_after > _want);
+        uint256 _after = IERC20(want).balanceOf(address(this));
+        assertEqApprox(_after, _before);
     }
 
+    function test_withdraw_half() public {
+        uint256 decimals = ERC20(want).decimals();
+        _getWant(4000 * (10**decimals));
+        uint256 _want = IERC20(want).balanceOf(address(this));
+        IERC20(want).safeApprove(address(pickleJar), 0);
+        IERC20(want).safeApprove(address(pickleJar), _want);
+        uint256 _before = IERC20(want).balanceOf(address(this));
+        pickleJar.deposit(_want);
+        pickleJar.earn();
+
+        // Checking withdraw
+        pickleJar.withdraw(_want.div(2));
+        uint256 _after = IERC20(want).balanceOf(address(this));
+        assertEqApprox(_after, _before.div(2));
+    }
 }
