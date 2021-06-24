@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.2;
+pragma solidity ^0.6.7;
 
 import "../../../lib/erc20.sol";
 import "../../../lib/safe-math.sol";
@@ -14,7 +14,7 @@ import "./strategy-curve-base.sol";
 contract StrategyCurveAm3CRVv2 is StrategyCurveBase {
     // Curve stuff
     address public three_pool = 0x445FE580eF8d70FF569aB36e80c647af338db351;
-    address public three_gauge = 0xe381C25de995d62b453aF8B931aAc84fcCaa7A62;
+    address public three_gauge = 0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c;
     address public three_crv = 0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171;
 
     constructor(
@@ -96,16 +96,8 @@ contract StrategyCurveAm3CRVv2 is StrategyCurveBase {
 
         uint256 _crv = IERC20(crv).balanceOf(address(this));
         if (_crv > 0) {
-            // x% is sent back to the rewards holder
-            // to be used to lock up in as veCRV in a future date
-            uint256 _keepCRV = _crv.mul(keepCRV).div(keepCRVMax);
-            if (_keepCRV > 0) {
-                IERC20(crv).safeTransfer(
-                    IController(controller).treasury(),
-                    _keepCRV
-                );
-            }
-            _crv = _crv.sub(_keepCRV);
+            IERC20(crv).safeApprove(univ2Router2, 0);
+            IERC20(crv).safeApprove(univ2Router2, _crv);
             _swapUniswap(crv, to, _crv);
         }
 
