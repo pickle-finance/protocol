@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-cometh-farm-base.sol";
+import "./strategy-cometh-farm-base.sol";
 
 contract StrategyComethWethUsdcLpV4 is StrategyComethFarmBase {
     // Token addresses

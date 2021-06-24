@@ -1,13 +1,13 @@
 pragma solidity ^0.6.7;
 
-import "../../lib/erc20.sol";
-import "../../lib/safe-math.sol";
+import "../../../lib/erc20.sol";
+import "../../../lib/safe-math.sol";
 
-import "../../interfaces/jar.sol";
-import "../../interfaces/staking-rewards.sol";
-import "../../interfaces/masterchef.sol";
-import "../../interfaces/uniswapv2.sol";
-import "../../interfaces/controller.sol";
+import "../../../interfaces/jar.sol";
+import "../../../interfaces/staking-rewards.sol";
+import "../../../interfaces/masterchef.sol";
+import "../../../interfaces/uniswapv2.sol";
+import "../../../interfaces/controller.sol";
 
 // Strategy Contract Basics
 
@@ -35,6 +35,7 @@ abstract contract StrategyBase {
     // Tokens
     address public want;
     address public constant weth = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
+    address public constant wmatic = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
 
     // User accounts
     address public governance;
@@ -42,8 +43,8 @@ abstract contract StrategyBase {
     address public strategist;
     address public timelock;
 
-    // Dex
-    address public univ2Router2 = 0x93bcDc45f7e62f89a8e901DC4A0E2c6C427D9F25;
+    // Dex - Sushiswap
+    address public univ2Router2 = 0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506;
 
     mapping(address => bool) public harvesters;
 
