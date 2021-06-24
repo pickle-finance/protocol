@@ -1,10 +1,12 @@
 {
   "dependencies": {
+    "@boringcrypto/boring-solidity": "github:boringcrypto/BoringSolidity",
     "@nomiclabs/hardhat-vyper": "^2.0.1",
     "chalk": "^4.1.0",
     "dotenv": "^8.2.0",
     "ethers": "^5.0.31",
-    "hardhat-deploy": "^0.7.2",
+    "hardhat": "^2.4.0",
+    "hardhat-deploy": "^0.8.6",
     "hardhat-gas-reporter": "^1.0.4",
     "inquirer": "^7.3.3",
     "node-fetch": "^2.6.1",
@@ -30,7 +32,6 @@
     "chai-as-promised": "^7.1.1",
     "dotenv": "^8.2.0",
     "eslint": "^7.10.0",
-    "hardhat": "^2.1.1",
     "hardhat-deploy": "^0.7.2",
     "hardhat-deploy-ethers": "^0.3.0-beta.7",
     "prettier-plugin-solidity": "^1.0.0-beta.9"

@@ -3,7 +3,7 @@ require("hardhat-deploy-ethers");
 require("@nomiclabs/hardhat-etherscan");
 require("dotenv").config({});
 
-const deployer = process.env.DEPLOYER_PRIVATE_KEY;
+const deployer = process.env.MNEMONIC;
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -44,7 +44,7 @@ module.exports = {
       timeout: 100000000,
       accounts: [
         {
-          privateKey: process.env.DEPLOYER_PRIVATE_KEY,
+          privateKey: process.env.MNEMONIC,
           balance: "100000000000000000000",
         },
       ],
