@@ -54,6 +54,11 @@ module.exports = {
         "https://eth-mainnet.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
       accounts: [deployer],
     },
+    ropsten: {
+      url:
+        "https://eth-ropsten.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
+      accounts: [deployer],
+    },
     localhost: {
       chainId: 1337,
       url: "http://127.0.0.1:8545",

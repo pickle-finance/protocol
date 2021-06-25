@@ -101,36 +101,36 @@ const deployControllerV4 = async () => {
   console.log("ControllerV4 deployed at ", ControllerV4.address);
 };
 
-const deployComethWethUsdcStrategy = async () => {
-  console.log("Cometh: WETH/USDC deploying strategy...");
+const deployComethWmaticMustStrategy = async () => {
+  console.log("Mai: miMATIC/USDC deploying strategy...");
 
   const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
   const strategist = "0x88d226A9FC7485Ae0856AE51C3Db15d7ad242a3f";
-  const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
+  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
   const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
 
-  const StrategyComethWethUsdcLpV4Factory = await ethers.getContractFactory(
-    "src/flatten/strategy-cometh-weth-usdc-lp-v4.sol:StrategyComethWethUsdcLpV4"
+  const StrategyComethWmaticMustLpV4Factory = await ethers.getContractFactory(
+    "src/flatten/strategy-mai-mimatic-usdc-lp.sol:StrategyMaiMiMaticUsdcLp"
   );
-  const StrategyComethWethUsdcLpV4 = await StrategyComethWethUsdcLpV4Factory.deploy(
+  const StrategyComethWmaticMustLpV4 = await StrategyComethWmaticMustLpV4Factory.deploy(
     governance,
     strategist,
     controller,
     timelock
   );
   console.log(
-    "Cometh: WETH/USDC strategy deployed at ",
-    StrategyComethWethUsdcLpV4.address
+    "Mai: miMATIC/USDC strategy deployed at ",
+    StrategyComethWmaticMustLpV4.address
   );
 };
 
 const deployPickleJar = async () => {
   console.log("deploying PickleJar...");
 
-  const want = "0x1Edb2D8f791D2a51D56979bf3A25673D6E783232";
+  const want = "0x160532D2536175d65C03B97b0630A9802c274daD";
   const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
   const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
-  const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
+  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
 
   const PickleJarFactory = await ethers.getContractFactory(
     "src/flatten/pickle-jar.sol:PickleJar"
@@ -176,9 +176,9 @@ const main = async () => {
   // await handOverPermsToMasterChef();
   // await deployTimelock();
   // await deployControllerV4();
-  // await deployComethWethUsdcStrategy();
-  // await deployPickleJar();
-  await setJar();
+  // await deployComethWmaticMustStrategy();
+  await deployPickleJar();
+  // await setJar();
 };
 
 main()
