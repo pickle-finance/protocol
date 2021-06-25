@@ -33,7 +33,7 @@ contract PickleJar is ERC20 {
 
     constructor(address _governance, address _timelock, address _controller, address _mainUnderlying)
         public
-        ERC20("picklingStableCoins", "pickleSC")
+        ERC20("picklingUSD", "pUSD")
     {
         _setupDecimals(ERC20(_mainUnderlying).decimals());
         token = IERC20(_mainUnderlying);
