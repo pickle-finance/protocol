@@ -16,6 +16,9 @@ abstract contract StrategyGeneralMasterChefBase is StrategyBase {
     uint256 public keepReward = 0;
     uint256 public constant keepRewardMax = 10000;
 
+    // pool deposit fee
+    uint256 public depositFee = 0;
+
     uint256 public poolId;
     mapping (address => address[]) public uniswapRoutes;
 
