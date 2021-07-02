@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-masterchefv2-base.sol";
+import "../strategy-joe-farm-base.sol";
 
 contract StrategyJoeAvaxEthLp is StrategyJoeFarmBase {
 
@@ -37,12 +37,12 @@ contract StrategyJoeAvaxEthLp is StrategyJoeFarmBase {
         //      if so, a new strategy will be deployed.
 
         // Collects Joe tokens
-        IMasterchefV2(masterChefV2).harvest(poolId, address(this));
+        IMasterChefJoeV2(masterChefJoeV2).deposit(poolId, 0);
 
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
-            uint256 _keepJoe = _joe.mul(keepJOE).div(keepJOEMax);
+            uint256 _keepJOE = _joe.mul(keepJOE).div(keepJOEMax);
             IERC20(joe).safeTransfer(
                 IController(controller).treasury(),
                 _keepJOE
@@ -58,7 +58,7 @@ contract StrategyJoeAvaxEthLp is StrategyJoeFarmBase {
         // Adds in liquidity for AVAX/ETH
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
 
-        _eth = IERC20(eth).balanceOf(address(this));
+        uint256 _eth = IERC20(eth).balanceOf(address(this));
 
         if (_wavax > 0 && _eth > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
@@ -67,7 +67,7 @@ contract StrategyJoeAvaxEthLp is StrategyJoeFarmBase {
             IERC20(eth).safeApprove(joeRouter, 0);
             IERC20(eth).safeApprove(joeRouter, _eth);
 
-            UniswapRouterV2(joeRouter).addLiquidity(
+            IJoeRouter(joeRouter).addLiquidity(
                 wavax,
                 eth,
                 _wavax,

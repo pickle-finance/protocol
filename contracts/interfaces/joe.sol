@@ -44,7 +44,7 @@ interface IJoeRouter {
         uint256 amountBMin,
         address to,
         uint256 deadline
-    ) public returns (uint256 amountA, uint256 amountB);
+    ) external returns (uint256 amountA, uint256 amountB);
 
     function swapExactTokensForTokens(
         uint256 amountIn,
@@ -68,13 +68,13 @@ interface IJoeRouter {
         uint256 deadline
     ) external payable returns (uint256[] memory amounts);
 
-    function getAmountsOut(uint256 amountIn, address[] memory path)
-        public
+    function getAmountsOut(uint256 amountIn, address[] calldata path)
+        external
         view
         returns (uint256[] memory amounts);
 
-    function getAmountsIn(uint256 amountOut, address[] memory path)
-        public
+    function getAmountsIn(uint256 amountOut, address[] calldata path)
+        external
         view
         returns (uint256[] memory amounts);
 }

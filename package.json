@@ -13,7 +13,13 @@
     "flatten": "npx sol-merger \"./src/**/*.sol\" ./build"
   },
   "devDependencies": {
-    "eslint": "^7.10.0"
+    "@eth-optimism/smock": "^1.1.5",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@openzeppelin/contracts": "^4.1.0",
+    "chai": "^4.3.4",
+    "dotenv": "^10.0.0",
+    "eslint": "^7.10.0",
+    "hardhat": "^2.3.0"
   },
   "eslintConfig": {
     "extends": "eslint:recommended",
