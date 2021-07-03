@@ -7,8 +7,8 @@ contract StrategyJoeAvaxEthLp is StrategyJoeFarmBase {
 
     uint256 public avax_eth_poolId = 1;
 
-    address public joe_avax_eth_lp = 0x05767d9EF41dC40689678fFca0608878fb3dE906;
-    address public eth = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
+    address public joe_avax_eth_lp = 0xc992Ab46428a5a2eDeB8F44D946CE5642F97EF71;
+    address public eth = 0xf20d962a6c8f70c731bd838a3a388D7d48fA6e15;
 
     constructor(
         address _governance,
