@@ -8,7 +8,7 @@ import "../interfaces/joe.sol";
 
 abstract contract StrategyJoeFarmBase is StrategyBase {
     // Token addresses
-    address public constant joe = 0x6B3595068778DD592e39A122f4f5a5cF09C90fE2;
+    address public constant joe = 0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd;
     address public constant joeRouter = 0x60aE616a2155Ee3d9A68541Ba4544862310933d4;
 
     address public constant masterChefJoeV2 = 0xd6a4F121CA35509aF06A0Be99093d08462f53052;
