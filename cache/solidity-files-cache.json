@@ -555,8 +555,8 @@
       ]
     },
     "/Users/ocasta/Code/snowball-finance/protocol/contracts/strategies/strategy-joe-farm-base.sol": {
-      "lastModificationDate": 1625267736652,
-      "contentHash": "c97c59e001107c31d6fab0477da07657",
+      "lastModificationDate": 1625355222717,
+      "contentHash": "e1506406f9bb9d7c62a3ebb94acfba9b",
       "sourceName": "contracts/strategies/strategy-joe-farm-base.sol",
       "solcConfig": {
         "version": "0.6.7",
@@ -706,8 +706,8 @@
       ]
     },
     "/Users/ocasta/Code/snowball-finance/protocol/contracts/strategies/traderJoe/strategy-joe-avax-eth.sol": {
-      "lastModificationDate": 1625267796282,
-      "contentHash": "8914f794259dab9b205b306ded5b80bc",
+      "lastModificationDate": 1625355222717,
+      "contentHash": "8e1bef354753b3a4f4c74c692251b994",
       "sourceName": "contracts/strategies/traderJoe/strategy-joe-avax-eth.sol",
       "solcConfig": {
         "version": "0.6.7",
