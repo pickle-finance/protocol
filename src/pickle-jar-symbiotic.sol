@@ -187,18 +187,21 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
         .mul(accRewardPerShare)
         .div(1e36)
         .sub(userRewardDebt[msg.sender]);
-        uint256 _balance = reward.balanceOf(address(this));
-        if (_balance < _pending) {
-            uint256 _withdraw = _pending.sub(_balance);
-            IController(controller).withdrawReward(address(token), _withdraw);
-            uint256 _after = reward.balanceOf(address(this));
-            uint256 _diff = _after.sub(_balance);
-            if (_diff < _withdraw) {
-                _pending = _balance.add(_diff);
+        
+        if (_pending > 0) {
+            uint256 _balance = reward.balanceOf(address(this));
+            if (_balance < _pending) {
+                uint256 _withdraw = _pending.sub(_balance);
+                IController(controller).withdrawReward(address(token), _withdraw);
+                uint256 _after = reward.balanceOf(address(this));
+                uint256 _diff = _after.sub(_balance);
+                if (_diff < _withdraw) {
+                    _pending = _balance.add(_diff);
+                }
             }
+            reward.safeTransfer(msg.sender, _pending);
+            lastPendingReward = curPendingReward.sub(_pending);
         }
-        reward.safeTransfer(msg.sender, _pending);
-        lastPendingReward = curPendingReward.sub(_pending);
     }
 
     function withdraw(uint256 _shares) public {
