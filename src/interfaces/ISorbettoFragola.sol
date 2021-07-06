@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.7.6;
+pragma solidity ^0.6.7;
 
 interface ISorbettoFragola {
     /// @notice The first of the two tokens of the pool, sorted by address
@@ -23,6 +23,10 @@ interface ISorbettoFragola {
 
     /// @notice The upper tick of the range
     function tickUpper() external view returns (int24);
+
+    function userInfo(address) external view returns (uint256, uint256,uint256, uint256);
+
+    function collectFees(uint256 amount0, uint256 amount1) external;
 
     /**
      * @notice Deposits tokens in proportion to the Sorbetto's current ticks.

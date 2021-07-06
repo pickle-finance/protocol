@@ -41,20 +41,13 @@ abstract contract StrategySorbettoBase is StrategyBase {
     }
 
     function getHarvestable() external view returns (uint256, uint256) {
-        (uint256 token0Rewards, uint256 token1Rewards,,,) = ISorbettoFragola(want).userInfo(address(this));
+        (uint256 token0Rewards, uint256 token1Rewards,,) = ISorbettoFragola(want).userInfo(address(this));
         return (token0Rewards, token1Rewards);
     }
 
     // **** Setters ****
 
-    // function deposit() public override {
-    //     uint256 _want = IERC20(want).balanceOf(address(this));
-    //     if (_want > 0) {
-    //         IERC20(want).safeApprove(masterChef, 0);
-    //         IERC20(want).safeApprove(masterChef, _want);
-    //         ISushiChef(masterChef).deposit(poolId, _want);
-    //     }
-    // }
+    function deposit() public override {}
 
     function _withdrawSome(uint256 _amount)
         internal
@@ -81,8 +74,8 @@ abstract contract StrategySorbettoBase is StrategyBase {
         //      if so, a new strategy will be deployed.
 
         // Collects SUSHI tokens
-        ISorbettoFragola(want).deposit(0);
-        (uint256 amount0, uint256 amount1,,,) = ISorbettoFragola(want).userInfo(address(this));
+        ISorbettoFragola(want).deposit(0, 0);
+        (uint256 amount0, uint256 amount1,,) = ISorbettoFragola(want).userInfo(address(this));
         ISorbettoFragola(want).collectFees(amount0, amount1);
 
         uint256 _token0 = IERC20(token0).balanceOf(address(this));
@@ -105,7 +98,7 @@ abstract contract StrategySorbettoBase is StrategyBase {
             _token0 = IERC20(token0).balanceOf(address(this));
             _token1 = IERC20(token1).balanceOf(address(this));
 
-            ISorbettoFragola(want).deposit{value: 0}(_token0, _token1);
+            ISorbettoFragola(want).deposit(_token0, _token1);
 
             // Donates DUST
             IERC20(token0).transfer(
