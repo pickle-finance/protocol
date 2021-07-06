@@ -3,10 +3,10 @@ pragma solidity ^0.6.7;
 
 import "../strategy-sorbetto-base.sol";
 
-contract StrategySorbettoEthUsdtLp is StrategySorbettoBase {
+contract StrategySorbettoUsdcEthLp is StrategySorbettoBase {
     // Token addresses
-    address public popsicle_eth_usdt_lp = 0xc4ff55a4329f84f9Bf0F5619998aB570481EBB48;
-    address public usdt = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+    address public popsicle_usdc_eth_lp = 0xd63b340F6e9CCcF0c997c83C8d036fa53B113546;
+    address public usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
     constructor(
         address _governance,
@@ -16,9 +16,9 @@ contract StrategySorbettoEthUsdtLp is StrategySorbettoBase {
     )
         public
         StrategySorbettoBase(
+          usdc,
           weth,
-          usdt,
-          popsicle_eth_usdt_lp,
+          popsicle_usdc_eth_lp,
           _governance,
           _strategist,
           _controller,
@@ -29,6 +29,6 @@ contract StrategySorbettoEthUsdtLp is StrategySorbettoBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategySorbettoEthUsdtLp";
+        return "StrategySorbettoUsdcEthLp";
     }
 }
