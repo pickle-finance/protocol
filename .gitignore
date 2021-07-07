@@ -114,3 +114,4 @@ cache
 /src/flatten
 
 .DS_Store
+hardhat/

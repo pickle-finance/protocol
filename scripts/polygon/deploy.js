@@ -1,104 +1,45 @@
-const { BigNumber } = require("@ethersproject/bignumber");
 const hre = require("hardhat");
 const ethers = hre.ethers;
 
 const deployPickleToken = async () => {
   console.log("deploying pickle token...");
 
-  const childChainManagerProxy = "0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa";
+  const childChainManager = "0x195fe6EE6639665CCeB15BCCeB9980FC445DFa0B";
   const minter = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
 
-  const PickleTokenFactory = await ethers.getContractFactory(
-    "src/flatten/pickle-token.sol:PickleToken"
-  );
+  const PickleTokenFactory = await ethers.getContractFactory("src/polygon/pickle-token.sol:PickleToken");
   const PickleToken = await PickleTokenFactory.deploy(
-    "PickleToken",
-    "PICKLE",
-    18,
-    childChainManagerProxy,
-    minter
+    "PickleToken", "PICKLE", 18, childChainManager, minter
   );
   console.log("pickle token deployed at ", PickleToken.address);
 };
 
 const deployMasterChef = async () => {
-  console.log("deploying masterchef...");
+  console.log("deploying master chef...");
+  
+  const pickle = "0x2b88aD57897A8b496595925F43048301C37615Da";
 
-  const pickle = "0x6c551cAF1099b08993fFDB5247BE74bE39741B82";
-  const devaddr = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const picklePerBlock = 1000000000000;
-  const startBlock = 13620000;
-  const bonusEndBlock = 0;
-
-  const MasterChefFactory = await ethers.getContractFactory(
-    "src/flatten/masterchef.sol:MasterChef"
-  );
+  const MasterChefFactory = await ethers.getContractFactory("src/polygon/minichefv2.sol:MiniChefV2");
   const MasterChef = await MasterChefFactory.deploy(
-    pickle,
-    devaddr,
-    picklePerBlock,
-    startBlock,
-    bonusEndBlock
-  );
-  console.log("masterchef deployed at ", MasterChef.address);
+    pickle);
+  console.log("minichef deployed at ", MasterChef.address);
+  return MasterChef.address;
 };
 
-const handOverPermsToMasterChef = async () => {
-  console.log("grant mint role to masterchef...");
-
-  const pickle = "0x835804CC589E07FBbbCE7B8c830F219Dac407F63";
-  const masterchef = "0x52076435D07DDa4c43dD87E76B624c5D0ce4B01D";
-  const DEFAULT_ADMIN_ROLE =
-    "0x0000000000000000000000000000000000000000000000000000000000000000";
-
-  const pickleToken = await ethers.getContractAt(
-    "src/flatten/pickle-token.sol:PickleToken",
-    pickle
-  );
-  const prevAdmin = new ethers.Wallet(
-    "prevAdmin's privatekey here", // 0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C = minter at PickleToken contract deployment.
-    ethers.provider
-  );
-  await pickleToken
-    .connect(prevAdmin)
-    .grantRole(DEFAULT_ADMIN_ROLE, masterchef);
-
-  console.log("mint role granted!");
-};
-
-const deployTimelock = async () => {
-  console.log("deploying timelock...");
-
-  const admin = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const delay = BigNumber.from("43200");
-
-  const TimelockFactory = await ethers.getContractFactory(
-    "src/flatten/timelock.sol:Timelock"
-  );
-  const Timelock = await TimelockFactory.deploy(admin, delay);
-  console.log("timelock deployed at ", Timelock.address);
-};
-
-const deployControllerV4 = async () => {
-  console.log("deploying ControllerV4...");
-
-  const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const strategist = "0x88d226A9FC7485Ae0856AE51C3Db15d7ad242a3f";
-  const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
-  const devfund = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const treasury = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-
-  const ControllerV4Factory = await ethers.getContractFactory(
-    "src/flatten/controller-v4.sol:ControllerV4"
-  );
-  const ControllerV4 = await ControllerV4Factory.deploy(
-    governance,
-    strategist,
-    timelock,
-    devfund,
-    treasury
-  );
-  console.log("ControllerV4 deployed at ", ControllerV4.address);
+const addJars = async () => {
+  const MasterChef = await ethers.getContractFactory("src/polygon/masterchef.sol:MasterChef");
+  
+  const masterChef = MasterChef.attach("0xAc7C044e1197dF73aE5F8ec2c1775419b0A248C5");
+  // await masterChef.add(1, "0x9eD7e3590F2fB9EEE382dfC55c71F9d3DF12556c", false);
+  // await masterChef.add(1, "0x80aB65b1525816Ffe4222607EDa73F86D211AC95", false);
+  // await masterChef.add(1, "0x91bcc0BBC2ecA760e3b8A79903CbA53483A7012C", false);
+  // await masterChef.add(1, "0x0519848e57Ba0469AA5275283ec0712c91e20D8E", false);
+  // await masterChef.add(1, "0x1A602E5f4403ea0A5C06d3DbD22B75d3a2D299D5", false);
+  // await masterChef.add(1, "0x80aB65b1525816Ffe4222607EDa73F86D211AC95", false);
+  // await masterChef.add(1, "0xd438Ba7217240a378238AcE3f44EFaaaF8aaC75A", false);
+  await masterChef.setPicklePerBlock(ethers.utils.parseEther("0.001"));
+  const picklePerBlock = await masterChef.picklePerBlock();
+  console.log("all jars added!", ethers.utils.formatEther(picklePerBlock));
 };
 
 const deployComethWmaticMustStrategy = async () => {
