@@ -42,20 +42,84 @@ const addJars = async () => {
   console.log("all jars added!", ethers.utils.formatEther(picklePerBlock));
 };
 
-const deployRewarder = async () => {
-  const wmatic = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270";
-const rewardPerSecond = 0;
-const minichef = "0x20b2a3fc7b13ca0ccf7af81a68a14cb3116e8749";
+const deployComethWmaticMustStrategy = async () => {
+  console.log("Mai: miMATIC/USDC deploying strategy...");
 
-const RewarderFactory = await ethers.getContractFactory("src/polygon/PickleRewarder.sol:PickleRewarder");
-  const Rewarder = await RewarderFactory.deploy(
-    wmatic, rewardPerSecond, minichef);
-  console.log("minichef deployed at ", Rewarder.address);
-  return Rewarder.address;
-}
+  const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+  const strategist = "0x88d226A9FC7485Ae0856AE51C3Db15d7ad242a3f";
+  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
+  const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
+
+  const StrategyComethWmaticMustLpV4Factory = await ethers.getContractFactory(
+    "src/flatten/strategy-mai-mimatic-usdc-lp.sol:StrategyMaiMiMaticUsdcLp"
+  );
+  const StrategyComethWmaticMustLpV4 = await StrategyComethWmaticMustLpV4Factory.deploy(
+    governance,
+    strategist,
+    controller,
+    timelock
+  );
+  console.log(
+    "Mai: miMATIC/USDC strategy deployed at ",
+    StrategyComethWmaticMustLpV4.address
+  );
+};
+
+const deployPickleJar = async () => {
+  console.log("deploying PickleJar...");
+
+  const want = "0x160532D2536175d65C03B97b0630A9802c274daD";
+  const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+  const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
+  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
+
+  const PickleJarFactory = await ethers.getContractFactory(
+    "src/flatten/pickle-jar.sol:PickleJar"
+  );
+  const PickleJar = await PickleJarFactory.deploy(
+    want,
+    governance,
+    timelock,
+    controller
+  );
+  console.log("PickleJar deployed at ", PickleJar.address);
+};
+
+const setJar = async () => {
+  const want = "0x1Edb2D8f791D2a51D56979bf3A25673D6E783232";
+  const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
+  const picklejar = "0x9eD7e3590F2fB9EEE382dfC55c71F9d3DF12556c";
+
+  const ControllerV4 = await ethers.getContractAt(
+    "src/flatten/controller-v4.sol:ControllerV4",
+    controller
+  );
+
+  const strategy = "0x51cF19A126E642948B5c5747471fd722B2EdCa25";
+
+  const deployer = new ethers.Wallet(
+    process.env.DEPLOYER_PRIVATE_KEY,
+    ethers.provider
+  );
+
+  console.log("setJar");
+  await ControllerV4.connect(deployer).setJar(want, picklejar);
+  // this should be done on governance,
+  // console.log("approveStrategy");
+  // await ControllerV4.connect(deployer).approveStrategy(want, strategy);
+  // console.log("setStrategy");
+  // await ControllerV4.connect(deployer).setStrategy(want, strategy);
+};
 
 const main = async () => {
-  await deployRewarder();
+  // await deployPickleToken();
+  // await deployMasterChef();
+  // await handOverPermsToMasterChef();
+  // await deployTimelock();
+  // await deployControllerV4();
+  // await deployComethWmaticMustStrategy();
+  await deployPickleJar();
+  // await setJar();
 };
 
 main()
