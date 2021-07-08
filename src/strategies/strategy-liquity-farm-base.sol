@@ -7,7 +7,6 @@ import "../interfaces/liquity-reward.sol";
 abstract contract StrategyLiquityFarmBase is StrategyBase {
     // Token addresses
     address public lqty = 0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D;
-    address public univ3Router = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
 
     // WETH/<token1> pair
     address public token1;
@@ -131,21 +130,5 @@ abstract contract StrategyLiquityFarmBase is StrategyBase {
     {
         ILiquityFarmReward(rewards).withdraw(_amount);
         return _amount;
-    }
-
-    function _swapUniswapV3(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal {
-        require(_to != address(0));
-
-        UniswapRouterV3(univ2Router2).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            now.add(60)
-        );
     }
 }
