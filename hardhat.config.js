@@ -1,6 +1,11 @@
-require("@nomiclabs/hardhat-truffle5");
+require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-ethers");
+require("solidity-coverage");
+require("hardhat-deploy");
+require("hardhat-gas-reporter");
+require("hardhat-contract-sizer");
+const {removeConsoleLog} = require("hardhat-preprocessor");
 require("dotenv").config();
 
 module.exports = {
@@ -9,7 +14,7 @@ module.exports = {
     hardhat: {
       chainId: 1,
       forking: {
-        url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+        url: "https://eth-mainnet.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -38,8 +43,23 @@ module.exports = {
       allowUnlimitedContractSize: true,
     },
   },
+  contractSizer: {
+    alphaSort: true,
+    runOnCompile: false,
+  },
   etherscan: {
     apiKey: process.env.ETHERSCAN_APIKEY,
+  },
+  gasReporter: {
+    enabled: true,
+    coinmarketcap: process.env.COINMARKETCAP,
+    currency: "USD",
+    gasPrice: 32,
+  },
+  preprocess: {
+    eachLine: removeConsoleLog(
+      (hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"
+    ),
   },
   solidity: {
     version: "0.6.7",
