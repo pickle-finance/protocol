@@ -1,0 +1,6 @@
+module.exports = {
+  "governance": "0x9d074E37d408542FD38be78848e8814AFB38db17",
+  "strategist": "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C",
+  "controller": "0x6847259b2B3A4c17e7c43C54409810aF48bA5210",
+  "timelock": "0xD92c7fAa0Ca0e6AE4918f3a83d9832d9CAEAA0d3"
+};
