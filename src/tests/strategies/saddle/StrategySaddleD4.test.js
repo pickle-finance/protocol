@@ -15,7 +15,11 @@ describe("StrategySaddleD4 Test", () => {
   let preTestSnapshotID;
   let want;
   const want_addr = "0xd48cF4D7FB0824CC8bAe055dF3092584d0a1726A";
+<<<<<<< HEAD
   const want_amount = toWei(1000);
+=======
+  const want_amount = toWei(10);
+>>>>>>> Add unit test
 
   before("Deploy contracts", async () => {
     [alice, devfund, treasury] = await hre.ethers.getSigners();
@@ -70,6 +74,7 @@ describe("StrategySaddleD4 Test", () => {
     const _want = await want.balanceOf(alice.address);
     await want.approve(pickleJar.address, _want);
     await pickleJar.deposit(_want);
+<<<<<<< HEAD
     await pickleJar.earn();
 
     await increaseTime(60 * 60 * 24 * 1);
@@ -78,6 +83,13 @@ describe("StrategySaddleD4 Test", () => {
     console.log("Ratio after harvest: ", (await pickleJar.getRatio()).toString());
 
     await increaseTime(60 * 60 * 24 * 1);
+=======
+
+    await pickleJar.earn();
+    await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+    await strategy.harvest();
+
+>>>>>>> Add unit test
     let _before = await want.balanceOf(pickleJar.address);
     await controller.withdrawAll(want.address);
     let _after = await want.balanceOf(pickleJar.address);
@@ -95,6 +107,7 @@ describe("StrategySaddleD4 Test", () => {
     const _want = await want.balanceOf(alice.address);
     await want.approve(pickleJar.address, _want);
     await pickleJar.deposit(_want);
+<<<<<<< HEAD
     await pickleJar.earn();
     await increaseTime(60 * 60 * 24 * 1);
 
@@ -107,6 +120,18 @@ describe("StrategySaddleD4 Test", () => {
     let _treasuryAfter = await want.balanceOf(treasury.address);
 
     await increaseTime(60 * 60 * 24 * 1);
+=======
+
+    await pickleJar.earn();
+    await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+
+    const _before = await pickleJar.balance();
+    const _treasuryBefore = await want.balanceOf(treasury.address);
+    await strategy.harvest();
+    const _after = await pickleJar.balance();
+    const _treasuryAfter = await want.balanceOf(treasury.address);
+
+>>>>>>> Add unit test
     //20% performance fee is given
     const earned = _after.sub(_before).mul(1000).div(800);
     const earnedRewards = earned.mul(200).div(1000);
@@ -131,7 +156,11 @@ describe("StrategySaddleD4 Test", () => {
   });
 
   const getWant = async () => {
+<<<<<<< HEAD
     const whale = await unlockAccount("0xBa718efb68ea96b32678c88019768a449cBc9548");
+=======
+    const whale = await unlockAccount("0xe9b05db21f255544721d0a58c1e9963d53d8bb95");
+>>>>>>> Add unit test
     await want.connect(whale).transfer(alice.address, want_amount);
     const _balance = await want.balanceOf(alice.address);
     expect(_balance).to.be.eq(want_amount, "get want failed");

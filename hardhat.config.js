@@ -1,5 +1,8 @@
 require("@nomiclabs/hardhat-waffle");
+<<<<<<< HEAD
 require("@nomiclabs/hardhat-truffle5");
+=======
+>>>>>>> Add unit test
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-ethers");
 require("solidity-coverage");
@@ -48,7 +51,7 @@ module.exports = {
     },
     hardhat: {
       forking: {
-        url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+        url: "https://eth-mainnet.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -86,6 +89,29 @@ module.exports = {
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_APIKEY,
+  },
+  gasReporter: {
+    enabled: true,
+    coinmarketcap: process.env.COINMARKETCAP,
+    currency: "USD",
+    gasPrice: 32,
+  },
+  preprocess: {
+    eachLine: removeConsoleLog(
+      (hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"
+    ),
+  },
+  solidity: {
+    version: "0.6.7",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 9999,
+      },
+    },
+  },
+  mocha: {
+    timeout: 20000000,
   },
   paths: {
     sources: "./src",
