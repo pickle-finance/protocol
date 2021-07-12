@@ -1,4 +1,5 @@
 pragma solidity ^0.6.7;
+pragma experimental ABIEncoderV2;
 
 import "../strategy-base.sol";
 import "../../interfaces/saddle-farm.sol";
@@ -66,8 +67,9 @@ contract StrategySaddleD4 is StrategyBase {
         .lockedStakesOf(address(this));
         uint256 _sum = 0;
         uint256 count = 0;
-        for (uint256 i = 0; i < lockedStakes.length; i++) {
-            _sum += lockedStakes[i].amount;
+        uint256 i;
+        for (i = 0; i < lockedStakes.length; i++) {
+            _sum = _sum.add(lockedStakes[i].liquidity);
             count++;
             if (_sum >= _amount) break;
         }
@@ -107,7 +109,7 @@ contract StrategySaddleD4 is StrategyBase {
             _swapSushiswap(alcx, alusd, _alcx);
         }
 
-        uint256[4] memory amounts;
+        uint256[] memory amounts = new uint256[](4);
         amounts[0] = IERC20(alusd).balanceOf(address(this));
         amounts[1] = IERC20(lusd).balanceOf(address(this));
         amounts[2] = IERC20(fei).balanceOf(address(this));
