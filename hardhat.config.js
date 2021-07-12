@@ -1,16 +1,13 @@
-require("hardhat-deploy");
-require("hardhat-deploy-ethers");
-require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
-require("@nomiclabs/hardhat-truffle5");
+require("@nomiclabs/hardhat-etherscan");
+require("@nomiclabs/hardhat-ethers");
+require("solidity-coverage");
+require("hardhat-deploy");
 require("hardhat-gas-reporter");
-require("dotenv").config({});
+require("hardhat-contract-sizer");
+const {removeConsoleLog} = require("hardhat-preprocessor");
+require("dotenv").config();
 
-const deployer = process.env.MNEMONIC;
-
-/**
- * @type import('hardhat/config').HardhatUserConfig
- */
 module.exports = {
   defaultNetwork: "hardhat",
   solidity: {
@@ -40,27 +37,29 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url:
-          "https://eth-mainnet.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
-        blockNumber: 12807816,
+        url: "https://eth-mainnet.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
       },
-      timeout: 100000000,
+      accounts: {
+        mnemonic: process.env.MNEMONIC,
+      },
     },
     mainnet: {
-      url:
-        "https://eth-mainnet.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
-      accounts: [deployer],
-    },
-    localhost: {
-      chainId: 1337,
-      url: "http://127.0.0.1:8545",
-      timeout: 100000000,
+      url: "https://eth-mainnet.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
+      accounts: {
+        mnemonic: process.env.MNEMONIC,
+      },
     },
     matic: {
       chainId: 137,
       url: "https://rpc-mainnet.maticvigil.com/",
-      accounts: [deployer],
+      accounts: {
+        mnemonic: process.env.MNEMONIC,
+      },
     },
+  },
+  contractSizer: {
+    alphaSort: true,
+    runOnCompile: false,
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_APIKEY,
@@ -76,8 +75,17 @@ module.exports = {
       default: 0,
     },
   },
+  gasReporter: {
+    enabled: true,
+    coinmarketcap: process.env.COINMARKETCAP,
+    currency: "USD",
+    gasPrice: 32,
+  },
+  preprocess: {
+    eachLine: removeConsoleLog((hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"),
+  },
   mocha: {
-    timeout: 2000000
+    timeout: 20000000,
   },
   vyper: {
     version: "0.2.7",
