@@ -9,15 +9,19 @@ interface IIronchef {
         view
         returns (uint256 amount, uint256 rewardDebt);
 
-    function deposit(uint256 pid, uint256 amount, address to) public;
+    function deposit(uint256 pid, uint256 amount, address to) external;
 
-    function withdraw(uint256 pid, uint256 amount, address to) public ;
+    function withdraw(uint256 pid, uint256 amount, address to) external;
+    
+    function withdrawAndHarvest(uint256 pid, uint256 amount, address to) external; 
+
+    function harvest(uint256 pid, address to) external;
 }
 
 interface IIronSwap {
     function addLiquidity(
-        uint256[] memory amounts,
+        uint256[] calldata amounts,
         uint256 minMintAmount,
         uint256 deadline
-    ) external  returns (uint256)
+    ) external returns (uint256);
 }
