@@ -9,7 +9,11 @@ const {expect, Assertion} = require("chai").use(chaiAsPromised);
  * @param sec sec to be traveled
  */
 const increaseTime = async (sec) => {
-  console.log(`advancing ${Number(sec / 60).toFixed(2)} mins`);
+  if (sec < 60) console.log(`advancing ${sec} secs`);
+  else if (sec < 3600) console.log(`advancing ${Number(sec / 60).toFixed(0)} mins`);
+  else if (sec < 60 * 60 * 24) console.log(`advancing ${Number(sec / 3600).toFixed(0)} hours`);
+  else if (sec < 60 * 60 * 24 * 31) console.log(`advancing ${Number(sec / 3600 / 24).toFixed(0)} days`);
+
   await hre.network.provider.send("evm_increaseTime", [sec]);
   await hre.network.provider.send("evm_mine");
 };
