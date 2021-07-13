@@ -3,6 +3,7 @@ pragma solidity ^0.6.7;
 
 import "./strategy-base.sol";
 import "../interfaces/ISorbettoFragola.sol";
+import "hardhat/console.sol";
 
 abstract contract StrategySorbettoBase is StrategyBase {
     address public token0;
@@ -74,8 +75,9 @@ abstract contract StrategySorbettoBase is StrategyBase {
         //      if so, a new strategy will be deployed.
 
         // Collects SUSHI tokens
-        ISorbettoFragola(want).deposit(0, 0);
         (uint256 amount0, uint256 amount1,,) = ISorbettoFragola(want).userInfo(address(this));
+
+
         ISorbettoFragola(want).collectFees(amount0, amount1);
 
         uint256 _token0 = IERC20(token0).balanceOf(address(this));
