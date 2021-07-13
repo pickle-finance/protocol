@@ -8,7 +8,7 @@ contract StrategyIronIS3USD is StrategyBase {
     // Token addresses
     address public ice = 0x4A81f8796e0c6Ad4877A51C86693B0dE8093F2ef;
     address public ironchef = 0x1fD1259Fa8CdC60c6E8C86cfA592CA1b8403DFaD;
-    address public is3usd = 0xb4d09ff3da7f9e9a2ba029cb0a81a989fd7b8f17;
+    address public is3usd = 0xb4d09ff3dA7f9e9A2BA029cb0A81A989fd7B8f17;
     address public ironSwap = 0x837503e8A8753ae17fB8C8151B8e6f586defCb57;
     uint256 public poolId = 0;
     address public dfynRouter = 0xA102072A4C07F06EC3B4900FDC4C7B80b6c57429;
@@ -16,6 +16,7 @@ contract StrategyIronIS3USD is StrategyBase {
     // Stablecoin addresses
     address public dai = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
     address public usdc = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
+    address[] public path = [ice, usdc, dai];
 
     constructor(
         address _governance,
@@ -34,7 +35,7 @@ contract StrategyIronIS3USD is StrategyBase {
         // i.e. will be be heavily frontrunned?
 
         // Collects ICE tokens
-        IIronchef(ironchef).withdraw(poolId, 0, address(this));
+        IIronchef(ironchef).harvest(poolId, address(this));
         uint256 _rewardBalance = IERC20(ice).balanceOf(address(this));
         if (_rewardBalance == 0) {
             return;
@@ -46,7 +47,7 @@ contract StrategyIronIS3USD is StrategyBase {
         UniswapRouterV2(dfynRouter).swapExactTokensForTokens(
             _rewardBalance,
             1,
-            [ice, usdc, dai],
+            path,
             address(this),
             now.add(60)
         );
@@ -56,9 +57,9 @@ contract StrategyIronIS3USD is StrategyBase {
         if (_dai > 0) {
             IERC20(dai).safeApprove(ironSwap, 0);
             IERC20(dai).safeApprove(ironSwap, _dai);
-            uint256[3] memory liquidity;
+            uint256[] memory liquidity = new uint256[](3);
             liquidity[2] = _dai;
-            IIronSwap(ironSwap).add_liquidity(liquidity, 1, now.add(60));
+            IIronSwap(ironSwap).addLiquidity(liquidity, 1, now.add(60));
         }
 
         _distributePerformanceFeesAndDeposit();
@@ -96,7 +97,7 @@ contract StrategyIronIS3USD is StrategyBase {
         override
         returns (uint256)
     {
-        IIronchef(ironchef).withdraw(poolId, _amount, address(this));
+        IIronchef(ironchef).withdrawAndHarvest(poolId, _amount, address(this));
         return _amount;
     }
 
