@@ -5,7 +5,7 @@ struct LockedStake {
     bytes32 kek_id;
     uint256 start_timestamp;
     uint256 liquidity;
-    uint256 end_timestmap;
+    uint256 ending_timestamp;
     uint256 lock_multiplier;
 }
 

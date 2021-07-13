@@ -111,13 +111,30 @@ contract StrategySaddleD4 is StrategyBase {
 
         uint256[] memory amounts = new uint256[](4);
         amounts[0] = IERC20(alusd).balanceOf(address(this));
-        amounts[1] = IERC20(lusd).balanceOf(address(this));
-        amounts[2] = IERC20(fei).balanceOf(address(this));
-        amounts[3] = IERC20(frax).balanceOf(address(this));
+        amounts[1] = IERC20(fei).balanceOf(address(this));
+        amounts[2] = IERC20(frax).balanceOf(address(this));
+        amounts[3] = IERC20(lusd).balanceOf(address(this));
 
         if (
             amounts[0] > 0 || amounts[1] > 0 || amounts[2] > 0 || amounts[3] > 0
         ) {
+            if (amounts[0] > 0) {
+                IERC20(alusd).safeApprove(flashLoan, 0);
+                IERC20(alusd).safeApprove(flashLoan, amounts[0]);
+            }
+            if (amounts[1] > 0) {
+                IERC20(fei).safeApprove(flashLoan, 0);
+                IERC20(fei).safeApprove(flashLoan, amounts[1]);
+            }
+            if (amounts[2] > 0) {
+                IERC20(frax).safeApprove(flashLoan, 0);
+                IERC20(frax).safeApprove(flashLoan, amounts[2]);
+            }
+            if (amounts[3] > 0) {
+                IERC20(lusd).safeApprove(flashLoan, 0);
+                IERC20(lusd).safeApprove(flashLoan, amounts[3]);
+            }
+
             SwapFlashLoan(flashLoan).addLiquidity(
                 amounts,
                 0,
