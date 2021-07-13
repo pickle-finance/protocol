@@ -15,7 +15,7 @@ describe("StrategySaddleD4 Test", () => {
   let preTestSnapshotID;
   let want;
   const want_addr = "0xd48cF4D7FB0824CC8bAe055dF3092584d0a1726A";
-  const want_amount = toWei(10);
+  const want_amount = toWei(500);
 
   before("Deploy contracts", async () => {
     [alice, devfund, treasury] = await hre.ethers.getSigners();
@@ -70,11 +70,14 @@ describe("StrategySaddleD4 Test", () => {
     const _want = await want.balanceOf(alice.address);
     await want.approve(pickleJar.address, _want);
     await pickleJar.deposit(_want);
-
     await pickleJar.earn();
-    await increaseTime(60 * 60 * 24 * 15); //travel 15 days
-    await strategy.harvest();
 
+    await increaseTime(60 * 60 * 24 * 1);
+    console.log("Ratio before harvest: ", (await pickleJar.getRatio()).toString());
+    await strategy.harvest();
+    console.log("Ratio after harvest: ", (await pickleJar.getRatio()).toString());
+
+    await increaseTime(60 * 60 * 24 * 1);
     let _before = await want.balanceOf(pickleJar.address);
     await controller.withdrawAll(want.address);
     let _after = await want.balanceOf(pickleJar.address);
@@ -92,16 +95,18 @@ describe("StrategySaddleD4 Test", () => {
     const _want = await want.balanceOf(alice.address);
     await want.approve(pickleJar.address, _want);
     await pickleJar.deposit(_want);
-
     await pickleJar.earn();
-    await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+    await increaseTime(60 * 60 * 24 * 1);
 
     const _before = await pickleJar.balance();
-    const _treasuryBefore = await want.balanceOf(treasury.address);
+    let _treasuryBefore = await want.balanceOf(treasury.address);
+    console.log("Ratio before harvest: ", (await pickleJar.getRatio()).toString());
     await strategy.harvest();
+    console.log("Ratio after harvest: ", (await pickleJar.getRatio()).toString());
     const _after = await pickleJar.balance();
-    const _treasuryAfter = await want.balanceOf(treasury.address);
+    let _treasuryAfter = await want.balanceOf(treasury.address);
 
+    await increaseTime(60 * 60 * 24 * 1);
     //20% performance fee is given
     const earned = _after.sub(_before).mul(1000).div(800);
     const earnedRewards = earned.mul(200).div(1000);
