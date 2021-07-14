@@ -1,5 +1,7 @@
-const {expect, getContractAt, deployContract, unlockAccount} = require("./testHelper");
+const {expect, getContractAt, deployContract, unlockAccount, toWei} = require("./testHelper");
 const {WETH} = require("./constants");
+const {ethers} = require("hardhat");
+
 /**
  * @notice get the unix timestamp
  * @returns current timestamp
@@ -28,7 +30,7 @@ const setup = async (strategyName, want, governance, strategist, timelock, devfu
     devfund.address,
     treasury.address
   );
-  console.log("Controller is deployed at ", controller.address);
+  console.log("✅ Controller is deployed at ", controller.address);
 
   const strategy = await deployContract(
     strategyName,
@@ -37,7 +39,7 @@ const setup = async (strategyName, want, governance, strategist, timelock, devfu
     controller.address,
     timelock.address
   );
-  console.log("Strategy is deployed at ", strategy.address);
+  console.log("✅ Strategy is deployed at ", strategy.address);
 
   const pickleJar = await deployContract(
     "PickleJar",
@@ -46,7 +48,7 @@ const setup = async (strategyName, want, governance, strategist, timelock, devfu
     timelock.address,
     controller.address
   );
-  console.log("PickleJar is deployed at ", pickleJar.address);
+  console.log("✅ PickleJar is deployed at ", pickleJar.address);
 
   await controller.setJar(want.address, pickleJar.address);
   await controller.approveStrategy(want.address, strategy.address);
@@ -155,11 +157,16 @@ const getLpToken = async (routerAddr, lpToken, ethAmount, from) => {
  * @param to receive address
  * @param whaleAddr whale address to send tokens
  */
-const getWantFromWhale = async (want, amount, to, whaleAddr) => {
+const getWantFromWhale = async (want_addr, amount, to, whaleAddr) => {
   const whale = await unlockAccount(whaleAddr);
-  await want.connect(whale).transfer(to, amount);
-  const _balance = await want.balanceOf(to);
-  expect(_balance).to.be.gte(amount, "get want failed");
+  const want = await getContractAt("ERC20", want_addr);
+  await to.sendTransaction({
+    to: whaleAddr,
+    value: toWei(1),
+  });
+  await want.connect(whale).transfer(to.address, amount);
+  const _balance = await want.balanceOf(to.address);
+  expect(_balance).to.be.gte(amount, "get want from the whale failed");
 };
 
 module.exports = {

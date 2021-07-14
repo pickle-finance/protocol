@@ -2,7 +2,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-convex-farm-base.sol";
 
-contract StrategyCrvTriCrypto is StrategyConvexFarmBase {
+contract StrategyCrvTricrypto is StrategyConvexFarmBase {
     address public lpToken = 0xcA3d75aC011BF5aD07a98d02f18225F9bD9A6BDF;
     uint256 public crvTricryptoPoolId = 37;
     address public pool = 0x80466c64868E1ab14a1Ddf27A676C3fcBE638Fe5;
@@ -25,7 +25,7 @@ contract StrategyCrvTriCrypto is StrategyConvexFarmBase {
     {}
 
     function getName() external pure override returns (string memory) {
-        return "StrategyCrvTriCrypto";
+        return "StrategyCrvTricrypto";
     }
 
     function getHarvestable() public view returns (uint256, uint256) {
