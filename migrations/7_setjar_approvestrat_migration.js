@@ -10,6 +10,6 @@ module.exports = async function (deployer) {
   let lp = await strategy.want();
 
   controller.setGlobe(lp, globe.address).then(() => {
-    controller.approveStrategy(lp, strategy.address)
-  })
+    controller.approveStrategy(lp, strategy.address);
+  });
 };
