@@ -5,7 +5,7 @@ contract StrategyPngSporePngLp is StrategyPngFarmBase {
     // Token addresses
     address public png_spore_png_rewards = 0x12A33F6B0dd0D35279D402aB61587fE7eB23f7b0;
     address public png_spore_png_lp = 0xad24a72ffE0466399e6F69b9332022a71408f10b;
-	  address public spore = 0x6e7f5C0b9f4432716bDd0a77a3601291b9D9e985;
+    address public spore = 0x6e7f5C0b9f4432716bDd0a77a3601291b9D9e985;
     
     constructor(
         address _governance,
