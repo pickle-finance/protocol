@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.2;
 
-interface IStrategy {
+interface ISushiStrategy {
     function rewards() external view returns (address);
 
     function gauge() external view returns (address);
@@ -24,7 +24,7 @@ interface IStrategy {
 
     function balanceOf() external view returns (uint256);
 
-    function getHarvestable() external view returns (uint256);
+    function getHarvestable() external view returns (uint256, uint256);
 
     function harvest() external;
 
