@@ -210,3 +210,20 @@ interface ICurveSmartContractChecker {
 
     function approveWallet(address _wallet) external;
 }
+
+interface ICurveDeposit {
+    function get_virtual_price() external view returns (uint);
+    function add_liquidity(
+        uint256[4] calldata amounts,
+        uint256 min_mint_amount
+    ) external;
+    function remove_liquidity_one_coin(
+        uint256 _token_amount,
+        int128 i,
+        uint256 _min_amount
+    ) external;
+    function calc_withdraw_one_coin(
+        uint256 _token_amount,
+        int128 i
+    ) external view returns (uint256);
+}

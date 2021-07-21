@@ -56,6 +56,52 @@ const setup = async (strategyName, want, governance, strategist, timelock, devfu
 };
 
 /**
+ * @notice setup the controller, strategy and picklejar
+ * @param strategyName strategy name to be deployed
+ * @param want want token to be set
+ * @param governance governance signer addr
+ * @param strategist strategy signer addr
+ * @param timelock timelock signer addr
+ * @param devfund devfund signer addr
+ * @param treasury treasury signeraddr
+ * @returns controller, strategy and picklejar contract
+ */
+const setupPusd = async (strategyName, want, governance, strategist, timelock, devfund, treasury, isPolygon = false) => {
+  const controller = await deployContract(
+    isPolygon ? "src/polygon/controller-v4.sol:ControllerV4" : "src/controller-v4.sol:ControllerV4",
+    governance.address,
+    strategist.address,
+    timelock.address,
+    devfund.address,
+    treasury.address
+  );
+  console.log("Controller is deployed at ", controller.address);
+
+  const strategy = await deployContract(
+    strategyName,
+    governance.address,
+    strategist.address,
+    controller.address,
+    timelock.address
+  );
+  console.log("Strategy is deployed at ", strategy.address);
+
+  const pickleJar = await deployContract(
+    "PusdJar",
+    governance.address,
+    timelock.address,
+    controller.address
+  );
+  console.log("PusdJar is deployed at ", pickleJar.address);
+
+  await controller.setJar(want.address, pickleJar.address);
+  await controller.approveStrategy(want.address, strategy.address);
+  await controller.setStrategy(want.address, strategy.address);
+
+  return [controller, strategy, pickleJar];
+};
+
+/**
  * @notice get erc20 token from uniswap/sushiswap
  * @param routerAddr router address(uni or sushi)
  * @param token token address
@@ -169,4 +215,5 @@ module.exports = {
   getERC20WithPath,
   getLpToken,
   setup,
+  setupPusd
 };
