@@ -4,11 +4,12 @@
 pragma solidity ^0.6.7;
 
 import "./interfaces/controller.sol";
+import "./interfaces/curve.sol";
 
 import "./lib/erc20.sol";
 import "./lib/safe-math.sol";
 
-contract PickleJar is ERC20 {
+contract PusdJar is ERC20 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -29,15 +30,17 @@ contract PickleJar is ERC20 {
     address public usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     address public usdt = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     address public dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-    address public routerAddress = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
+    address public curveSwap = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
 
-    constructor(address _governance, address _timelock, address _controller, address _mainUnderlying)
+    mapping (address => int128) public curveIndex;
+
+    constructor(address _governance, address _timelock, address _controller)
         public
         ERC20("picklingUSD", "pUSD")
     {
-        _setupDecimals(ERC20(_mainUnderlying).decimals());
-        token = IERC20(_mainUnderlying);
-        mainUnderlying = _mainUnderlying;
+        mainUnderlying = dai;
+        _setupDecimals(ERC20(mainUnderlying).decimals());
+        token = IERC20(mainUnderlying);
         governance = _governance;
         timelock = _timelock;
         controller = _controller;
@@ -45,9 +48,9 @@ contract PickleJar is ERC20 {
         addUnderlying(usdc);
         addUnderlying(usdt);
         addUnderlying(dai);
-        mainUnderlying = _mainUnderlying;
-        mainUnderlyingRoutes[usdc] = [usdc, dai];
-        mainUnderlyingRoutes[usdt] = [usdt, dai];
+        curveIndex[dai] = 0;
+        curveIndex[usdc] = 1;
+        curveIndex[usdt] = 2;
     }
 
     function balance() public view returns (uint256) {
@@ -78,35 +81,41 @@ contract PickleJar is ERC20 {
         controller = _controller;
     }
 
-    function addUnderlying(address _underlying) public onlyGovernance {
+    function addUnderlying(address _underlying) public {
+        require(msg.sender == governance, "!governance");
         require(_underlying != address(0), "_underlying must be defined");
         underlyings.push(_underlying);
         underlyingEnabled[_underlying] = true;
     }
 
-    function enableUnderlying(address _underlying) public onlyGovernance {
+    function enableUnderlying(address _underlying) public {
+        require(msg.sender == governance, "!governance");
         require(_underlying != address(0), "_underlying must be defined");
         underlyingEnabled[_underlying] = true;
     }
 
-    function disableUnderlying(address _underlying) public onlyGovernance {
+    function disableUnderlying(address _underlying) public {
+        require(msg.sender == governance, "!governance");
         require(_underlying != address(0), "_underlying must be defined");
         underlyingEnabled[_underlying] = false;
     }
 
-    function setMainUnderlyingRoute(address _underlying, address[] memory route) public onlyGovernance {
+    function setMainUnderlyingRoute(address _underlying, address[] memory route) public {
+        require(msg.sender == governance, "!governance");
         require(_underlying != address(0), "_underlying must be defined");
         mainUnderlyingRoutes[_underlying] = route;
     }
 
-    function setMainUnderlying(address _underlying) public onlyGovernance {
+    function setMainUnderlying(address _underlying) public {
+        require(msg.sender == governance, "!governance");
         require(_underlying != address(0), "_underlying must be defined");
         mainUnderlying = _underlying;
     }
 
-    function setRouter(address _router) public onlyGovernance {
-        require(_router != address(0), "_router must be defined");
-        routerAddress = _router;
+    function setCurveSwap(address _address) public {
+        require(msg.sender == governance, "!governance");
+        require(_address != address(0), "address must be defined");
+        curveSwap = _address;
     }
 
     // Custom logic in here for how much the jars allows to be borrowed
@@ -121,24 +130,21 @@ contract PickleJar is ERC20 {
         IController(controller).earn(address(token), _bal);
     }
 
-    function depositAll(_underlying) external {
+    function depositAll(address _underlying) external {
         deposit(token.balanceOf(msg.sender), _underlying);
     }
 
-    function deposit(uint256 _amount, address _underlying) public {
+    function deposit(uint256 _amount, address underlying) public {
         uint256 _pool = balance();
         uint256 _before = token.balanceOf(address(this));
-        IERC20(_underlying).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(underlying).safeTransferFrom(msg.sender, address(this), _amount);
 
-        if (_underlying != mainUnderlying) {
-            UniswapRouterV2(routerAddress).swapExactTokensForTokens(
-                _amount,
-                0,
-                [_underlying, mainUnderlying],
-                address(this),
-                now.add(60)
-            );
+        if (underlying != mainUnderlying) {
+            int128 _underlyingIndex = curveIndex[underlying];
+            int128 _mainUnderlyingIndex = curveIndex[mainUnderlying];
+            ICurveFi_3(curveSwap).exchange(_underlyingIndex, _mainUnderlyingIndex, _amount, 0);
         }
+
         uint256 _after = token.balanceOf(address(this));
         _amount = _after.sub(_before); // Additional check for deflationary tokens
         uint256 shares = 0;
@@ -162,7 +168,8 @@ contract PickleJar is ERC20 {
     }
 
     // No rebalance implementation for lower fees and faster swaps
-    function withdraw(uint256 _shares, address _underlying) public {
+    function withdraw(uint256 _shares, address underlying) public {
+        uint256 _before = IERC20(underlying).balanceOf(address(this));
         uint256 r = (balance().mul(_shares)).div(totalSupply());
         _burn(msg.sender, _shares);
 
@@ -178,17 +185,19 @@ contract PickleJar is ERC20 {
             }
         }
 
-        if (_underlying != mainUnderlying) {
-            UniswapRouterV2(routerAddress).swapExactTokensForTokens(
-                r,
-                0,
-                [mainUnderlying, _underlying],
-                address(this),
-                now.add(60)
-            );
+        if (underlying != mainUnderlying) {
+            int128 _underlyingIndex = curveIndex[underlying];
+            int128 _mainUnderlyingIndex = curveIndex[mainUnderlying];
+            ICurveFi_3(curveSwap).exchange(_mainUnderlyingIndex, _underlyingIndex, r, 0);
+        }
+        uint256 _after = IERC20(underlying).balanceOf(address(this));
+        uint256 _amount = _after.sub(_before);
+
+        if (underlying == mainUnderlying) {
+            _amount = r;
         }
 
-        token.safeTransfer(msg.sender, r);
+        IERC20(underlying).safeTransfer(msg.sender, _amount);
     }
 
     function getRatio() public view returns (uint256) {
