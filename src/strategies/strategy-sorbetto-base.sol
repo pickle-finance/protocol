@@ -68,15 +68,8 @@ abstract contract StrategySorbettoBase is StrategyBase {
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But ETH is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
-        // Collects SUSHI tokens
+        ISorbettoFragola(want).collectFees(0, 0);
         (uint256 amount0, uint256 amount1,,) = ISorbettoFragola(want).userInfo(address(this));
-
 
         ISorbettoFragola(want).collectFees(amount0, amount1);
 
@@ -112,8 +105,5 @@ abstract contract StrategySorbettoBase is StrategyBase {
                 IERC20(token1).balanceOf(address(this))
             );
         }
-
-        // We want to get back SUSHI LP tokens
-        _distributePerformanceFeesAndDeposit();
     }
 }
