@@ -86,7 +86,6 @@ contract PickleJar is ERC20 {
         token.safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _after = token.balanceOf(address(this));
         _amount = _after.sub(_before); // Additional check for deflationary tokens
-        
         uint256 shares = 0;
         if (totalSupply() == 0) {
             shares = _amount;
