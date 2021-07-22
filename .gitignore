@@ -115,3 +115,6 @@ cache
 
 .DS_Store
 hardhat/
+
+# vscode
+.vscode
