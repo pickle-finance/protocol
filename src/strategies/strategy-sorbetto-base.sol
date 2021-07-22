@@ -76,27 +76,16 @@ abstract contract StrategySorbettoBase is StrategyBase {
         uint256 _token0 = IERC20(token0).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
 
+        uint256 _amount = 0;
+
         if (_token0 > 0 && _token1 > 0) {
-            // 10% is locked up for future gov
-            uint256 _keepToken0 = _token0.mul(keepReward).div(keepRewardMax);
-            IERC20(token0).safeTransfer(
-                IController(controller).treasury(),
-                _keepToken0
-            );
-
-            uint256 _keepToken1 = _token1.mul(keepReward).div(keepRewardMax);
-            IERC20(token1).safeTransfer(
-                IController(controller).treasury(),
-                _keepToken1
-            );
-
-            _token0 = IERC20(token0).balanceOf(address(this));
-            _token1 = IERC20(token1).balanceOf(address(this));
-
+            uint256 _before = IERC20(want).balanceOf(address(this));
             ISorbettoFragola(want).deposit(_token0, _token1);
+            uint256 _after = IERC20(want).balanceOf(address(this));
+            _amount = _after.sub(_before);
 
             // Donates DUST
-            IERC20(token0).transfer(
+            IERC20(token0).safeTransfer(
                 IController(controller).treasury(),
                 IERC20(token0).balanceOf(address(this))
             );
@@ -105,5 +94,7 @@ abstract contract StrategySorbettoBase is StrategyBase {
                 IERC20(token1).balanceOf(address(this))
             );
         }
+
+        _distributePerformanceFeesBasedAmountAndDeposit(_amount);
     }
 }
