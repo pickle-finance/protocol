@@ -27,22 +27,22 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy, execute } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  await deploy("StrategyMaiQiMiMaticLp", {
+  await deploy("PickleRegistry", {
     from: deployer,
-    args: polygonStrategyArgs,
+    // args: polygonStrategyArgs,
     log: true
   });
 
-  await deploy("PickleJarDepositFeeInitializable", {
-    from: deployer,
-    args: [...polygonJarArgs, 50],
-    log: true
-  });
+  // await deploy("PickleJarDepositFeeInitializable", {
+  //   from: deployer,
+  //   args: [...polygonJarArgs, 50],
+  //   log: true
+  // });
 
-  await execute(
-    "StrategyMaiQiMiMaticLp",
-    { from: deployer, log: true },
-    "whitelistHarvesters",
-    harvesters
-  );
+  // await execute(
+  //   "StrategyMaiQiMiMaticLp",
+  //   { from: deployer, log: true },
+  //   "whitelistHarvesters",
+  //   harvesters
+  // );
 };
