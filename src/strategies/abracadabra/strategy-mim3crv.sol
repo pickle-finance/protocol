@@ -53,6 +53,7 @@ contract StrategyMim3crvLp is StrategyAbracadabraFarmBase {
         if (_mim > 0) {
             IERC20(mim).safeApprove(zapper, 0);
             IERC20(mim).safeApprove(zapper, _mim);
+
             uint256[4] memory amounts = [_mim, 0, 0, 0];
             ICurveZapper(zapper).add_liquidity(mim_3crv, amounts, 0);
         }
