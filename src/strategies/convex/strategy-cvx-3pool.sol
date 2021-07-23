@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 import "../strategy-convex-farm-base.sol";
 
 contract StrategyConvex3CRV is StrategyConvexFarmBase {
-    address public three_pool = 0x445FE580eF8d70FF569aB36e80c647af338db351;
+    address public three_pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
     uint256 public cvx_pool_id = 9;
     address public lpToken = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
 	
