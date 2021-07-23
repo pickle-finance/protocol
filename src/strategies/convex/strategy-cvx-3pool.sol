@@ -4,7 +4,7 @@ import "../strategy-convex-farm-base.sol";
 
 contract StrategyConvex3CRV is StrategyConvexFarmBase {
     address public three_pool = 0x445FE580eF8d70FF569aB36e80c647af338db351;
-    uint256 public cvx_3pool_id = 9;
+    uint256 public cvx_pool_id = 9;
     address public lpToken = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
 	
     // stablecoins
@@ -21,7 +21,7 @@ contract StrategyConvex3CRV is StrategyConvexFarmBase {
         public
         StrategyCurveBase(
             three_pool,
-            cvx_3pool_id,
+            cvx_pool_id,
             lpToken,
             _governance,
             _strategist,
@@ -88,7 +88,7 @@ contract StrategyConvex3CRV is StrategyConvexFarmBase {
                 true
             );
 			
-		// input token we want to convert to
+        // input token we want to convert to
         (address to, uint256 toIndex) = getMostPremium();
 
         uint256 _cvx = IERC20(cvx).balanceOf(address(this));
