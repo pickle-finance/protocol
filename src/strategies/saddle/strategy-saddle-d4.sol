@@ -73,9 +73,15 @@ contract StrategySaddleD4 is StrategyBase {
             count++;
             if (_sum >= _amount) break;
         }
+        require(_sum >= _amount, "insufficient amount");
+
         for (i = 0; i < count; i++) {
             ICommunalFarm(staking).withdrawLocked(lockedStakes[i].kek_id);
         }
+        uint256 _balance = IERC20(want).balanceOf(address(this));
+        require(_balance >= _amount, "withdraw-failed");
+
+        return _amount;
     }
 
     function harvest() public override onlyBenevolent {
