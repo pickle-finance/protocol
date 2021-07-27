@@ -39,12 +39,10 @@ abstract contract StrategyJoeFarmBase is StrategyBase {
         return amount;
     }
 
+    // Updated based on cryptofish's recommendation
     function getHarvestable() external view returns (uint256, uint256) {
-      (uint256 _pendingTokens, , ,) = IMasterChefJoeV2(masterChefJoeV2).pendingTokens(poolId, address(this));
-      (,,,,address rewarder) = IMasterChefJoeV2(masterChefJoeV2).poolInfo(poolId);
-      (uint256 pendingReward) = IJoeRewarder(rewarder).pendingTokens(address(this));
-
-      return (_pendingTokens, pendingReward);
+        (uint256 pendingJoe, , , uint256 pendingBonusToken) = IMasterChefJoeV2(masterChefJoeV2).pendingTokens(poolId, address(this));
+        return (pendingJoe, pendingBonusToken);
     }
 
     // **** Setters ****
