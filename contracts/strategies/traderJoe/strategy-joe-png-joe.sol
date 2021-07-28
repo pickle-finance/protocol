@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-joe-farm-base.sol";
 
-contract StrategyJoepngJoeLp is StrategyJoeFarmBase {
+contract StrategyJoePngJoeLp is StrategyJoeFarmBase {
 
     uint256 public avax_joe_poolId = 18;
 
@@ -94,6 +94,6 @@ contract StrategyJoepngJoeLp is StrategyJoeFarmBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyJoepngJoeLp";
+        return "StrategyJoePngJoeLp";
     }
 }
