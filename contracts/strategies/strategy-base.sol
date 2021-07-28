@@ -24,8 +24,8 @@ abstract contract StrategyBase {
     address public pangolinRouter = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
     // Move ^^
 
-    // Perfomance fees - start with 20%
-    uint256 public performanceTreasuryFee = 2000;
+    // Perfomance fees - start with 10%
+    uint256 public performanceTreasuryFee = 1000;
     uint256 public constant performanceTreasuryMax = 10000;
 
     uint256 public performanceDevFee = 0;
