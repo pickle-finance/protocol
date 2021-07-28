@@ -14,7 +14,7 @@ module.exports = {
     hardhat: {
       chainId: 1,
       forking: {
-        url: "https://eth-mainnet.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
+        url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
