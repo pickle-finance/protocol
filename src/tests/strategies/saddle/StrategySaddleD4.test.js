@@ -15,11 +15,7 @@ describe("StrategySaddleD4 Test", () => {
   let preTestSnapshotID;
   let want;
   const want_addr = "0xd48cF4D7FB0824CC8bAe055dF3092584d0a1726A";
-<<<<<<< HEAD
-  const want_amount = toWei(1000);
-=======
   const want_amount = toWei(10);
->>>>>>> Add unit test
 
   before("Deploy contracts", async () => {
     [alice, devfund, treasury] = await hre.ethers.getSigners();
@@ -157,10 +153,14 @@ describe("StrategySaddleD4 Test", () => {
 
   const getWant = async () => {
 <<<<<<< HEAD
+<<<<<<< HEAD
     const whale = await unlockAccount("0xBa718efb68ea96b32678c88019768a449cBc9548");
 =======
     const whale = await unlockAccount("0xe9b05db21f255544721d0a58c1e9963d53d8bb95");
 >>>>>>> Add unit test
+=======
+    const whale = await unlockAccount("0xBa718efb68ea96b32678c88019768a449cBc9548");
+>>>>>>> update withdraw saddle contract
     await want.connect(whale).transfer(alice.address, want_amount);
     const _balance = await want.balanceOf(alice.address);
     expect(_balance).to.be.eq(want_amount, "get want failed");
