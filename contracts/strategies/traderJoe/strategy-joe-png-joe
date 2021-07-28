@@ -70,6 +70,7 @@ contract StrategyJoePngJoeLp is StrategyJoeFarmBase {
                 png,
                 joe,
                 _png,
+                _joe,
                 0,
                 0,
                 address(this),
