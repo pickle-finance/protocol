@@ -54,7 +54,7 @@ contract StrategyJoePngJoeLp is StrategyJoeFarmBase {
             _swapTraderJoe(joe, png, _amount);
         }
 
-        // Adds in liquidity for PNG/JOE
+        // Adds in liquidity for AVAX/JOE
         uint256 _png = IERC20(png).balanceOf(address(this));
 
         _joe = IERC20(joe).balanceOf(address(this));
@@ -70,7 +70,6 @@ contract StrategyJoePngJoeLp is StrategyJoeFarmBase {
                 png,
                 joe,
                 _png,
-                _joe,
                 0,
                 0,
                 address(this),
