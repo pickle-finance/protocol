@@ -38,18 +38,19 @@ const doTestBehaviorBase = (strategyName, want_addr) => {
       const _want = await want.balanceOf(alice.address);
       await want.approve(pickleJar.address, _want);
       await pickleJar.deposit(_want);
-      console.log("Alice pTokenBalance after deposit: ", (await pickleJar.balanceOf(alice.address)).toString());
+      console.log("Alice pTokenBalance after deposit: %s\n", (await pickleJar.balanceOf(alice.address)).toString());
       await pickleJar.earn();
 
       await increaseTime(60 * 60 * 24 * 15); //travel 15 days
-      console.log("Ratio before harvest: ", (await pickleJar.getRatio()).toString());
+
+      console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
 
       await strategy.harvest();
 
-      console.log("Ratio after harvest: ", (await pickleJar.getRatio()).toString());
+      console.log("Ratio after harvest: %s", (await pickleJar.getRatio()).toString());
 
       let _before = await want.balanceOf(pickleJar.address);
-      console.log("Picklejar balance before controller withdrawal: ", _before.toString());
+      console.log("\nPicklejar balance before controller withdrawal: ", _before.toString());
 
       await controller.withdrawAll(want.address);
 
@@ -59,7 +60,7 @@ const doTestBehaviorBase = (strategyName, want_addr) => {
       expect(_after).to.be.gt(_before, "controller withdrawAll failed");
 
       _before = await want.balanceOf(alice.address);
-      console.log("Alice balance before picklejar withdrawal: ", _before.toString());
+      console.log("\nAlice balance before picklejar withdrawal: ", _before.toString());
 
       await pickleJar.withdrawAll();
 
@@ -74,7 +75,7 @@ const doTestBehaviorBase = (strategyName, want_addr) => {
       const _want = await want.balanceOf(alice.address);
       await want.approve(pickleJar.address, _want);
       await pickleJar.deposit(_want);
-      console.log("Alice pTokenBalance after deposit: ", (await pickleJar.balanceOf(alice.address)).toString());
+      console.log("Alice pTokenBalance after deposit: %s\n", (await pickleJar.balanceOf(alice.address)).toString());
       await pickleJar.earn();
 
       await increaseTime(60 * 60 * 24 * 15); //travel 15 days
@@ -82,37 +83,37 @@ const doTestBehaviorBase = (strategyName, want_addr) => {
       let _treasuryBefore = await want.balanceOf(treasury.address);
 
       console.log("Picklejar balance before harvest: ", _before.toString());
-      console.log("Treasury balance before harvest: ", _treasuryBefore.toString());
-      console.log("Ratio before harvest: ", (await pickleJar.getRatio()).toString());
+      console.log("💸 Treasury balance before harvest: ", _treasuryBefore.toString());
+      console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
 
       await strategy.harvest();
 
       const _after = await pickleJar.balance();
       let _treasuryAfter = await want.balanceOf(treasury.address);
       console.log("Ratio after harvest: ", (await pickleJar.getRatio()).toString());
-      console.log("Picklejar balance after harvest: ", _after.toString());
-      console.log("Treasury balance after harvest: ", _treasuryAfter.toString());
+      console.log("\nPicklejar balance after harvest: ", _after.toString());
+      console.log("💸 Treasury balance after harvest: ", _treasuryAfter.toString());
 
       //20% performance fee is given
       const earned = _after.sub(_before).mul(1000).div(800);
       const earnedRewards = earned.mul(200).div(1000);
       const actualRewardsEarned = _treasuryAfter.sub(_treasuryBefore);
-      console.log("Actual reward earned by treasury: ", actualRewardsEarned.toString());
+      console.log("\nActual reward earned by treasury: ", actualRewardsEarned.toString());
 
       expect(earnedRewards).to.be.eqApprox(actualRewardsEarned, "20% performance fee is not given");
 
       //withdraw
       const _devBefore = await want.balanceOf(devfund.address);
       _treasuryBefore = await want.balanceOf(treasury.address);
-      console.log("Dev balance before picklejar withdrawal: ", _devBefore.toString());
-      console.log("Treasury balance before picklejar withdrawal: ", _treasuryBefore.toString());
+      console.log("\n👨‍🌾 Dev balance before picklejar withdrawal: ", _devBefore.toString());
+      console.log("💸 Treasury balance before picklejar withdrawal: ", _treasuryBefore.toString());
 
       await pickleJar.withdrawAll();
 
       const _devAfter = await want.balanceOf(devfund.address);
       _treasuryAfter = await want.balanceOf(treasury.address);
-      console.log("Dev balance after picklejar withdrawal: ", _devAfter.toString());
-      console.log("Treasury balance after picklejar withdrawal: ", _treasuryAfter.toString());
+      console.log("\n👨‍🌾 Dev balance after picklejar withdrawal: ", _devAfter.toString());
+      console.log("💸 Treasury balance after picklejar withdrawal: ", _treasuryAfter.toString());
 
       //0% goes to dev
       const _devFund = _devAfter.sub(_devBefore);

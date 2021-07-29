@@ -50,12 +50,9 @@ module.exports = {
       },
     },
     matic: {
-      chainId: 137,
-      url: "https://rpc-mainnet.maticvigil.com/",
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
-    },
+      url: 'https://keen-bell:chaste-gulf-chunk-aloe-deuce-copied@nd-654-291-805.p2pify.com/',
+      accounts: [`0x${process.env.MNEMONIC}`]
+    }
   },
   contractSizer: {
     alphaSort: true,
