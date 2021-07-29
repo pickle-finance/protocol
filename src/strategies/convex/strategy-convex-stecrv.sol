@@ -109,14 +109,14 @@ contract StrategyConvexSteCRV is StrategyConvexFarmBase  {
             _swapSushiswap(cvx, weth, _cvx);
         }
 
-	    uint256 _ldo = IERC20(ldo).balanceOf(address(this));
+        uint256 _ldo = IERC20(ldo).balanceOf(address(this));
         if (_ldo > 0) {
             IERC20(ldo).safeApprove(sushiRouter, 0);
             IERC20(ldo).safeApprove(sushiRouter, _ldo);
             _swapSushiswap(ldo, weth, _ldo);
         }
 
-	    uint256 _crv = IERC20(crv).balanceOf(address(this));
+        uint256 _crv = IERC20(crv).balanceOf(address(this));
         if (_crv > 0) {
             IERC20(crv).safeApprove(sushiRouter, 0);
             IERC20(crv).safeApprove(sushiRouter, _crv);
