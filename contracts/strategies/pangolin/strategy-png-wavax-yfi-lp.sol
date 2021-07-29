@@ -18,8 +18,8 @@ contract StrategyPngAvaxYfiLp is StrategyPngFarmBase {
         public
         StrategyPngFarmBase(
             yfi,
-            png_yfi_aave_lp_rewards,
-            png_yfi_aave_lp,
+            png_avax_yfi_lp_rewards,
+            png_avax_yfi_lp,
             _governance,
             _strategist,
             _controller,
