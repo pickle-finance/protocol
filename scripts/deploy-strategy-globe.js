@@ -2,7 +2,7 @@ const { ethers } = require("hardhat");
 require('dotenv').config();
 
 async function main() {
-  const name = "JoeAvaxVso"; 
+  const name = "JoeAvaxSherpa"; 
   const strategy_name = `Strategy${name}Lp`;
   const snowglobe_name = `SnowGlobe${name}`;
 
