@@ -20,20 +20,21 @@ require("@nomiclabs/hardhat-waffle");
 module.exports = {
   networks: {
     hardhat: {
+      accounts: [{privateKey: process.env.PRIVATE_KEY, balance: "11023978688000000000"}],
       forking: {
         url: "https://api.avax.network/ext/bc/C/rpc",
         // blockNumber: 2405677,
         accounts: [process.env.PRIVATE_KEY]
       }
     },
-    // fuji: {
-    //   jsonRpcUrl: "https://api.avax-test.network/ext/bc/C/rpc",
-    //   accounts: [process.env.PRIVATE_KEY]
-    // },
-    // mainnet: {
-    //   jsonRpcUrl: "https://api.avax.network/ext/bc/C/rpc",
-    //   accounts: [process.env.PRIVATE_KEY]
-    // }
+    fuji: {
+      url: "https://api.avax-test.network/ext/bc/C/rpc",
+      accounts: [process.env.PRIVATE_KEY]
+    },
+    mainnet: {
+      url: "https://api.avax.network/ext/bc/C/rpc",
+      accounts: [process.env.PRIVATE_KEY]
+    }
   },
   solidity: {
     compilers: [

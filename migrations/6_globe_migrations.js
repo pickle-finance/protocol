@@ -1,15 +1,14 @@
 const SnowGlobe = artifacts.require("SnowGlobe");
-const ControllerV4 = artifacts.require("ControllerV4");
 const StrategyPngAvaxSushiLp = artifacts.require("StrategyPngAvaxSushiLp");
 
 module.exports = async function (deployer) {
-  let accounts = await web3.eth.getAccounts();
-  const governance = accounts[0];
+  const governance = 0x294aB3200ef36200db84C4128b7f1b4eec71E38a;
   const timelock = governance;
 
+  const controller = 0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85;
+
   let strategy = await StrategyPngAvaxSushiLp.deployed();
-  let controller = await ControllerV4.deployed();
   let lp = await strategy.want();
 
-  await deployer.deploy(SnowGlobe, lp, governance, timelock, controller.address);
+  await deployer.deploy(SnowGlobe, lp, governance, timelock, controller);
 };
