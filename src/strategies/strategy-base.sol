@@ -95,16 +95,22 @@ abstract contract StrategyBase {
 
     // **** Setters **** //
 
-    function whitelistHarvester(address _harvester) external {
+    function whitelistHarvesters(address[] calldata _harvesters) external {
         require(msg.sender == governance ||
-             msg.sender == strategist, "not authorized");
-        harvesters[_harvester] = true;
+             msg.sender == strategist || harvesters[msg.sender], "not authorized");
+             
+        for (uint i = 0; i < _harvesters.length; i ++) {
+            harvesters[_harvesters[i]] = true;
+        }
     }
 
-    function revokeHarvester(address _harvester) external {
+    function revokeHarvesters(address[] calldata _harvesters) external {
         require(msg.sender == governance ||
              msg.sender == strategist, "not authorized");
-        harvesters[_harvester] = false;
+
+        for (uint i = 0; i < _harvesters.length; i ++) {
+            harvesters[_harvesters[i]] = false;
+        }
     }
 
     function setWithdrawalDevFundFee(uint256 _withdrawalDevFundFee) external {

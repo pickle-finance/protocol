@@ -10,38 +10,49 @@ require("dotenv").config();
 
 module.exports = {
   defaultNetwork: "hardhat",
+  solidity: {
+    compilers: [
+      {
+        version: "0.6.7",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          evmVersion: "istanbul",
+        },
+      },
+      {
+        version: "0.6.12",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          evmVersion: "istanbul",
+        },
+      },
+    ],
+  },
   networks: {
     hardhat: {
-      chainId: 1,
       forking: {
-        url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+        url: "https://eth-mainnet.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },
-      allowUnlimitedContractSize: true,
     },
     mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+      url: "https://eth-mainnet.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },
-      allowUnlimitedContractSize: true,
     },
-    ropsten: {
-      url: `https://ropsten.infura.io/v3/${process.env.INFURA_KEY}`,
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
-      allowUnlimitedContractSize: true,
-    },
-    rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
-      allowUnlimitedContractSize: true,
-    },
+    matic: {
+      url: 'https://keen-bell:chaste-gulf-chunk-aloe-deuce-copied@nd-654-291-805.p2pify.com/',
+      accounts: [`0x${process.env.MNEMONIC}`]
+    }
   },
   contractSizer: {
     alphaSort: true,
@@ -50,6 +61,17 @@ module.exports = {
   etherscan: {
     apiKey: process.env.ETHERSCAN_APIKEY,
   },
+  paths: {
+    sources: "./src",
+    tests: "./src/tests/strategies",
+    cache: "./cache",
+    artifacts: "./artifacts",
+  },
+  namedAccounts: {
+    deployer: {
+      default: 0,
+    },
+  },
   gasReporter: {
     enabled: true,
     coinmarketcap: process.env.COINMARKETCAP,
@@ -57,18 +79,7 @@ module.exports = {
     gasPrice: 32,
   },
   preprocess: {
-    eachLine: removeConsoleLog(
-      (hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"
-    ),
-  },
-  solidity: {
-    version: "0.6.7",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 9999,
-      },
-    },
+    eachLine: removeConsoleLog((hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"),
   },
   mocha: {
     timeout: 20000000,
@@ -78,5 +89,8 @@ module.exports = {
     tests: "./src/tests/strategies",
     cache: "./cache",
     artifacts: "./artifacts",
+  },
+  vyper: {
+    version: "0.2.7",
   },
 };

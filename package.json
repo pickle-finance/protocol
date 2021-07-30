@@ -1,13 +1,23 @@
 {
   "dependencies": {
+    "@boringcrypto/boring-solidity": "github:boringcrypto/BoringSolidity",
+    "@nomiclabs/hardhat-vyper": "^2.0.1",
     "chalk": "^4.1.0",
-    "ethers": "^5.0.14",
+    "dotenv": "^8.2.0",
+    "ethers": "^5.0.31",
+    "hardhat-deploy": "^0.8.6",
+    "hardhat-gas-reporter": "^1.0.4",
     "inquirer": "^7.3.3",
     "node-fetch": "^2.6.1",
     "ora": "^5.1.0"
   },
   "scripts": {
-    "flatten": "npx sol-merger \"./src/**/*.sol\" ./build"
+    "flatten": "npx sol-merger \"./src/**/*.sol\" ./build",
+    "dill:node": "npx hardhat node",
+    "dill:init": "npx hardhat run ./hardhat-scripts/dill-test/1.initialize.js --network localhost",
+    "dill:distribute": "npx hardhat run ./hardhat-scripts/dill-test/2.vote-and-distribute.js --network localhost",
+    "dill:fees": "npx hardhat run ./hardhat-scripts/dill-test/4.fee-sharing.js --network localhost",
+    "dill:wait": "npx hardhat run ./hardhat-scripts/dill-test/3.wait.js --network localhost"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
@@ -22,13 +32,16 @@
     "chai-as-promised": "^7.1.1",
     "dotenv": "^8.2.0",
     "eslint": "^7.10.0",
-    "hardhat": "^2.1.1",
-    "hardhat-contract-sizer": "^2.0.3",
-    "hardhat-deploy": "^0.8.11",
+    "ethereum-waffle": "^3.3.0",
+    "ethers": "^5.1.3",
+    "hardhat": "^2.2.0",
+    "hardhat-deploy": "^0.7.2",
     "hardhat-gas-reporter": "^1.0.4",
     "hardhat-preprocessor": "^0.1.4",
-    "prettier-plugin-solidity": "^1.0.0-beta.6",
-    "solidity-coverage": "^0.7.16"
+    "hardhat-contract-sizer": "^2.0.3",
+    "solidity-coverage": "^0.7.16",
+    "mocha": "^9.0.2",
+    "prettier-plugin-solidity": "^1.0.0-beta.9"
   },
   "eslintConfig": {
     "extends": "eslint:recommended",

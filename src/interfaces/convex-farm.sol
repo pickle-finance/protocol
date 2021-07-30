@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-// interface for Alchemix farm contract
 import "../lib/erc20.sol";
 
 interface IConvexBooster {
