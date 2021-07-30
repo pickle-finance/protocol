@@ -77,11 +77,9 @@ module.exports = {
       gasPrice: "auto",
     },
     matic: {
-      url: "https://keen-bell:chaste-gulf-chunk-aloe-deuce-copied@nd-654-291-805.p2pify.com/",
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
-    },
+      url: 'https://keen-bell:chaste-gulf-chunk-aloe-deuce-copied@nd-654-291-805.p2pify.com/',
+      accounts: [process.env.MNEMONIC]
+    }
   },
   contractSizer: {
     alphaSort: true,
@@ -134,7 +132,7 @@ module.exports = {
     eachLine: removeConsoleLog((hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"),
   },
   mocha: {
-    timeout: 200000000,
+    timeout: 20000000,
   },
   vyper: {
     version: "0.2.7",
