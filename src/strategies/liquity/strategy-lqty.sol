@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+pragma experimental ABIEncoderV2;
 
 import "../strategy-base.sol";
 import "../../interfaces/lqty-staking.sol";
@@ -33,10 +34,21 @@ contract StrategyLqty is StrategyBase {
         uint256 _lusd = IERC20(lusd).balanceOf(address(this));
 
         if (_lusd > 0) {
-            IERC20(lusd).safeApprove(univ2Router2, 0);
-            IERC20(lusd).safeApprove(univ2Router2, _lusd);
+            IERC20(lusd).safeApprove(univ3Router, 0);
+            IERC20(lusd).safeApprove(univ3Router, _lusd);
 
-            _swapUniswap(lusd, weth, _lusd);
+            ISwapRouter(univ3Router).exactInputSingle(
+                ISwapRouter.ExactInputSingleParams({
+                    tokenIn: lusd,
+                    tokenOut: weth,
+                    fee: 3000,
+                    recipient: address(this),
+                    deadline: block.timestamp + 300,
+                    amountIn: _lusd,
+                    amountOutMinimum: 0,
+                    sqrtPriceLimitX96: 0
+                })
+            );
         }
         uint256 _eth = address(this).balance;
         if (_eth > 0) {
@@ -44,9 +56,21 @@ contract StrategyLqty is StrategyBase {
         }
         uint256 _weth = IERC20(weth).balanceOf(address(this));
         if (_weth > 0) {
-            IERC20(weth).safeApprove(univ2Router2, 0);
-            IERC20(weth).safeApprove(univ2Router2, _weth);
-            _swapUniswap(weth, lqty, _weth);
+            IERC20(weth).safeApprove(univ3Router, 0);
+            IERC20(weth).safeApprove(univ3Router, _weth);
+
+            ISwapRouter(univ3Router).exactInputSingle(
+                ISwapRouter.ExactInputSingleParams({
+                    tokenIn: weth,
+                    tokenOut: lqty,
+                    fee: 3000,
+                    recipient: address(this),
+                    deadline: block.timestamp + 300,
+                    amountIn: _weth,
+                    amountOutMinimum: 0,
+                    sqrtPriceLimitX96: 0
+                })
+            );
         }
         _distributePerformanceFeesAndDeposit();
     }

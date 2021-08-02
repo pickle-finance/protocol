@@ -1,4 +1,5 @@
 pragma solidity ^0.6.7;
+pragma experimental ABIEncoderV2;
 
 import "../../lib/test-strategy-lqty-farm-base.sol";
 
