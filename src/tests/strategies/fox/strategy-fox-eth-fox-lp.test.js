@@ -1,6 +1,7 @@
 const {toWei} = require("../../utils/testHelper");
 const {getLpToken} = require("../../utils/setupHelper");
 const {doTestBehaviorBase} = require("../testBehaviorBase");
+const {doTestBehaviorBaseV2} = require("../testBehaviorBaseV2");
 const {UNI_ROUTER} = require("../../utils/constants");
 
 describe("StrategyFoxEthFoxLp", () => {
@@ -11,5 +12,5 @@ describe("StrategyFoxEthFoxLp", () => {
     await getLpToken(UNI_ROUTER, want_addr, toWei(100), alice);
   });
 
-  doTestBehaviorBase("StrategyFoxEthFoxLp", want_addr);
+  doTestBehaviorBaseV2("StrategyFoxEthFoxLp", want_addr);
 });
