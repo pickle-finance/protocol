@@ -34,8 +34,6 @@ abstract contract StrategyFoxFarmBase is StrategyBase {
         )
     {
         token1 = _token1;
-        IERC20(fox).safeApprove(univ2Router2, uint(-1));
-        IERC20(weth).safeApprove(univ2Router2, uint(-1));
     }
     
     function balanceOfPool() public override view returns (uint256) {
@@ -95,6 +93,8 @@ abstract contract StrategyFoxFarmBase is StrategyBase {
         // Swap half WETH for token1
         uint256 _weth = IERC20(weth).balanceOf(address(this));
         if (_weth > 0) {
+            IERC20(weth).safeApprove(univ2Router2, 0);
+            IERC20(weth).safeApprove(univ2Router2, _weth);
             _swapUniswap(weth, token1, _weth.div(2));
         }
 
@@ -102,6 +102,8 @@ abstract contract StrategyFoxFarmBase is StrategyBase {
         _weth = IERC20(weth).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
         if (_weth > 0 && _token1 > 0) {
+            IERC20(weth).safeApprove(univ2Router2, 0);
+            IERC20(weth).safeApprove(univ2Router2, _weth);
             IERC20(token1).safeApprove(univ2Router2, 0);
             IERC20(token1).safeApprove(univ2Router2, _token1);
 
