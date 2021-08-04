@@ -9,7 +9,6 @@ describe("StrategyDinoDinoUsdcLp", () => {
 
   before("Get want token", async () => {
     [alice] = await hre.ethers.getSigners();
-    // await getLpToken(POLYGON_SUSHI_ROUTER, want_addr, toWei(100), alice);
     await getWantFromWhale(want_addr, toWei(1, 16), alice, whale_addr);
   });
 
