@@ -3,12 +3,12 @@ pragma solidity ^0.6.7;
 
 import "../strategy-joe-farm-base.sol";
 
-contract StrategyJoePngJoeLp is StrategyJoeFarmBase {
+contract StrategyJoeAvaxDaiLp is StrategyJoeFarmBase {
 
-    uint256 public avax_joe_poolId = 18;
+    uint256 public avax_dai_poolId = 3;
 
-    address public joe_png_joe_lp = 0xE4B66cA7a32DDc21df3c1233866957573e7EC744;
-    address public png = 0x60781C2586D68229fde47564546784ab3fACA982;
+    address public joe_avax_dai_lp = 0x43B9C8dEC26C2D21146466cAacabf94FdbEac473;
+    address public dai = 0xbA7dEebBFC5fA1100Fb055a87773e1E99Cd3507a;
 
     constructor(
         address _governance,
@@ -18,8 +18,8 @@ contract StrategyJoePngJoeLp is StrategyJoeFarmBase {
     )
         public
         StrategyJoeFarmBase(
-            avax_joe_poolId,
-            joe_png_joe_lp,
+            avax_dai_poolId,
+            joe_avax_dai_lp,
             _governance,
             _strategist,
             _controller,
@@ -49,28 +49,29 @@ contract StrategyJoePngJoeLp is StrategyJoeFarmBase {
             );
             uint256 _amount = _joe.sub(_keepJOE).div(2);
             IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _amount);
+            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keepJOE));
 
-            _swapTraderJoe(joe, png, _amount);
+            _swapTraderJoe(joe, wavax, _amount);
+            _swapTraderJoe(joe, dai, _amount);
         }
 
-        // Adds in liquidity for AVAX/JOE
-        uint256 _png = IERC20(png).balanceOf(address(this));
+        // Adds in liquidity for AVAX/DAI
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
 
-        _joe = IERC20(joe).balanceOf(address(this));
+        uint256 _dai = IERC20(dai).balanceOf(address(this));
 
-        if (_png > 0 && _joe > 0) {
-            IERC20(png).safeApprove(joeRouter, 0);
-            IERC20(png).safeApprove(joeRouter, _png);
+        if (_wavax > 0 && _dai > 0) {
+            IERC20(wavax).safeApprove(joeRouter, 0);
+            IERC20(wavax).safeApprove(joeRouter, _wavax);
 
-            IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _joe);
+            IERC20(dai).safeApprove(joeRouter, 0);
+            IERC20(dai).safeApprove(joeRouter, _dai);
 
             IJoeRouter(joeRouter).addLiquidity(
-                png,
-                joe,
-                _png,
-                _joe,
+                wavax,
+                dai,
+                _wavax,
+                _dai,
                 0,
                 0,
                 address(this),
@@ -78,13 +79,13 @@ contract StrategyJoePngJoeLp is StrategyJoeFarmBase {
             );
 
             // Donates DUST
-            IERC20(png).transfer(
+            IERC20(wavax).transfer(
                 IController(controller).treasury(),
-                IERC20(png).balanceOf(address(this))
+                IERC20(wavax).balanceOf(address(this))
             );
-            IERC20(joe).safeTransfer(
+            IERC20(dai).safeTransfer(
                 IController(controller).treasury(),
-                IERC20(joe).balanceOf(address(this))
+                IERC20(dai).balanceOf(address(this))
             );
         }
 
@@ -94,6 +95,6 @@ contract StrategyJoePngJoeLp is StrategyJoeFarmBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyJoePngJoeLp";
+        return "StrategyJoeAvaxDaiLp";
     }
 }
