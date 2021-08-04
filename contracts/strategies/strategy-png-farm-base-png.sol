@@ -63,11 +63,10 @@ abstract contract StrategyPngFarmBasePng is StrategyStakingRewardsBase {
                 _keepPNG
             );
             
-			      //swap Pangolin for token1
-            _swapPangolin(png, token1, _png.sub(_keepPNG).div(2));
-                       
+            //swap Pangolin for token1
+            _swapPangolin(png, token1, _png.sub(_keepPNG).div(2));      
         }
-           
+        
         // Adds in liquidity for png/token
         _png = IERC20(png).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
