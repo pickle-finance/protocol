@@ -21,10 +21,9 @@ module.exports = {
   networks: {
     hardhat: {
       accounts: [{privateKey: process.env.PRIVATE_KEY, balance: "11023978688000000000"}],
+      chainId: 43114,
       forking: {
         url: "https://api.avax.network/ext/bc/C/rpc",
-        // blockNumber: 2405677,
-        accounts: [process.env.PRIVATE_KEY]
       }
     },
     fuji: {
