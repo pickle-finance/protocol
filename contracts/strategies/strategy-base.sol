@@ -269,19 +269,29 @@ abstract contract StrategyBase {
     ) internal {
         require(_to != address(0));
 
+        // Swap with Pangolin
+        IERC20(_from).safeApprove(pangolinRouter, 0);
+        IERC20(_from).safeApprove(pangolinRouter, _amount);
+
         address[] memory path;
 
-        if (_from == wavax || _to == wavax) {
+        if (_from == png || _to == png) {
             path = new address[](2);
             path[0] = _from;
             path[1] = _to;
-        } else {
+        } 
+        else if (_from == wavax || _to == wavax) {
+            path = new address[](2);
+            path[0] = _from;
+            path[1] = _to;
+        } 
+        else {
             path = new address[](3);
             path[0] = _from;
-            path[1] = wavax;
+            path[1] = png;
             path[2] = _to;
         }
-
+        
         IPangolinRouter(pangolinRouter).swapExactTokensForTokens(
             _amount,
             0,

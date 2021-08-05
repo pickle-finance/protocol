@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-farm-base.sol";
 
-contract StrategyPngAvaxYfiLp is StrategyPngFarmBase {
+contract StrategyPngAvaxYfiELp is StrategyPngFarmBase {
     // Token addresses
     address public png_avax_yfi_lp_rewards = 0x642c5B7AC22f56A0eF87930a89f0980FcA904B03;
     address public png_avax_yfi_lp = 0x9a634CE657681200B8c5fb3Fa1aC59Eb0662f45C;
@@ -30,6 +30,6 @@ contract StrategyPngAvaxYfiLp is StrategyPngFarmBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyPngAvaxYfiLp";
+        return "StrategyPngAvaxYfiELp";
     }
 }
