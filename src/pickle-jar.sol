@@ -127,6 +127,7 @@ contract PickleJar is ERC20 {
     }
 
     function getRatio() public view returns (uint256) {
+        if (totalSupply() == 0) return 0;
         return balance().mul(1e18).div(totalSupply());
     }
 }
