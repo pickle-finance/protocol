@@ -36,6 +36,8 @@ interface IStakingRewards {
 
     function stake(uint256 amount) external;
 
+    function deposit(uint256 amount) external;
+
     function stakeWithPermit(
         uint256 amount,
         uint256 deadline,

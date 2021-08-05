@@ -106,8 +106,15 @@ dist
 
 solc-input.json
 build
-cache
 artifacts
-yarn.lock
-hardhat
-package-lock.json
+cache
+
+/data
+/cache
+/src/flatten
+
+.DS_Store
+hardhat/
+
+# vscode
+.vscode

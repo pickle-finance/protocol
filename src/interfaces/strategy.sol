@@ -28,6 +28,8 @@ interface IStrategy {
 
     function balanceOf() external view returns (uint256);
 
+    function getHarvestable() external view returns (uint256);
+
     function harvest() external;
 
     function setTimelock(address) external;
