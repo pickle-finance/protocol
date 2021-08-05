@@ -2,12 +2,24 @@ const { ethers } = require("hardhat");
 require('dotenv').config();
 
 async function main() {
-  // const name = "PngAvaxPefi"; 
-  // const name = "PngPefiPng";
-  // const name = "PngAvaxSherpa";
-  // const name = "PngSherpaPng";
-  // const name = "PngAvaxTryb";
-  const name = "PngTrybPng";
+  const name = "PngAvaxUsdtE"; // AVAX-USDT.e
+  // const name = "PngAvaxDaiE"; // AVAX-DAI.e
+  // const name = "PngAvaxSushiE"; // AVAX-Sushi.e
+  // const name = "PngAvaxLinkE"; // AVAX-Link.e
+  // const name = "PngAvaxWbtcE"; // AVAX-WBTC.e
+  // const name = "PngAvaxEthE"; // AVAX-ETH.e
+  // const name = "PngAvaxYfiE";// AVAX-YFI.e
+  // const name = "PngAvaxUniE"; // AVAX-UNI.e
+  // const name = "PngAvaxAaveE"; // Avax-AAVE.e
+  // const name = "PngYfiEPng"; // PNG-YFI.e
+  // const name = "PngUniEPng"; // PNG-UNI.e
+  // const name = "PngAaveEPng"; // PNG-AAVE.e
+  // const name = "PngUsdtEPng"; // PNG-USDT.e
+  // const name = "PngDaiEPng"; // PNG-DAI.e
+  // const name = "PngSushiEPng"; // PNG-SUSHI.e
+  // const name = "PngLinkEPng"; // PNG-Link.e
+  // const name = "PngWbtcEPng"; // PNG-WBTC.e
+  // const name = "PngEthEPng"; // PNG-ETH.e
 
   const strategy_name = `Strategy${name}Lp`;
   const snowglobe_name = `SnowGlobe${name}`;
