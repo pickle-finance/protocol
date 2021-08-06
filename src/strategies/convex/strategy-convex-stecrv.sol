@@ -3,8 +3,9 @@ pragma solidity ^0.6.7;
 
 import "../strategy-convex-farm-base.sol";
 import "../../interfaces/steth.sol";
+import "../../interfaces/weth.sol";
 
-contract StrategyConvexSteCRV is StrategyConvexFarmBase  {
+contract StrategyConvexSteCRV is StrategyConvexFarmBase {
     address public stEth = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
     address public lpToken = 0x06325440D014e39736583c165C2963BA99fAf14E; // steCRV
 
@@ -34,8 +35,7 @@ contract StrategyConvexSteCRV is StrategyConvexFarmBase  {
             _controller,
             _timelock
         )
-    {
-    }
+    {}
 
     // swap for eth
     receive() external payable {}
@@ -46,12 +46,29 @@ contract StrategyConvexSteCRV is StrategyConvexFarmBase  {
         return "StrategyConvexStETH";
     }
 
-    function getHarvestable() public view returns (uint256, uint256, uint256, uint256) {
-        return (get_crv_earned(), get_cvx_earned(), get_ldo_earned(), get_eth_earned());
+    function getHarvestable()
+        public
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        return (
+            get_crv_earned(),
+            get_cvx_earned(),
+            get_ldo_earned(),
+            get_eth_earned()
+        );
     }
 
     function get_ldo_earned() public view returns (uint256) {
-        return IVirtualBalanceRewardPool(IBaseRewardPool(getCrvRewardContract()).extraRewards(0)).earned(address(this));
+        return
+            IVirtualBalanceRewardPool(
+                IBaseRewardPool(getCrvRewardContract()).extraRewards(0)
+            ).earned(address(this));
     }
 
     function get_eth_earned() public view returns (uint256) {
@@ -66,11 +83,18 @@ contract StrategyConvexSteCRV is StrategyConvexFarmBase  {
         return crvEth.add(ldoEth).add(cvxEth);
     }
 
-    function _estimateSell(address currency, uint256 amount) internal view returns (uint256 outAmount){
+    function _estimateSell(address currency, uint256 amount)
+        internal
+        view
+        returns (uint256 outAmount)
+    {
         address[] memory path = new address[](2);
         path[0] = currency;
         path[1] = weth;
-        uint256[] memory amounts = UniswapRouterV2(sushiRouter).getAmountsOut(amount, path);
+        uint256[] memory amounts = UniswapRouterV2(sushiRouter).getAmountsOut(
+            amount,
+            path
+        );
         outAmount = amounts[amounts.length - 1];
 
         return outAmount;
@@ -86,10 +110,7 @@ contract StrategyConvexSteCRV is StrategyConvexFarmBase  {
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
-        IBaseRewardPool(getCrvRewardContract()).getReward(
-            address(this),
-            true
-        );
+        IBaseRewardPool(getCrvRewardContract()).getReward(address(this), true);
 
         uint256 _cvx = IERC20(cvx).balanceOf(address(this));
         if (_cvx > 0) {
@@ -125,7 +146,7 @@ contract StrategyConvexSteCRV is StrategyConvexFarmBase  {
         WETH(weth).withdraw(WETH(weth).balanceOf(address(this)));
 
         uint256 _eth = address(this).balance;
-        IStEth(stEth).submit{value: _eth/2}(strategist);
+        IStEth(stEth).submit{value: _eth / 2}(strategist);
         _eth = address(this).balance;
 
         uint256 _stEth = IStEth(stEth).balanceOf(address(this));
