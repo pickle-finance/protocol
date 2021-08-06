@@ -6,9 +6,7 @@ import "../strategy-joe-farm-base.sol";
 contract StrategyJoePngJoeLp is StrategyJoeFarmBase {
 
     uint256 public avax_joe_poolId = 18;
-
     address public joe_png_joe_lp = 0xE4B66cA7a32DDc21df3c1233866957573e7EC744;
-    address public png = 0x60781C2586D68229fde47564546784ab3fACA982;
 
     constructor(
         address _governance,

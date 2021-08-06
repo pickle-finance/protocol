@@ -4,8 +4,6 @@ pragma solidity ^0.6.7;
 import "./strategy-staking-rewards-base.sol";
 
 abstract contract StrategyPngFarmBasePng is StrategyStakingRewardsBase {
-    // Token addresses
-    address public png = 0x60781C2586D68229fde47564546784ab3fACA982;
 
     // WAVAX/<token1> pair
     address public token1;

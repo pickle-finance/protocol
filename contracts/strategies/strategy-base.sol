@@ -19,6 +19,7 @@ abstract contract StrategyBase {
     // Tokens
     address public want;
     address public constant wavax = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
+    address public constant png = 0x60781C2586D68229fde47564546784ab3fACA982;
 
     // Dex
     address public pangolinRouter = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
@@ -269,19 +270,29 @@ abstract contract StrategyBase {
     ) internal {
         require(_to != address(0));
 
+        // Swap with Pangolin
+        IERC20(_from).safeApprove(pangolinRouter, 0);
+        IERC20(_from).safeApprove(pangolinRouter, _amount);
+
         address[] memory path;
 
-        if (_from == wavax || _to == wavax) {
+        if (_from == png || _to == png) {
             path = new address[](2);
             path[0] = _from;
             path[1] = _to;
-        } else {
+        } 
+        else if (_from == wavax || _to == wavax) {
+            path = new address[](2);
+            path[0] = _from;
+            path[1] = _to;
+        } 
+        else {
             path = new address[](3);
             path[0] = _from;
-            path[1] = wavax;
+            path[1] = png;
             path[2] = _to;
         }
-
+        
         IPangolinRouter(pangolinRouter).swapExactTokensForTokens(
             _amount,
             0,
