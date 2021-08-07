@@ -5,12 +5,16 @@ import "../lib/erc20.sol";
 
 interface IJar is IERC20 {
     function token() external view returns (address);
+    
+    function reward() external view returns (address);
 
     function claimInsurance() external; // NOTE: Only yDelegatedVault implements this
 
     function getRatio() external view returns (uint256);
 
     function depositAll() external;
+    
+    function balance() external view returns (uint256);
 
     function deposit(uint256) external;
 
