@@ -23,10 +23,12 @@ contract PickleJarCooldown is ERC20 {
     address public controller;
 
     uint256 public cooldownTime = 7 days;
+    uint256 public initialWithdrawalFee = 50;
+    uint256 public initialWithdrawalFeeMax = 1000;
 
     struct CooldownInfo {
         uint256 amount;
-        uint256 endTime;
+        uint256 startTime;
     }
 
     mapping (address => CooldownInfo) public cooldownInfo;
@@ -78,6 +80,13 @@ contract PickleJarCooldown is ERC20 {
         cooldownTime = _cooldownTime;
     }
 
+    function setInitialWithdrawalFee(uint256 fee, uint256 feeMax) external {
+        require(msg.sender == governance, "!governance");
+        require(fee <= feeMax, "Invalid fee");
+        initialWithdrawalFee = fee;
+        initialWithdrawalFeeMax = feeMax;
+    }
+
     // Custom logic in here for how much the jars allows to be borrowed
     // Sets minimum required on-hand to keep small withdrawals cheap
     function available() public view returns (uint256) {
@@ -122,16 +131,17 @@ contract PickleJarCooldown is ERC20 {
 
     function cooldown(uint256 _shares) public {
         require(_shares < balanceOf(msg.sender), "!shares");
-        CooldownInfo cooldown = cooldownInfo[msg.sender];
+        CooldownInfo storage cooldown = cooldownInfo[msg.sender];
         cooldown.amount = _shares;
-        cooldown.endTime = now + cooldownTime;
+        cooldown.startTime = now;
     }
 
     // No rebalance implementation for lower fees and faster swaps
     function withdraw(uint256 _shares) public {
-        CooldownInfo cooldown = cooldownInfo[msg.sender];
+        CooldownInfo storage cooldown = cooldownInfo[msg.sender];
         require(_shares <= cooldown.amount, "!cooldown");
-        require(now >= cooldown.endTime, "!cooldown");
+        require(now >= cooldown.startTime, "!cooldown didn't start");
+
         uint256 r = (balance().mul(_shares)).div(totalSupply());
         _burn(msg.sender, _shares);
         cooldown.amount = cooldown.amount.sub(_shares);
@@ -146,6 +156,15 @@ contract PickleJarCooldown is ERC20 {
             if (_diff < _withdraw) {
                 r = b.add(_diff);
             }
+        }
+
+        uint256 cooldownEndTime = cooldown.startTime + cooldownTime;
+
+        if (now < cooldownEndTime) {
+            uint256 timeDiff = cooldownEndTime.sub(now);
+            uint256 withdrawalFee = r.mul(initialWithdrawalFee).mul(timeDiff).div(cooldownTime).div(initialWithdrawalFeeMax);
+            token.safeTransfer(IController(controller).devfund(), withdrawalFee);
+            r = r.sub(withdrawalFee);
         }
 
         token.safeTransfer(msg.sender, r);
