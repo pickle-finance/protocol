@@ -47,48 +47,15 @@ contract StrategyJoexJoe is StrategyxJoeFarmBase {
                 IController(controller).treasury(),
                 _keepJOE
             );
-            uint256 _amount = _joe.sub(_keepJOE).div(2);
-            IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keepJOE));
+            uint256 _amount = _joe.sub(_keepJOE);
+            IERC20(joe).safeApprove(joeBar, 0);
+            IERC20(joe).safeApprove(joeBar, _joe.sub(_keepJOE));
 
-            _swapTraderJoe(joe, wavax, _amount);
-            _swapTraderJoe(joe, snob, _amount);
+			//Deposit Harvested Joe into xJoe
+			IJoeBar(joeBar).enter(_amount);
+            
         }
-
-        // Adds in liquidity for AVAX/SNOB
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-
-        uint256 _snob = IERC20(snob).balanceOf(address(this));
-
-        if (_wavax > 0 && _snob > 0) {
-            IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax);
-
-            IERC20(snob).safeApprove(joeRouter, 0);
-            IERC20(snob).safeApprove(joeRouter, _snob);
-
-            IJoeRouter(joeRouter).addLiquidity(
-                wavax,
-                snob,
-                _wavax,
-                _snob,
-                0,
-                0,
-                address(this),
-                now + 60
-            );
-
-            // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(snob).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(snob).balanceOf(address(this))
-            );
-        }
-
+   
         _distributePerformanceFeesAndDeposit();
     }
 
