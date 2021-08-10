@@ -5,13 +5,13 @@ import "./strategy-base.sol";
 import "../interfaces/masterchefjoev2.sol";
 import "../interfaces/joe-rewarder.sol";
 import "../interfaces/joe.sol";
-import "../interface/IJoeBar.sol";
+import "../interfaces/JoeBar.sol";
 
 abstract contract StrategyxJoeFarmBase is StrategyBase {
     // Token addresses
     address public constant joe = 0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd;
     address public constant joeRouter = 0x60aE616a2155Ee3d9A68541Ba4544862310933d4;
-	address public constant joeBar = 0x57319d41F71E81F3c65F2a47CA4e001EbAFd4F33;
+	
 
     address public constant masterChefJoeV2 = 0xd6a4F121CA35509aF06A0Be99093d08462f53052;
 
@@ -66,47 +66,7 @@ abstract contract StrategyxJoeFarmBase is StrategyBase {
         return _amount;
     }
 
-    function _swapTraderJoe(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal {
-        require(_to != address(0));
+ 
 
-        address[] memory path;
-
-        if (_from == wavax || _to == wavax) {
-            path = new address[](2);
-            path[0] = _from;
-            path[1] = _to;
-        } else {
-            path = new address[](3);
-            path[0] = _from;
-            path[1] = wavax;
-            path[2] = _to;
-        }
-
-        IJoeRouter(joeRouter).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            now.add(60)
-        );
-    }
-
-    function _swapTraderJoeWithPath(
-        address[] memory path,
-        uint256 _amount
-    ) internal {
-        require(path[1] != address(0));
-
-        IJoeRouter(joeRouter).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            now.add(60)
-        );
-    }
+    
 }

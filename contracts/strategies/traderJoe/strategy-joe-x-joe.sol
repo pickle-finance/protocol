@@ -5,10 +5,10 @@ import "../strategy-xjoe-farm-base.sol";
 
 contract StrategyJoexJoe is StrategyxJoeFarmBase {
 
-    uint256 public avax_snob_poolId = 8;
+    uint256 public poolId = 24;
 
-    address public joe_avax_snob_lp = 0x8fB5bD3aC8eFD05DACae82F512dD03e14aAdAb73;
-    address public snob = 0xC38f41A296A4493Ff429F1238e030924A1542e50;
+    
+    address public joeBar = 0x57319d41F71E81F3c65F2a47CA4e001EbAFd4F33;
 
     constructor(
         address _governance,
@@ -18,8 +18,8 @@ contract StrategyJoexJoe is StrategyxJoeFarmBase {
     )
         public
         StrategyxJoeFarmBase(
-            avax_snob_poolId,
-            joe_avax_snob_lp,
+            poolId,
+            joeBar,
             _governance,
             _strategist,
             _controller,
