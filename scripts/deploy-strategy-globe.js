@@ -3,15 +3,7 @@ require('dotenv').config();
 
 async function main() {
   const names = [
-    "PngYfiEPng",
-    "PngUniEPng",
-    "PngAaveEPng",
-    "PngUsdtEPng",
-    "PngDaiEPng",
-    "PngSushiEPng",
-    "PngLinkEPng",
-    "PngWbtcEPng",
-    "PngEthEPng"
+    "JoeAvaxYak",
   ];
 
   const [deployer] = await ethers.getSigners();
@@ -30,6 +22,7 @@ async function main() {
   const Controller = new ethers.Contract(controller_addr, controller_ABI, deployer);
 
   const deploy = async (name) => {
+    console.log(`run deploy with ${name}`);
     const strategy_name = `Strategy${name}Lp`;
     const snowglobe_name = `SnowGlobe${name}`;
   
