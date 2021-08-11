@@ -5,7 +5,7 @@ import "../strategy-xjoe-farm-base.sol";
 
 contract StrategyJoexJoe is StrategyxJoeFarmBase {
 
-    uint256 public poolId = 24;
+    uint256 public joeBar_poolId = 24;
 
     
     address public joeBar = 0x57319d41F71E81F3c65F2a47CA4e001EbAFd4F33;
@@ -18,7 +18,7 @@ contract StrategyJoexJoe is StrategyxJoeFarmBase {
     )
         public
         StrategyxJoeFarmBase(
-            poolId,
+            joeBar_poolId,
             joeBar,
             _governance,
             _strategist,
