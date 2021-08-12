@@ -51,8 +51,8 @@ contract StrategyJoexJoe is StrategyxJoeFarmBase {
             IERC20(joe).safeApprove(joeBar, 0);
             IERC20(joe).safeApprove(joeBar, _joe.sub(_keepJOE));
 
-			//Deposit Harvested Joe into xJoe
-			IJoeBar(joeBar).enter(_amount);
+            //Deposit Harvested Joe into xJoe
+            IJoeBar(joeBar).enter(_amount);
             
         }
    
