@@ -25,7 +25,7 @@ contract FXSLocker {
     using SafeMath for uint256;
 
     address public constant fxs =
-        address(0x853d955aCEf822Db058eb8505911ED77F175b99e);
+        address(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
 
     address public constant escrow =
         address(0xc8418aF6358FFddA74e09Ca9CC3Fe03Ca6aDC5b0);

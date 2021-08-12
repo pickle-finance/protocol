@@ -260,14 +260,14 @@ contract veFXSVault {
     address public pendingGovernance;
 
     IERC20 public constant FXS =
-        IERC20(0x853d955aCEf822Db058eb8505911ED77F175b99e);
+        IERC20(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
     address public constant LOCK =
         address(0xF147b8125d2ef93FB6965Db97D6746952a133934);
     address public proxy = address(0x7A1848e7847F3f5FfB4d8e63BdB9569db535A4f0);
     address public feeDistribution;
 
     IERC20 public constant rewards =
-        IERC20(0x853d955aCEf822Db058eb8505911ED77F175b99e);
+        IERC20(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
 
     uint256 public index = 0;
     uint256 public bal = 0;
