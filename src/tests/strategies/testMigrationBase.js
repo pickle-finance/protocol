@@ -29,10 +29,10 @@ const doTestMigrationBase = (oldStrategyName, newStrategyName, want_addr) => {
 
       newStrategy = await deployContract(
         newStrategyName,
-        governance,
-        strategist,
+        governance.address,
+        strategist.address,
         controller.address,
-        timelock
+        timelock.address
       );
       console.log("✅ New Strategy is deployed at ", newStrategy.address);
     });
