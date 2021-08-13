@@ -31,17 +31,11 @@ const doTestMigrationBase = (oldStrategyName, newStrategyName, want_addr) => {
         newStrategyName,
         governance,
         strategist,
-        controller,
+        controller.address,
         timelock
       );
       console.log("✅ New Strategy is deployed at ", newStrategy.address);
     });
-
-    // it("Should set the timelock correctly", async () => {
-    //   expect(await strategy.timelock()).to.be.eq(timelock.address, "timelock is incorrect");
-    //   await strategy.setTimelock(NULL_ADDRESS);
-    //   expect(await strategy.timelock()).to.be.eq(NULL_ADDRESS, "timelock is incorrect");
-    // });
 
     it("Should withdraw correctly", async () => {
       const _want = await want.balanceOf(alice.address);
