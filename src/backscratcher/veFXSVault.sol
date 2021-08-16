@@ -262,8 +262,8 @@ contract veFXSVault {
     IERC20 public constant FXS =
         IERC20(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
     address public constant LOCK =
-        address(0xF147b8125d2ef93FB6965Db97D6746952a133934);
-    address public proxy = address(0x7A1848e7847F3f5FfB4d8e63BdB9569db535A4f0);
+        address(0x7600137d41630BB1E35E02332013444302d40Edc);
+    address public proxy;
     address public feeDistribution;
 
     IERC20 public constant rewards =
@@ -273,6 +273,19 @@ contract veFXSVault {
     uint256 public bal = 0;
 
     mapping(address => uint256) public supplyIndex;
+
+    constructor() public {
+        // Set governance for this token
+        governance = msg.sender;
+        DOMAINSEPARATOR = keccak256(
+            abi.encode(
+                DOMAIN_TYPEHASH,
+                keccak256(bytes(name)),
+                _getChainId(),
+                address(this)
+            )
+        );
+    }
 
     function update() external {
         _update();
@@ -332,19 +345,6 @@ contract veFXSVault {
         rewards.transfer(recipient, claimable[recipient]);
         claimable[recipient] = 0;
         bal = rewards.balanceOf(address(this));
-    }
-
-    constructor() public {
-        // Set governance for this token
-        governance = msg.sender;
-        DOMAINSEPARATOR = keccak256(
-            abi.encode(
-                DOMAIN_TYPEHASH,
-                keccak256(bytes(name)),
-                _getChainId(),
-                address(this)
-            )
-        );
     }
 
     function _mint(address dst, uint256 amount) internal {

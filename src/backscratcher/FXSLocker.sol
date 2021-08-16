@@ -88,7 +88,7 @@ contract FXSLocker {
             msg.sender == strategy || msg.sender == governance,
             "!governance"
         );
-        (bool success, bytes memory result) = to.call.value(value)(data);
+        (bool success, bytes memory result) = to.call{value: value}(data);
 
         return (success, result);
     }
