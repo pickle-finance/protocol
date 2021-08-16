@@ -190,15 +190,20 @@ abstract contract StrategyBaseSymbiotic {
         uint256 _feeDev = _amount.mul(withdrawalDevFundFee).div(
             withdrawalDevFundMax
         );
-        IERC20(want).safeTransfer(IController(controller).devfund(), _feeDev);
+        if (_feeDev > 0)
+            IERC20(want).safeTransfer(
+                IController(controller).devfund(),
+                _feeDev
+            );
 
         uint256 _feeTreasury = _amount.mul(withdrawalTreasuryFee).div(
             withdrawalTreasuryMax
         );
-        IERC20(want).safeTransfer(
-            IController(controller).treasury(),
-            _feeTreasury
-        );
+        if (_feeTreasury > 0)
+            IERC20(want).safeTransfer(
+                IController(controller).treasury(),
+                _feeTreasury
+            );
 
         address _jar = IController(controller).jars(address(want));
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds

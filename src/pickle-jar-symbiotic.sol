@@ -4,11 +4,11 @@ pragma solidity ^0.6.7;
 
 import "./interfaces/controller.sol";
 
-import "./lib/erc20symbiotic.sol";
+import "./lib/erc20.sol";
 import "./interfaces/strategy.sol";
 import "./lib/safe-math.sol";
 
-contract PickleJarSymbiotic is ERC20Symbiotic {
+contract PickleJarSymbiotic is ERC20 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -29,6 +29,10 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
     address public timelock;
     address public controller;
 
+    address public gauge;
+    bool public paused;
+    bool public callEarnAfterDeposit;
+
     event Deposit(address indexed user, uint256 _amount, uint256 _shares);
     event Withdraw(address indexed user, uint256 _amount, uint256 _shares);
 
@@ -40,17 +44,18 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
         address _controller
     )
         public
-        ERC20Symbiotic(
-            string(abi.encodePacked("pickling ", IERC20(_token).name())),
-            string(abi.encodePacked("p", IERC20(_token).symbol()))
+        ERC20(
+            string(abi.encodePacked("pickling ", ERC20(_token).name())),
+            string(abi.encodePacked("p", ERC20(_token).symbol()))
         )
     {
-        _setupDecimals(IERC20(_token).decimals());
+        _setupDecimals(ERC20(_token).decimals());
         token = IERC20(_token);
         reward = IERC20(_reward);
         governance = _governance;
         timelock = _timelock;
         controller = _controller;
+        callEarnAfterDeposit = true;
     }
 
     function balance() public view returns (uint256) {
@@ -75,6 +80,37 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
     function setGovernance(address _governance) public {
         require(msg.sender == governance, "!governance");
         governance = _governance;
+    }
+
+    function setCallEarnAfterDeposit(bool _callEarn) external {
+        require(msg.sender == governance, "!governance");
+        callEarnAfterDeposit = _callEarn;
+    }
+
+    event Paused(
+        address indexed gov,
+        uint256 blockNumber,
+        uint256 blockTimestamp
+    );
+
+    function pause() external {
+        require(msg.sender == governance, "!governance");
+        require(paused == false, "jar is already paused");
+        paused = true;
+        emit Paused(msg.sender, block.number, block.timestamp);
+    }
+
+    event Resumed(
+        address indexed gov,
+        uint256 blockNumber,
+        uint256 blockTimestamp
+    );
+
+    function resume() external {
+        require(msg.sender == governance, "!governance");
+        require(paused == true, "jar is not paused");
+        paused = false;
+        emit Resumed(msg.sender, block.number, block.timestamp);
     }
 
     function setTimelock(address _timelock) public {
@@ -103,7 +139,7 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
         deposit(token.balanceOf(msg.sender));
     }
 
-    function deposit(uint256 _amount) public {
+    function deposit(uint256 _amount) public whenNotPaused {
         require(_amount > 0, "Invalid amount");
         _updateAccPerShare();
 
@@ -124,6 +160,9 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
         userRewardDebt[msg.sender] = balanceOf(msg.sender)
         .mul(accRewardPerShare)
         .div(1e36);
+
+        if (callEarnAfterDeposit) earn();
+
         emit Deposit(msg.sender, _amount, shares);
     }
 
@@ -172,10 +211,12 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
         if (totalSupply() == 0) return 0;
         uint256 allPendingReward = pendingReward();
         if (allPendingReward < lastPendingReward) return 0;
+
         uint256 addedReward = allPendingReward.sub(lastPendingReward);
         uint256 newAccRewardPerShare = accRewardPerShare.add(
             (addedReward.mul(1e36)).div(totalSupply())
         );
+
         return
             balanceOf(user).mul(newAccRewardPerShare).div(1e36).sub(
                 userRewardDebt[user]
@@ -187,12 +228,14 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
         .mul(accRewardPerShare)
         .div(1e36)
         .sub(userRewardDebt[msg.sender]);
-        
         if (_pending > 0) {
             uint256 _balance = reward.balanceOf(address(this));
             if (_balance < _pending) {
                 uint256 _withdraw = _pending.sub(_balance);
-                IController(controller).withdrawReward(address(token), _withdraw);
+                IController(controller).withdrawReward(
+                    address(token),
+                    _withdraw
+                );
                 uint256 _after = reward.balanceOf(address(this));
                 uint256 _diff = _after.sub(_balance);
                 if (_diff < _withdraw) {
@@ -200,12 +243,13 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
                 }
             }
             reward.safeTransfer(msg.sender, _pending);
-            lastPendingReward = curPendingReward.sub(_pending);
         }
+        lastPendingReward = pendingReward();
     }
 
-    function withdraw(uint256 _shares) public {
+    function withdraw(uint256 _shares) public whenNotPaused {
         require(balanceOf(msg.sender) >= _shares, "Invalid amount");
+
         _updateAccPerShare();
         _withdrawReward();
 
@@ -233,5 +277,18 @@ contract PickleJarSymbiotic is ERC20Symbiotic {
     function getRatio() public view returns (uint256) {
         if (totalSupply() == 0) return 0;
         return balance().mul(1e18).div(totalSupply());
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 /*amount*/
+    ) internal override {
+        require(from == gauge || to == gauge, "not-allowed");
+    }
+
+    modifier whenNotPaused() {
+        require(paused == false, "contract is paused");
+        _;
     }
 }
