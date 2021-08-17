@@ -43,7 +43,7 @@ contract StrategyConvexSteCRV is StrategyConvexFarmBase {
     // **** Getters ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyConvexStETH";
+        return "StrategyConvexSteCRV";
     }
 
     function getHarvestable()
