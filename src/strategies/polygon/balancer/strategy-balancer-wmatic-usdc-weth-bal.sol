@@ -7,7 +7,7 @@ import "../../../lib/balancer-vault.sol";
 abstract contract StrategyBalancerWmaticUsdcWethBalLp is StrategyBase {
     // Token addresses
     address public vault = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
-    byte32 public poolId = 0x0297e37f1873d2dab4487aa67cd56b58e2f27875000100000000000000000002;
+    bytes32 public poolId = 0x0297e37f1873d2dab4487aa67cd56b58e2f27875000100000000000000000002;
     
     address public bal = 0x9a71012b13ca4d3d0cdc72a177df3ef03b0e76a3;
     address public token0 = wmatic;
@@ -78,23 +78,23 @@ abstract contract StrategyBalancerWmaticUsdcWethBalLp is StrategyBase {
         if (_rewardBalance > 0) {
             // 10% is locked up for future gov
             uint256 _keepReward = _rewardBalance.mul(keepReward).div(keepRewardMax);
-            IERC20(rewardToken).safeApprove(IController(controller).treasury(), 0);
-            IERC20(rewardToken).safeApprove(IController(controller).treasury(), _keepReward);
-            IERC20(rewardToken).safeTransfer(
+            IERC20(bal).safeApprove(IController(controller).treasury(), 0);
+            IERC20(bal).safeApprove(IController(controller).treasury(), _keepReward);
+            IERC20(bal).safeTransfer(
                 IController(controller).treasury(),
                 _keepReward
             );
         }
         
-        uint256 remainingRewardBalance = IERC20(rewardToken).balanceOf(address(this));
+        uint256 remainingRewardBalance = IERC20(bal).balanceOf(address(this));
 
         if (remainingRewardBalance == 0) {
           return;
         }
         
         // allow Uniswap to sell our reward
-        IERC20(rewardToken).safeApprove(vault, 0);
-        IERC20(rewardToken).safeApprove(vault, remainingRewardBalance);
+        IERC20(bal).safeApprove(vault, 0);
+        IERC20(bal).safeApprove(vault, remainingRewardBalance);
 
         IAsset[] memory assets = new IAsset[](2);
         assets[0] = IAsset(token0);
@@ -118,7 +118,7 @@ abstract contract StrategyBalancerWmaticUsdcWethBalLp is StrategyBase {
         request.userData = userData;
         request.fromInternalBalance = false;
 
-        IBVault(bVault()).joinPool(
+        IBVault(vault).joinPool(
           poolId(),
           address(this),
           address(this),
