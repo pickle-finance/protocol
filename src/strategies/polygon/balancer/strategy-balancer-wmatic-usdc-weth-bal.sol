@@ -22,7 +22,6 @@ abstract contract StrategyBalancerWmaticUsdcWethBalLp is StrategyBase {
     // pool deposit fee
     uint256 public depositFee = 0;
 
-    uint256 public poolId;
     mapping (address => address[]) public uniswapRoutes;
 
     address _lp = 0x0297e37f1873d2dab4487aa67cd56b58e2f27875;
@@ -42,7 +41,6 @@ abstract contract StrategyBalancerWmaticUsdcWethBalLp is StrategyBase {
             _timelock
         )
     {
-      uniswapRoutes[wmatic] = 
     }
     
     function balanceOfPool() public override view returns (uint256) {
