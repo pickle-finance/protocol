@@ -6,8 +6,6 @@ const PickleJarSymbiotic = hre.artifacts.require("PickleJarSymbiotic");
 const ControllerV5 = hre.artifacts.require("ControllerV5");
 const ProxyAdmin = hre.artifacts.require("ProxyAdmin");
 const AdminUpgradeabilityProxy = hre.artifacts.require("AdminUpgradeabilityProxy");
-const {time} = require("@openzeppelin/test-helpers");
-const {expect} = require("chai");
 const {assert} = require("chai").use(chaiAsPromised);
 
 const unlockAccount = async (address) => {
@@ -29,6 +27,7 @@ describe("StrategySaddleAlethEth Unit test", () => {
     alcx_addr = "0xdbdb4d16eda451d0503b854cf79d55697f90c8df";
   let governance, strategist, devfund, treasury, timelock;
   let preTestSnapshotID;
+  const gaugeAddr = "0x042650a573f3d62d91C36E08045d7d0fd9E63759";
 
   before("Deploy contracts", async () => {
     [governance, devfund, treasury] = await web3.eth.getAccounts();
@@ -59,6 +58,8 @@ describe("StrategySaddleAlethEth Unit test", () => {
 
     pickleJar = await PickleJarSymbiotic.new(want, alcx_addr, governance, timelock, controller.address);
     console.log("pickleJar is deployed at =====> ", pickleJar.address);
+
+    // await pickleJar.setGauge(gaugeAddr, {from: governance});
 
     await controller.setJar(want, pickleJar.address, {from: governance});
     await controller.approveStrategy(want, strategy.address, {
@@ -101,6 +102,8 @@ describe("StrategySaddleAlethEth Unit test", () => {
     console.log("alice pToken balance =====> ", (await pickleJar.balanceOf(alice.address)).toString());
     await pickleJar.earn({from: alice.address});
 
+    await pickleJar.transfer(gaugeAddr, toWei(50), {from: alice.address});
+
     await harvest();
 
     console.log("\n---------------------------Bob deposit---------------------------------------\n");
@@ -126,7 +129,7 @@ describe("StrategySaddleAlethEth Unit test", () => {
     console.log("\nPending reward of strategy before withdraw ====> ", (await pickleJar.pendingReward()).toString());
 
     console.log("Alice pending rewards => ", (await pickleJar.pendingRewardOfUser(alice.address)).toString());
-    await pickleJar.pause({from: governance});
+
     await pickleJar.withdrawAll({from: alice.address});
 
     let _alcx_after = await alcx.balanceOf(alice.address);

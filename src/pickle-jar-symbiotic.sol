@@ -284,7 +284,9 @@ contract PickleJarSymbiotic is ERC20 {
         address to,
         uint256 /*amount*/
     ) internal override {
-        require(from == gauge || to == gauge, "not-allowed");
+        if (from != address(0) && to != address(0)) {
+            require(from == gauge || to == gauge, "not-allowed");
+        }
     }
 
     modifier whenNotPaused() {
