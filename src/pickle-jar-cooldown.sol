@@ -130,7 +130,7 @@ contract PickleJarCooldown is ERC20 {
     }
 
     function cooldown(uint256 _shares) public {
-        require(_shares < balanceOf(msg.sender), "!shares");
+        require(_shares <= balanceOf(msg.sender), "!shares");
         CooldownInfo storage cooldown = cooldownInfo[msg.sender];
         cooldown.amount = _shares;
         cooldown.startTime = now;

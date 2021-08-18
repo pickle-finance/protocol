@@ -1,7 +1,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./erc20.sol";
 
 interface IAsset {
 }
