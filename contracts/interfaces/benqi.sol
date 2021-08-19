@@ -262,14 +262,14 @@ interface IComptroller {
         uint256 repayAmount
     ) external view returns (uint256, uint256);
 
-    // Claim all the COMP accrued by holder in all markets
-    function claimComp(address holder) external;
+    // Claim all the Qi accrued by holder in all markets
+    function claimQi(address holder) external;
 
-    // Claim all the COMP accrued by holder in specific markets
-    function claimComp(address holder, address[] calldata qiTokens) external;
+    // Claim all the Qi accrued by holder in specific markets
+    function claimQi(address holder, address[] calldata qiTokens) external;
 
-    // Claim all the COMP accrued by specific holders in specific markets for their supplies and/or borrows
-    function claimComp(
+    // Claim all the Qi accrued by specific holders in specific markets for their supplies and/or borrows
+    function claimQi(
         address[] calldata holders,
         address[] calldata qiTokens,
         bool borrowers,
@@ -283,8 +283,8 @@ interface IComptroller {
 }
 
 interface IBenqiLens {
-    function getCompBalanceMetadataExt(
-        address comp,
+    function getQiBalanceMetadataExt(
+        address qi,
         address comptroller,
         address account
     )
