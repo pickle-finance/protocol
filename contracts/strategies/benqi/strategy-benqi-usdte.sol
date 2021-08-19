@@ -1,33 +1,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.2;
 
-import "../../../lib/erc20.sol";
-import "../../../lib/safe-math.sol";
-import "../../../lib/exponential.sol";
-import "../../../interfaces/globe.sol";
-import "../../../interfaces/pangolin.sol";
-import "../../../interfaces/controller.sol";
-import "../../../interfaces/benqi.sol";
+import "../../lib/erc20.sol";
+import "../../lib/safe-math.sol";
+import "../../lib/exponential.sol";
+import "../strategy-base.sol";
+import "../../interfaces/globe.sol";
+import "../../interfaces/pangolin.sol";
+import "../../interfaces/controller.sol";
+import "../../interfaces/benqi.sol";
 
-import "./strategy-base.sol";
-
-contract StrategyBenqiUsdte is StrategyBase, Exponential {
-    address public constant busdte = 0x27F8D03b3a2196956ED754baDc28D73be8830A6e;  	// lending receipt token
-    address public constant usdte = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;  	//collateral token
-    address public constant stableDebtUsdte = 0x2238101B7014C279aaF6b408A284E49cDBd5DB55;  //borrowing receipt token stable
-    address public constant variableDebtUsdte = 0x75c4d1Fb84429023170086f06E682DcbBF537b7d; //borrowing receipt token variable 
-    address public constant benqi = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;    
-    address public constant lendingPool = 0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf; //main lending contract
-    address public constant incentivesController = 0x357D51124f59836DeD84c8a1730D72B749d8BC23; //rewards contract\
-    address public constant dataProvider = 0x7551b5D2763519d4e37e8B81929D336De671d46d; //benqi data
-
-    uint16 public constant REFERRAL_CODE = 0x0;
+contract StrategyBenqiUsdteV2 is StrategyBase, Exponential {
+    address public constant comptroller = 0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B; // Risk Management Layer
+    address public constant lens = 0xd513d22422a3062Bd342Ae374b4b9c20E0a9a074;   // Benqi Data 
+    address public constant usdte = 0x6B175474E89094C44Da98b954EedeAC495271d0F; //qideposit token
+    address public constant benqi = 0xc00e94Cb662C3520282E6f5717214004A7f26888; //Qi Token
+    address public constant qiusdte = 0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643; //lending receipt token
 
     // Require a 0.04 buffer between
     // market collateral factor and strategy's collateral factor
     // when leveraging.
     uint256 colFactorLeverageBuffer = 40;
     uint256 colFactorLeverageBufferMax = 1000;
+
+    // Allow a 0.03 buffer
+    // between market collateral factor and strategy's collateral factor
+    // until we have to deleverage
+    // This is so we can hit max leverage and keep accruing interest
+    uint256 colFactorSyncBuffer = 30;
+    uint256 colFactorSyncBufferMax = 1000;
 
     // Keeper bots
     // Maintain leverage within buffer
@@ -42,6 +43,10 @@ contract StrategyBenqiUsdte is StrategyBase, Exponential {
         public
         StrategyBase(usdte, _governance, _strategist, _controller, _timelock)
     {
+        // Enter qiUSDTE Market
+        address[] memory qitokens = new address[](1);
+        qitokens[0] = qiusdte;
+        IComptroller(comptroller).enterMarkets(qitokens);
     }
 
     // **** Modifiers **** //
@@ -60,15 +65,23 @@ contract StrategyBenqiUsdte is StrategyBase, Exponential {
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {
-        return "StrategyBenqiUsdte";
+        return "StrategyBenqiUsdteV2";
     }
 
     function getSuppliedView() public view returns (uint256) {
-        return IERC20(busdte).balanceOf(address(this));
+        (, uint256 qiTokenBal, , uint256 exchangeRate) = IQiToken(qiusdte)
+            .getAccountSnapshot(address(this));
+
+        (, uint256 bal) = mulScalarTruncate(
+            Exp({mantissa: exchangeRate}),
+            qiTokenBal
+        );
+
+        return bal;
     }
 
     function getBorrowedView() public view returns (uint256) {
-        return IERC20(variableDebtUsdte).balanceOf(address(this));
+        return IQiToken(qiusdte).borrowBalanceStored(address(this));
     }
 
     function balanceOfPool() public override view returns (uint256) {
@@ -99,9 +112,21 @@ contract StrategyBenqiUsdte is StrategyBase, Exponential {
         return safeColFactor;
     }
 
+    function getSafeSyncColFactor() public view returns (uint256) {
+        uint256 colFactor = getMarketColFactor();
+
+        // Collateral factor within the buffer
+        uint256 safeColFactor = colFactor.sub(
+            colFactorSyncBuffer.mul(1e18).div(colFactorSyncBufferMax)
+        );
+
+        return safeColFactor;
+    }
+
     function getMarketColFactor() public view returns (uint256) {
-        (, uint256 ltv, , , , , , , , ) = ILendingPoolDataProvider(dataProvider).getReserveConfigurationData(usdte); // returns 7500
-        return ltv.mul(10**14);
+        (, uint256 colFactor) = IComptroller(comptroller).markets(qiusdte);
+
+        return colFactor;
     }
 
     // Max leverage we can go up to, w.r.t safe buffer
@@ -121,60 +146,65 @@ contract StrategyBenqiUsdte is StrategyBase, Exponential {
        results by calling `callStatic`.
     */
 
-    function getMaticAccrued() public view returns (uint256) {
-        address[] memory amTokens = new address[](1);
-        amTokens[0] = busdte;
+    function getQiAccrued() public returns (uint256) {
+        (, , , uint256 accrued) = IBenqiLens(lens).getQiBalanceMetadataExt(
+            benqi,
+            comptroller,
+            address(this)
+        );
 
-        return IBenqiIncentivesController(incentivesController).getRewardsBalance(amTokens, address(this));
+        return accrued;
     }
 
-    function getColFactor() public view returns (uint256) {
+    function getColFactor() public returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
 
         return borrowed.mul(1e18).div(supplied);
     }
 
-    function getSuppliedUnleveraged() public view returns (uint256) {
+    function getSuppliedUnleveraged() public returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
 
         return supplied.sub(borrowed);
     }
 
-    function getSupplied() public view returns (uint256) {
-        return IERC20(busdte).balanceOf(address(this));
+    function getSupplied() public returns (uint256) {
+        return IQiToken(qiusdte).balanceOfUnderlying(address(this));
     }
 
-    function getBorrowed() public view returns (uint256) {
-        return IERC20(variableDebtUsdte).balanceOf(address(this));
+    function getBorrowed() public returns (uint256) {
+        return IQiToken(qiusdte).borrowBalanceCurrent(address(this));
     }
 
-    function getBorrowable() public view returns (uint256) {
+    function getBorrowable() public returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
-        uint256 marketColFactor = getMarketColFactor();
+
+        (, uint256 colFactor) = IComptroller(comptroller).markets(qiusdte);
 
         // 99.99% just in case some dust accumulates
         return
-            supplied.mul(marketColFactor).div(1e18).sub(borrowed).mul(9999).div(
+            supplied.mul(colFactor).div(1e18).sub(borrowed).mul(9999).div(
                 10000
             );
     }
 
-    function getRedeemable() public view returns (uint256) {
+    function getRedeemable() public returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
-        uint256 marketColFactor = getMarketColFactor();
+
+        (, uint256 colFactor) = IComptroller(comptroller).markets(qiusdte);
 
         // Return 99.99% of the time just incase
         return
-            supplied.sub(borrowed.mul(1e18).div(marketColFactor)).mul(9999).div(
+            supplied.sub(borrowed.mul(1e18).div(colFactor)).mul(9999).div(
                 10000
             );
     }
 
-    function getCurrentLeverage() public view returns (uint256) {
+    function getCurrentLeverage() public returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
 
@@ -209,16 +239,24 @@ contract StrategyBenqiUsdte is StrategyBase, Exponential {
         colFactorLeverageBuffer = _colFactorLeverageBuffer;
     }
 
+    function setColFactorSyncBuffer(uint256 _colFactorSyncBuffer) public {
+        require(
+            msg.sender == governance || msg.sender == strategist,
+            "!governance"
+        );
+        colFactorSyncBuffer = _colFactorSyncBuffer;
+    }
+
     // **** State mutations **** //
 
     // Do a `callStatic` on this.
     // If it returns true then run it for realz. (i.e. eth_signedTx, not eth_call)
     function sync() public returns (bool) {
         uint256 colFactor = getColFactor();
-        uint256 safeLeverageColFactor = getSafeLeverageColFactor();
+        uint256 safeSyncColFactor = getSafeSyncColFactor();
 
         // If we're not safe
-        if (colFactor > safeLeverageColFactor) {
+        if (colFactor > safeSyncColFactor) {
             uint256 unleveragedSupply = getSuppliedUnleveraged();
             uint256 idealSupply = getLeveragedSupplyTarget(unleveragedSupply);
 
@@ -237,11 +275,11 @@ contract StrategyBenqiUsdte is StrategyBase, Exponential {
     }
 
     // Leverages until we're supplying <x> amount
-    // 1. Redeem <x> DAI
-    // 2. Repay <x> DAI
+    // 1. Redeem <x> USDTE
+    // 2. Repay <x> USDTE
     function leverageUntil(uint256 _supplyAmount) public onlyKeepers {
-        // 1. Borrow out <X> DAI
-        // 2. Supply <X> DAI
+        // 1. Borrow out <X> USDTE
+        // 2. Supply <X> USDTE
 
         uint256 leverage = getMaxLeverage();
         uint256 unleveragedSupply = getSuppliedUnleveraged();
@@ -262,7 +300,7 @@ contract StrategyBenqiUsdte is StrategyBase, Exponential {
                 _borrowAndSupply = _supplyAmount.sub(supplied);
             }
 
-            ILendingPool(lendingPool).borrow(usdte, _borrowAndSupply, uint256(DataTypes.InterestRateMode.VARIABLE), REFERRAL_CODE, address(this));
+            IQiToken(qiusdte).borrow(_borrowAndSupply);
             deposit();
 
             supplied = supplied.add(_borrowAndSupply);
@@ -272,19 +310,11 @@ contract StrategyBenqiUsdte is StrategyBase, Exponential {
     function deleverageToMin() public {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         deleverageUntil(unleveragedSupply);
-
-        uint256 borrowed = getBorrowed();
-        if (borrowed > 0) {
-            require (ILendingPool(lendingPool).withdraw(usdte, borrowed, address(this)) != 0, "!withdraw");
-            IERC20(usdte).safeApprove(lendingPool, 0);
-            IERC20(usdte).safeApprove(lendingPool, borrowed);
-            require(ILendingPool(lendingPool).repay(usdte, borrowed, uint256(DataTypes.InterestRateMode.VARIABLE), address(this)) != 0, "!repay");
-        }
     }
 
     // Deleverages until we're supplying <x> amount
-    // 1. Redeem <x> DAI
-    // 2. Repay <x> DAI
+    // 1. Redeem <x> USDTE
+    // 2. Repay <x> USDTE
     function deleverageUntil(uint256 _supplyAmount) public onlyKeepers {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         uint256 supplied = getSupplied();
@@ -293,40 +323,40 @@ contract StrategyBenqiUsdte is StrategyBase, Exponential {
             "!deleverage"
         );
 
-        IERC20(usdte).safeApprove(lendingPool, 0);
-        IERC20(usdte).safeApprove(lendingPool, uint256(-1));
+        // Market collateral factor
+        uint256 marketColFactor = getMarketColFactor();
 
-        while (supplied > _supplyAmount) {
-            // How much can we redeem
-            uint256 _redeemAndRepay = getRedeemable();
-
+        // How much can we redeem
+        uint256 _redeemAndRepay = getRedeemable();
+        do {
             // If the amount we're redeeming is exceeding the
             // target supplyAmount, adjust accordingly
             if (supplied.sub(_redeemAndRepay) < _supplyAmount) {
                 _redeemAndRepay = supplied.sub(_supplyAmount);
             }
-            
-            // withdraw
-            require (ILendingPool(lendingPool).withdraw(usdte, _redeemAndRepay, address(this)) != 0, "!withdraw");
 
-            // repay
-            require(ILendingPool(lendingPool).repay(usdte, _redeemAndRepay, uint256(DataTypes.InterestRateMode.VARIABLE), address(this)) != 0, "!repay");
-            
-            supplied = getSupplied();
-        }
+            require(
+                IQiToken(qiusdte).redeemUnderlying(_redeemAndRepay) == 0,
+                "!redeem"
+            );
+            IERC20(usdte).safeApprove(qiusdte, 0);
+            IERC20(usdte).safeApprove(qiusdte, _redeemAndRepay);
+            require(IQiToken(qiusdte).repayBorrow(_redeemAndRepay) == 0, "!repay");
 
-        IERC20(usdte).safeApprove(lendingPool, 0);
+            supplied = supplied.sub(_redeemAndRepay);
+
+            // After each deleverage we can redeem more (the colFactor)
+            _redeemAndRepay = _redeemAndRepay.mul(1e18).div(marketColFactor);
+        } while (supplied > _supplyAmount);
     }
 
     function harvest() public override onlyBenevolent {
-        address[] memory amTokens = new address[](1);
-        amTokens[0] = busdte;
+        address[] memory qitokens = new address[](1);
+        qitokens[0] = qiusdte;
 
-        IBenqiIncentivesController(incentivesController).claimRewards(amTokens, uint256(-1), address(this));
+        IComptroller(comptroller).claimQi(address(this), qitokens);
         uint256 _benqi = IERC20(benqi).balanceOf(address(this));
         if (_benqi > 0) {
-            IERC20(benqi).safeApprove(pangolinRouter, 0);
-            IERC20(benqi).safeApprove(pangolinRouter, _benqi);
             _swapPangolin(benqi, want, _benqi);
         }
 
@@ -336,9 +366,9 @@ contract StrategyBenqiUsdte is StrategyBase, Exponential {
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(lendingPool, 0);
-            IERC20(want).safeApprove(lendingPool, _want);
-            ILendingPool(lendingPool).deposit(usdte, _want, address(this), REFERRAL_CODE);
+            IERC20(want).safeApprove(qiusdte, 0);
+            IERC20(want).safeApprove(qiusdte, _want);
+            require(IQiToken(qiusdte).mint(_want) == 0, "!deposit");
         }
     }
 
@@ -350,6 +380,9 @@ contract StrategyBenqiUsdte is StrategyBase, Exponential {
         uint256 _want = balanceOfWant();
         if (_want < _amount) {
             uint256 _redeem = _amount.sub(_want);
+
+            // Make sure market can cover liquidity
+            require(IQiToken(qiusdte).getCash() >= _redeem, "!cash-liquidity");
 
             // How much borrowed amount do we need to free?
             uint256 borrowed = getBorrowed();
@@ -367,13 +400,8 @@ contract StrategyBenqiUsdte is StrategyBase, Exponential {
                 this.deleverageUntil(supplied.sub(borrowedToBeFree));
             }
 
-            supplied = getSupplied();
-            if (_redeem > supplied) {
-                _redeem = supplied;
-            }
-            
-            // withdraw
-            require (ILendingPool(lendingPool).withdraw(usdte, _redeem, address(this)) != 0, "!withdraw");
+            // Redeems underlying
+            require(IQiToken(qiusdte).redeemUnderlying(_redeem) == 0, "!redeem");
         }
 
         return _amount;
