@@ -26,7 +26,7 @@ contract StrategyCvxCRVFlywheel is StrategyBaseConvexFlywheel {
         return "StrategyCvxCRVFlywheel";
     }
 
-	function withdrawReward(uint256 _amount) external {
+    function withdrawReward(uint256 _amount) external {
         require(msg.sender == controller, "!controller");
         address _jar = IController(controller).jars(address(want));
         address reward_token = IJar(_jar).reward();
@@ -61,15 +61,15 @@ contract StrategyCvxCRVFlywheel is StrategyBaseConvexFlywheel {
         rewardDeposit();
     }
 
-	function deposit() public override {
-		_deposit_cvxcrv();
+    function deposit() public override {
+        _deposit_cvxcrv();
     }
 
     function rewardDeposit() public override {
         _deposit_cvx();
     }
 
-	function getRewardDeposited() public view override returns (uint256) {
+    function getRewardDeposited() public view override returns (uint256) {
         return _balance_cvx_stake();
     }
 
@@ -77,11 +77,11 @@ contract StrategyCvxCRVFlywheel is StrategyBaseConvexFlywheel {
         return _pending_cvx();
     }
 
-	function balanceOfPool() public view override returns (uint256) {
+    function balanceOfPool() public view override returns (uint256) {
         return _balance_cvxcrv_stake();
     }
 
-	function _withdrawSome(uint256 _amount)
+    function _withdrawSome(uint256 _amount)
         internal
         override
         returns (uint256)
