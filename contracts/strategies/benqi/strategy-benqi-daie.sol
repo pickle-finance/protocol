@@ -9,6 +9,7 @@ import "../../interfaces/globe.sol";
 import "../../interfaces/pangolin.sol";
 import "../../interfaces/controller.sol";
 import "../../interfaces/benqi.sol";
+import "../../interfaces/wavax.sol";
 
 contract StrategyBenqiDai is StrategyBase, Exponential {
     address public constant comptroller = 0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4; // Through UniTroller Address
@@ -351,6 +352,11 @@ contract StrategyBenqiDai is StrategyBase, Exponential {
         }
 				
 		IComptroller(comptroller).claimReward(1, address(this)); //ClaimAvax
+		uint256 _avax = address(this).balance;
+        if (_avax > 0) {
+            WAVAX(wavax).deposit{value: _avax}();
+        }
+		
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             _swapPangolin(wavax, want, _wavax);

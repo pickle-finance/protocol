@@ -263,13 +263,13 @@ interface IComptroller {
     ) external view returns (uint256, uint256);
 
     // Claim all the Qi accrued by holder in all markets
-    function claimReward(uint256 rewardId, address holder) external;
+    function claimReward(uint8 rewardId, address holder) external;
 
     // Claim all the Qi accrued by holder in specific markets
-    function claimReward(uint256 rewardId, address holder, address[] calldata qiTokens) external;
+    function claimReward(uint8 rewardId, address holder, address[] calldata qiTokens) external;
 
     // Claim all the Qi accrued by specific holders in specific markets for their supplies and/or borrows
-    function claimReward(uint256 rewardId,
+    function claimReward(uint8 rewardId,
         address[] calldata holders,
         address[] calldata qiTokens,
         bool borrowers,
