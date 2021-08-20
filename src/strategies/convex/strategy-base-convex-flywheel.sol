@@ -143,19 +143,19 @@ abstract contract StrategyBaseConvexFlywheel is StrategyBaseSymbiotic {
         _distributePerformanceFeesAndRewardDeposit();
     }
 
-	function claim_cvx_staking() {
-		IBaseRewardPool(cvxSingleStake).getReward(false);
-	}
-	
-	function claim_cvxcrv_staking() {
-		IBaseRewardPool(cvxCRVSingleStake).getReward();
-	}
-    
+    function claim_cvx_staking() {
+        IBaseRewardPool(cvxSingleStake).getReward(false);
+    }
+
+    function claim_cvxcrv_staking() {
+        IBaseRewardPool(cvxCRVSingleStake).getReward();
+    }
+
     function pending_cvx() public view returns (uint256) {
         return
             IERC20(cvx).balanceOf(address(this)).add(
                 get_cvx_earned()
-				.add(balance_cvx_stake())
+                .add(balance_cvx_stake())
             );
     }
 
