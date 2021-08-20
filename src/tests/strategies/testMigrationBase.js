@@ -2,7 +2,14 @@ const {expect, increaseTime, getContractAt, deployContract, unlockAccount, toWei
 const {setup} = require("../utils/setupHelper");
 const {NULL_ADDRESS} = require("../utils/constants");
 
-const doTestMigrationBaseWithAddresses = (oldStrategyName, oldStrategyAddress, pickleJarAddress, newStrategyName, newStrategyAddress, want_addr) => {
+const doTestMigrationBaseWithAddresses = (
+  oldStrategyName, 
+  oldStrategyAddress, 
+  pickleJarAddress, 
+  newStrategyName, 
+  newStrategyAddress, 
+  want_addr
+) => {
   let alice, want;
   let newStrategy, pickleJar, controller, oldStrategy, controllerStrategist, newStrategist;
   let strategist, devfund, treasury, timelock;
@@ -16,22 +23,15 @@ const doTestMigrationBaseWithAddresses = (oldStrategyName, oldStrategyAddress, p
 
       want = await getContractAt("ERC20", want_addr);
       oldStrategy = await getContractAt(oldStrategyName, oldStrategyAddress);
-      console.log("Fetched old strategy at: ", oldStrategy.address);
       pickleJar = await getContractAt("PickleJar", pickleJarAddress);
-      console.log("Fetched pickleJar at: ", pickleJar.address);
-      const governanceAddress = await pickleJar.governance();
-      console.log("Fetched governance at: ", governanceAddress);
       strategist = await oldStrategy.strategist();
-      console.log("Fetched strategist at: ", strategist);
       timelock = await pickleJar.timelock();
-      console.log("Fetched timelock at: ", timelock);
       controller = await pickleJar.controller();
+
       controller = await getContractAt("src/controller-v4.sol:ControllerV4", controller);
       console.log("Fetched controller at: ", controller.address);
-      const controllerStrategistAddress = await controller.strategist();
-      console.log("Fetched controllerStrategist at: ", controllerStrategistAddress);
 
-      console.log("unlocked");
+      const controllerStrategistAddress = await controller.strategist();
 
       await alice.sendTransaction({
         to: controllerStrategistAddress,
