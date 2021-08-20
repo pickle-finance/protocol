@@ -56,7 +56,6 @@ const doTestMigrationBaseWithAddresses = (oldStrategyName, oldStrategyAddress, p
       console.log("PickleJar earned with old strategy");
 
       await controller.connect(controllerStrategist).setStrategy(want.address, newStrategy.address);
-      console.log("strategy set");
 
       await pickleJar.earn();
       console.log("PickleJar earned with new strategy");
