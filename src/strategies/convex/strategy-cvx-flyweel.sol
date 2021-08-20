@@ -44,7 +44,7 @@ contract StrategyCvxFlywheel is StrategyBaseConvexFlywheel {
 
         _balance = IERC20(reward).balanceOf(address(this));
         if (_balance < _amount && get_cvxcrv_earned() > 0)
-            claim_cvx_staking();
+            _claim_cvx_staking();
 
         _balance = IERC20(reward).balanceOf(address(this));
         if (_balance < _amount) {
@@ -70,15 +70,15 @@ contract StrategyCvxFlywheel is StrategyBaseConvexFlywheel {
     }
 
 	function getRewardDeposited() public view override returns (uint256) {
-        return _balance_cvxcrv_stake();
+        return balance_cvxcrv_stake();
     }
 
     function pendingReward() public view returns (uint256) {
-        return _pending_cvxcrv();
+        return pending_cvxcrv();
     }
 
 	function balanceOfPool() public view override returns (uint256) {
-        return _balance_cvx_stake();
+        return balance_cvx_stake();
     }
 
 	function _withdrawSome(uint256 _amount)
