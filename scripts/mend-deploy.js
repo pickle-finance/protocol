@@ -4,9 +4,14 @@ require('dotenv').config();
 async function main() {
   const pools = [
     {
-      name: "JoeAvaxUsdtE",
-      strategy_addr: "0x3Ab14374bB3fB175c4A61F3E934ec42BfEd0D259",
-      snowglobe_addr: "0xc72901E3dBE5258728B329352fC4742f4966Bc1f"
+      name: "PngAvaxQi",
+      strategy_addr: "0xA3FDD3AB82cdCe96AA5eB74c38f15ae478f6CCCc",
+      snowglobe_addr: "0xeEc21abC6daD38A8515a7C3388E5ef962Cd960e6"
+    },
+    {
+      name: "PngAvaxDyp",
+      strategy_addr: "0x2754376740F51516594B691f8e545f718f6200BB",
+      snowglobe_addr: "0xf4a591BeaC3A4D864C3293477bBD3f86880ADa16"
     }
   ];
 
@@ -50,36 +55,36 @@ async function main() {
     const lp = await Strategy.want();
     const SnowGlobe = new ethers.Contract(pool.snowglobe_addr, snowglobe_ABI, deployer);
   
-    /* Set Globe */
-    const setGlobe = await Controller.setGlobe(lp, SnowGlobe.address);
-    const tx_setGlobe = await setGlobe.wait(1);
-    if (!tx_setGlobe.status) {
-      console.error("Error setting the globe for: ",pool.name);
-      return;
-    }
-    console.log("Set Globe in the Controller for: ",pool.name);
+    // /* Set Globe */
+    // const setGlobe = await Controller.setGlobe(lp, SnowGlobe.address);
+    // const tx_setGlobe = await setGlobe.wait(1);
+    // if (!tx_setGlobe.status) {
+    //   console.error("Error setting the globe for: ",pool.name);
+    //   return;
+    // }
+    // console.log("Set Globe in the Controller for: ",pool.name);
 
-    /* Approve Strategy */
-    const approveStrategy = await Controller.approveStrategy(lp, Strategy.address);
-    const tx_approveStrategy = await approveStrategy.wait(1);
-    if (!tx_approveStrategy.status) {
-      console.error("Error approving the strategy for: ",pool.name);
-      return;
-    }
-    console.log("Approved Strategy in the Controller for: ",pool.name);
+    // /* Approve Strategy */
+    // const approveStrategy = await Controller.approveStrategy(lp, Strategy.address);
+    // const tx_approveStrategy = await approveStrategy.wait(1);
+    // if (!tx_approveStrategy.status) {
+    //   console.error("Error approving the strategy for: ",pool.name);
+    //   return;
+    // }
+    // console.log("Approved Strategy in the Controller for: ",pool.name);
 
-    /* Set Strategy */
-    const setStrategy = await Controller.setStrategy(lp, Strategy.address);
-    const tx_setStrategy = await setStrategy.wait(1);
-    if (!tx_setStrategy.status) {
-      console.error("Error setting the strategy for: ",pool.name);
-      return;
-    }
-    console.log("Set Strategy in the Controller for: ",pool.name);
+    // /* Set Strategy */
+    // const setStrategy = await Controller.setStrategy(lp, Strategy.address);
+    // const tx_setStrategy = await setStrategy.wait(1);
+    // if (!tx_setStrategy.status) {
+    //   console.error("Error setting the strategy for: ",pool.name);
+    //   return;
+    // }
+    // console.log("Set Strategy in the Controller for: ",pool.name);
   
-    /* Whitelist Harvester */
-    await Strategy.whitelistHarvester("0x096a46142C199C940FfEBf34F0fe2F2d674fDB1F");
-    console.log('whitelisted the harvester for: ',pool.name);
+    // /* Whitelist Harvester */
+    // await Strategy.whitelistHarvester("0x096a46142C199C940FfEBf34F0fe2F2d674fDB1F");
+    // console.log('whitelisted the harvester for: ',pool.name);
   
     /* Add Gauge */
     const MultiSig = new ethers.Contract(governance_addr, multisig_ABI, deployer);
