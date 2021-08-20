@@ -340,6 +340,10 @@ contract StrategyBenqiDai is StrategyBase, Exponential {
             _redeemAndRepay = _redeemAndRepay.mul(1e18).div(marketColFactor);
         } while (supplied > _supplyAmount);
     }
+	
+	
+	// allow Native Avax
+	receive() external payable {}
 
     function harvest() public override onlyBenevolent {
         address[] memory qitokens = new address[](1);
@@ -364,6 +368,7 @@ contract StrategyBenqiDai is StrategyBase, Exponential {
 
         _distributePerformanceFeesAndDeposit();
     }
+
 
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
