@@ -352,12 +352,18 @@ contract StrategyBenqiUsdteV2 is StrategyBase, Exponential {
 
     function harvest() public override onlyBenevolent {
         address[] memory qitokens = new address[](1);
-        qitokens[0] = qiusdte;
+        qitokens[0] = qidai;
 
-        IComptroller(comptroller).claimQi(address(this), qitokens);
+        IComptroller(comptroller).claimReward(0, address(this), qitokens); //ClaimQi
         uint256 _benqi = IERC20(benqi).balanceOf(address(this));
         if (_benqi > 0) {
             _swapPangolin(benqi, want, _benqi);
+        }
+				
+		IComptroller(comptroller).claimReward(1, address(this), qitokens); //ClaimAvax
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        if (_wavax > 0) {
+            _swapPangolin(wavax, want, _wavax);
         }
 
         _distributePerformanceFeesAndDeposit();
