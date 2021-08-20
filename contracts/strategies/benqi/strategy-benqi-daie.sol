@@ -352,8 +352,8 @@ contract StrategyBenqiDai is StrategyBase, Exponential {
         }
 				
 		IComptroller(comptroller).claimReward(1, address(this)); //ClaimAvax
-		uint256 _avax = address(this).balance;
-        if (_avax > 0) {
+		uint256 _avax = address(this).balance;            //get balance of native Avax
+        if (_avax > 0) {                                 //wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
         }
 		

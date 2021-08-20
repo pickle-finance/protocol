@@ -2,7 +2,7 @@
 
 pragma solidity ^0.6.0;
 
-interface WETH {
+interface WAVAX {
     function name() external view returns (string memory);
 
     function approve(address guy, uint256 wad) external returns (bool);
