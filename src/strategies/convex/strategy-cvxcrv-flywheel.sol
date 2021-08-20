@@ -86,7 +86,7 @@ contract StrategyCvxCRVFlywheel is StrategyBaseConvexFlywheel {
         override
         returns (uint256)
     {
-        return _withdraw_some_cvxcrv();
+        return _withdraw_some_cvxcrv(_amount);
     }
 
     function _withdrawSomeReward(uint256 _amount)
@@ -94,6 +94,6 @@ contract StrategyCvxCRVFlywheel is StrategyBaseConvexFlywheel {
         override
         returns (uint256)
     {
-        return _withdraw_some_cvx();
+        return _withdraw_some_cvx(_amount);
     }
 }
