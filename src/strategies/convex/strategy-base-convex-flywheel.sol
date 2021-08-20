@@ -104,10 +104,10 @@ abstract contract StrategyBaseConvexFlywheel is StrategyBaseSymbiotic {
 
     function harvest() public override onlyBenevolent {
         if (get_cvxcrv_earned() > 0)
-            claim_cvx_staking();
+            _claim_cvx_staking();
 
         if (get_crv_earned() > 0 || get_3crv_earned() > 0)
-            claim_cvxcrv_staking();
+            _claim_cvxcrv_staking();
             
         // swap 3crv for cvx
         uint256 _balance = IERC20(threeCrv).balanceOf(address(this));
