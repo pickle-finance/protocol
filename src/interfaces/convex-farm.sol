@@ -35,6 +35,18 @@ interface IConvexBooster {
     ) external returns (bool);
 }
 
+interface ICvxRewardPool {
+    function stake(uint256) external;
+    
+    function withdraw(uint256, bool) external;
+    
+    function balanceOf(address) external view returns (uint256);
+    
+    function earned(address) external view returns (uint256);
+    
+    function getReward(bool) external;
+}
+
 interface IBaseRewardPool {
     function getReward(address, bool) external returns (bool);
 
@@ -47,6 +59,10 @@ interface IBaseRewardPool {
     function extraRewards(uint256) external view returns (address);
 
     function withdrawAndUnwrap(uint256, bool) external returns (bool);
+    
+    function stake(uint256) external returns (bool);
+    
+    function withdraw(uint256, bool) external returns (bool);
 }
 
 interface IVirtualBalanceRewardPool {
