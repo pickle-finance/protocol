@@ -26,7 +26,7 @@ contract StrategyCvxFlywheel is StrategyBaseConvexFlywheel {
         return "StrategyCvxFlywheel";
     }
 
-	function withdrawReward(uint256 _amount) external {
+    function withdrawReward(uint256 _amount) external {
         require(msg.sender == controller, "!controller");
         address _jar = IController(controller).jars(address(want));
         address reward_token = IJar(_jar).reward();
