@@ -34,5 +34,5 @@ contract StrategySushiPickleDaiLp is StrategySushiFarmBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategySushiEthUsdtLp";
+        return "StrategySushiPickleDaiLp";
     }
