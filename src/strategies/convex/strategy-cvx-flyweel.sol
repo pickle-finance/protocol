@@ -62,7 +62,7 @@ contract StrategyCvxFlywheel is StrategyBaseConvexFlywheel {
     }
 
     function deposit() public override {
-		_deposit_cvx();
+        _deposit_cvx();
     }
 
     function rewardDeposit() public override {
