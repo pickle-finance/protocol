@@ -16,6 +16,7 @@ describe("STETH Migration", () => {
     "0x350c4f7a669dc263ec1838fa105172e1d96e8259", 
     "0x77C8A58D940a322Aea02dBc8EE4A30350D4239AD", 
     "StrategyConvexSteCRV", 
+    "0x4edbA7b5B715EDac9DAFA1ec4b28131fA3e2B97D",
     want_addr
   );
 });
