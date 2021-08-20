@@ -143,11 +143,11 @@ abstract contract StrategyBaseConvexFlywheel is StrategyBaseSymbiotic {
         _distributePerformanceFeesAndRewardDeposit();
     }
 
-    function claim_cvx_staking() internal {
+    function _claim_cvx_staking() internal {
         IBaseRewardPool(cvxSingleStake).getReward(false);
     }
 
-    function claim_cvxcrv_staking() internal {
+    function _claim_cvxcrv_staking() internal {
         IBaseRewardPool(cvxCRVSingleStake).getReward();
     }
 
@@ -177,7 +177,7 @@ abstract contract StrategyBaseConvexFlywheel is StrategyBaseSymbiotic {
 
     // **** Setters ****
 
-    function deposit_cvx() internal {
+    function _deposit_cvx() internal {
         uint256 _cvx = IERC20(cvx).balanceOf(address(this));
         if (_cvx > 0) {
             IERC20(cvx).safeApprove(cvxSingleStake, 0);
@@ -186,7 +186,7 @@ abstract contract StrategyBaseConvexFlywheel is StrategyBaseSymbiotic {
         }
     }
 
-    function deposit_cvxcrv() internal {
+    function _deposit_cvxcrv() internal {
         uint256 _cvxcrv = IERC20(cvxCRV).balanceOf(address(this));
         if (_cvxcrv > 0) {
             IERC20(cvxCRV).safeApprove(cvxCRVSingleStake, 0);
