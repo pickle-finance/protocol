@@ -17,7 +17,7 @@ abstract contract StrategyBaseConvexFlywheel is StrategyBaseSymbiotic {
     address public constant threePool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
 
     // **** Views ****
-    
+
     function getLeastPremium()
         public
         override
@@ -56,22 +56,22 @@ abstract contract StrategyBaseConvexFlywheel is StrategyBaseSymbiotic {
         // If they're somehow equal, we just want DAI
         return (dai, 0);
     }
-    
+
     function get_cvxcrv_earned() public view returns (uint256) {
-        return IBaseRewardPool(cvxSingleStake).earned(address(this));
+        return ICvxRewardPool(cvxSingleStake).earned(address(this));
     }
-    
+
     function get_crv_earned() public view returns (uint256) {
         return IBaseRewardPool(cvxCRVSingleStake).earned(address(this));
     }
-    
+
     function get_3crv_earned() public view returns (uint256) {
         return
             IVirtualBalanceRewardPool(
                 IBaseRewardPool(cvxCRVSingleStake).extraRewards(0)
             ).earned(address(this));
     }
-    
+
     function get_cvx_earned() public view returns (uint256) {
         uint256 crv_earned = get_crv_earned();
 
@@ -158,7 +158,7 @@ abstract contract StrategyBaseConvexFlywheel is StrategyBaseSymbiotic {
 				.add(balance_cvx_stake())
             );
     }
-    
+
     function pending_cvxcrv() public view returns (uint256) {
         return
             IERC20(cvxCRV).balanceOf(address(this)).add(
@@ -166,26 +166,26 @@ abstract contract StrategyBaseConvexFlywheel is StrategyBaseSymbiotic {
                 .add(balance_cvxcrv_stake())
             );
     }
-    
+
     function balance_cvx_stake() public view returns (uint256) {
-        return IBaseRewards(cvxSingleStake).balanceOf(address(this));
+        return ICvxRewardPool(cvxSingleStake).balanceOf(address(this));
     }
-    
+
     function balance_cvxcrv_stake() public view returns (uint256) {
         return IBaseRewards(cvxCRVSingleStake).balanceOf(address(this));
     }
 
     // **** Setters ****
-    
+
     function deposit_cvx() {
         uint256 _cvx = IERC20(cvx).balanceOf(address(this));
         if (_cvx > 0) {
             IERC20(cvx).safeApprove(cvxSingleStake, 0);
             IERC20(cvx).safeApprove(cvxSingleStake, _cvx);
-            IBasicRewards(cvxSingleStake).stake(_cvx);
+            ICvxRewardPool(cvxSingleStake).stake(_cvx);
         }
     }
-    
+
     function deposit_cvxcrv() {
         uint256 _cvxcrv = IERC20(cvxCRV).balanceOf(address(this));
         if (_cvxcrv > 0) {
@@ -194,13 +194,13 @@ abstract contract StrategyBaseConvexFlywheel is StrategyBaseSymbiotic {
             IBasicRewards(cvxCRVSingleStake).stake(_cvxcrv);
         }
     }
-    
+
     _withdraw_some_cvx(uint256 _amount) internal returns (uint256)
     {
-        IBasicRewards(cvxSingleStake).withdraw(_amount, false);
+        ICvxRewardPool(cvxSingleStake).withdraw(_amount, false);
         return _amount;
     }
-    
+
     _withdraw_some_cvxcrv(uint256 _amount) internal returns (uint256)
     {
         IBasicRewards(cvxCRVSingleStake).withdraw(_amount, false);
