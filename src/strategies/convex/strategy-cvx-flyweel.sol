@@ -62,23 +62,23 @@ contract StrategyCvxFlywheel is StrategyBaseConvexFlywheel {
     }
 	
 	function deposit() public override {
-		deposit_cvx();
+		_deposit_cvx();
     }
 
     function rewardDeposit() public override {
-        deposit_cvxcrv();
+        _deposit_cvxcrv();
     }
 	
 	function getRewardDeposited() public view override returns (uint256) {
-        return balance_cvxcrv_stake();
+        return _balance_cvxcrv_stake();
     }
 
     function pendingReward() public view returns (uint256) {
-        return pending_cvxcrv();
+        return _pending_cvxcrv();
     }
 	
 	function balanceOfPool() public view override returns (uint256) {
-        return balance_cvx_stake();
+        return _balance_cvx_stake();
     }
 	
 	function _withdrawSome(uint256 _amount)
