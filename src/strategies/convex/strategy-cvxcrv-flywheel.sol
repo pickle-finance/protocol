@@ -70,7 +70,7 @@ contract StrategyCvxCRVFlywheel is StrategyBaseConvexFlywheel {
     }
 
     function getRewardDeposited() public view override returns (uint256) {
-        return _balance_cvx_stake();
+        return balance_cvx_stake();
     }
 
     function pendingReward() public view returns (uint256) {
