@@ -97,6 +97,8 @@ const doTestMigrationBaseWithAddresses = (
       console.log("Alice pTokenBalance after deposit: %s\n", (await pickleJar.balanceOf(alice.address)).toString());
       await pickleJar.earn();
 
+      console.log("\nRatio before migration: ", (await pickleJar.getRatio()).toString());
+
       await controller.connect(controllerStrategist).setStrategy(want.address, newStrategy.address);
 
       await pickleJar.earn();
