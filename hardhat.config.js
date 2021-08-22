@@ -19,7 +19,6 @@ module.exports = {
             enabled: true,
             runs: 200,
           },
-          evmVersion: "istanbul",
         },
       },
       {
@@ -29,7 +28,6 @@ module.exports = {
             enabled: true,
             runs: 200,
           },
-          evmVersion: "istanbul",
         },
       },
     ],
@@ -37,22 +35,26 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: "https://eth-mainnet.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
+        url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },
+      hardfork: "london",
+      gasPrice: "auto",
     },
     mainnet: {
-      url: "https://eth-mainnet.alchemyapi.io/v2/C4ZFV1uFaAaDsJB8v_dSSCOFFjbnfgtB",
+      url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },
     },
     matic: {
-      url: 'https://keen-bell:chaste-gulf-chunk-aloe-deuce-copied@nd-654-291-805.p2pify.com/',
-      accounts: [process.env.MNEMONIC]
-    }
+      url: "https://keen-bell:chaste-gulf-chunk-aloe-deuce-copied@nd-654-291-805.p2pify.com/",
+      accounts: {
+        mnemonic: process.env.MNEMONIC,
+      },
+    },
   },
   contractSizer: {
     alphaSort: true,

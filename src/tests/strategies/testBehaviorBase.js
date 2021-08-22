@@ -2,7 +2,7 @@ const {expect, increaseTime, getContractAt} = require("../utils/testHelper");
 const {setup} = require("../utils/setupHelper");
 const {NULL_ADDRESS} = require("../utils/constants");
 
-const doTestBehaviorBase = (strategyName, want_addr) => {
+const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
   let alice, want;
   let strategy, pickleJar, controller;
   let governance, strategist, devfund, treasury, timelock;
@@ -24,7 +24,8 @@ const doTestBehaviorBase = (strategyName, want_addr) => {
         strategist,
         timelock,
         devfund,
-        treasury
+        treasury,
+        isPolygon
       );
     });
 
