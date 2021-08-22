@@ -85,6 +85,7 @@ contract StrategySaddleD4 is StrategyBase {
     }
 
     function harvest() public override onlyBenevolent {
+        deposit();
         ICommunalFarm(staking).getReward();
 
         uint256 _fxs = IERC20(fxs).balanceOf(address(this));
