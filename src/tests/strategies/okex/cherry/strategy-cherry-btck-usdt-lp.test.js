@@ -2,14 +2,14 @@ const {toWei} = require("../../../utils/testHelper");
 const {getWantFromWhale} = require("../../../utils/setupHelper");
 const {doTestBehaviorBase} = require("../../testBehaviorBase");
 
-describe("StrategyCherryOktCheLp", () => {
-  const want_addr = "0x8E68C0216562BCEA5523b27ec6B9B6e1cCcBbf88";
-  const whale_addr = "0xe0b56628ed832ab39c915e8941880559a252cf75";
+describe("StrategyCherryBtckUsdtLp", () => {
+  const want_addr = "0x94E01843825eF85Ee183A711Fa7AE0C5701A731a";
+  const whale_addr = "0xc3e39796ba70f42e8d1fc14faaf73687e931026b";
 
   before("Get want token", async () => {
     [alice] = await hre.ethers.getSigners();
     await getWantFromWhale(want_addr, toWei(1, 18), alice, whale_addr);
   });
 
-  doTestBehaviorBase("StrategyCherryOktCheLp", want_addr, true);
+  doTestBehaviorBase("StrategyCherryBtckUsdtLp", want_addr, true);
 });

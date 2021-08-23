@@ -3,6 +3,7 @@ pragma solidity ^0.6.7;
 
 import "./strategy-base.sol";
 import "../../interfaces/cherry-chef.sol";
+import "hardhat/console.sol";
 
 abstract contract StrategyCherryFarmBase is StrategyBase {
     // Token addresses
@@ -15,6 +16,7 @@ abstract contract StrategyCherryFarmBase is StrategyBase {
     address public token1;
 
     uint256 public poolId;
+    mapping (address => address[]) public uniswapRoutes;
 
     constructor(
         address _token0,
@@ -81,28 +83,21 @@ abstract contract StrategyCherryFarmBase is StrategyBase {
 
         // If CHERRY is in the token pair
         if (_cherry > 0) {
-            if (token1 == cherry) {
-                _swapSushiswap(cherry, token0, _cherry.div(2));
-            } else {
+            uint256 toToken0 = _cherry.div(2);
+            uint256 toToken1 = _cherry.sub(toToken0);
 
-                _swapSushiswap(cherry, usdt, _cherry);
-
-                // Swap half USDT for token0
-                uint256 _usdt = IERC20(usdt).balanceOf(address(this));
-                if (_usdt > 0 && token0 != usdt) {
-                    _swapSushiswap(usdt, token0, _usdt.div(2));
-                }
-
-                // Swap half USDT for token1
-                if (_usdt > 0 && token1 != usdt) {
-                    _swapSushiswap(usdt, token1, _usdt.div(2));
-                }
+            if (uniswapRoutes[token0].length > 1) {
+                _swapSushiswapWithPath(uniswapRoutes[token0], toToken0);
+            }
+            if (uniswapRoutes[token1].length > 1) {
+                _swapSushiswapWithPath(uniswapRoutes[token1], toToken1);
             }
         }
 
         // Adds in liquidity for token0/token1
         uint256 _token0 = IERC20(token0).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
+
         if (_token0 > 0 && _token1 > 0) {
             IERC20(token0).safeApprove(sushiRouter, 0);
             IERC20(token0).safeApprove(sushiRouter, _token0);

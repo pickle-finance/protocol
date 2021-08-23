@@ -4,11 +4,12 @@ pragma solidity ^0.6.7;
 
 import "../strategy-cherry-farm-base.sol";
 
-contract StrategyCherryOktCheLp is StrategyCherryFarmBase {
-    uint256 public otk_che_poolId = 1;
+contract StrategyCherryBtckUsdtLp is StrategyCherryFarmBase {
+    uint256 public btck_usdt_poolId = 4;
 
     // Token addresses
-    address public cherry_okt_che_lp = 0x8E68C0216562BCEA5523b27ec6B9B6e1cCcBbf88;
+    address public cherry_btck_usdt_lp = 0x94E01843825eF85Ee183A711Fa7AE0C5701A731a;
+    address public btck = 0x54e4622DC504176b3BB432dCCAf504569699a7fF;
 
     constructor(
         address _governance,
@@ -18,22 +19,23 @@ contract StrategyCherryOktCheLp is StrategyCherryFarmBase {
     )
         public
         StrategyCherryFarmBase(
-            cherry,
-            wokt,
-            otk_che_poolId,
-            cherry_okt_che_lp,
+            usdt,
+            btck,
+            btck_usdt_poolId,
+            cherry_btck_usdt_lp,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {
-        uniswapRoutes[wokt] = [cherry, wokt];
+        uniswapRoutes[usdt] = [cherry, usdt];
+        uniswapRoutes[btck] = [cherry, usdt, btck];
     }
 
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyCherryOktCheLp";
+        return "StrategyCherryBtckUsdtLp";
     }
 }

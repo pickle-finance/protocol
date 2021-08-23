@@ -35,7 +35,7 @@ abstract contract StrategyBase {
     // Tokens
     address public want;
     address public constant wokt = 0x8F8526dbfd6E38E3D8307702cA8469Bae6C56C15;
-    address public constant usdt = 0x8179D97Eb6488860d816e3EcAFE694a4153F216c;
+    address public constant usdt = 0x382bB369d343125BfB2117af9c149795C6C65C50;
 
     // User accounts
     address public governance;
@@ -309,10 +309,10 @@ abstract contract StrategyBase {
         IERC20(path[0]).safeApprove(sushiRouter, _amount);
         UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
             _amount,
-            0,
+            1,
             path,
             address(this),
-            now.add(60)
+            block.timestamp
         );
     }
 
