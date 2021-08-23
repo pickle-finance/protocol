@@ -126,23 +126,31 @@ interface IQiAvax {
 }
 
 interface IComptroller {
-    function compAccrued(address) external view returns (uint256);
-
-    function compSupplierIndex(address, address)
-        external
-        view
-        returns (uint256);
-
-    function compBorrowerIndex(address, address)
-        external
-        view
-        returns (uint256);
-
-    function compSpeeds(address) external view returns (uint256);
-
-    function compBorrowState(address) external view returns (uint224, uint32);
-
-    function compSupplyState(address) external view returns (uint224, uint32);
+	function rewardAccrued(uint8 rewardType, address holder) 
+		external 
+		view 
+		returns (uint);
+	
+    function rewardSupplyState(uint8 rewardType, address holder) 
+		external 
+		view 
+		returns (uint224 index, uint32 timestamp);
+	
+    function rewardBorrowState(uint8 rewardType, address holder) 
+		external 
+		view 
+		returns (uint224 index, uint32 timestamp);
+	
+    function rewardSupplierIndex(uint8 rewardType, address qiContractAddress, address holder) 
+		external 
+		view 
+		returns (uint supplierIndex);
+    
+	function rewardBorrowerIndex(uint8 rewardType, address qiContractAddress, address holder) 	
+		external 
+		view 
+		returns (uint borrowerIndex)
+	
 
     /*** Assets You Are In ***/
 
@@ -262,21 +270,20 @@ interface IComptroller {
         uint256 repayAmount
     ) external view returns (uint256, uint256);
 
-    // Claim all the Qi accrued by holder in all markets
+    // Claim all the Reward Token accrued by holder in all markets
     function claimReward(uint8 rewardId, address holder) external;
 
-    // Claim all the Qi accrued by holder in specific markets
+    // Claim all the Reward Token accrued by holder in specific markets
     function claimReward(uint8 rewardId, address holder, address[] calldata qiTokens) external;
 
-    // Claim all the Qi accrued by specific holders in specific markets for their supplies and/or borrows
+    // Claim all the Reward Token accrued by specific holders in specific markets for their supplies and/or borrows
     function claimReward(uint8 rewardId,
         address[] calldata holders,
         address[] calldata qiTokens,
         bool borrowers,
         bool suppliers
     ) external;
-	
-
+		
     function markets(address qiTokenAddress)
         external
         view
