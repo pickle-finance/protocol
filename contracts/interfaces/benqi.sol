@@ -149,7 +149,7 @@ interface IComptroller {
 	function rewardBorrowerIndex(uint8 rewardType, address qiContractAddress, address holder) 	
 		external 
 		view 
-		returns (uint borrowerIndex)
+		returns (uint borrowerIndex);
 	
 
     /*** Assets You Are In ***/

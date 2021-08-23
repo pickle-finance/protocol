@@ -11,7 +11,7 @@ import "../../interfaces/controller.sol";
 import "../../interfaces/benqi.sol";
 import "../../interfaces/wavax.sol";
 
-contract StrategyBenqiEth is StrategyBase, Exponential {
+contract StrategyBenqieth is StrategyBase, Exponential {
     address public constant comptroller = 0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4; // Through UniTroller Address
     address public constant eth = 0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB; //qideposit token
     address public constant benqi = 0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5; //Qi Token  
@@ -43,7 +43,7 @@ contract StrategyBenqiEth is StrategyBase, Exponential {
         public
         StrategyBase(eth, _governance, _strategist, _controller, _timelock)
     {
-        // Enter qiETH Market
+        // Enter qieth Market
         address[] memory qitokens = new address[](1);
         qitokens[0] = qieth;
         IComptroller(comptroller).enterMarkets(qitokens);
@@ -65,7 +65,7 @@ contract StrategyBenqiEth is StrategyBase, Exponential {
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {
-        return "StrategyBenqiEth";
+        return "StrategyBenqieth";
     }
 
     function getSuppliedView() public view returns (uint256) {
@@ -374,27 +374,27 @@ contract StrategyBenqiEth is StrategyBase, Exponential {
 		uint rewardsQi = _calculateHarvestable(0, address(this));
         uint rewardsAvax = _calculateHarvestable(1, address(this));
 		
-		return (rewardsQi, rewardAvax);		
+		return (rewardsQi, rewardsAvax);		
     }
 
 	function _calculateHarvestable(uint8 tokenIndex, address account) internal view returns (uint) {
         uint rewardAccrued = IComptroller(comptroller).rewardAccrued(tokenIndex, account);
         (uint224 supplyIndex, ) = IComptroller(comptroller).rewardSupplyState(tokenIndex, account);
-        uint supplierIndex = IComptroller(comptroller).rewardSupplierIndex(tokenIndex, qiethe, account);
+        uint supplierIndex = IComptroller(comptroller).rewardSupplierIndex(tokenIndex, qieth, account);
         uint supplyIndexDelta = 0;
         if (supplyIndex > supplierIndex) {
             supplyIndexDelta = supplyIndex - supplierIndex; 
         }
-        uint supplyAccrued = IQiToken(qiethe).balanceOf(account).mul(supplyIndexDelta);
+        uint supplyAccrued = IQiToken(qieth).balanceOf(account).mul(supplyIndexDelta);
         (uint224 borrowIndex, ) = IComptroller(comptroller).rewardBorrowState(tokenIndex, account);
-        uint borrowerIndex = IComptroller(comptroller).rewardBorrowerIndex(tokenIndex, qiethe, account);
+        uint borrowerIndex = IComptroller(comptroller).rewardBorrowerIndex(tokenIndex, qieth, account);
         uint borrowIndexDelta = 0;
         if (borrowIndex > borrowerIndex) {
             borrowIndexDelta = borrowIndex - borrowerIndex;
         }
-        uint borrowAccrued = IQiToken(qiethe).borrowBalanceStored(account).mul(borrowIndexDelta);
+        uint borrowAccrued = IQiToken(qieth).borrowBalanceStored(account).mul(borrowIndexDelta);
         return rewardAccrued.add(supplyAccrued.sub(borrowAccrued));
-
+	}
 
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
