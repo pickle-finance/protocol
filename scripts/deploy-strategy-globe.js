@@ -1,4 +1,5 @@
 const { ethers } = require("hardhat");
+require("@nomiclabs/hardhat-waffle");
 require('dotenv').config();
 
 async function main() {
@@ -10,7 +11,7 @@ async function main() {
     "PngAvaxWalbt",
     "PngWalbtPng",
   ];
-
+  
   const [deployer] = await ethers.getSigners();
   console.log("Deploying contracts with the account:", deployer.address);
 
@@ -28,7 +29,7 @@ async function main() {
 
   const deploy = async (name) => {
     console.log(`run deploy with ${name}`);
-    const strategy_name = `Strategy${name}Lp`;
+    const strategy_name = `Strategy${name}`;
     const snowglobe_name = `SnowGlobe${name}`;
   
     const strategy = await ethers.getContractFactory(strategy_name);
