@@ -47,6 +47,8 @@ interface IBaseRewardPool {
     function extraRewards(uint256) external view returns (address);
 
     function withdrawAndUnwrap(uint256, bool) external returns (bool);
+
+    function extraRewardsLength() external view returns (uint256);
 }
 
 interface IVirtualBalanceRewardPool {
