@@ -2,14 +2,8 @@ const {exec} = require('child_process');
 
 async function main() {
   const names = [
-    "joe-avax-ethe",
-    "joe-avax-wbtce",
-    "joe-avax-usdte",
-    "joe-avax-linke",
-    "joe-usdte-daie",
-    "joe-usdte-wbtce",
-    "joe-usdte-ethe",
-    "joe-usdte-linke"
+
+    "benqi-wbtc",
   ];
 
   const flatten = name => {

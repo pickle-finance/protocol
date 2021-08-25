@@ -1,18 +1,6 @@
-require('dotenv').config();
 require("@nomiclabs/hardhat-waffle");
+require('dotenv').config();
 
-// This is a sample Hardhat task. To learn how to create your own go to
-// https://hardhat.org/guides/create-task.html
-// task("accounts", "Prints the list of accounts", async () => {
-//   const accounts = await ethers.getSigners();
-
-//   for (const account of accounts) {
-//     console.log(account.address);
-//   }
-// });
-
-// You need to export an object to set up your config
-// Go to https://hardhat.org/config/ to learn more
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -20,7 +8,7 @@ require("@nomiclabs/hardhat-waffle");
 module.exports = {
   networks: {
     hardhat: {
-      accounts: [{privateKey: process.env.PRIVATE_KEY, balance: "100000000000000000000"}],
+      accounts: [{privateKey: process.env.PRIVATE_KEY, balance: "10000000000000000000000"}],
       chainId: 43114,
       forking: {
         url: "https://api.avax.network/ext/bc/C/rpc",
@@ -32,24 +20,19 @@ module.exports = {
     },
     mainnet: {
       url: "https://api.avax.network/ext/bc/C/rpc",
-      accounts: [process.env.PRIVATE_KEY]
+     accounts: [process.env.PRIVATE_KEY]
     }
   },
   solidity: {
     compilers: [
       {
         version: "0.6.7",
-        settings: {
-          outputSelection: {
-            "*": {
-              "*": ["storageLayout"],
-            },
-          },
-          optimizer: {
-            enabled: true,
-            runs: 200
-          },
-        },
+		settings: {
+			optimizer: {
+				enabled: true,
+				runs: 200,
+			}
+		}
       }
     ],
   }
