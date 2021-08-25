@@ -9,13 +9,13 @@ import "../../interfaces/globe.sol";
 import "../../interfaces/pangolin.sol";
 import "../../interfaces/controller.sol";
 import "../../interfaces/benqi.sol";
+import "../../interfaces/wavax.sol";
 
-contract StrategyBenqiUsdt is StrategyBase, Exponential {
+contract StrategyBenqiWbtc is StrategyBase, Exponential {
     address public constant comptroller = 0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4; // Through UniTroller Address
-    address public constant lens = 0xd513d22422a3062Bd342Ae374b4b9c20E0a9a074;   // Benqi Data  needs update
-    address public constant usdt = 0xc7198437980c041c805A1EDcbA50c1Ce5db95118; //qideposit token
-    address public constant benqi = 0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5; //Qi Token  needs verification
-    address public constant qiusdt = 0xc9e5999b8e75C3fEB117F6f73E664b9f3C8ca65C; //lending receipt token
+    address public constant wbtc = 0x50b7545627a5162F82A992c33b87aDc75187B218; //qideposit token
+    address public constant benqi = 0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5; //Qi Token  
+    address public constant qiwbtc = 0xe194c4c5aC32a3C9ffDb358d9Bfd523a0B6d1568; //lending receipt token
 
     // Require a 0.04 buffer between
     // market collateral factor and strategy's collateral factor
@@ -41,11 +41,11 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
         address _timelock
     )
         public
-        StrategyBase(usdt, _governance, _strategist, _controller, _timelock)
+        StrategyBase(wbtc, _governance, _strategist, _controller, _timelock)
     {
-        // Enter qiUSDTE Market
+        // Enter qiwbtc Market
         address[] memory qitokens = new address[](1);
-        qitokens[0] = qiusdt;
+        qitokens[0] = qiwbtc;
         IComptroller(comptroller).enterMarkets(qitokens);
     }
 
@@ -65,11 +65,11 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {
-        return "StrategyBenqiUsdt";
+        return "StrategyBenqiWbtc";
     }
 
     function getSuppliedView() public view returns (uint256) {
-        (, uint256 qiTokenBal, , uint256 exchangeRate) = IQiToken(qiusdt)
+        (, uint256 qiTokenBal, , uint256 exchangeRate) = IQiToken(qiwbtc)
             .getAccountSnapshot(address(this));
 
         (, uint256 bal) = mulScalarTruncate(
@@ -81,7 +81,7 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
     }
 
     function getBorrowedView() public view returns (uint256) {
-        return IQiToken(qiusdt).borrowBalanceStored(address(this));
+        return IQiToken(qiwbtc).borrowBalanceStored(address(this));
     }
 
     function balanceOfPool() public override view returns (uint256) {
@@ -124,7 +124,7 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
     }
 
     function getMarketColFactor() public view returns (uint256) {
-        (, uint256 colFactor) = IComptroller(comptroller).markets(qiusdt);
+        (, uint256 colFactor) = IComptroller(comptroller).markets(qiwbtc);
 
         return colFactor;
     }
@@ -140,21 +140,12 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
 
     // **** Pseudo-view functions (use `callStatic` on these) **** //
     /* The reason why these exists is because of the nature of the
-       interest accruing supply + borrow balance. The "view" methods
+       interest accruing supply + borrow balance. The "view" mwbtcods
        are technically snapshots and don't represent the real value.
-       As such there are pseudo view methods where you can retrieve the
+       As such there are pseudo view mwbtcods where you can retrieve the
        results by calling `callStatic`.
     */
 
-    function getQiAccrued() public returns (uint256) {
-        (, , , uint256 accrued) = IBenqiLens(lens).getQiBalanceMetadataExt(
-            benqi,
-            comptroller,
-            address(this)
-        );
-
-        return accrued;
-    }
 
     function getColFactor() public returns (uint256) {
         uint256 supplied = getSupplied();
@@ -171,18 +162,18 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
     }
 
     function getSupplied() public returns (uint256) {
-        return IQiToken(qiusdt).balanceOfUnderlying(address(this));
+        return IQiToken(qiwbtc).balanceOfUnderlying(address(this));
     }
 
     function getBorrowed() public returns (uint256) {
-        return IQiToken(qiusdt).borrowBalanceCurrent(address(this));
+        return IQiToken(qiwbtc).borrowBalanceCurrent(address(this));
     }
 
     function getBorrowable() public returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
 
-        (, uint256 colFactor) = IComptroller(comptroller).markets(qiusdt);
+        (, uint256 colFactor) = IComptroller(comptroller).markets(qiwbtc);
 
         // 99.99% just in case some dust accumulates
         return
@@ -195,7 +186,7 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
 
-        (, uint256 colFactor) = IComptroller(comptroller).markets(qiusdt);
+        (, uint256 colFactor) = IComptroller(comptroller).markets(qiwbtc);
 
         // Return 99.99% of the time just incase
         return
@@ -250,7 +241,7 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
     // **** State mutations **** //
 
     // Do a `callStatic` on this.
-    // If it returns true then run it for realz. (i.e. eth_signedTx, not eth_call)
+    // If it returns true then run it for realz. (i.e. wbtc_signedTx, not wbtc_call)
     function sync() public returns (bool) {
         uint256 colFactor = getColFactor();
         uint256 safeSyncColFactor = getSafeSyncColFactor();
@@ -275,11 +266,11 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
     }
 
     // Leverages until we're supplying <x> amount
-    // 1. Redeem <x> USDTE
-    // 2. Repay <x> USDTE
+    // 1. Redeem <x> ETH
+    // 2. Repay <x> ETH
     function leverageUntil(uint256 _supplyAmount) public onlyKeepers {
-        // 1. Borrow out <X> USDTE
-        // 2. Supply <X> USDTE
+        // 1. Borrow out <X> ETH
+        // 2. Supply <X> ETH
 
         uint256 leverage = getMaxLeverage();
         uint256 unleveragedSupply = getSuppliedUnleveraged();
@@ -300,7 +291,7 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
                 _borrowAndSupply = _supplyAmount.sub(supplied);
             }
 
-            IQiToken(qiusdt).borrow(_borrowAndSupply);
+            IQiToken(qiwbtc).borrow(_borrowAndSupply);
             deposit();
 
             supplied = supplied.add(_borrowAndSupply);
@@ -313,8 +304,8 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
     }
 
     // Deleverages until we're supplying <x> amount
-    // 1. Redeem <x> USDTE
-    // 2. Repay <x> USDTE
+    // 1. Redeem <x> ETH
+    // 2. Repay <x> ETH
     function deleverageUntil(uint256 _supplyAmount) public onlyKeepers {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         uint256 supplied = getSupplied();
@@ -336,12 +327,12 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
             }
 
             require(
-                IQiToken(qiusdt).redeemUnderlying(_redeemAndRepay) == 0,
+                IQiToken(qiwbtc).redeemUnderlying(_redeemAndRepay) == 0,
                 "!redeem"
             );
-            IERC20(usdt).safeApprove(qiusdt, 0);
-            IERC20(usdt).safeApprove(qiusdt, _redeemAndRepay);
-            require(IQiToken(qiusdt).repayBorrow(_redeemAndRepay) == 0, "!repay");
+            IERC20(wbtc).safeApprove(qiwbtc, 0);
+            IERC20(wbtc).safeApprove(qiwbtc, _redeemAndRepay);
+            require(IQiToken(qiwbtc).repayBorrow(_redeemAndRepay) == 0, "!repay");
 
             supplied = supplied.sub(_redeemAndRepay);
 
@@ -349,18 +340,27 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
             _redeemAndRepay = _redeemAndRepay.mul(1e18).div(marketColFactor);
         } while (supplied > _supplyAmount);
     }
+	
+	
+	// allow Native Avax
+	receive() external payable {}
 
     function harvest() public override onlyBenevolent {
         address[] memory qitokens = new address[](1);
-        qitokens[0] = qiusdt;
+        qitokens[0] = qiwbtc;
 
-        IComptroller(comptroller).claimReward(0, address(this), qitokens); //ClaimQi
+        IComptroller(comptroller).claimReward(0, address(this)); //ClaimQi
         uint256 _benqi = IERC20(benqi).balanceOf(address(this));
         if (_benqi > 0) {
             _swapPangolin(benqi, want, _benqi);
         }
 				
-		IComptroller(comptroller).claimReward(1, address(this), qitokens); //ClaimAvax
+		IComptroller(comptroller).claimReward(1, address(this)); //ClaimAvax
+		uint256 _avax = address(this).balance;            //get balance of native Avax
+        if (_avax > 0) {                                 //wrap avax into ERC20
+            WAVAX(wavax).deposit{value: _avax}();
+        }
+		
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             _swapPangolin(wavax, want, _wavax);
@@ -368,13 +368,40 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
 
         _distributePerformanceFeesAndDeposit();
     }
+	
+	//Calculate the Accrued Rewards
+	function getHarvestable() external view returns (uint256, uint256) {
+		uint rewardsQi = _calculateHarvestable(0, address(this));
+        uint rewardsAvax = _calculateHarvestable(1, address(this));
+		
+		return (rewardsQi, rewardsAvax);		
+    }
+
+	function _calculateHarvestable(uint8 tokenIndex, address account) internal view returns (uint) {
+        uint rewardAccrued = IComptroller(comptroller).rewardAccrued(tokenIndex, account);
+        (uint224 supplyIndex, ) = IComptroller(comptroller).rewardSupplyState(tokenIndex, account);
+        uint supplierIndex = IComptroller(comptroller).rewardSupplierIndex(tokenIndex, qiwbtc, account);
+        uint supplyIndexDelta = 0;
+        if (supplyIndex > supplierIndex) {
+            supplyIndexDelta = supplyIndex - supplierIndex; 
+        }
+        uint supplyAccrued = IQiToken(qiwbtc).balanceOf(account).mul(supplyIndexDelta);
+        (uint224 borrowIndex, ) = IComptroller(comptroller).rewardBorrowState(tokenIndex, account);
+        uint borrowerIndex = IComptroller(comptroller).rewardBorrowerIndex(tokenIndex, qiwbtc, account);
+        uint borrowIndexDelta = 0;
+        if (borrowIndex > borrowerIndex) {
+            borrowIndexDelta = borrowIndex - borrowerIndex;
+        }
+        uint borrowAccrued = IQiToken(qiwbtc).borrowBalanceStored(account).mul(borrowIndexDelta);
+        return rewardAccrued.add(supplyAccrued.sub(borrowAccrued));
+	}
 
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(qiusdt, 0);
-            IERC20(want).safeApprove(qiusdt, _want);
-            require(IQiToken(qiusdt).mint(_want) == 0, "!deposit");
+            IERC20(want).safeApprove(qiwbtc, 0);
+            IERC20(want).safeApprove(qiwbtc, _want);
+            require(IQiToken(qiwbtc).mint(_want) == 0, "!deposit");
         }
     }
 
@@ -388,7 +415,7 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
             uint256 _redeem = _amount.sub(_want);
 
             // Make sure market can cover liquidity
-            require(IQiToken(qiusdt).getCash() >= _redeem, "!cash-liquidity");
+            require(IQiToken(qiwbtc).getCash() >= _redeem, "!cash-liquidity");
 
             // How much borrowed amount do we need to free?
             uint256 borrowed = getBorrowed();
@@ -407,7 +434,7 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
             }
 
             // Redeems underlying
-            require(IQiToken(qiusdt).redeemUnderlying(_redeem) == 0, "!redeem");
+            require(IQiToken(qiwbtc).redeemUnderlying(_redeem) == 0, "!redeem");
         }
 
         return _amount;

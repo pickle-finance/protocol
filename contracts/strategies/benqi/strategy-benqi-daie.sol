@@ -9,13 +9,13 @@ import "../../interfaces/globe.sol";
 import "../../interfaces/pangolin.sol";
 import "../../interfaces/controller.sol";
 import "../../interfaces/benqi.sol";
+import "../../interfaces/wavax.sol";
 
-contract StrategyBenqiUsdt is StrategyBase, Exponential {
+contract StrategyBenqiDai is StrategyBase, Exponential {
     address public constant comptroller = 0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4; // Through UniTroller Address
-    address public constant lens = 0xd513d22422a3062Bd342Ae374b4b9c20E0a9a074;   // Benqi Data  needs update
-    address public constant usdt = 0xc7198437980c041c805A1EDcbA50c1Ce5db95118; //qideposit token
-    address public constant benqi = 0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5; //Qi Token  needs verification
-    address public constant qiusdt = 0xc9e5999b8e75C3fEB117F6f73E664b9f3C8ca65C; //lending receipt token
+    address public constant dai = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70; //qideposit token
+    address public constant benqi = 0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5; //Qi Token  
+    address public constant qidai = 0x835866d37AFB8CB8F8334dCCdaf66cf01832Ff5D; //lending receipt token
 
     // Require a 0.04 buffer between
     // market collateral factor and strategy's collateral factor
@@ -41,11 +41,11 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
         address _timelock
     )
         public
-        StrategyBase(usdt, _governance, _strategist, _controller, _timelock)
+        StrategyBase(dai, _governance, _strategist, _controller, _timelock)
     {
-        // Enter qiUSDTE Market
+        // Enter qiDAI Market
         address[] memory qitokens = new address[](1);
-        qitokens[0] = qiusdt;
+        qitokens[0] = qidai;
         IComptroller(comptroller).enterMarkets(qitokens);
     }
 
@@ -65,11 +65,11 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {
-        return "StrategyBenqiUsdt";
+        return "StrategyBenqiDai";
     }
 
     function getSuppliedView() public view returns (uint256) {
-        (, uint256 qiTokenBal, , uint256 exchangeRate) = IQiToken(qiusdt)
+        (, uint256 qiTokenBal, , uint256 exchangeRate) = IQiToken(qidai)
             .getAccountSnapshot(address(this));
 
         (, uint256 bal) = mulScalarTruncate(
@@ -81,7 +81,7 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
     }
 
     function getBorrowedView() public view returns (uint256) {
-        return IQiToken(qiusdt).borrowBalanceStored(address(this));
+        return IQiToken(qidai).borrowBalanceStored(address(this));
     }
 
     function balanceOfPool() public override view returns (uint256) {
@@ -124,7 +124,7 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
     }
 
     function getMarketColFactor() public view returns (uint256) {
-        (, uint256 colFactor) = IComptroller(comptroller).markets(qiusdt);
+        (, uint256 colFactor) = IComptroller(comptroller).markets(qidai);
 
         return colFactor;
     }
@@ -146,15 +146,6 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
        results by calling `callStatic`.
     */
 
-    function getQiAccrued() public returns (uint256) {
-        (, , , uint256 accrued) = IBenqiLens(lens).getQiBalanceMetadataExt(
-            benqi,
-            comptroller,
-            address(this)
-        );
-
-        return accrued;
-    }
 
     function getColFactor() public returns (uint256) {
         uint256 supplied = getSupplied();
@@ -171,18 +162,18 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
     }
 
     function getSupplied() public returns (uint256) {
-        return IQiToken(qiusdt).balanceOfUnderlying(address(this));
+        return IQiToken(qidai).balanceOfUnderlying(address(this));
     }
 
     function getBorrowed() public returns (uint256) {
-        return IQiToken(qiusdt).borrowBalanceCurrent(address(this));
+        return IQiToken(qidai).borrowBalanceCurrent(address(this));
     }
 
     function getBorrowable() public returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
 
-        (, uint256 colFactor) = IComptroller(comptroller).markets(qiusdt);
+        (, uint256 colFactor) = IComptroller(comptroller).markets(qidai);
 
         // 99.99% just in case some dust accumulates
         return
@@ -195,7 +186,7 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
 
-        (, uint256 colFactor) = IComptroller(comptroller).markets(qiusdt);
+        (, uint256 colFactor) = IComptroller(comptroller).markets(qidai);
 
         // Return 99.99% of the time just incase
         return
@@ -275,11 +266,11 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
     }
 
     // Leverages until we're supplying <x> amount
-    // 1. Redeem <x> USDTE
-    // 2. Repay <x> USDTE
+    // 1. Redeem <x> DAI
+    // 2. Repay <x> DAI
     function leverageUntil(uint256 _supplyAmount) public onlyKeepers {
-        // 1. Borrow out <X> USDTE
-        // 2. Supply <X> USDTE
+        // 1. Borrow out <X> DAI
+        // 2. Supply <X> DAI
 
         uint256 leverage = getMaxLeverage();
         uint256 unleveragedSupply = getSuppliedUnleveraged();
@@ -300,7 +291,7 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
                 _borrowAndSupply = _supplyAmount.sub(supplied);
             }
 
-            IQiToken(qiusdt).borrow(_borrowAndSupply);
+            IQiToken(qidai).borrow(_borrowAndSupply);
             deposit();
 
             supplied = supplied.add(_borrowAndSupply);
@@ -313,8 +304,8 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
     }
 
     // Deleverages until we're supplying <x> amount
-    // 1. Redeem <x> USDTE
-    // 2. Repay <x> USDTE
+    // 1. Redeem <x> DAI
+    // 2. Repay <x> DAI
     function deleverageUntil(uint256 _supplyAmount) public onlyKeepers {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         uint256 supplied = getSupplied();
@@ -336,12 +327,12 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
             }
 
             require(
-                IQiToken(qiusdt).redeemUnderlying(_redeemAndRepay) == 0,
+                IQiToken(qidai).redeemUnderlying(_redeemAndRepay) == 0,
                 "!redeem"
             );
-            IERC20(usdt).safeApprove(qiusdt, 0);
-            IERC20(usdt).safeApprove(qiusdt, _redeemAndRepay);
-            require(IQiToken(qiusdt).repayBorrow(_redeemAndRepay) == 0, "!repay");
+            IERC20(dai).safeApprove(qidai, 0);
+            IERC20(dai).safeApprove(qidai, _redeemAndRepay);
+            require(IQiToken(qidai).repayBorrow(_redeemAndRepay) == 0, "!repay");
 
             supplied = supplied.sub(_redeemAndRepay);
 
@@ -349,10 +340,14 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
             _redeemAndRepay = _redeemAndRepay.mul(1e18).div(marketColFactor);
         } while (supplied > _supplyAmount);
     }
+	
+	
+	// allow Native Avax
+	receive() external payable {}
 
     function harvest() public override onlyBenevolent {
         address[] memory qitokens = new address[](1);
-        qitokens[0] = qiusdt;
+        qitokens[0] = qidai;
 
         IComptroller(comptroller).claimReward(0, address(this), qitokens); //ClaimQi
         uint256 _benqi = IERC20(benqi).balanceOf(address(this));
@@ -361,6 +356,11 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
         }
 				
 		IComptroller(comptroller).claimReward(1, address(this), qitokens); //ClaimAvax
+		uint256 _avax = address(this).balance;            //get balance of native Avax
+        if (_avax > 0) {                                 //wrap avax into ERC20
+            WAVAX(wavax).deposit{value: _avax}();
+        }
+		
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             _swapPangolin(wavax, want, _wavax);
@@ -369,12 +369,40 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
         _distributePerformanceFeesAndDeposit();
     }
 
+
+	//Calculate the Accrued Rewards
+	function getHarvestable() external view returns (uint256, uint256) {
+		uint rewardsQi = _calculateHarvestable(0, address(this));
+        uint rewardsAvax = _calculateHarvestable(1, address(this));
+		
+		return (rewardsQi, rewardsAvax);		
+    }
+
+	function _calculateHarvestable(uint8 tokenIndex, address account) internal view returns (uint) {
+        uint rewardAccrued = IComptroller(comptroller).rewardAccrued(tokenIndex, account);
+        (uint224 supplyIndex, ) = IComptroller(comptroller).rewardSupplyState(tokenIndex, account);
+        uint supplierIndex = IComptroller(comptroller).rewardSupplierIndex(tokenIndex, qidai, account);
+        uint supplyIndexDelta = 0;
+        if (supplyIndex > supplierIndex) {
+            supplyIndexDelta = supplyIndex - supplierIndex; 
+        }
+        uint supplyAccrued = IQiToken(qidai).balanceOf(account).mul(supplyIndexDelta);
+        (uint224 borrowIndex, ) = IComptroller(comptroller).rewardBorrowState(tokenIndex, account);
+        uint borrowerIndex = IComptroller(comptroller).rewardBorrowerIndex(tokenIndex, qidai, account);
+        uint borrowIndexDelta = 0;
+        if (borrowIndex > borrowerIndex) {
+            borrowIndexDelta = borrowIndex - borrowerIndex;
+        }
+        uint borrowAccrued = IQiToken(qidai).borrowBalanceStored(account).mul(borrowIndexDelta);
+        return rewardAccrued.add(supplyAccrued.sub(borrowAccrued));
+    }
+
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(qiusdt, 0);
-            IERC20(want).safeApprove(qiusdt, _want);
-            require(IQiToken(qiusdt).mint(_want) == 0, "!deposit");
+            IERC20(want).safeApprove(qidai, 0);
+            IERC20(want).safeApprove(qidai, _want);
+            require(IQiToken(qidai).mint(_want) == 0, "!deposit");
         }
     }
 
@@ -388,7 +416,7 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
             uint256 _redeem = _amount.sub(_want);
 
             // Make sure market can cover liquidity
-            require(IQiToken(qiusdt).getCash() >= _redeem, "!cash-liquidity");
+            require(IQiToken(qidai).getCash() >= _redeem, "!cash-liquidity");
 
             // How much borrowed amount do we need to free?
             uint256 borrowed = getBorrowed();
@@ -407,7 +435,7 @@ contract StrategyBenqiUsdt is StrategyBase, Exponential {
             }
 
             // Redeems underlying
-            require(IQiToken(qiusdt).redeemUnderlying(_redeem) == 0, "!redeem");
+            require(IQiToken(qidai).redeemUnderlying(_redeem) == 0, "!redeem");
         }
 
         return _amount;
