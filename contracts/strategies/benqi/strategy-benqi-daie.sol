@@ -349,13 +349,13 @@ contract StrategyBenqiDai is StrategyBase, Exponential {
         address[] memory qitokens = new address[](1);
         qitokens[0] = qidai;
 
-        IComptroller(comptroller).claimReward(0, address(this)); //ClaimQi
+        IComptroller(comptroller).claimReward(0, address(this), qitokens); //ClaimQi
         uint256 _benqi = IERC20(benqi).balanceOf(address(this));
         if (_benqi > 0) {
             _swapPangolin(benqi, want, _benqi);
         }
 				
-		IComptroller(comptroller).claimReward(1, address(this)); //ClaimAvax
+		IComptroller(comptroller).claimReward(1, address(this), qitokens); //ClaimAvax
 		uint256 _avax = address(this).balance;            //get balance of native Avax
         if (_avax > 0) {                                 //wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
@@ -369,6 +369,33 @@ contract StrategyBenqiDai is StrategyBase, Exponential {
         _distributePerformanceFeesAndDeposit();
     }
 
+
+	//Calculate the Accrued Rewards
+	function getHarvestable() external view returns (uint256, uint256) {
+		uint rewardsQi = _calculateHarvestable(0, address(this));
+        uint rewardsAvax = _calculateHarvestable(1, address(this));
+		
+		return (rewardsQi, rewardsAvax);		
+    }
+
+	function _calculateHarvestable(uint8 tokenIndex, address account) internal view returns (uint) {
+        uint rewardAccrued = IComptroller(comptroller).rewardAccrued(tokenIndex, account);
+        (uint224 supplyIndex, ) = IComptroller(comptroller).rewardSupplyState(tokenIndex, account);
+        uint supplierIndex = IComptroller(comptroller).rewardSupplierIndex(tokenIndex, qidai, account);
+        uint supplyIndexDelta = 0;
+        if (supplyIndex > supplierIndex) {
+            supplyIndexDelta = supplyIndex - supplierIndex; 
+        }
+        uint supplyAccrued = IQiToken(qidai).balanceOf(account).mul(supplyIndexDelta);
+        (uint224 borrowIndex, ) = IComptroller(comptroller).rewardBorrowState(tokenIndex, account);
+        uint borrowerIndex = IComptroller(comptroller).rewardBorrowerIndex(tokenIndex, qidai, account);
+        uint borrowIndexDelta = 0;
+        if (borrowIndex > borrowerIndex) {
+            borrowIndexDelta = borrowIndex - borrowerIndex;
+        }
+        uint borrowAccrued = IQiToken(qidai).borrowBalanceStored(account).mul(borrowIndexDelta);
+        return rewardAccrued.add(supplyAccrued.sub(borrowAccrued));
+    }
 
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
