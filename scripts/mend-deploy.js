@@ -4,9 +4,9 @@ require('dotenv').config();
 async function main() {
   const pools = [
     {
-      name: "PngAvaxAaveE",
-      strategy_addr: "0xa9E1CDb332f28469C1d9BeCCd740bD7A3DD46F94",
-      snowglobe_addr: "0x7F8E7a8Bd63A113B202AE905877918Fb9cA13091"
+      name: "JoeAvaxUsdtE",
+      strategy_addr: "0x3Ab14374bB3fB175c4A61F3E934ec42BfEd0D259",
+      snowglobe_addr: "0xc72901E3dBE5258728B329352fC4742f4966Bc1f"
     }
   ];
 
@@ -20,36 +20,53 @@ async function main() {
   const strategy_ABI = [{"type":"constructor","stateMutability":"nonpayable","inputs":[{"type":"address","name":"_governance","internalType":"address"},{"type":"address","name":"_strategist","internalType":"address"},{"type":"address","name":"_controller","internalType":"address"},{"type":"address","name":"_timelock","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"balanceOf","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"balanceOfPool","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"balanceOfWant","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"controller","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"deposit","inputs":[]},{"type":"function","stateMutability":"payable","outputs":[{"type":"bytes","name":"response","internalType":"bytes"}],"name":"execute","inputs":[{"type":"address","name":"_target","internalType":"address"},{"type":"bytes","name":"_data","internalType":"bytes"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"getHarvestable","inputs":[]},{"type":"function","stateMutability":"pure","outputs":[{"type":"string","name":"","internalType":"string"}],"name":"getName","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"governance","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"harvest","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"bool","name":"","internalType":"bool"}],"name":"harvesters","inputs":[{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"keepPNG","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"keepPNGMax","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"pangolinRouter","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"performanceDevFee","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"performanceDevMax","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"performanceTreasuryFee","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"performanceTreasuryMax","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"png","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"png_avax_snob_lp","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"png_avax_snob_lp_rewards","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"revokeHarvester","inputs":[{"type":"address","name":"_harvester","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"rewards","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setController","inputs":[{"type":"address","name":"_controller","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setGovernance","inputs":[{"type":"address","name":"_governance","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setKeepPNG","inputs":[{"type":"uint256","name":"_keepPNG","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setPerformanceDevFee","inputs":[{"type":"uint256","name":"_performanceDevFee","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setPerformanceTreasuryFee","inputs":[{"type":"uint256","name":"_performanceTreasuryFee","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setStrategist","inputs":[{"type":"address","name":"_strategist","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setTimelock","inputs":[{"type":"address","name":"_timelock","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setWithdrawalDevFundFee","inputs":[{"type":"uint256","name":"_withdrawalDevFundFee","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setWithdrawalTreasuryFee","inputs":[{"type":"uint256","name":"_withdrawalTreasuryFee","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"snob","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"strategist","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"timelock","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"token1","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"want","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"wavax","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"whitelistHarvester","inputs":[{"type":"address","name":"_harvester","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"withdraw","inputs":[{"type":"uint256","name":"_amount","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[{"type":"uint256","name":"balance","internalType":"uint256"}],"name":"withdraw","inputs":[{"type":"address","name":"_asset","internalType":"contract IERC20"}]},{"type":"function","stateMutability":"nonpayable","outputs":[{"type":"uint256","name":"balance","internalType":"uint256"}],"name":"withdrawAll","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[{"type":"uint256","name":"balance","internalType":"uint256"}],"name":"withdrawForSwap","inputs":[{"type":"uint256","name":"_amount","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"withdrawalDevFundFee","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"withdrawalDevFundMax","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"withdrawalTreasuryFee","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"withdrawalTreasuryMax","inputs":[]}];
 
   const governance_addr = "0x294aB3200ef36200db84C4128b7f1b4eec71E38a";
+  const timelock_addr = governance_addr;
   const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85";
   const gaugeproxy_addr = "0xFc371bA1E7874Ad893408D7B581F3c8471F03D2C";
 
   const Controller = new ethers.Contract(controller_addr, controller_ABI, deployer);
 
   const deploy = async (pool) => {
+    console.log(`mending deploy for ${pool.name}`);
+    const strategy_name = `Strategy${pool.name}Lp`;
+    const snowglobe_name = `SnowGlobe${pool.name}`;
   
-    /* Deploy Strategy */
+    // /* Deploy Strategy */
+    // const strategy = await ethers.getContractFactory(strategy_name);
+    // const Strategy = await strategy.deploy(governance_addr, strategist_addr, controller_addr, timelock_addr);
+    // console.log(`deployed ${strategy_name} at : ${Strategy.address}`);
+    
+    /* Connect to Strategy */
     const Strategy = new ethers.Contract(pool.strategy_addr, strategy_ABI, deployer);
-    /* Deploy Snowglobe */
+    
+
+    // /* Deploy Snowglobe */
+    // const lp = await Strategy.want();
+    // const globe = await ethers.getContractFactory(snowglobe_name);
+    // const SnowGlobe = await globe.deploy(lp, governance_addr, timelock_addr, controller_addr);
+    // console.log(`deployed ${snowglobe_name} at : ${SnowGlobe.address}`);
+  
+    // /* Connect to Snowglobe */
     const lp = await Strategy.want();
     const SnowGlobe = new ethers.Contract(pool.snowglobe_addr, snowglobe_ABI, deployer);
   
     /* Set Globe */
-    // const setGlobe = await Controller.setGlobe(lp, SnowGlobe.address);
-    // const tx_setGlobe = await setGlobe.wait(1);
-    // if (!tx_setGlobe.status) {
-    //   console.error("Error setting the globe for: ",pool.name);
-    //   return;
-    // }
-    // console.log("Set Globe in the Controller for: ",pool.name);
+    const setGlobe = await Controller.setGlobe(lp, SnowGlobe.address);
+    const tx_setGlobe = await setGlobe.wait(1);
+    if (!tx_setGlobe.status) {
+      console.error("Error setting the globe for: ",pool.name);
+      return;
+    }
+    console.log("Set Globe in the Controller for: ",pool.name);
 
     /* Approve Strategy */
-    // const approveStrategy = await Controller.approveStrategy(lp, Strategy.address);
-    // const tx_approveStrategy = await approveStrategy.wait(1);
-    // if (!tx_approveStrategy.status) {
-    //   console.error("Error approving the strategy for: ",pool.name);
-    //   return;
-    // }
-    // console.log("Approved Strategy in the Controller for: ",pool.name);
+    const approveStrategy = await Controller.approveStrategy(lp, Strategy.address);
+    const tx_approveStrategy = await approveStrategy.wait(1);
+    if (!tx_approveStrategy.status) {
+      console.error("Error approving the strategy for: ",pool.name);
+      return;
+    }
+    console.log("Approved Strategy in the Controller for: ",pool.name);
 
     /* Set Strategy */
     const setStrategy = await Controller.setStrategy(lp, Strategy.address);
