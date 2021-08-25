@@ -4,7 +4,7 @@ require('dotenv').config();
 
 async function main() {
   const names = [
-    "BenqiWbtc",
+    "BenqiLink",
   ];
   
   const [deployer] = await ethers.getSigners();
