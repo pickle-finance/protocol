@@ -2,6 +2,7 @@ const {exec} = require('child_process');
 
 async function main() {
   const names = [
+
     "benqi-wbtc",
   ];
 
