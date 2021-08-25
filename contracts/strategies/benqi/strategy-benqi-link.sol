@@ -140,9 +140,9 @@ contract StrategyBenqiLink is StrategyBase, Exponential {
 
     // **** Pseudo-view functions (use `callStatic` on these) **** //
     /* The reason why these exists is because of the nature of the
-       interest accruing supply + borrow balance. The "view" mlinkods
+       interest accruing supply + borrow balance. The "view" methods
        are technically snapshots and don't represent the real value.
-       As such there are pseudo view mlinkods where you can retrieve the
+       As such there are pseudo view methods where you can retrieve the
        results by calling `callStatic`.
     */
 
