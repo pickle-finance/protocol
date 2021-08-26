@@ -582,7 +582,7 @@ contract GaugeProxy is ProtocolGovernance {
     function _reset(address _owner) internal {
         address[] storage _tokenVote = tokenVote[_owner];
         uint256 _tokenVoteCnt = _tokenVote.length;
-    }
+    
 
         for (uint i = 0; i < _tokenVoteCnt; i ++) {
             address _token = _tokenVote[i];
