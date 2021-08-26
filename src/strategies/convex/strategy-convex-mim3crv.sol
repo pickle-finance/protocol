@@ -12,8 +12,8 @@ interface ICurveZapper {
 
 contract StrategyConvexMim3Crv is StrategyConvexFarmBase {
     address public lpToken = 0x5a6A4D54456819380173272A5E8E9B9904BdF41B;
-    uint256 public crvTricryptoPoolId = 40;
-    address public mim = 0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3;
+    uint256 public mim3crvPoolId = 40;
+    address public dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
     address public spell = 0x090185f2135308BaD17527004364eBcC2D37e5F6;
     address public zapper = 0xA79828DF1850E8a3A3064576f380D90aECDD3359;
 
@@ -26,7 +26,7 @@ contract StrategyConvexMim3Crv is StrategyConvexFarmBase {
         public
         StrategyConvexFarmBase(
             lpToken,
-            crvTricryptoPoolId,
+            mim3crvPoolId,
             _governance,
             _strategist,
             _controller,
@@ -34,7 +34,7 @@ contract StrategyConvexMim3Crv is StrategyConvexFarmBase {
         )
     {}
 
-    function getName() external override pure returns (string memory) {
+    function getName() external pure override returns (string memory) {
         return "StrategyConvexMim3Crv";
     }
 
@@ -42,8 +42,7 @@ contract StrategyConvexMim3Crv is StrategyConvexFarmBase {
         return
             IVirtualBalanceRewardPool(
                 IBaseRewardPool(getCrvRewardContract()).extraRewards(0)
-            )
-                .earned(address(this));
+            ).earned(address(this));
     }
 
     function getHarvestable()
@@ -73,7 +72,7 @@ contract StrategyConvexMim3Crv is StrategyConvexFarmBase {
 
         address[] memory path = new address[](3);
         path[1] = weth;
-        path[2] = mim;
+        path[2] = dai;
 
         uint256 _cvx = IERC20(cvx).balanceOf(address(this));
         if (_cvx > 0) {
@@ -101,12 +100,12 @@ contract StrategyConvexMim3Crv is StrategyConvexFarmBase {
             _swapSushiswapWithPath(path, _spell);
         }
 
-        uint256 _mim = IERC20(mim).balanceOf(address(this));
-        if (_mim > 0) {
-            IERC20(mim).safeApprove(zapper, 0);
-            IERC20(mim).safeApprove(zapper, _mim);
+        uint256 _dai = IERC20(dai).balanceOf(address(this));
+        if (_dai > 0) {
+            IERC20(dai).safeApprove(zapper, 0);
+            IERC20(dai).safeApprove(zapper, _dai);
 
-            uint256[4] memory amounts = [_mim, 0, 0, 0];
+            uint256[4] memory amounts = [0, _dai, 0, 0];
             ICurveZapper(zapper).add_liquidity(lpToken, amounts, 0);
         }
 
