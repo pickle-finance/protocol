@@ -212,7 +212,7 @@ abstract contract ReentrancyGuard {
     }
 }
 
-contract Gauge is ReentrancyGuard {
+contract Gauge is ReentrancyGuard, ProtocolGovernance {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     
@@ -222,7 +222,7 @@ contract Gauge is ReentrancyGuard {
     address public constant TREASURY = address(0x56ec24041531fC6816301952707787248FeE501a);
     
     IERC20 public immutable TOKEN;
-    address public immutable DISTRIBUTION;
+    address public DISTRIBUTION;
     uint256 public constant DURATION = 7 days;
     
     uint256 public periodFinish = 0;
@@ -244,9 +244,16 @@ contract Gauge is ReentrancyGuard {
     mapping(address => uint256) public derivedBalances;
     mapping(address => uint) private _base;
     
-    constructor(address _token) public {
+    constructor(address _token, address _goverance) public {
         TOKEN = IERC20(_token);
         DISTRIBUTION = msg.sender;
+        governance = _governance;
+    }
+
+    // This function is to allow us to update the gaugeProxy 
+    // without resetting the old gauges.
+    function changeDistribution(address _distribution) external onlyGovernance {
+        DISTRIBUTION = _distribution
     }
     
     function totalSupply() external view returns (uint256) {
@@ -412,6 +419,14 @@ contract ProtocolGovernance {
         require(msg.sender == pendingGovernance, "acceptGovernance: !pendingGov");
         governance = pendingGovernance;
     }
+
+    /**
+     * @notice modifier to allow for easy gov only control over a function
+     */
+    modifier onlyGovernance() {
+        require(msg.sender == governance, "!gov");
+        _;
+    }
 }
 
 contract MakeSnowCones {
@@ -532,13 +547,18 @@ contract GaugeProxy is ProtocolGovernance {
     
     uint public pid;
     uint public totalWeight;
+    uint private lockedTotalWeight;
+    uint private lockedBalance;
     
     address[] internal _tokens;
     mapping(address => address) public gauges; // token => gauge
+    mapping(address => address) public deprecated; // token => gauge
     mapping(address => uint) public weights; // token => weight
+    mapping(address => uint) private lockedWeights; // token => weight
     mapping(address => mapping(address => uint)) public votes; // msg.sender => token => votes
     mapping(address => address[]) public tokenVote;// msg.sender => token
     mapping(address => uint) public usedWeights;  // msg.sender => total voting weight of user
+    
     
     function tokens() external view returns (address[] memory) {
         return _tokens;
@@ -634,32 +654,37 @@ contract GaugeProxy is ProtocolGovernance {
     }
     
     // Add new token gauge
-    function addGauge(address _token) external {
-        require(msg.sender == governance, "!gov");
+    function addGauge(address _token) external onlyGovernance {
         require(gauges[_token] == address(0x0), "exists");
-        gauges[_token] = address(new Gauge(_token));
+        gauges[_token] = address(new Gauge(_token, governance));
         _tokens.push(_token);
     }
 
-    // Remove existing gauge
-    function removeGauge(address _token) external {
-        require(msg.sender == governance, "!gov");
-        delete _tokens  
+    // Deprecate existing gauge
+    function deprecateGauge(address _token) external onlyGovernance {
+        require(gauges[_token] != address(0x0), "does not exist");
+        deprecated[_token] = gauges[_token];
         delete gauges(_token);
+        totalWeight = totalWeight.sub(weights(_token));
         delete weights(_token);
     }
 
+    // Bring Deprecated gauge back into use
+    function resurrectGauge(address _token) external onlyGovernance {
+        require(gauges[_token] == address(0x0), "exists");
+        gauges[_token] = deprecated[_token];
+        delete deprecated(_token);
+    }
+
     // Add existing gauge
-    function migrateGauge(address _gauge, address _token) external {
-        require(msg.sender == governance, "!gov");
+    function migrateGauge(address _gauge, address _token) external onlyGovernance {
         require(gauges[_token] == address(0x0), "exists");
         gauges[_token] = _gauge;
         _tokens.push(_token)
     }
     
     // Sets IceQueen PID
-    function setPID(uint _pid) external {
-        require(msg.sender == governance, "!gov");
+    function setPID(uint _pid) external onlyGovernance {
         require(pid == 0, "pid has already been set");
         require(_pid > 0, "invalid pid");
         pid = _pid;
@@ -687,15 +712,24 @@ contract GaugeProxy is ProtocolGovernance {
     function length() external view returns (uint) {
         return _tokens.length;
     }
-    
-    function distribute() external {
+
+    function preDistribute() external onlyGovernance {
+        lockedTotalWeight = TotalWeight;
+        lockedWeights = Weights;
         collect();
-        uint _balance = SNOWBALL.balanceOf(address(this));
-        if (_balance > 0 && totalWeight > 0) {
-            for (uint i = 0; i < _tokens.length; i++) {
+        lockedBalance = SNOWBALL.balanceOf(address(this));
+    }
+
+    
+    function distribute(uint _start, uint _end) external onlyGovernance {
+        require(_start < _end, "bad _start");
+        require(_end <= _tokens.length, "bad _end");
+        if (lockedBalance > 0 && lockedTotalWeight > 0) {
+            for (uint i = _start; i < _end; i++) {
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
-                uint _reward = _balance.mul(weights[_token]).div(totalWeight);
+                // need to consider 0x0 gauges here
+                uint _reward = _balance.mul(lockedWeights[_token]).div(totalWeight);
                 if (_reward > 0) {
                     SNOWBALL.safeApprove(_gauge, 0);
                     SNOWBALL.safeApprove(_gauge, _reward);
