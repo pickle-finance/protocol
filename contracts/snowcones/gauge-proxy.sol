@@ -576,7 +576,7 @@ contract GaugeProxy is ProtocolGovernance {
     // Reset votes to 0
     function reset() external {
         _reset(msg.sender);
-
+    }
     
     // Reset votes to 0
     function _reset(address _owner) internal {
