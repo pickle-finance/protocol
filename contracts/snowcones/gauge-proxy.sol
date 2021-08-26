@@ -556,7 +556,7 @@ contract GaugeProxy is ProtocolGovernance {
     // Reset votes to 0
     function reset() external {
         _reset(msg.sender);
-    }
+
     
     // Reset votes to 0
     function _reset(address _owner) internal {
@@ -640,7 +640,22 @@ contract GaugeProxy is ProtocolGovernance {
         gauges[_token] = address(new Gauge(_token));
         _tokens.push(_token);
     }
-    
+
+    // Remove existing gauge
+    function removeGauge(address _token) external {
+        require(msg.sender == governance, "!gov");
+        delete _tokens  
+        delete gauges(_token);
+        delete weights(_token);
+    }
+
+    // Add existing gauge
+    function migrateGauge(address _gauge, address _token) external {
+        require(msg.sender == governance, "!gov");
+        require(gauges[_token] == address(0x0), "exists");
+        gauges[_token] = _gauge;
+        _tokens.push(_token)
+    }
     
     // Sets IceQueen PID
     function setPID(uint _pid) external {
