@@ -1,30 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+pragma experimental ABIEncoderV2;
 
 import "../lib/safe-math.sol";
 import "../lib/erc20.sol";
-
-interface Gauge {
-    function deposit(uint256) external;
-
-    function balanceOf(address) external view returns (uint256);
-
-    function withdraw(uint256) external;
-
-    function claim_rewards(address) external;
-
-    function rewarded_token() external returns (address);
-
-    function reward_tokens(uint256) external returns (address);
-}
-
-interface FeeDistribution {
-    function getYield() external;
-
-    function time_cursor() external view returns (uint256);
-
-    function time_cursor_of(address) external view returns (uint256);
-}
+import "../interfaces/IUniswapV3PositionsNFT.sol";
+import "../interfaces/backscratcher/FraxGauge.sol";
 
 interface IProxy {
     function execute(
@@ -55,26 +36,29 @@ contract StrategyProxy {
     using SafeProxy for IProxy;
 
     IProxy public constant proxy =
-        IProxy(0xF147b8125d2ef93FB6965Db97D6746952a133934); //locker
-    address public constant mintr =
-        address(0xd061D61a4d941c39E5453435B6345Dc261C2fcE0);
+        IProxy(0x7600137d41630BB1E35E02332013444302d40Edc);
+
+    address public constant gaugeFXSRewardsDistributor =
+        0x278dC748edA1d8eFEf1aDFB518542612b49Fcd34;
+
+    address public constant nonFungiblePositionManager =
+        0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
+
     address public constant fxs =
         address(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
     address public constant gauge =
         address(0x44ade9AA409B0C29463fF7fcf07c9d3c939166ce);
-    address public constant yveCRV =
+    address public constant veFxsVault =
         address(0xc5bDdf9843308380375a611c18B50Fb9341f502A); //veFXSVault; need to be changed
     address public constant rewards =
         address(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
-    FeeDistribution public constant feeDistribution =
-        FeeDistribution(0xed2647Bbf875b2936AAF95a3F5bbc82819e3d3FE);
+    address public constant feeDistribution =
+        0xed2647Bbf875b2936AAF95a3F5bbc82819e3d3FE;
 
     // gauge => strategies
     mapping(address => address) public strategies;
     mapping(address => bool) public voters;
     address public governance;
-
-    uint256 lastTimeCursor;
 
     constructor() public {
         governance = msg.sender;
@@ -123,78 +107,119 @@ contract StrategyProxy {
         );
     }
 
-    function withdraw(
-        address _gauge,
-        address _token,
-        uint256 _amount
-    ) public returns (uint256) {
+    function withdraw(address _gauge, uint256 _tokenId)
+        public
+        returns (uint256)
+    {
         require(strategies[_gauge] == msg.sender, "!strategy");
-        uint256 _balance = IERC20(_token).balanceOf(address(proxy));
+
         proxy.safeExecute(
             _gauge,
             0,
-            abi.encodeWithSignature("withdraw(uint256)", _amount)
+            abi.encodeWithSignature("withdrawLocked(uint256)", _tokenId)
         );
-        _balance = IERC20(_token).balanceOf(address(proxy)).sub(_balance);
+
+        LockedNFT[] memory lockedNfts = FraxGauge(_gauge).lockedNFTsOf(
+            address(proxy)
+        );
+
+        LockedNFT memory thisNFT;
+
+        for (uint256 i = 0; i < lockedNfts.length; i++) {
+            if (_tokenId == lockedNfts[i].token_id) {
+                thisNFT = lockedNfts[i];
+                break;
+            }
+        }
+        require(thisNFT.liquidity != 0, "tokenId not found");
+
         proxy.safeExecute(
-            _token,
+            nonFungiblePositionManager,
             0,
             abi.encodeWithSignature(
-                "transfer(address,uint256)",
+                "safeTransferFrom(address,address,uint256)",
+                address(proxy),
                 msg.sender,
-                _balance
+                thisNFT.token_id
             )
         );
-        return _balance;
+        return thisNFT.liquidity;
     }
 
     function balanceOf(address _gauge) public view returns (uint256) {
-        return IERC20(_gauge).balanceOf(address(proxy));
+        return FraxGauge(_gauge).lockedLiquidityOf(address(proxy));
+    }
+
+    function lockedNFTsOf(address _gauge)
+        public
+        view
+        returns (LockedNFT[] memory)
+    {
+        return FraxGauge(_gauge).lockedNFTsOf(address(proxy));
     }
 
     function withdrawAll(address _gauge, address _token)
         external
-        returns (uint256)
+        returns (uint256 amount)
     {
         require(strategies[_gauge] == msg.sender, "!strategy");
-        return withdraw(_gauge, _token, balanceOf(_gauge));
+        LockedNFT[] memory lockedNfts = FraxGauge(_gauge).lockedNFTsOf(
+            address(proxy)
+        );
+        for (uint256 i = 0; i < lockedNfts.length; i++) {
+            uint256 _withdrawnLiquidity = withdraw(
+                _gauge,
+                lockedNfts[i].token_id
+            );
+            amount = amount.add(_withdrawnLiquidity);
+        }
     }
 
-    function deposit(address _gauge, address _token) external {
+    function deposit(
+        address _gauge,
+        uint256 _tokenId,
+        uint256 _secs
+    ) external {
         require(strategies[_gauge] == msg.sender, "!strategy");
-        uint256 _balance = IERC20(_token).balanceOf(address(this));
-        IERC20(_token).safeTransfer(address(proxy), _balance);
-        _balance = IERC20(_token).balanceOf(address(proxy));
+
+        IUniswapV3PositionsNFT(nonFungiblePositionManager).safeTransferFrom(
+            address(this),
+            address(proxy),
+            _tokenId
+        );
 
         proxy.safeExecute(
-            _token,
-            0,
-            abi.encodeWithSignature("approve(address,uint256)", _gauge, 0)
-        );
-        proxy.safeExecute(
-            _token,
+            nonFungiblePositionManager,
             0,
             abi.encodeWithSignature(
                 "approve(address,uint256)",
                 _gauge,
-                _balance
+                _tokenId
             )
         );
+
         proxy.safeExecute(
             _gauge,
             0,
-            abi.encodeWithSignature("deposit(uint256)", _balance)
+            abi.encodeWithSignature(
+                "stakeLocked(uint256,uint256)",
+                _tokenId,
+                _secs
+            )
         );
     }
 
     function harvest(address _gauge) external {
         require(strategies[_gauge] == msg.sender, "!strategy");
         uint256 _balance = IERC20(fxs).balanceOf(address(proxy));
-        proxy.safeExecute(
-            mintr,
-            0,
-            abi.encodeWithSignature("mint(address)", _gauge)
-        );
+
+        // proxy.safeExecute(
+        //     gaugeFXSRewardsDistributor,
+        //     0,
+        //     abi.encodeWithSignature("distributeReward(address)", _gauge)
+        // );
+
+        proxy.safeExecute(_gauge, 0, abi.encodeWithSignature("getReward()"));
         _balance = (IERC20(fxs).balanceOf(address(proxy))).sub(_balance);
         proxy.safeExecute(
             fxs,
@@ -208,13 +233,14 @@ contract StrategyProxy {
     }
 
     function claim(address recipient) external {
-        require(msg.sender == yveCRV, "!strategy");
-        if (now < lastTimeCursor.add(604800)) return;
-        address p = address(proxy);
-        feeDistribution.claim_many(
-            [p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p]
+        require(msg.sender == veFxsVault, "!vault");
+
+        proxy.safeExecute(
+            feeDistribution,
+            0,
+            abi.encodeWithSignature("getYield()")
         );
-        lastTimeCursor = feeDistribution.time_cursor_of(address(proxy));
+
         uint256 amount = IERC20(rewards).balanceOf(address(proxy));
         if (amount > 0) {
             proxy.safeExecute(
@@ -231,7 +257,9 @@ contract StrategyProxy {
 
     function claimRewards(address _gauge, address _token) external {
         require(strategies[_gauge] == msg.sender, "!strategy");
-        Gauge(_gauge).claim_rewards(address(proxy));
+
+        proxy.safeExecute(_gauge, 0, abi.encodeWithSignature("getReward()"));
+
         proxy.safeExecute(
             _token,
             0,
