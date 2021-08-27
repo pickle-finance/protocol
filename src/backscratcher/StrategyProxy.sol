@@ -38,8 +38,8 @@ contract StrategyProxy {
     IProxy public constant proxy =
         IProxy(0x7600137d41630BB1E35E02332013444302d40Edc);
 
-    address public constant gaugeFXSRewardsDistributor =
-        0x278dC748edA1d8eFEf1aDFB518542612b49Fcd34;
+    // address public constant gaugeFXSRewardsDistributor =
+    //     0x278dC748edA1d8eFEf1aDFB518542612b49Fcd34;
 
     address public constant nonFungiblePositionManager =
         0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
@@ -107,7 +107,7 @@ contract StrategyProxy {
         );
     }
 
-    function withdraw(address _gauge, uint256 _tokenId)
+    function withdrawV3(address _gauge, uint256 _tokenId)
         public
         returns (uint256)
     {
@@ -119,7 +119,7 @@ contract StrategyProxy {
             abi.encodeWithSignature("withdrawLocked(uint256)", _tokenId)
         );
 
-        LockedNFT[] memory lockedNfts = FraxGauge(_gauge).lockedNFTsOf(
+        LockedNFT[] memory lockedNfts = IFraxGaugeUniV3(_gauge).lockedNFTsOf(
             address(proxy)
         );
 
@@ -146,8 +146,46 @@ contract StrategyProxy {
         return thisNFT.liquidity;
     }
 
+    function withdrawV2(
+        address _gauge,
+        address _token,
+        bytes32 _kek_id
+    ) public returns (uint256) {
+        require(strategies[_gauge] == msg.sender, "!strategy");
+
+        proxy.safeExecute(
+            _gauge,
+            0,
+            abi.encodeWithSignature("withdrawLocked(bytes32)", _kek_id)
+        );
+
+        LockedStake[] memory lockedStakes = IFraxGaugeUniV2(_gauge)
+            .lockedStakesOf(address(proxy));
+
+        LockedStake memory thisStake;
+
+        for (uint256 i = 0; i < lockedStakes.length; i++) {
+            if (_kek_id == lockedStakes[i].kek_id) {
+                thisStake = lockedStakes[i];
+                break;
+            }
+        }
+        require(thisStake.liquidity != 0, "kek_id not found");
+
+        proxy.safeExecute(
+            _token,
+            0,
+            abi.encodeWithSignature(
+                "transfer(address,uint256)",
+                msg.sender,
+                thisStake.liquidity
+            )
+        );
+        return thisStake.liquidity;
+    }
+
     function balanceOf(address _gauge) public view returns (uint256) {
-        return FraxGauge(_gauge).lockedLiquidityOf(address(proxy));
+        return IFraxGaugeBase(_gauge).lockedLiquidityOf(address(proxy));
     }
 
     function lockedNFTsOf(address _gauge)
@@ -155,19 +193,27 @@ contract StrategyProxy {
         view
         returns (LockedNFT[] memory)
     {
-        return FraxGauge(_gauge).lockedNFTsOf(address(proxy));
+        return IFraxGaugeUniV3(_gauge).lockedNFTsOf(address(proxy));
     }
 
-    function withdrawAll(address _gauge, address _token)
+    function lockedStakesOf(address _gauge)
+        public
+        view
+        returns (LockedStake[] memory)
+    {
+        return IFraxGaugeUniV2(_gauge).lockedStakesOf(address(proxy));
+    }
+
+    function withdrawAllV3(address _gauge, address _token)
         external
         returns (uint256 amount)
     {
         require(strategies[_gauge] == msg.sender, "!strategy");
-        LockedNFT[] memory lockedNfts = FraxGauge(_gauge).lockedNFTsOf(
+        LockedNFT[] memory lockedNfts = IFraxGaugeUniV3(_gauge).lockedNFTsOf(
             address(proxy)
         );
         for (uint256 i = 0; i < lockedNfts.length; i++) {
-            uint256 _withdrawnLiquidity = withdraw(
+            uint256 _withdrawnLiquidity = withdrawV3(
                 _gauge,
                 lockedNfts[i].token_id
             );
@@ -175,7 +221,25 @@ contract StrategyProxy {
         }
     }
 
-    function deposit(
+    function withdrawAllV2(address _gauge, address _token)
+        external
+        returns (uint256 amount)
+    {
+        require(strategies[_gauge] == msg.sender, "!strategy");
+        LockedStake[] memory lockedStakes = IFraxGaugeUniV2(_gauge)
+            .lockedStakesOf(address(proxy));
+
+        for (uint256 i = 0; i < lockedStakes.length; i++) {
+            uint256 _withdrawnLiquidity = withdrawV2(
+                _gauge,
+                _token,
+                lockedStakes[i].kek_id
+            );
+            amount = amount.add(_withdrawnLiquidity);
+        }
+    }
+
+    function depositV3(
         address _gauge,
         uint256 _tokenId,
         uint256 _secs
@@ -209,27 +273,66 @@ contract StrategyProxy {
         );
     }
 
-    function harvest(address _gauge) external {
+    function depositV2(
+        address _gauge,
+        address _token,
+        uint256 _secs
+    ) external {
         require(strategies[_gauge] == msg.sender, "!strategy");
-        uint256 _balance = IERC20(fxs).balanceOf(address(proxy));
 
-        // proxy.safeExecute(
-        //     gaugeFXSRewardsDistributor,
-        //     0,
-        //     abi.encodeWithSignature("distributeReward(address)", _gauge)
-        // );
+        uint256 _balance = IERC20(_token).balanceOf(address(this));
+        IERC20(_token).safeTransfer(address(proxy), _balance);
+        _balance = IERC20(_token).balanceOf(address(proxy));
 
-        proxy.safeExecute(_gauge, 0, abi.encodeWithSignature("getReward()"));
-        _balance = (IERC20(fxs).balanceOf(address(proxy))).sub(_balance);
         proxy.safeExecute(
-            fxs,
+            _token,
+            0,
+            abi.encodeWithSignature("approve(address,uint256)", _gauge, 0)
+        );
+        proxy.safeExecute(
+            _token,
             0,
             abi.encodeWithSignature(
-                "transfer(address,uint256)",
-                msg.sender,
+                "approve(address,uint256)",
+                _gauge,
                 _balance
             )
         );
+        proxy.safeExecute(
+            _gauge,
+            0,
+            abi.encodeWithSignature(
+                "stakeLocked(uint256,uint256)",
+                _balance,
+                _secs
+            )
+        );
+    }
+
+    function harvest(address _gauge, address[] calldata _tokens) external {
+        require(strategies[_gauge] == msg.sender, "!strategy");
+        uint256[] memory _balances = new uint256[](_tokens.length);
+
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            _balances[i] = IERC20(_tokens[i]).balanceOf(address(proxy));
+        }
+
+        proxy.safeExecute(_gauge, 0, abi.encodeWithSignature("getReward()"));
+
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            _balances[i] = (IERC20(_tokens[i]).balanceOf(address(proxy))).sub(
+                _balances[i]
+            );
+            proxy.safeExecute(
+                _tokens[i],
+                0,
+                abi.encodeWithSignature(
+                    "transfer(address,uint256)",
+                    msg.sender,
+                    _balances[i]
+                )
+            );
+        }
     }
 
     function claim(address recipient) external {
@@ -269,5 +372,43 @@ contract StrategyProxy {
                 IERC20(_token).balanceOf(address(proxy))
             )
         );
+    }
+
+    // **** Emergency functions ****
+
+    function execute(address _target, bytes memory _data)
+        public
+        payable
+        returns (bytes memory response)
+    {
+        require(msg.sender == governance, "!governance");
+        require(_target != address(0), "!target");
+
+        // call contract in current context
+        assembly {
+            let succeeded := delegatecall(
+                sub(gas(), 5000),
+                _target,
+                add(_data, 0x20),
+                mload(_data),
+                0,
+                0
+            )
+            let size := returndatasize()
+
+            response := mload(0x40)
+            mstore(
+                0x40,
+                add(response, and(add(add(size, 0x20), 0x1f), not(0x1f)))
+            )
+            mstore(response, size)
+            returndatacopy(add(response, 0x20), 0, size)
+
+            switch iszero(succeeded)
+            case 1 {
+                // throw if delegatecall failed
+                revert(add(response, 0x20), size)
+            }
+        }
     }
 }
