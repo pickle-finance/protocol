@@ -545,6 +545,7 @@ contract GaugeProxyV2 is ProtocolGovernance {
     IERC20 public constant SNOWBALL = IERC20(0xC38f41A296A4493Ff429F1238e030924A1542e50);
     
     IERC20 public immutable TOKEN;
+    uint public immutable DISTRIBUTION_DEADLINE = 21600;
     
     uint public pid;
     uint public totalWeight;
@@ -729,12 +730,11 @@ contract GaugeProxyV2 is ProtocolGovernance {
     function distribute(uint _start, uint _end) external onlyGovernance {
         require(_start < _end, "bad _start");
         require(_end <= _tokens.length, "bad _end");
-        require(locktime + 21600 >= block.timestamp, "lock expired");
+        require(locktime + DISTRIBUTION_DEADLINE >= block.timestamp, "lock expired");
         if (lockedBalance > 0 && lockedTotalWeight > 0) {
             for (uint i = _start; i < _end; i++) {
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
-                // need to consider 0x0 gauges here
                 uint _reward = lockedBalance.mul(lockedWeights[_token]).div(totalWeight);
                 if (_reward > 0) {
                     SNOWBALL.safeApprove(_gauge, 0);
