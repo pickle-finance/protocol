@@ -4,13 +4,13 @@ require('dotenv').config();
 
 async function main() {
   const names = [
-    "PngAvaxAve",
-    "PngAvaxEle",
-    "PngAvaxGdl",
-    "PngAvaxMfi",
-    "PngAvePng",
-    "PngElePng",
-    "PngGdlPng",
+    // "PngAvaxAve",
+    // "PngAvaxEle",
+    // "PngAvaxGdl",
+    // "PngAvaxMfi",
+    // "PngAvePng",
+    // "PngElePng",
+    // "PngGdlPng",
     "PngMfiPng",
     "JoeAvaxQi"
   ];
