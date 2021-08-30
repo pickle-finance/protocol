@@ -26,12 +26,7 @@ contract PickleJarCooldown is ERC20 {
     uint256 public initialWithdrawalFee = 50;
     uint256 public initialWithdrawalFeeMax = 1000;
 
-    struct CooldownInfo {
-        uint256 amount;
-        uint256 startTime;
-    }
-
-    mapping (address => CooldownInfo) public cooldownInfo;
+    mapping (address => uint256) public cooldownStartTime;
 
     constructor(address _token, address _governance, address _timelock, address _controller)
         public
@@ -115,6 +110,7 @@ contract PickleJarCooldown is ERC20 {
         } else {
             shares = (_amount.mul(totalSupply())).div(_pool);
         }
+        cooldownStartTime[msg.sender] = now;
         _mint(msg.sender, shares);
     }
 
@@ -129,22 +125,12 @@ contract PickleJarCooldown is ERC20 {
         IERC20(reserve).safeTransfer(controller, amount);
     }
 
-    function cooldown(uint256 _shares) public {
-        require(_shares <= balanceOf(msg.sender), "!shares");
-        CooldownInfo storage cooldown = cooldownInfo[msg.sender];
-        cooldown.amount = _shares;
-        cooldown.startTime = now;
-    }
-
     // No rebalance implementation for lower fees and faster swaps
     function withdraw(uint256 _shares) public {
-        CooldownInfo storage cooldown = cooldownInfo[msg.sender];
-        require(_shares <= cooldown.amount, "!cooldown");
-        require(now >= cooldown.startTime, "!cooldown did not started");
+        require(now >= cooldownStartTime[msg.sender], "!cooldown did not started");
 
         uint256 r = (balance().mul(_shares)).div(totalSupply());
         _burn(msg.sender, _shares);
-        cooldown.amount = cooldown.amount.sub(_shares);
 
         // Check balance
         uint256 b = token.balanceOf(address(this));
@@ -158,7 +144,7 @@ contract PickleJarCooldown is ERC20 {
             }
         }
 
-        uint256 cooldownEndTime = cooldown.startTime + cooldownTime;
+        uint256 cooldownEndTime = cooldownStartTime[msg.sender] + cooldownTime;
 
         if (now < cooldownEndTime) {
             uint256 timeDiff = cooldownEndTime.sub(now);

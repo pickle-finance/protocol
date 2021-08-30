@@ -65,8 +65,6 @@ const doTestBalancerBehaviorBase = (strategyName, want_addr, reward_token_addr, 
       _before = await want.balanceOf(alice.address);
       console.log("\nAlice balance before picklejar withdrawal: ", _before.toString());
 
-      await pickleJar.cooldown((await pickleJar.balanceOf(alice.address)));
-
       await increaseTime(60 * 60 * 24 * 7); //travel 7 days
 
       await pickleJar.withdrawAll();
@@ -116,10 +114,6 @@ const doTestBalancerBehaviorBase = (strategyName, want_addr, reward_token_addr, 
       console.log("\n👨‍🌾 Dev balance before picklejar withdrawal: ", _devBefore.toString());
       console.log("💸 Treasury balance before picklejar withdrawal: ", _treasuryBefore.toString());
 
-      const _cooldown = await pickleJar.balanceOf(alice.address);
-
-      await pickleJar.cooldown(_cooldown);
-
       await increaseTime(60 * 60 * 24 * 3); //travel 3 days
 
       await pickleJar.withdrawAll();
@@ -136,6 +130,11 @@ const doTestBalancerBehaviorBase = (strategyName, want_addr, reward_token_addr, 
       //0% goes to treasury
       const _treasuryFund = _treasuryAfter.sub(_treasuryBefore);
       expect(_treasuryFund).to.be.eq(0, "treasury've stolen money!!!!");
+
+      const _devFund = _devAfter.sub(_devBefore);
+      console.log("\nExpected Dev Fund: ", expectedDevFund);
+      console.log("\nDev Fund: ", _devFund);
+      expect(_devFund).to.be.eqApprox(expectedDevFund, "dev've stolen money!!!!");
     });
 
     beforeEach(async () => {
