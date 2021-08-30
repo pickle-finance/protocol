@@ -82,8 +82,6 @@ contract StrategyBalancerWmaticUsdcQiBalMimaticLp is StrategyBase {
         if (_rewardBalance > 0) {
             // 10% is locked up for future gov
             uint256 _keepReward = _rewardBalance.mul(keepReward).div(keepRewardMax);
-            IERC20(bal).safeApprove(IController(controller).treasury(), 0);
-            IERC20(bal).safeApprove(IController(controller).treasury(), _keepReward);
             IERC20(bal).safeTransfer(
                 IController(controller).treasury(),
                 _keepReward
