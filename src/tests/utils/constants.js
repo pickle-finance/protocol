@@ -11,4 +11,5 @@ module.exports = {
   ZERO_ADDRESS,
   NULL_ADDRESS,
   WETH,
+  POLYGON_SUSHI_ROUTER
 };

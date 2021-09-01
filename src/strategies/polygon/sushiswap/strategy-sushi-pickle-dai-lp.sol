@@ -5,12 +5,12 @@ import "../strategy-sushi-farm-base.sol";
 
 contract StrategySushiPickleDaiLp is StrategySushiFarmBase {
     // Pickle/Dai pool id in MasterChef contract
-    uint256 public poolId = 37;
+    uint256 public sushi_pickle_dai_poolId  = 37;
     
     // Token addresses
-    address public pickle_dai_slp = 0x57602582eb5e82a197bae4e8b6b80e39abfc94eb;
-    address public dai = 0x8f3cf7ad23cd3cadbd9735aff958023239c6a063;
-    address public pickle = 0x2b88ad57897a8b496595925f43048301c37615da
+    address public pickle_dai_slp = 0x57602582eB5e82a197baE4E8b6B80E39abFC94EB;
+    address public dai = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
+    address public pickle = 0x2b88aD57897A8b496595925F43048301C37615Da;
 
     constructor(
         address _governance,
@@ -22,7 +22,7 @@ contract StrategySushiPickleDaiLp is StrategySushiFarmBase {
         StrategySushiFarmBase(
             pickle,
             dai,
-            poolId,
+            sushi_pickle_dai_poolId,
             pickle_dai_slp,
             _governance,
             _strategist,
@@ -36,3 +36,4 @@ contract StrategySushiPickleDaiLp is StrategySushiFarmBase {
     function getName() external override pure returns (string memory) {
         return "StrategySushiPickleDaiLp";
     }
+}
