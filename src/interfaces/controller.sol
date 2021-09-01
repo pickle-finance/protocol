@@ -15,5 +15,9 @@ interface IController {
 
     function withdraw(address, uint256) external;
 
+    function withdrawReward(address, uint256) external;
+
     function earn(address, uint256) external;
+
+    function strategies(address) external view returns (address);
 }

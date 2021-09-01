@@ -18,6 +18,9 @@ contract PickleRegistry {
   event PromoteVault(address vault);
   event DemoteVault(address vault);
   event RemoveVault(address vault);
+
+  event RegisterGauge(address gauge);
+  event RemoveGauge(address gauge);
   
   constructor() public {
     governance = msg.sender;
@@ -92,6 +95,16 @@ contract PickleRegistry {
     }
   }
 
+  function addGauge(address _gauge) external {
+    require(curators[msg.sender], "!curator");
+    emit RegisterGauge(_gauge);
+  }
+
+  function removeGauge(address _gauge) external {
+    require(curators[msg.sender], "!curator");
+    emit RemoveGauge(_gauge);
+  }
+
   function developmentVaults() external view returns (address[] memory) {
     uint256 vaults = development.length();
     address[] memory details = new address[](vaults);
@@ -113,4 +126,5 @@ contract PickleRegistry {
 
     return details;
   }
+
 }

@@ -1,38 +1,50 @@
-const {expect, increaseTime, getContractAt} = require("../utils/testHelper");
+const {expect, increaseTime, getContractAt, deployContract, unlockAccount, toWei} = require("../utils/testHelper");
 const {setup} = require("../utils/setupHelper");
 const {NULL_ADDRESS} = require("../utils/constants");
 
-const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
+const doTestMigrationBaseWithAddresses = (
+  oldStrategyName, 
+  oldStrategyAddress, 
+  pickleJarAddress, 
+  newStrategyName, 
+  newStrategyAddress, 
+  want_addr
+) => {
   let alice, want;
-  let strategy, pickleJar, controller;
-  let governance, strategist, devfund, treasury, timelock;
+  let newStrategy, pickleJar, controller, oldStrategy, controllerStrategist, newStrategist;
+  let strategist, devfund, treasury, timelock;
   let preTestSnapshotID;
 
-  describe(`${strategyName} common behavior tests`, () => {
+  describe(`${oldStrategyName} at ${oldStrategyAddress} => ${newStrategyName} common migration tests`, () => {
     before("Setup contracts", async () => {
-      [alice, devfund, treasury] = await hre.ethers.getSigners();
-      governance = alice;
-      strategist = alice;
-      timelock = alice;
+      [alice] = await hre.ethers.getSigners();
+
+      console.log("alice: ", alice.address);
 
       want = await getContractAt("ERC20", want_addr);
+      oldStrategy = await getContractAt(oldStrategyName, oldStrategyAddress);
+      pickleJar = await getContractAt("PickleJar", pickleJarAddress);
+      strategist = await oldStrategy.strategist();
+      timelock = await pickleJar.timelock();
+      controller = await pickleJar.controller();
 
-      [controller, strategy, pickleJar] = await setup(
-        strategyName,
-        want,
-        governance,
-        strategist,
-        timelock,
-        devfund,
-        treasury,
-        isPolygon
-      );
-    });
+      controller = await getContractAt("src/controller-v4.sol:ControllerV4", controller);
+      console.log("Fetched controller at: ", controller.address);
 
-    it("Should set the timelock correctly", async () => {
-      expect(await strategy.timelock()).to.be.eq(timelock.address, "timelock is incorrect");
-      await strategy.setTimelock(NULL_ADDRESS);
-      expect(await strategy.timelock()).to.be.eq(NULL_ADDRESS, "timelock is incorrect");
+      const controllerStrategistAddress = await controller.strategist();
+
+      await alice.sendTransaction({
+        to: controllerStrategistAddress,
+        value: toWei(1),
+      });
+
+      newStrategy = await getContractAt(newStrategyName, newStrategyAddress);
+      console.log("Fetched new strategy at: ", newStrategy.address);
+
+      controllerStrategist = await unlockAccount(controllerStrategistAddress);
+      newStrategist = await unlockAccount(await newStrategy.strategist());
+      devfund = await controller.devfund();
+      treasury = await controller.treasury();
     });
 
     it("Should withdraw correctly", async () => {
@@ -41,19 +53,25 @@ const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
       await pickleJar.deposit(_want);
       console.log("Alice pTokenBalance after deposit: %s\n", (await pickleJar.balanceOf(alice.address)).toString());
       await pickleJar.earn();
+      console.log("PickleJar earned with old strategy");
+
+      await controller.connect(controllerStrategist).setStrategy(want.address, newStrategy.address);
+
+      await pickleJar.earn();
+      console.log("PickleJar earned with new strategy");
 
       await increaseTime(60 * 60 * 24 * 15); //travel 15 days
 
       console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
 
-      await strategy.harvest();
+      await newStrategy.connect(newStrategist).harvest();
 
       console.log("Ratio after harvest: %s", (await pickleJar.getRatio()).toString());
 
       let _before = await want.balanceOf(pickleJar.address);
       console.log("\nPicklejar balance before controller withdrawal: ", _before.toString());
 
-      await controller.withdrawAll(want.address);
+      await controller.connect(controllerStrategist).withdrawAll(want.address);
 
       let _after = await want.balanceOf(pickleJar.address);
       console.log("Picklejar balance after controller withdrawal: ", _after.toString());
@@ -79,19 +97,25 @@ const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
       console.log("Alice pTokenBalance after deposit: %s\n", (await pickleJar.balanceOf(alice.address)).toString());
       await pickleJar.earn();
 
+      console.log("\nRatio before migration: ", (await pickleJar.getRatio()).toString());
+
+      await controller.connect(controllerStrategist).setStrategy(want.address, newStrategy.address);
+
+      await pickleJar.earn();
+
       await increaseTime(60 * 60 * 24 * 15); //travel 15 days
       const _before = await pickleJar.balance();
-      let _treasuryBefore = await want.balanceOf(treasury.address);
+      let _treasuryBefore = await want.balanceOf(treasury);
 
       console.log("Picklejar balance before harvest: ", _before.toString());
       console.log("💸 Treasury balance before harvest: ", _treasuryBefore.toString());
       console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
 
-      await strategy.harvest();
+      await newStrategy.connect(newStrategist).harvest();
+      console.log("Ratio after harvest: ", (await pickleJar.getRatio()).toString());
 
       const _after = await pickleJar.balance();
-      let _treasuryAfter = await want.balanceOf(treasury.address);
-      console.log("Ratio after harvest: ", (await pickleJar.getRatio()).toString());
+      let _treasuryAfter = await want.balanceOf(treasury);
       console.log("\nPicklejar balance after harvest: ", _after.toString());
       console.log("💸 Treasury balance after harvest: ", _treasuryAfter.toString());
 
@@ -104,15 +128,15 @@ const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
       expect(earnedRewards).to.be.eqApprox(actualRewardsEarned, "20% performance fee is not given");
 
       //withdraw
-      const _devBefore = await want.balanceOf(devfund.address);
-      _treasuryBefore = await want.balanceOf(treasury.address);
+      const _devBefore = await want.balanceOf(devfund);
+      _treasuryBefore = await want.balanceOf(treasury);
       console.log("\n👨‍🌾 Dev balance before picklejar withdrawal: ", _devBefore.toString());
       console.log("💸 Treasury balance before picklejar withdrawal: ", _treasuryBefore.toString());
 
       await pickleJar.withdrawAll();
 
-      const _devAfter = await want.balanceOf(devfund.address);
-      _treasuryAfter = await want.balanceOf(treasury.address);
+      const _devAfter = await want.balanceOf(devfund);
+      _treasuryAfter = await want.balanceOf(treasury);
       console.log("\n👨‍🌾 Dev balance after picklejar withdrawal: ", _devAfter.toString());
       console.log("💸 Treasury balance after picklejar withdrawal: ", _treasuryAfter.toString());
 
@@ -135,4 +159,4 @@ const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
   });
 };
 
-module.exports = {doTestBehaviorBase};
+module.exports = {doTestMigrationBaseWithAddresses};

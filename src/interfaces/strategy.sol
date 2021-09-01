@@ -15,8 +15,12 @@ interface IStrategy {
     function withdrawForSwap(uint256) external returns (uint256);
 
     function withdraw(address) external;
-
+    
+    function pendingReward() external view returns (uint256);
+    
     function withdraw(uint256) external;
+
+    function withdrawReward(uint256) external;
 
     function skim() external;
 

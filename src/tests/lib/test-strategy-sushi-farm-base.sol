@@ -64,6 +64,8 @@ contract StrategySushiFarmTestBase is DSTestSushiBase {
         hevm.roll(block.number + 1000);
         strategy.harvest();
 
+        hevm.roll(block.number + 1000);
+        strategy.harvest();
         // Checking withdraw
         uint256 _before = IERC20(want).balanceOf(address(pickleJar));
         controller.withdrawAll(want);
@@ -91,6 +93,10 @@ contract StrategySushiFarmTestBase is DSTestSushiBase {
         // Call the harvest function
         uint256 _before = pickleJar.balance();
         uint256 _treasuryBefore = IERC20(want).balanceOf(treasury);
+        strategy.harvest();
+
+        hevm.roll(block.number + 1000);
+
         strategy.harvest();
         uint256 _after = pickleJar.balance();
         uint256 _treasuryAfter = IERC20(want).balanceOf(treasury);
