@@ -216,10 +216,10 @@ contract Gauge is ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     
-	//FUJI testnet
-    IERC20 public constant SNOWBALL = IERC20(0xF319e2f610462F846d6e93F51CdC862EEFF2a554);
-    IERC20 public constant SNOWCONE = IERC20(0x9a37dC4f28C38813A6D31391721376066FbB401d);
-    address public constant TREASURY = address(0x56ec24041531fC6816301952707787248FeE501a);
+    //Mainnet testnet
+    IERC20 public constant SNOWBALL = IERC20(0xC38f41A296A4493Ff429F1238e030924A1542e50);
+    IERC20 public constant SNOWCONE = IERC20(0x83952E7ab4aca74ca96217D6F8f7591BEaD6D64E);
+    address public constant TREASURY = address(0x294aB3200ef36200db84C4128b7f1b4eec71E38a);
     
     IERC20 public immutable TOKEN;
     address public immutable DISTRIBUTION;
@@ -524,9 +524,9 @@ contract GaugeProxy is ProtocolGovernance {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     
-    IceQueen public constant MASTER = IceQueen(0x041EE186982159da50Cc8A3A87B5eC669Db0b758);
-    IERC20 public constant SNOWCONE = IERC20(0x9a37dC4f28C38813A6D31391721376066FbB401d);
-    IERC20 public constant SNOWBALL = IERC20(0xF319e2f610462F846d6e93F51CdC862EEFF2a554);
+    IceQueen public constant MASTER = IceQueen(0xB12531a2d758c7a8BF09f44FC88E646E1BF9D375);
+    IERC20 public constant SNOWCONE = IERC20(0x83952E7ab4aca74ca96217D6F8f7591BEaD6D64E);
+    IERC20 public constant SNOWBALL = IERC20(0xC38f41A296A4493Ff429F1238e030924A1542e50);
     
     IERC20 public immutable TOKEN;
     
@@ -562,6 +562,7 @@ contract GaugeProxy is ProtocolGovernance {
     function _reset(address _owner) internal {
         address[] storage _tokenVote = tokenVote[_owner];
         uint256 _tokenVoteCnt = _tokenVote.length;
+    
 
         for (uint i = 0; i < _tokenVoteCnt; i ++) {
             address _token = _tokenVote[i];
