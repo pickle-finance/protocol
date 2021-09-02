@@ -69,6 +69,11 @@ contract StrategyProxy {
         governance = _governance;
     }
 
+    function setFXSVault(address _vault) external {
+        require(msg.sender == governance, "!governance");
+        veFxsVault = _vault;
+    }
+
     function approveStrategy(address _gauge, address _strategy) external {
         require(msg.sender == governance, "!governance");
         strategies[_gauge] = _strategy;
