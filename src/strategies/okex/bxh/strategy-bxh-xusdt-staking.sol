@@ -2,7 +2,7 @@
 pragma solidity ^0.6.7;
 
 import "../strategy-bxh-farm-base.sol";
-import "../../interfaces/xusdt.sol";
+import "../../../interfaces/xusdt.sol";
 
 contract StrategyBxhXusdtStaking is StrategyBxhFarmBase {
     uint256 public xusdt_staking_poolId = 1;
@@ -41,10 +41,11 @@ contract StrategyBxhXusdtStaking is StrategyBxhFarmBase {
         uint256 _bxh = IERC20(bxh).balanceOf(address(this));
 
         if (_bxh > 0) {
-            _swapSushiswapWithPath([bxh, usdt], _bxh);
+            uniswapRoutes[bxh] = [bxh, usdt];
+            _swapSushiswapWithPath(uniswapRoutes[bxh], _bxh);
         }
 
-        // Stake USDT for XUSDT
+        // Stake USDT for XUSDT - erc20 is same as staking contract
         uint256 _usdt = IERC20(usdt).balanceOf(address(this));
 
         if (_usdt > 0) {
@@ -52,8 +53,6 @@ contract StrategyBxhXusdtStaking is StrategyBxhFarmBase {
             IERC20(usdt).safeApprove(xusdt, _usdt);
 
             IXusdt(xusdt).stake(_usdt);
-
-            uint256 _xusdt = IERC20(xusdt).balanceOf(address(this));
 
             // Donates DUST
             IERC20(bxh).transfer(

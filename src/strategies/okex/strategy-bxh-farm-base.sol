@@ -72,7 +72,7 @@ abstract contract StrategyBxhFarmBase is StrategyBase {
 
     // **** State Mutations ****
 
-    function harvest() public override onlyBenevolent {
+    function harvest() public virtual override onlyBenevolent {
         // Anyone can harvest it at any given time.
         // I understand the possibility of being frontrun
         // But ETH is a dark forest, and I wanna see how this plays out
