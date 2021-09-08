@@ -28,7 +28,7 @@ contract StrategyBxhUsdtLp is StrategyBxhFarmBase {
             _timelock
         )
     {
-        uniswapRoutes[usdt] = [usdt, bxh];
+        uniswapRoutes[usdt] = [bxh, usdt];
     }
 
     // **** Views ****
