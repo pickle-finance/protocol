@@ -58,3 +58,31 @@ interface IUniswapV3PositionsNFT is IERC721 {
         payable
         returns (uint256 amount0, uint256 amount1);
 }
+
+interface IUniV3Pool {
+    function token0() external view returns (address);
+
+    function token1() external view returns (address);
+
+    function liquidity() external view returns (uint128);
+
+    function fee() external view returns (uint24);
+
+    function maxLiquidityPerTick() external view returns (uint128);
+
+    function protocolFees()
+        external
+        view
+        returns (uint128 token0, uint128 token1);
+
+    function positions(bytes32)
+        external
+        view
+        returns (
+            uint128 liquidity,
+            uint256 feeGrowthInside0LastX128,
+            uint256 feeGrowthInside1LastX128,
+            uint128 tokensOwed0,
+            uint128 tokensOwed1
+        );
+}

@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "../lib/safe-math.sol";
 import "../lib/erc20.sol";
-import "../interfaces/IUniswapV3PositionsNFT.sol";
+import "../interfaces/uniswapv3.sol";
 import "../interfaces/backscratcher/FraxGauge.sol";
 
 interface IProxy {
