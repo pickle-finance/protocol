@@ -1,8 +1,8 @@
-const {expect, increaseTime, getContractAt} = require("../utils/testHelper");
+const {expect, increaseTime, getContractAt, increaseBlock} = require("../utils/testHelper");
 const {setup} = require("../utils/setupHelper");
 const {NULL_ADDRESS} = require("../utils/constants");
 
-const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
+const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isPolygon = false) => {
   let alice, want;
   let strategy, pickleJar, controller;
   let governance, strategist, devfund, treasury, timelock;
@@ -43,6 +43,9 @@ const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
       await pickleJar.earn();
 
       await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+      if (bIncreaseBlock) {
+        await increaseBlock(97443); //roughly 15 days
+      }
 
       console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
 
@@ -80,6 +83,9 @@ const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
       await pickleJar.earn();
 
       await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+      if (bIncreaseBlock) {
+        await increaseBlock(97443); //roughly 15 days
+      }
       const _before = await pickleJar.balance();
       let _treasuryBefore = await want.balanceOf(treasury.address);
 
