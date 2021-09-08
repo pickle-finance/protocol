@@ -22,7 +22,7 @@ contract StrategyMaiQiMaticLp is StrategyGeneralMasterChefBase {
         masterChef,
         wmatic,
         qi,
-        3, // pool id
+        4, // pool id
         quick_qi_wmatic_lp,
         _governance,
         _strategist,
