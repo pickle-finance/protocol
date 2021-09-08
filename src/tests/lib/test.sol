@@ -13,17 +13,17 @@
 
 pragma solidity ^0.6.7;
 
-contract DSTest {
-    event eventListener(address target, bool exact);
-    event logs(bytes);
-    event log_bytes32(bytes32);
-    event log_named_address(bytes32 key, address val);
-    event log_named_bytes32(bytes32 key, bytes32 val);
-    event log_named_decimal_int(bytes32 key, int256 val, uint256 decimals);
-    event log_named_decimal_uint(bytes32 key, uint256 val, uint256 decimals);
-    event log_named_int(bytes32 key, int256 val);
-    event log_named_uint(bytes32 key, uint256 val);
-    event log_named_string(bytes32 key, string val);
+abstract contract DSTest {
+    event eventListener          (address target, bool exact);
+    event logs                   (bytes);
+    event log_bytes32            (bytes32);
+    event log_named_address      (bytes32 key, address val);
+    event log_named_bytes32      (bytes32 key, bytes32 val);
+    event log_named_decimal_int  (bytes32 key, int val, uint decimals);
+    event log_named_decimal_uint (bytes32 key, uint val, uint decimals);
+    event log_named_int          (bytes32 key, int val);
+    event log_named_uint         (bytes32 key, uint val);
+    event log_named_string       (bytes32 key, string val);
 
     bool public IS_TEST;
     bool public failed;
