@@ -11,5 +11,5 @@ describe("StrategyFeiTribeLpV2", () => {
     await getLpToken(UNI_ROUTER, want_addr, toWei(100), alice);
   });
 
-  doTestBehaviorBase("StrategyFeiTribeLpV2", want_addr);
+  doTestBehaviorBase("StrategyFeiTribeLpV2", want_addr, true);
 });
