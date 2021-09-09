@@ -77,8 +77,10 @@ abstract contract StrategyFeiFarmBaseV2 is StrategyBase {
                 address(this),
                 i
             );
-            amounts[i] = amount;
-            _sum = _sum.add(amount);
+            if (amount > 0) {
+                amounts[i] = amount;
+                _sum = _sum.add(amount);
+            }
             count++;
             if (_sum >= _amount) break;
         }
