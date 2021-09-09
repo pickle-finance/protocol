@@ -29,6 +29,7 @@ contract StrategyFeiTribeLpV2 is StrategyFeiFarmBaseV2 {
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
+        deposit();
         IFeichefV2(feiChef).harvest(poolId, address(this));
 
         uint256 _tribe = IERC20(tribe).balanceOf(address(this));
