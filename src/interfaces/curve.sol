@@ -56,9 +56,10 @@ interface ICurveFi_4 {
         external;
 
     // stETH pool
-    function add_liquidity(uint256[2] calldata amounts, uint256 min_mint_amount)
-        external
-        payable;
+    function add_liquidity(
+        uint256[2] calldata amounts,
+        uint256 min_mint_amount
+    ) external payable;
 
     function remove_liquidity_imbalance(
         uint256[4] calldata amounts,
@@ -69,6 +70,13 @@ interface ICurveFi_4 {
         external;
 
     function exchange(
+        int128 from,
+        int128 to,
+        uint256 _from_amount,
+        uint256 _min_to_amount
+    ) external;
+
+    function exchange_underlying(
         int128 from,
         int128 to,
         uint256 _from_amount,
@@ -134,11 +142,8 @@ interface ICurveFi_Polygon_3 {
     function add_liquidity(uint256[3] calldata amounts, uint256 min_mint_amount)
         external;
 
-    function add_liquidity(
-        uint256[3] calldata amounts,
-        uint256 min_mint_amount,
-        bool use_underlying
-    ) external;
+    function add_liquidity(uint256[3] calldata amounts, uint256 min_mint_amount, bool use_underlying)
+        external;
 
     function remove_liquidity_imbalance(
         uint256[3] calldata amounts,

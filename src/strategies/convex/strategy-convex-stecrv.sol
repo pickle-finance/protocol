@@ -154,7 +154,7 @@ contract StrategyConvexSteCRV is StrategyConvexFarmBase {
             uint256[2] memory liquidity = [_eth, _stEth];
             IERC20(stEth).safeApprove(pool, 0);
             IERC20(stEth).safeApprove(pool, _stEth);
-            // ICurveFi_4(pool).add_liquidity{value: _eth}(liquidity, 0);
+            ICurveFi_4(pool).add_liquidity{value: _eth}(liquidity, 0);
         }
 
         _distributePerformanceFeesAndDeposit();
