@@ -6,8 +6,10 @@ import "../strategy-fei-farm-base-v2.sol";
 
 contract StrategyFeiTribeLpV2 is StrategyFeiFarmBaseV2 {
     uint256 public fei_tribe_poolId = 0;
-    address
-        public uni_fei_tribe_lp = 0x9928e4046d7c6513326cCeA028cD3e7a91c7590A;
+    address public uni_fei_tribe_lp = 0x9928e4046d7c6513326cCeA028cD3e7a91c7590A;
+
+    // Uniswap swap paths
+    address[] public tribe_fei_path;
 
     constructor(
         address _governance,
@@ -24,7 +26,11 @@ contract StrategyFeiTribeLpV2 is StrategyFeiFarmBaseV2 {
             _controller,
             _timelock
         )
-    {}
+    {
+        tribe_fei_path = new address[](2);
+        tribe_fei_path[0] = tribe;
+        tribe_fei_path[1] = fei;
+    }
 
     // **** State Mutations ****
 
@@ -37,7 +43,7 @@ contract StrategyFeiTribeLpV2 is StrategyFeiFarmBaseV2 {
             uint256 _amount = _tribe.div(2);
             IERC20(tribe).safeApprove(univ2Router2, 0);
             IERC20(tribe).safeApprove(univ2Router2, _amount);
-            _swapUniswap(tribe, fei, _amount);
+            _swapUniswapWithPath(tribe_fei_path, _amount);
         }
 
         // Adds in liquidity for FEI/TRIBE
