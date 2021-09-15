@@ -30,6 +30,6 @@ contract StrategyRlyEthLp is StrategyRallyFarmBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyRallyFarmBase";
+        return "StrategyRlyEthLp";
     }
 }
