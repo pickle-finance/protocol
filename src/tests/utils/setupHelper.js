@@ -21,7 +21,16 @@ const now = () => {
  * @param treasury treasury signeraddr
  * @returns controller, strategy and picklejar contract
  */
-const setup = async (strategyName, want, governance, strategist, timelock, devfund, treasury, isPolygon = false) => {
+const setup = async (
+  strategyName,
+  want,
+  governance,
+  strategist,
+  timelock,
+  devfund,
+  treasury,
+  isPolygon = false
+) => {
   const controller = await deployContract(
     isPolygon ? "src/polygon/controller-v4.sol:ControllerV4" : "src/controller-v4.sol:ControllerV4",
     governance.address,
@@ -129,10 +138,12 @@ const getLpToken = async (routerAddr, lpToken, ethAmount, from) => {
   const token1 = await lpTokenContract.token1();
   const wethContract = await getContractAt("WETH", WETH);
 
-  if (token0.toLowerCase() != WETH.toLowerCase()) await getERC20WithETH(routerAddr, token0, ethAmount.div(2), from);
+  if (token0.toLowerCase() != WETH.toLowerCase())
+    await getERC20WithETH(routerAddr, token0, ethAmount.div(2), from);
   else await wethContract.deposit({value: ethAmount.div(2)});
 
-  if (token1.toLowerCase() != WETH.toLowerCase()) await getERC20WithETH(routerAddr, token1, ethAmount.div(2), from);
+  if (token1.toLowerCase() != WETH.toLowerCase())
+    await getERC20WithETH(routerAddr, token1, ethAmount.div(2), from);
   else await wethContract.deposit({value: ethAmount.div(2)});
 
   const token0Contract = await getContractAt("ERC20", token0);
@@ -162,7 +173,7 @@ const getWantFromWhale = async (want_addr, amount, to, whaleAddr) => {
   const want = await getContractAt("ERC20", want_addr);
   await to.sendTransaction({
     to: whaleAddr,
-    value: toWei(1),
+    value: toWei(10),
   });
   await want.connect(whale).transfer(to.address, amount);
   const _balance = await want.balanceOf(to.address);

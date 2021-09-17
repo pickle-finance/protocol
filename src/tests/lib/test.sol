@@ -11,19 +11,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity >=0.4.23;
+pragma solidity ^0.6.7;
 
 contract DSTest {
-    event eventListener          (address target, bool exact);
-    event logs                   (bytes);
-    event log_bytes32            (bytes32);
-    event log_named_address      (bytes32 key, address val);
-    event log_named_bytes32      (bytes32 key, bytes32 val);
-    event log_named_decimal_int  (bytes32 key, int val, uint decimals);
-    event log_named_decimal_uint (bytes32 key, uint val, uint decimals);
-    event log_named_int          (bytes32 key, int val);
-    event log_named_uint         (bytes32 key, uint val);
-    event log_named_string       (bytes32 key, string val);
+    event eventListener(address target, bool exact);
+    event logs(bytes);
+    event log_bytes32(bytes32);
+    event log_named_address(bytes32 key, address val);
+    event log_named_bytes32(bytes32 key, bytes32 val);
+    event log_named_decimal_int(bytes32 key, int256 val, uint256 decimals);
+    event log_named_decimal_uint(bytes32 key, uint256 val, uint256 decimals);
+    event log_named_int(bytes32 key, int256 val);
+    event log_named_uint(bytes32 key, uint256 val);
+    event log_named_string(bytes32 key, string val);
 
     bool public IS_TEST;
     bool public failed;
@@ -41,9 +41,9 @@ contract DSTest {
     }
 
     modifier logs_gas() {
-        uint startGas = gasleft();
+        uint256 startGas = gasleft();
         _;
-        uint endGas = gasleft();
+        uint256 endGas = gasleft();
         emit log_named_uint("gas", startGas - endGas);
     }
 
@@ -76,7 +76,11 @@ contract DSTest {
         }
     }
 
-    function assertEqDecimal(int a, int b, uint decimals) internal {
+    function assertEqDecimal(
+        int256 a,
+        int256 b,
+        uint256 decimals
+    ) internal {
         if (a != b) {
             emit log_bytes32("Error: Wrong fixed-point decimal");
             emit log_named_decimal_int("  Expected", b, decimals);
@@ -85,7 +89,11 @@ contract DSTest {
         }
     }
 
-    function assertEqDecimal(uint a, uint b, uint decimals) internal {
+    function assertEqDecimal(
+        uint256 a,
+        uint256 b,
+        uint256 decimals
+    ) internal {
         if (a != b) {
             emit log_bytes32("Error: Wrong fixed-point decimal");
             emit log_named_decimal_uint("  Expected", b, decimals);
@@ -94,7 +102,7 @@ contract DSTest {
         }
     }
 
-    function assertEq(int a, int b) internal {
+    function assertEq(int256 a, int256 b) internal {
         if (a != b) {
             emit log_bytes32("Error: Wrong `int' value");
             emit log_named_int("  Expected", b);
@@ -103,7 +111,7 @@ contract DSTest {
         }
     }
 
-    function assertEq(uint a, uint b) internal {
+    function assertEq(uint256 a, uint256 b) internal {
         if (a != b) {
             emit log_bytes32("Error: Wrong `uint' value");
             emit log_named_uint("  Expected", b);
@@ -125,7 +133,7 @@ contract DSTest {
         bool ok = true;
 
         if (a.length == b.length) {
-            for (uint i = 0; i < a.length; i++) {
+            for (uint256 i = 0; i < a.length; i++) {
                 if (a[i] != b[i]) {
                     ok = false;
                 }

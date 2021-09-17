@@ -30,9 +30,21 @@ module.exports = {
           },
         },
       },
+      {
+        version: "0.7.6",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
     ],
   },
   networks: {
+    localhost: {
+      url: "http://127.0.0.1:8545",
+    },
     hardhat: {
       forking: {
         url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
@@ -40,6 +52,7 @@ module.exports = {
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },
+      allowUnlimitedContractSize: true,
       hardfork: "london",
       gasPrice: "auto",
     },
@@ -78,10 +91,12 @@ module.exports = {
     enabled: true,
     coinmarketcap: process.env.COINMARKETCAP,
     currency: "USD",
-    gasPrice: 32,
+    gasPrice: 89,
   },
   preprocess: {
-    eachLine: removeConsoleLog((hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"),
+    eachLine: removeConsoleLog(
+      (hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"
+    ),
   },
   mocha: {
     timeout: 20000000,

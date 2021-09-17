@@ -15,16 +15,20 @@ pragma experimental ABIEncoderV2;
 // ─██████─────────██████████─██████████████─██████──████████─██████████████─██████████████────██████████████─██████──██████─██████──██████████─
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-import "./interfaces/controller.sol";
+import "./interfaces/controllerv2.sol";
 import "./lib/erc20.sol";
+import "./lib/univ3/PoolActions.sol";
 import "./lib/reentrancy-guard.sol";
 import "./lib/safe-math.sol";
-import "./interfaces/uniswapv3.sol";
+import "./interfaces/univ3/IUniswapV3PositionsNFT.sol";
+import "./interfaces/univ3/IUniswapV3Pool.sol";
+import "hardhat/console.sol";
 
 contract PickleJarV2 is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
+    using PoolVariables for IUniswapV3Pool;
 
     address public governance;
     address public timelock;
@@ -33,15 +37,16 @@ contract PickleJarV2 is ERC20, ReentrancyGuard {
     bool public paused;
     bool public earnAfterDeposit;
 
-    uint256 public totalLiquidityOfThis;
+    uint256 public liquidityOfThis;
     mapping(address => uint256) liquidityOfUser;
 
-    IUniV3Pool public pool;
+    IUniswapV3Pool public pool;
 
-    IUniswapV3PositionsNFT public nftManager = IUniswapV3PositionsNFT(0xC36442b4a4522E871399CD717aBDD847Ab11FE88); // UniV3 uses an NFT
+    IERC20 public token0;
+    IERC20 public token1;
 
-    int24 public uni_tick_lower;
-    int24 public uni_tick_upper;
+    int24 public tick_lower;
+    int24 public tick_upper;
 
     struct UniV3NFTs {
         uint256 token_id; // for Uniswap V3 LPs
@@ -56,15 +61,18 @@ contract PickleJarV2 is ERC20, ReentrancyGuard {
         string memory _name,
         string memory _symbol,
         address _pool,
-        int24 _uni_tick_lower,
-        int24 _uni_tick_upper,
+        int24 _tick_lower,
+        int24 _tick_upper,
         address _governance,
         address _timelock,
         address _controller
     ) public ERC20(_name, _symbol) {
-        pool = IUniV3Pool(_pool);
-        uni_tick_lower = _uni_tick_lower;
-        uni_tick_upper = _uni_tick_upper;
+        pool = IUniswapV3Pool(_pool);
+        token0 = IERC20(pool.token0());
+        token1 = IERC20(pool.token1());
+
+        tick_lower = _tick_lower;
+        tick_upper = _tick_upper;
 
         governance = _governance;
         timelock = _timelock;
@@ -73,8 +81,8 @@ contract PickleJarV2 is ERC20, ReentrancyGuard {
         earnAfterDeposit = false;
     }
 
-    function balance() public view returns (uint256) {
-        return totalLiquidityOfThis.add(IController(controller).liquidityOf(address(pool)));
+    function liquidity() public view returns (uint256) {
+        return liquidityOfThis.add(IControllerV2(controller).liquidityOf(address(pool)));
     }
 
     function setGovernance(address _governance) public {
@@ -106,32 +114,48 @@ contract PickleJarV2 is ERC20, ReentrancyGuard {
     }
 
     function earn() public {
-        for (; lockedNfts.length > 0; ) {
-            nftManager.safeTransferFrom(address(this), controller, lockedNfts[lockedNfts.length - 1].token_id);
-            lockedNfts.pop();
-        }
-        IController(controller).earn(address(pool));
+        require(liquidityOfThis > 0, "no liquidity here");
+
+        uint256 balance0 = token0.balanceOf(address(this));
+        uint256 balance1 = token1.balanceOf(address(this));
+
+        liquidityOfThis = 0;
+
+        token0.safeTransfer(controller, balance0);
+        token1.safeTransfer(controller, balance1);
+
+        IControllerV2(controller).earn(address(pool), balance0, balance1);
     }
 
-    function deposit(uint256 _token_id) external nonReentrant whenNotPaused {
-        (, uint256 liquidity, int24 tick_lower, int24 tick_upper) = checkUniV3NFT(_token_id, true); // Should throw if false
+    function deposit(uint256 token0Amount, uint256 token1Amount)
+        external
+        nonReentrant
+        whenNotPaused
+        checkRatio(token0Amount, token1Amount)
+    {
+        uint256 _pool = liquidity();
 
-        lockedNfts.push(UniV3NFTs(_token_id, liquidity, tick_lower, tick_upper));
+        uint256 liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, tick_lower, tick_upper));
 
-        totalLiquidityOfThis = totalLiquidityOfThis.add(liquidity);
-        liquidityOfUser[msg.sender] = liquidityOfUser[msg.sender].add(liquidity);
+        liquidityOfThis = liquidityOfThis.add(liquidity);
 
-        nftManager.safeTransferFrom(msg.sender, address(this), _token_id);
+        token0.safeTransferFrom(msg.sender, address(this), token0Amount);
+        token1.safeTransferFrom(msg.sender, address(this), token1Amount);
 
         uint256 shares = 0;
         if (totalSupply() == 0) {
             shares = liquidity;
         } else {
-            shares = (liquidity.mul(totalSupply())).div(balance());
+            shares = (liquidity.mul(totalSupply())).div(_pool);
         }
         _mint(msg.sender, shares);
 
         if (earnAfterDeposit) earn();
+    }
+
+    function getProportion() public view returns (uint256) {
+        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1e18, tick_lower, tick_upper);
+        return (a2 * (10**18)) / a1;
     }
 
     function withdrawAll() external {
@@ -139,77 +163,43 @@ contract PickleJarV2 is ERC20, ReentrancyGuard {
     }
 
     function withdraw(uint256 _shares) public nonReentrant whenNotPaused {
-        uint256 r = (balance().mul(_shares)).div(totalSupply());
+        uint256 r = (liquidity().mul(_shares)).div(totalSupply());
         _burn(msg.sender, _shares);
-
         // Check balance
-        uint256 b = token.balanceOf(address(this));
+        uint256 b = liquidityOfThis;
+        uint256[2] memory _balances = [token0.balanceOf(address(this)), token1.balanceOf(address(this))];
+
         if (b < r) {
             uint256 _withdraw = r.sub(b);
-            IController(controller).withdraw(address(pool), _withdraw);
-            uint256 _after = token.balanceOf(address(this));
-            uint256 _diff = _after.sub(b);
-            if (_diff < _withdraw) {
-                r = b.add(_diff);
-            }
+            (uint256 _a0, uint256 _a1) = IControllerV2(controller).withdraw(address(pool), _withdraw);
+            _balances[0] = _balances[0].add(_a0);
+            _balances[1] = _balances[1].add(_a1);
         }
-
-        token.safeTransfer(msg.sender, r);
+        token0.safeTransfer(msg.sender, _balances[0]);
+        token1.safeTransfer(msg.sender, _balances[1]);
     }
 
     function getRatio() public view returns (uint256) {
         if (totalSupply() == 0) return 0;
-        return balance().mul(1e18).div(totalSupply());
+        return liquidity().mul(1e18).div(totalSupply());
     }
 
-    function checkUniV3NFT(uint256 token_id, bool fail_if_false)
-        internal
-        view
-        returns (
-            bool is_valid,
-            uint256 liquidity,
-            int24 tick_lower,
-            int24 tick_upper
-        )
-    {
-        (
-            ,
-            ,
-            address token0,
-            address token1,
-            uint24 fee,
-            int24 tickLower,
-            int24 tickUpper,
-            uint256 _liquidity,
-            ,
-            ,
-            ,
-
-        ) = nftManager.positions(token_id);
-
-        // Set initially
-        is_valid = false;
-        liquidity = _liquidity;
-
-        // Do the checks
-        if (
-            (token0 == pool.token0()) &&
-            (token1 == pool.token1()) &&
-            (fee == pool.fee()) &&
-            (tickLower == uni_tick_lower) &&
-            (tickUpper == uni_tick_upper)
-        ) {
-            is_valid = true;
-        } else {
-            if (fail_if_false) {
-                revert("Invalid token");
-            }
-        }
-        return (is_valid, liquidity, tickLower, tickUpper);
+    modifier checkRatio(uint256 amount0, uint256 amount1) {
+        require(amount1 == amount0.mul(getProportion()).div(1e18), "proportion amount is required");
+        _;
     }
 
     modifier whenNotPaused() {
         require(paused == false, "paused");
         _;
+    }
+
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes memory
+    ) public pure returns (bytes4) {
+        return this.onERC721Received.selector;
     }
 }

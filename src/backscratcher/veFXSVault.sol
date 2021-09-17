@@ -3,10 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../lib/safe-math.sol";
 import "../lib/erc20.sol";
-
-interface StrategyProxy {
-    function lock() external;
-}
+import "../interfaces/backscratcher/IStrategyProxy.sol";
 
 interface FeeDistribution {
     function claim(address) external;
@@ -41,37 +38,24 @@ contract veFXSVault {
 
     /// @notice The EIP-712 typehash for the contract's domain
     bytes32 public constant DOMAIN_TYPEHASH =
-        keccak256(
-            "EIP712Domain(string name,uint chainId,address verifyingContract)"
-        );
+        keccak256("EIP712Domain(string name,uint chainId,address verifyingContract)");
     bytes32 public immutable DOMAINSEPARATOR;
 
     /// @notice The EIP-712 typehash for the delegation struct used by the contract
-    bytes32 public constant DELEGATION_TYPEHASH =
-        keccak256("Delegation(address delegatee,uint nonce,uint expiry)");
+    bytes32 public constant DELEGATION_TYPEHASH = keccak256("Delegation(address delegatee,uint nonce,uint expiry)");
 
     /// @notice The EIP-712 typehash for the permit struct used by the contract
     bytes32 public constant PERMIT_TYPEHASH =
-        keccak256(
-            "Permit(address owner,address spender,uint value,uint nonce,uint deadline)"
-        );
+        keccak256("Permit(address owner,address spender,uint value,uint nonce,uint deadline)");
 
     /// @notice A record of states for signing / validating signatures
     mapping(address => uint256) public nonces;
 
     /// @notice An event thats emitted when an account changes its delegate
-    event DelegateChanged(
-        address indexed delegator,
-        address indexed fromDelegate,
-        address indexed toDelegate
-    );
+    event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
 
     /// @notice An event thats emitted when a delegate account's vote balance changes
-    event DelegateVotesChanged(
-        address indexed delegate,
-        uint256 previousBalance,
-        uint256 newBalance
-    );
+    event DelegateVotesChanged(address indexed delegate, uint256 previousBalance, uint256 newBalance);
 
     /// @notice A checkpoint for marking number of votes from a given block
     struct Checkpoint {
@@ -104,12 +88,8 @@ contract veFXSVault {
         bytes32 r,
         bytes32 s
     ) public {
-        bytes32 structHash = keccak256(
-            abi.encode(DELEGATION_TYPEHASH, delegatee, nonce, expiry)
-        );
-        bytes32 digest = keccak256(
-            abi.encodePacked("\x19\x01", DOMAINSEPARATOR, structHash)
-        );
+        bytes32 structHash = keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, nonce, expiry));
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", DOMAINSEPARATOR, structHash));
         address signatory = ecrecover(digest, v, r, s);
         require(signatory != address(0), "delegateBySig: sig");
         require(nonce == nonces[signatory]++, "delegateBySig: nonce");
@@ -124,8 +104,7 @@ contract veFXSVault {
      */
     function getCurrentVotes(address account) external view returns (uint256) {
         uint32 nCheckpoints = numCheckpoints[account];
-        return
-            nCheckpoints > 0 ? checkpoints[account][nCheckpoints - 1].votes : 0;
+        return nCheckpoints > 0 ? checkpoints[account][nCheckpoints - 1].votes : 0;
     }
 
     /**
@@ -135,11 +114,7 @@ contract veFXSVault {
      * @param blockNumber The block number to get the vote balance at
      * @return The number of votes the account had as of the given block
      */
-    function getPriorVotes(address account, uint256 blockNumber)
-        public
-        view
-        returns (uint256)
-    {
+    function getPriorVotes(address account, uint256 blockNumber) public view returns (uint256) {
         require(blockNumber < block.number, "getPriorVotes:");
 
         uint32 nCheckpoints = numCheckpoints[account];
@@ -191,21 +166,14 @@ contract veFXSVault {
         if (srcRep != dstRep && amount > 0) {
             if (srcRep != address(0)) {
                 uint32 srcRepNum = numCheckpoints[srcRep];
-                uint256 srcRepOld = srcRepNum > 0
-                    ? checkpoints[srcRep][srcRepNum - 1].votes
-                    : 0;
-                uint256 srcRepNew = srcRepOld.sub(
-                    amount,
-                    "_moveVotes: underflows"
-                );
+                uint256 srcRepOld = srcRepNum > 0 ? checkpoints[srcRep][srcRepNum - 1].votes : 0;
+                uint256 srcRepNew = srcRepOld.sub(amount, "_moveVotes: underflows");
                 _writeCheckpoint(srcRep, srcRepNum, srcRepOld, srcRepNew);
             }
 
             if (dstRep != address(0)) {
                 uint32 dstRepNum = numCheckpoints[dstRep];
-                uint256 dstRepOld = dstRepNum > 0
-                    ? checkpoints[dstRep][dstRepNum - 1].votes
-                    : 0;
+                uint256 dstRepOld = dstRepNum > 0 ? checkpoints[dstRep][dstRepNum - 1].votes : 0;
                 uint256 dstRepNew = dstRepOld.add(amount);
                 _writeCheckpoint(dstRep, dstRepNum, dstRepOld, dstRepNew);
             }
@@ -220,27 +188,17 @@ contract veFXSVault {
     ) internal {
         uint32 blockNumber = safe32(block.number, "_writeCheckpoint: 32 bits");
 
-        if (
-            nCheckpoints > 0 &&
-            checkpoints[delegatee][nCheckpoints - 1].fromBlock == blockNumber
-        ) {
+        if (nCheckpoints > 0 && checkpoints[delegatee][nCheckpoints - 1].fromBlock == blockNumber) {
             checkpoints[delegatee][nCheckpoints - 1].votes = newVotes;
         } else {
-            checkpoints[delegatee][nCheckpoints] = Checkpoint(
-                blockNumber,
-                newVotes
-            );
+            checkpoints[delegatee][nCheckpoints] = Checkpoint(blockNumber, newVotes);
             numCheckpoints[delegatee] = nCheckpoints + 1;
         }
 
         emit DelegateVotesChanged(delegatee, oldVotes, newVotes);
     }
 
-    function safe32(uint256 n, string memory errorMessage)
-        internal
-        pure
-        returns (uint32)
-    {
+    function safe32(uint256 n, string memory errorMessage) internal pure returns (uint32) {
         require(n < 2**32, errorMessage);
         return uint32(n);
     }
@@ -249,25 +207,18 @@ contract veFXSVault {
     event Transfer(address indexed from, address indexed to, uint256 amount);
 
     /// @notice The standard EIP-20 approval event
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 amount
-    );
+    event Approval(address indexed owner, address indexed spender, uint256 amount);
 
     /// @notice governance address for the governance contract
     address public governance;
     address public pendingGovernance;
 
-    IERC20 public constant FXS =
-        IERC20(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
-    address public constant LOCK =
-        address(0x7600137d41630BB1E35E02332013444302d40Edc);
+    IERC20 public constant FXS = IERC20(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
+    address public constant LOCK = address(0x7600137d41630BB1E35E02332013444302d40Edc);
     address public proxy;
     address public feeDistribution;
 
-    IERC20 public constant rewards =
-        IERC20(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
+    IERC20 public constant rewards = IERC20(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
 
     uint256 public index = 0;
     uint256 public bal = 0;
@@ -277,14 +228,7 @@ contract veFXSVault {
     constructor() public {
         // Set governance for this token
         governance = msg.sender;
-        DOMAINSEPARATOR = keccak256(
-            abi.encode(
-                DOMAIN_TYPEHASH,
-                keccak256(bytes(name)),
-                _getChainId(),
-                address(this)
-            )
-        );
+        DOMAINSEPARATOR = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), _getChainId(), address(this)));
     }
 
     function update() external {
@@ -370,7 +314,7 @@ contract veFXSVault {
     function _deposit(uint256 _amount) internal {
         FXS.transferFrom(msg.sender, LOCK, _amount);
         _mint(msg.sender, _amount);
-        StrategyProxy(proxy).lock();
+        IStrategyProxy(proxy).lock();
     }
 
     function setProxy(address _proxy) external {
@@ -396,10 +340,7 @@ contract veFXSVault {
      * @notice Allows pendingGovernance to accept their role as governance (protection pattern)
      */
     function acceptGovernance() external {
-        require(
-            msg.sender == pendingGovernance,
-            "acceptGovernance: !pendingGov"
-        );
+        require(msg.sender == pendingGovernance, "acceptGovernance: !pendingGov");
         governance = pendingGovernance;
     }
 
@@ -409,11 +350,7 @@ contract veFXSVault {
      * @param spender The address of the account spending the funds
      * @return The number of tokens approved
      */
-    function allowance(address account, address spender)
-        external
-        view
-        returns (uint256)
-    {
+    function allowance(address account, address spender) external view returns (uint256) {
         return allowances[account][spender];
     }
 
@@ -451,19 +388,8 @@ contract veFXSVault {
         bytes32 r,
         bytes32 s
     ) external {
-        bytes32 structHash = keccak256(
-            abi.encode(
-                PERMIT_TYPEHASH,
-                owner,
-                spender,
-                amount,
-                nonces[owner]++,
-                deadline
-            )
-        );
-        bytes32 digest = keccak256(
-            abi.encodePacked("\x19\x01", DOMAINSEPARATOR, structHash)
-        );
+        bytes32 structHash = keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, amount, nonces[owner]++, deadline));
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", DOMAINSEPARATOR, structHash));
         address signatory = ecrecover(digest, v, r, s);
         require(signatory != address(0), "permit: signature");
         require(signatory == owner, "permit: unauthorized");
@@ -546,31 +472,17 @@ contract veFXSVault {
 
     // **** Emergency functions ****
 
-    function execute(address _target, bytes memory _data)
-        public
-        payable
-        returns (bytes memory response)
-    {
+    function execute(address _target, bytes memory _data) public payable returns (bytes memory response) {
         require(msg.sender == governance, "!governance");
         require(_target != address(0), "!target");
 
         // call contract in current context
         assembly {
-            let succeeded := delegatecall(
-                sub(gas(), 5000),
-                _target,
-                add(_data, 0x20),
-                mload(_data),
-                0,
-                0
-            )
+            let succeeded := delegatecall(sub(gas(), 5000), _target, add(_data, 0x20), mload(_data), 0, 0)
             let size := returndatasize()
 
             response := mload(0x40)
-            mstore(
-                0x40,
-                add(response, and(add(add(size, 0x20), 0x1f), not(0x1f)))
-            )
+            mstore(0x40, add(response, and(add(add(size, 0x20), 0x1f), not(0x1f))))
             mstore(response, size)
             returndatacopy(add(response, 0x20), 0, size)
 

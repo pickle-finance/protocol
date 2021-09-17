@@ -24,11 +24,9 @@ contract FXSLocker {
     using Address for address;
     using SafeMath for uint256;
 
-    address public constant fxs =
-        address(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
+    address public constant fxs = address(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
 
-    address public constant escrow =
-        address(0xc8418aF6358FFddA74e09Ca9CC3Fe03Ca6aDC5b0);
+    address public constant escrow = address(0xc8418aF6358FFddA74e09Ca9CC3Fe03Ca6aDC5b0);
 
     address public governance;
     address public strategy;
@@ -47,30 +45,21 @@ contract FXSLocker {
     }
 
     function createLock(uint256 _value, uint256 _unlockTime) external {
-        require(
-            msg.sender == strategy || msg.sender == governance,
-            "!authorized"
-        );
+        require(msg.sender == strategy || msg.sender == governance, "!authorized");
         IERC20(fxs).safeApprove(escrow, 0);
         IERC20(fxs).safeApprove(escrow, _value);
         VoteEscrow(escrow).create_lock(_value, _unlockTime);
     }
 
     function increaseAmount(uint256 _value) external {
-        require(
-            msg.sender == strategy || msg.sender == governance,
-            "!authorized"
-        );
+        require(msg.sender == strategy || msg.sender == governance, "!authorized");
         IERC20(fxs).safeApprove(escrow, 0);
         IERC20(fxs).safeApprove(escrow, _value);
         VoteEscrow(escrow).increase_amount(_value);
     }
 
     function release() external {
-        require(
-            msg.sender == strategy || msg.sender == governance,
-            "!authorized"
-        );
+        require(msg.sender == strategy || msg.sender == governance, "!authorized");
         VoteEscrow(escrow).withdraw();
     }
 
@@ -84,12 +73,18 @@ contract FXSLocker {
         uint256 value,
         bytes calldata data
     ) external returns (bool, bytes memory) {
-        require(
-            msg.sender == strategy || msg.sender == governance,
-            "!governance"
-        );
+        require(msg.sender == strategy || msg.sender == governance, "!governance");
         (bool success, bytes memory result) = to.call{value: value}(data);
 
         return (success, result);
+    }
+
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes memory
+    ) public pure returns (bytes4) {
+        return this.onERC721Received.selector;
     }
 }
