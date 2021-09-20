@@ -136,6 +136,7 @@ contract PickleJarV2 is ERC20, ReentrancyGuard {
         uint256 _pool = liquidity();
 
         uint256 liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, tick_lower, tick_upper));
+        console.log("   [deposit] liquidity => ", liquidity);
 
         liquidityOfThis = liquidityOfThis.add(liquidity);
 

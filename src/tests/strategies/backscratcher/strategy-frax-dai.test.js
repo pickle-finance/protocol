@@ -52,6 +52,7 @@ describe("StrategyFraxDAI", () => {
     console.log("✅ StrategyProxy is deployed at ", strategyProxy.address);
 
     locker = await deployContract("FXSLocker");
+    console.log("✅ Locker is deployed at ", locker.address);
     await locker.setStrategy(strategyProxy.address);
 
     await strategyProxy.setLockerProxy(locker.address);
@@ -119,17 +120,17 @@ describe("StrategyFraxDAI", () => {
     let depositA = toWei(100000);
     let depositB = getAmountB(depositA);
 
-    // await dai.connect(alice).approve(pickleJar.address, depositA);
-    // await frax.connect(alice).approve(pickleJar.address, depositB);
+    await dai.connect(alice).approve(pickleJar.address, depositA);
+    await frax.connect(alice).approve(pickleJar.address, depositB);
 
-    // console.log("===============alice deposit==============");
-    // await pickleJar.connect(alice).deposit(depositA, depositB);
-    // await pickleJar.earn();
+    console.log("===============alice deposit==============");
+    await pickleJar.connect(alice).deposit(depositA, depositB);
+    await pickleJar.earn();
 
-    // console.log("Ratio before harvest => ", (await pickleJar.getRatio()).toString());
-    // await increaseTime(60 * 60 * 24 * 30); //travel 30 days
-    // await strategy.harvest();
-    // console.log("Ratio after harvest => ", (await pickleJar.getRatio()).toString());
+    console.log("Ratio before harvest => ", (await pickleJar.getRatio()).toString());
+    await increaseTime(60 * 60 * 24 * 30); //travel 30 days
+    await strategy.harvest();
+    console.log("Ratio after harvest => ", (await pickleJar.getRatio()).toString());
 
     depositA = toWei(400000);
     depositB = getAmountB(depositA);
@@ -159,11 +160,11 @@ describe("StrategyFraxDAI", () => {
     await pickleJar.connect(alice).withdrawAll();
 
     console.log(
-      "Alice dai balance before withdrawal => ",
+      "Alice dai balance after withdrawal => ",
       (await dai.balanceOf(alice.address)).toString()
     );
     console.log(
-      "Alice frax balance before withdrawal => ",
+      "Alice frax balance after withdrawal => ",
       (await frax.balanceOf(alice.address)).toString()
     );
 
@@ -179,11 +180,11 @@ describe("StrategyFraxDAI", () => {
     await pickleJar.connect(bob).withdrawAll();
 
     console.log(
-      "Bob dai balance before withdrawal => ",
+      "Bob dai balance after withdrawal => ",
       (await dai.balanceOf(bob.address)).toString()
     );
     console.log(
-      "Bob frax balance before withdrawal => ",
+      "Bob frax balance after withdrawal => ",
       (await frax.balanceOf(bob.address)).toString()
     );
 

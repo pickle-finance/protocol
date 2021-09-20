@@ -127,7 +127,25 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
         );
     }
 
-    function _depositSome(uint256 amount0, uint256 amount1) internal {}
+    function _withdrawSomeFromPool(uint256 _tokenId, uint128 _liquidity) internal {
+        if (_tokenId == 0 || _liquidity == 0) return;
+        (uint256 _a0Expect, uint256 _a1Expect) = pool.amountsForLiquidity(_liquidity, tick_lower, tick_upper);
+        console.log("a0Expect => ", _a0Expect);
+        console.log("a1Expect => ", _a1Expect);
+
+        nftManager.decreaseLiquidity(
+            IUniswapV3PositionsNFT.DecreaseLiquidityParams(
+                _tokenId,
+                _liquidity,
+                _a0Expect,
+                _a1Expect,
+                block.timestamp + 300
+            )
+        );
+        nftManager.collect(
+            IUniswapV3PositionsNFT.CollectParams(_tokenId, address(this), type(uint128).max, type(uint128).max)
+        );
+    }
 
     function _withdrawSome(uint256 _liquidity) internal override returns (uint256, uint256) {
         LockedNFT[] memory lockedNfts = IStrategyProxy(strategyProxy).lockedNFTsOf(frax_dai_gauge);
@@ -137,6 +155,10 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
         uint256 _count;
 
         for (uint256 i = 0; i < lockedNfts.length; i++) {
+            if (lockedNfts[i].token_id == 0 || lockedNfts[i].liquidity == 0) {
+                _count++;
+                continue;
+            }
             _sum = _sum.add(IStrategyProxy(strategyProxy).withdrawV3(frax_dai_gauge, lockedNfts[i].token_id));
             _count++;
             if (_sum >= _liquidity) break;
@@ -145,51 +167,29 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
         console.log("   [withdrawSome] _liquidity => ", _liquidity);
 
         require(_sum >= _liquidity, "insufficient liquidity");
+        console.log("   [withdrawSome] _count => ", _count);
 
         for (uint256 i = 0; i < _count - 1; i++) {
-            (
-                ,
-                address operator, // [1] // [2] // [3] // [4] // [5] // [6]
-                ,
-                ,
-                ,
-                ,
-                ,
-                uint128 liquidity, // [7]
-                uint256 feeGrowthInside0LastX128, // [8]
-                uint256 feeGrowthInside1LastX128, // [9]
-                uint128 tokensOwed0, // [10]
-                uint128 tokensOwed1
-            ) = nftManager.positions(lockedNfts[i].token_id);
-            console.log("   [withdrawSome] operator => ", operator);
-            console.log("   [withdrawSome] liquidity => ", liquidity);
-            console.log("   [withdrawSome] feeGrowthInside0LastX128 => ", feeGrowthInside0LastX128);
-            console.log("   [withdrawSome] feeGrowthInside1LastX128 => ", feeGrowthInside1LastX128);
-            console.log("   [withdrawSome] tokensOwed0 => ", tokensOwed0);
-            console.log("   [withdrawSome] tokensOwed1 => ", tokensOwed1);
-            nftManager.burn(lockedNfts[i].token_id);
+            _withdrawSomeFromPool(lockedNfts[i].token_id, uint128(lockedNfts[i].liquidity));
         }
+
+        LockedNFT memory lastNFT = lockedNfts[_count - 1];
 
         if (_sum > _liquidity) {
-            uint128 _withdraw = uint128(uint256(lockedNfts[_count - 1].liquidity).sub(_sum.sub(_liquidity)));
-            require(uint256(_withdraw) < lockedNfts[_count - 1].liquidity, "math error");
+            uint128 _withdraw = uint128(uint256(lastNFT.liquidity).sub(_sum.sub(_liquidity)));
+            require(_withdraw <= lastNFT.liquidity, "math error");
+            _withdrawSomeFromPool(lastNFT.token_id, _withdraw);
 
-            nftManager.decreaseLiquidity(
-                IUniswapV3PositionsNFT.DecreaseLiquidityParams(
-                    lockedNfts[_count - 1].token_id,
-                    _withdraw,
-                    0,
-                    0,
-                    block.timestamp + 300
-                )
-            );
-
+            nftManager.safeTransferFrom(address(this), strategyProxy, lastNFT.token_id);
             IStrategyProxy(strategyProxy).depositV3(
                 frax_dai_gauge,
-                lockedNfts[_count - 1].token_id,
+                lastNFT.token_id,
                 IFraxGaugeBase(frax_dai_gauge).lock_time_min()
             );
+        } else {
+            _withdrawSomeFromPool(lastNFT.token_id, uint128(lastNFT.liquidity));
         }
+
         console.log("   [withdrawSome] token0 Balance after burn => ", token0.balanceOf(address(this)));
         console.log("   [withdrawSome] token1 Balance after burn => ", token1.balanceOf(address(this)));
 

@@ -15,6 +15,8 @@ interface IProxy {
         bytes calldata data
     ) external returns (bool, bytes memory);
 
+    function withdrawLocked(address gauge, uint256 id) external;
+
     function increaseAmount(uint256) external;
 }
 
@@ -26,7 +28,7 @@ library SafeProxy {
         bytes memory data
     ) internal {
         (bool success, ) = proxy.execute(to, value, data);
-        if (!success) assert(false);
+        require(success == true, "execute failed");
     }
 }
 
@@ -111,16 +113,20 @@ contract StrategyProxy {
 
     function withdrawV3(address _gauge, uint256 _tokenId) public returns (uint256) {
         require(strategies[_gauge] == msg.sender, "!strategy");
-
-        console.log("   [withdrawV3] _tokenId => ", _tokenId);
         proxy.safeExecute(_gauge, 0, abi.encodeWithSignature("withdrawLocked(uint256)", _tokenId));
         (, , , , , , , uint256 _liquidity, , , , ) = nftManager.positions(_tokenId);
-        console.log("   [withdrawV3] _liquidity => ", _liquidity);
-        proxy.safeExecute(
-            address(nftManager),
-            0,
-            abi.encodeWithSignature("safeTransferFrom(address,address,uint256)", address(proxy), msg.sender, _tokenId)
-        );
+        if (_liquidity > 0) {
+            proxy.safeExecute(
+                address(nftManager),
+                0,
+                abi.encodeWithSignature(
+                    "safeTransferFrom(address,address,uint256)",
+                    address(proxy),
+                    msg.sender,
+                    _tokenId
+                )
+            );
+        }
         return _liquidity;
     }
 
@@ -144,12 +150,13 @@ contract StrategyProxy {
             }
         }
         require(thisStake.liquidity != 0, "kek_id not found");
-
-        proxy.safeExecute(
-            _token,
-            0,
-            abi.encodeWithSignature("transfer(address,uint256)", msg.sender, thisStake.liquidity)
-        );
+        if (thisStake.liquidity > 0) {
+            proxy.safeExecute(
+                _token,
+                0,
+                abi.encodeWithSignature("transfer(address,uint256)", msg.sender, thisStake.liquidity)
+            );
+        }
         return thisStake.liquidity;
     }
 
@@ -224,10 +231,8 @@ contract StrategyProxy {
         for (uint256 i = 0; i < _tokens.length; i++) {
             _balances[i] = IERC20(_tokens[i]).balanceOf(address(proxy));
         }
-        console.log("AAA");
 
         proxy.safeExecute(_gauge, 0, abi.encodeWithSignature("getReward()"));
-        console.log("BBB");
 
         for (uint256 i = 0; i < _tokens.length; i++) {
             _balances[i] = (IERC20(_tokens[i]).balanceOf(address(proxy))).sub(_balances[i]);
