@@ -96,6 +96,7 @@ abstract contract StrategySushiFarmBase is StrategyBase {
     }
 
     function setRewardToken(address _rewardToken) external {
+        require(msg.sender == timelock, "!timelock");
         rewardToken = _rewardToken;
     }
 
