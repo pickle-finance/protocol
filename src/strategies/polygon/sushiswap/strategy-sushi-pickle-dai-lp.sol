@@ -40,9 +40,6 @@ contract StrategySushiPickleDaiLp is StrategySushiFarmBase {
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
-        address[] memory path = new address[](2);
-        path[0] = weth;
-
         // Collects SUSHI tokens
         IMiniChefV2(miniChef).harvest(poolId, address(this));
         uint256 _sushi = IERC20(sushi).balanceOf(address(this));
@@ -59,14 +56,19 @@ contract StrategySushiPickleDaiLp is StrategySushiFarmBase {
         // Swap half WETH for pickle
         uint256 _weth = IERC20(weth).balanceOf(address(this));
         if (_weth > 0) {
-            path[1] = pickle;
-            _swapSushiswapWithPath(path, _weth.div(2));
+            address[] memory pathPickle = new address[](3);
+            pathPickle[0] = weth;
+            pathPickle[1] = dai;
+            pathPickle[2] = pickle;
+            _swapSushiswapWithPath(pathPickle, _weth.div(2));
         }
 
         // Swap half WETH for dai
         if (_weth > 0) {
-            path[1] = dai;
-            _swapSushiswapWithPath(path, _weth.div(2));
+            address[] memory pathDai = new address[](2);
+            pathDai[0] = weth;
+            pathDai[1] = dai;
+            _swapSushiswapWithPath(pathDai, _weth.div(2));
         }
 
         // Adds in liquidity for token0/token1
