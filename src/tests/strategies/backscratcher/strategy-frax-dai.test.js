@@ -69,7 +69,7 @@ describe("StrategyFraxDAI", () => {
     await strategyProxy.approveStrategy(FRAX_DAI_GAUGE, strategy.address);
 
     pickleJar = await deployContract(
-      "PickleJarV2",
+      "PickleJarUniV3",
       "pickling Frax/DAI Jar",
       "pFraxDAI",
       FRAX_DAI_POOL,

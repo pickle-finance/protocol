@@ -23,7 +23,7 @@ import "./lib/safe-math.sol";
 import "./interfaces/univ3/IUniswapV3PositionsNFT.sol";
 import "./interfaces/univ3/IUniswapV3Pool.sol";
 
-contract PickleJarV2 is ERC20, ReentrancyGuard {
+contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -134,17 +134,17 @@ contract PickleJarV2 is ERC20, ReentrancyGuard {
     {
         uint256 _pool = liquidity();
 
-        uint256 liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, tick_lower, tick_upper));
-        liquidityOfThis = liquidityOfThis.add(liquidity);
+        uint256 _liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, tick_lower, tick_upper));
+        liquidityOfThis = liquidityOfThis.add(_liquidity);
 
         token0.safeTransferFrom(msg.sender, address(this), token0Amount);
         token1.safeTransferFrom(msg.sender, address(this), token1Amount);
 
         uint256 shares = 0;
         if (totalSupply() == 0) {
-            shares = liquidity;
+            shares = _liquidity;
         } else {
-            shares = (liquidity.mul(totalSupply())).div(_pool);
+            shares = (_liquidity.mul(totalSupply())).div(_pool);
         }
         _mint(msg.sender, shares);
 

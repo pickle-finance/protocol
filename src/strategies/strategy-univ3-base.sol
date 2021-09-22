@@ -216,13 +216,13 @@ abstract contract StrategyUniV3Base {
     // Withdraw partial funds, normally used with a jar withdrawal
     function withdraw(uint256 _liquidity) external returns (uint256 a0, uint256 a1) {
         require(msg.sender == controller, "!controller");
-        (uint256 amount0, uint256 amount1) = _withdrawSome(_liquidity);
+        (a0, a1) = _withdrawSome(_liquidity);
 
         address _jar = IControllerV2(controller).jars(address(pool));
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
 
-        token0.safeTransfer(_jar, amount0);
-        token1.safeTransfer(_jar, amount1);
+        token0.safeTransfer(_jar, a0);
+        token1.safeTransfer(_jar, a1);
     }
 
     // Withdraw all funds, normally used when migrating strategies
