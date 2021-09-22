@@ -14,7 +14,6 @@ import "../interfaces/univ3/IUniswapV3Pool.sol";
 import "../interfaces/univ3/ISwapRouter.sol";
 import "../interfaces/controllerv2.sol";
 import "../lib/univ3/PoolActions.sol";
-import "hardhat/console.sol";
 
 // Strategy Contract Basics
 
@@ -30,15 +29,6 @@ abstract contract StrategyUniV3Base {
 
     uint256 public performanceDevFee = 0;
     uint256 public constant performanceDevMax = 10000;
-
-    // Withdrawal fee 0%
-    // - 0% to treasury
-    // - 0% to dev fund
-    uint256 public withdrawalTreasuryFee = 0;
-    uint256 public constant withdrawalTreasuryMax = 100000;
-
-    uint256 public withdrawalDevFundFee = 0;
-    uint256 public constant withdrawalDevFundMax = 100000;
 
     // Tokens
     IUniswapV3Pool public pool;
@@ -142,16 +132,6 @@ abstract contract StrategyUniV3Base {
         }
     }
 
-    function setWithdrawalDevFundFee(uint256 _withdrawalDevFundFee) external {
-        require(msg.sender == timelock, "!timelock");
-        withdrawalDevFundFee = _withdrawalDevFundFee;
-    }
-
-    function setWithdrawalTreasuryFee(uint256 _withdrawalTreasuryFee) external {
-        require(msg.sender == timelock, "!timelock");
-        withdrawalTreasuryFee = _withdrawalTreasuryFee;
-    }
-
     function setPerformanceDevFee(uint256 _performanceDevFee) external {
         require(msg.sender == timelock, "!timelock");
         performanceDevFee = _performanceDevFee;
@@ -185,7 +165,7 @@ abstract contract StrategyUniV3Base {
     }
 
     function getProportion() public view returns (uint256) {
-        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1000000000000000000, tick_lower, tick_upper);
+        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1e18, tick_lower, tick_upper);
         return (a2 * (10**18)) / a1;
     }
 
@@ -237,30 +217,12 @@ abstract contract StrategyUniV3Base {
     function withdraw(uint256 _liquidity) external returns (uint256 a0, uint256 a1) {
         require(msg.sender == controller, "!controller");
         (uint256 amount0, uint256 amount1) = _withdrawSome(_liquidity);
-        console.log("   [Base-withdraw] amount0 => ", amount0);
-        console.log("   [Base-withdraw] amount1 => ", amount1);
-
-        uint256 _feeDev0 = amount0.mul(withdrawalDevFundFee).div(withdrawalDevFundMax);
-        uint256 _feeDev1 = amount1.mul(withdrawalDevFundFee).div(withdrawalDevFundMax);
-        if (_feeDev0 > 0) token0.safeTransfer(IControllerV2(controller).devfund(), _feeDev0);
-        if (_feeDev1 > 0) token1.safeTransfer(IControllerV2(controller).devfund(), _feeDev1);
-
-        uint256 _feeTreasury0 = amount0.mul(withdrawalTreasuryFee).div(withdrawalTreasuryMax);
-        uint256 _feeTreasury1 = amount1.mul(withdrawalTreasuryFee).div(withdrawalTreasuryMax);
-
-        if (_feeTreasury0 > 0) token0.safeTransfer(IControllerV2(controller).treasury(), _feeTreasury0);
-        if (_feeTreasury1 > 0) token1.safeTransfer(IControllerV2(controller).treasury(), _feeTreasury1);
 
         address _jar = IControllerV2(controller).jars(address(pool));
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
 
-        a0 = amount0.sub(_feeDev0).sub(_feeTreasury0);
-        a1 = amount1.sub(_feeDev1).sub(_feeTreasury1);
-        console.log("   [Base-withdraw] a0 => ", a0);
-        console.log("   [Base-withdraw] a1 => ", a1);
-
-        token0.safeTransfer(_jar, a0);
-        token1.safeTransfer(_jar, a1);
+        token0.safeTransfer(_jar, amount0);
+        token1.safeTransfer(_jar, amount1);
     }
 
     // Withdraw all funds, normally used when migrating strategies

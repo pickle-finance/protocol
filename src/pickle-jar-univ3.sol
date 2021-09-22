@@ -22,7 +22,6 @@ import "./lib/reentrancy-guard.sol";
 import "./lib/safe-math.sol";
 import "./interfaces/univ3/IUniswapV3PositionsNFT.sol";
 import "./interfaces/univ3/IUniswapV3Pool.sol";
-import "hardhat/console.sol";
 
 contract PickleJarV2 is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -136,8 +135,6 @@ contract PickleJarV2 is ERC20, ReentrancyGuard {
         uint256 _pool = liquidity();
 
         uint256 liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, tick_lower, tick_upper));
-        console.log("   [deposit] liquidity => ", liquidity);
-
         liquidityOfThis = liquidityOfThis.add(liquidity);
 
         token0.safeTransferFrom(msg.sender, address(this), token0Amount);

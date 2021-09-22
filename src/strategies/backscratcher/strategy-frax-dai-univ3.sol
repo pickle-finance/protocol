@@ -4,7 +4,6 @@ pragma experimental ABIEncoderV2;
 
 import "../strategy-univ3-base.sol";
 import "../../interfaces/backscratcher/IStrategyProxy.sol";
-import "hardhat/console.sol";
 
 contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
     address public strategyProxy;
@@ -40,27 +39,20 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
     function harvest() public override onlyBenevolent {
         IStrategyProxy(strategyProxy).harvest(frax_dai_gauge, rewardTokens);
 
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
-            console.log("rewardToken=> ", rewardTokens[i]);
-            console.log("balance=> ", IERC20(rewardTokens[i]).balanceOf(address(this)));
-        }
-
         uint256 _fxs = IERC20(FXS).balanceOf(address(this));
 
         IERC20(FXS).safeApprove(univ2Router2, 0);
         IERC20(FXS).safeApprove(univ2Router2, _fxs);
 
-        _swapUniswap(FXS, FRAX, _fxs);
-        console.log("\nAfter swap");
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
-            console.log("rewardToken=> ", rewardTokens[i]);
-            console.log("balance=> ", IERC20(rewardTokens[i]).balanceOf(address(this)));
-        }
+        address[] memory _path = new address[](2);
+        _path[0] = FXS;
+        _path[1] = FRAX;
+        _swapUniswapWithPath(_path, _fxs);
 
         uint256 _frax = IERC20(FRAX).balanceOf(address(this));
         uint256 _dai = IERC20(DAI).balanceOf(address(this));
+
         uint256 _ratio = getProportion();
-        console.log("_ratio=> ", _ratio);
         uint256 _amount1Desired = (_dai.add(_frax)).mul(_ratio).div(_ratio.add(1e18));
 
         uint256 _amount;
@@ -92,21 +84,8 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
                 sqrtPriceLimitX96: 0
             })
         );
-        console.log("_ratio=> ", getProportion());
-        console.log("\nafter second swap");
-
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
-            console.log("rewardToken=> ", rewardTokens[i]);
-            console.log("balance=> ", IERC20(rewardTokens[i]).balanceOf(address(this)));
-        }
 
         _distributePerformanceFeesAndDeposit();
-
-        console.log("\nafter deposit");
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
-            console.log("rewardToken=> ", rewardTokens[i]);
-            console.log("balance=> ", IERC20(rewardTokens[i]).balanceOf(address(this)));
-        }
     }
 
     function liquidityOfPool() public view override returns (uint256) {
@@ -127,13 +106,14 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
         );
     }
 
-    function _withdrawSomeFromPool(uint256 _tokenId, uint128 _liquidity) internal {
-        if (_tokenId == 0 || _liquidity == 0) return;
-        (uint256 _a0Expect, uint256 _a1Expect) = pool.amountsForLiquidity(_liquidity, tick_lower, tick_upper);
-        console.log("a0Expect => ", _a0Expect);
-        console.log("a1Expect => ", _a1Expect);
+    function _withdrawSomeFromPool(uint256 _tokenId, uint128 _liquidity)
+        internal
+        returns (uint256 amount0, uint256 amount1)
+    {
+        if (_tokenId == 0 || _liquidity == 0) return (0, 0);
 
-        nftManager.decreaseLiquidity(
+        (uint256 _a0Expect, uint256 _a1Expect) = pool.amountsForLiquidity(_liquidity, tick_lower, tick_upper);
+        (uint256 _a0, uint256 _a1) = nftManager.decreaseLiquidity(
             IUniswapV3PositionsNFT.DecreaseLiquidityParams(
                 _tokenId,
                 _liquidity,
@@ -142,14 +122,18 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
                 block.timestamp + 300
             )
         );
-        nftManager.collect(
+        amount0 = amount0.add(_a0);
+        amount1 = amount1.add(_a1);
+        (_a0, _a1) = nftManager.collect(
             IUniswapV3PositionsNFT.CollectParams(_tokenId, address(this), type(uint128).max, type(uint128).max)
         );
+        amount0 = amount0.add(_a0);
+        amount1 = amount1.add(_a1);
     }
 
     function _withdrawSome(uint256 _liquidity) internal override returns (uint256, uint256) {
         LockedNFT[] memory lockedNfts = IStrategyProxy(strategyProxy).lockedNFTsOf(frax_dai_gauge);
-        uint256[2] memory _balances = [token0.balanceOf(address(this)), token1.balanceOf(address(this))];
+        uint256[2] memory _amounts;
 
         uint256 _sum;
         uint256 _count;
@@ -159,18 +143,22 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
                 _count++;
                 continue;
             }
-            _sum = _sum.add(IStrategyProxy(strategyProxy).withdrawV3(frax_dai_gauge, lockedNfts[i].token_id));
+            _sum = _sum.add(
+                IStrategyProxy(strategyProxy).withdrawV3(frax_dai_gauge, lockedNfts[i].token_id, rewardTokens)
+            );
             _count++;
             if (_sum >= _liquidity) break;
         }
-        console.log("   [withdrawSome] _sum => ", _sum);
-        console.log("   [withdrawSome] _liquidity => ", _liquidity);
 
         require(_sum >= _liquidity, "insufficient liquidity");
-        console.log("   [withdrawSome] _count => ", _count);
 
         for (uint256 i = 0; i < _count - 1; i++) {
-            _withdrawSomeFromPool(lockedNfts[i].token_id, uint128(lockedNfts[i].liquidity));
+            (uint256 _a0, uint256 _a1) = _withdrawSomeFromPool(
+                lockedNfts[i].token_id,
+                uint128(lockedNfts[i].liquidity)
+            );
+            _amounts[0] = _amounts[0].add(_a0);
+            _amounts[1] = _amounts[1].add(_a1);
         }
 
         LockedNFT memory lastNFT = lockedNfts[_count - 1];
@@ -178,7 +166,10 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
         if (_sum > _liquidity) {
             uint128 _withdraw = uint128(uint256(lastNFT.liquidity).sub(_sum.sub(_liquidity)));
             require(_withdraw <= lastNFT.liquidity, "math error");
-            _withdrawSomeFromPool(lastNFT.token_id, _withdraw);
+
+            (uint256 _a0, uint256 _a1) = _withdrawSomeFromPool(lastNFT.token_id, _withdraw);
+            _amounts[0] = _amounts[0].add(_a0);
+            _amounts[1] = _amounts[1].add(_a1);
 
             nftManager.safeTransferFrom(address(this), strategyProxy, lastNFT.token_id);
             IStrategyProxy(strategyProxy).depositV3(
@@ -187,12 +178,11 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
                 IFraxGaugeBase(frax_dai_gauge).lock_time_min()
             );
         } else {
-            _withdrawSomeFromPool(lastNFT.token_id, uint128(lastNFT.liquidity));
+            (uint256 _a0, uint256 _a1) = _withdrawSomeFromPool(lastNFT.token_id, uint128(lastNFT.liquidity));
+            _amounts[0] = _amounts[0].add(_a0);
+            _amounts[1] = _amounts[1].add(_a1);
         }
 
-        console.log("   [withdrawSome] token0 Balance after burn => ", token0.balanceOf(address(this)));
-        console.log("   [withdrawSome] token1 Balance after burn => ", token1.balanceOf(address(this)));
-
-        return (token0.balanceOf(address(this)).sub(_balances[0]), token1.balanceOf(address(this)).sub(_balances[1]));
+        return (_amounts[0], _amounts[1]);
     }
 }

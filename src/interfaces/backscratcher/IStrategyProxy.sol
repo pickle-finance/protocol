@@ -4,12 +4,17 @@ pragma experimental ABIEncoderV2;
 import "./FraxGauge.sol";
 
 interface IStrategyProxy {
-    function withdrawV3(address _gauge, uint256 _tokenId) external returns (uint256);
+    function withdrawV3(
+        address _gauge,
+        uint256 _tokenId,
+        address[] calldata _rewardTokens
+    ) external returns (uint256);
 
     function withdrawV2(
         address _gauge,
         address _token,
-        bytes32 _kek_id
+        bytes32 _kek_id,
+        address[] calldata _rewardTokens
     ) external returns (uint256);
 
     function balanceOf(address _gauge) external view returns (uint256);
@@ -18,7 +23,17 @@ interface IStrategyProxy {
 
     function lockedStakesOf(address _gauge) external view returns (LockedStake[] memory);
 
-    function withdrawAllV3(address _gauge, address _token) external returns (uint256 amount);
+    function withdrawAllV3(
+        address _gauge,
+        address _token,
+        address[] calldata _rewardTokens
+    ) external returns (uint256 amount);
+
+    function withdrawAllV2(
+        address _gauge,
+        address _token,
+        address[] calldata _rewardTokens
+    ) external returns (uint256 amount);
 
     function harvest(address _gauge, address[] calldata _tokens) external;
 

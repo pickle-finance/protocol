@@ -6,7 +6,6 @@ import "../lib/safe-math.sol";
 import "../lib/erc20.sol";
 import "../interfaces/univ3/IUniswapV3PositionsNFT.sol";
 import "../interfaces/backscratcher/FraxGauge.sol";
-import "hardhat/console.sol";
 
 interface IProxy {
     function execute(
@@ -14,8 +13,6 @@ interface IProxy {
         uint256 value,
         bytes calldata data
     ) external returns (bool, bytes memory);
-
-    function withdrawLocked(address gauge, uint256 id) external;
 
     function increaseAmount(uint256) external;
 }
@@ -38,9 +35,9 @@ contract StrategyProxy {
     using SafeMath for uint256;
     using SafeProxy for IProxy;
 
-    IProxy public proxy = IProxy(0x7600137d41630BB1E35E02332013444302d40Edc);
+    IProxy public proxy;
 
-    address public veFxsVault = address(0xc5bDdf9843308380375a611c18B50Fb9341f502A); //veFXSVault; need to be changed
+    address public veFxsVault;
 
     // address public constant gaugeFXSRewardsDistributor =
     //     0x278dC748edA1d8eFEf1aDFB518542612b49Fcd34;
@@ -72,7 +69,7 @@ contract StrategyProxy {
         veFxsVault = _vault;
     }
 
-    function setLockerProxy(address _proxy) external {
+    function setLocker(address _proxy) external {
         require(msg.sender == governance, "!governance");
         proxy = IProxy(_proxy);
     }
@@ -111,10 +108,22 @@ contract StrategyProxy {
         );
     }
 
-    function withdrawV3(address _gauge, uint256 _tokenId) public returns (uint256) {
+    function withdrawV3(
+        address _gauge,
+        uint256 _tokenId,
+        address[] memory _rewardTokens
+    ) public returns (uint256) {
         require(strategies[_gauge] == msg.sender, "!strategy");
+
+        uint256[] memory _balances = new uint256[](_rewardTokens.length);
+        for (uint256 i = 0; i < _rewardTokens.length; i++) {
+            _balances[i] = IERC20(_rewardTokens[i]).balanceOf(address(proxy));
+        }
+
         proxy.safeExecute(_gauge, 0, abi.encodeWithSignature("withdrawLocked(uint256)", _tokenId));
+
         (, , , , , , , uint256 _liquidity, , , , ) = nftManager.positions(_tokenId);
+
         if (_liquidity > 0) {
             proxy.safeExecute(
                 address(nftManager),
@@ -127,20 +136,34 @@ contract StrategyProxy {
                 )
             );
         }
+
+        for (uint256 i = 0; i < _rewardTokens.length; i++) {
+            _balances[i] = (IERC20(_rewardTokens[i]).balanceOf(address(proxy))).sub(_balances[i]);
+            if (_balances[i] > 0)
+                proxy.safeExecute(
+                    _rewardTokens[i],
+                    0,
+                    abi.encodeWithSignature("transfer(address,uint256)", msg.sender, _balances[i])
+                );
+        }
         return _liquidity;
     }
 
     function withdrawV2(
         address _gauge,
         address _token,
-        bytes32 _kek_id
+        bytes32 _kek_id,
+        address[] memory _rewardTokens
     ) public returns (uint256) {
         require(strategies[_gauge] == msg.sender, "!strategy");
 
+        uint256[] memory _balances = new uint256[](_rewardTokens.length);
+        for (uint256 i = 0; i < _rewardTokens.length; i++) {
+            _balances[i] = IERC20(_rewardTokens[i]).balanceOf(address(proxy));
+        }
+
         proxy.safeExecute(_gauge, 0, abi.encodeWithSignature("withdrawLocked(bytes32)", _kek_id));
-
         LockedStake[] memory lockedStakes = IFraxGaugeUniV2(_gauge).lockedStakesOf(address(proxy));
-
         LockedStake memory thisStake;
 
         for (uint256 i = 0; i < lockedStakes.length; i++) {
@@ -150,12 +173,23 @@ contract StrategyProxy {
             }
         }
         require(thisStake.liquidity != 0, "kek_id not found");
+
         if (thisStake.liquidity > 0) {
             proxy.safeExecute(
                 _token,
                 0,
                 abi.encodeWithSignature("transfer(address,uint256)", msg.sender, thisStake.liquidity)
             );
+        }
+
+        for (uint256 i = 0; i < _rewardTokens.length; i++) {
+            _balances[i] = (IERC20(_rewardTokens[i]).balanceOf(address(proxy))).sub(_balances[i]);
+            if (_balances[i] > 0)
+                proxy.safeExecute(
+                    _rewardTokens[i],
+                    0,
+                    abi.encodeWithSignature("transfer(address,uint256)", msg.sender, _balances[i])
+                );
         }
         return thisStake.liquidity;
     }
@@ -172,21 +206,25 @@ contract StrategyProxy {
         return IFraxGaugeUniV2(_gauge).lockedStakesOf(address(proxy));
     }
 
-    function withdrawAllV3(address _gauge, address _token) external returns (uint256 amount) {
+    function withdrawAllV3(address _gauge, address[] calldata _rewardTokens) external returns (uint256 amount) {
         require(strategies[_gauge] == msg.sender, "!strategy");
         LockedNFT[] memory lockedNfts = IFraxGaugeUniV3(_gauge).lockedNFTsOf(address(proxy));
         for (uint256 i = 0; i < lockedNfts.length; i++) {
-            uint256 _withdrawnLiquidity = withdrawV3(_gauge, lockedNfts[i].token_id);
+            uint256 _withdrawnLiquidity = withdrawV3(_gauge, lockedNfts[i].token_id, _rewardTokens);
             amount = amount.add(_withdrawnLiquidity);
         }
     }
 
-    function withdrawAllV2(address _gauge, address _token) external returns (uint256 amount) {
+    function withdrawAllV2(
+        address _gauge,
+        address _token,
+        address[] calldata _rewardTokens
+    ) external returns (uint256 amount) {
         require(strategies[_gauge] == msg.sender, "!strategy");
         LockedStake[] memory lockedStakes = IFraxGaugeUniV2(_gauge).lockedStakesOf(address(proxy));
 
         for (uint256 i = 0; i < lockedStakes.length; i++) {
-            uint256 _withdrawnLiquidity = withdrawV2(_gauge, _token, lockedStakes[i].kek_id);
+            uint256 _withdrawnLiquidity = withdrawV2(_gauge, _token, lockedStakes[i].kek_id, _rewardTokens);
             amount = amount.add(_withdrawnLiquidity);
         }
     }
@@ -236,11 +274,12 @@ contract StrategyProxy {
 
         for (uint256 i = 0; i < _tokens.length; i++) {
             _balances[i] = (IERC20(_tokens[i]).balanceOf(address(proxy))).sub(_balances[i]);
-            proxy.safeExecute(
-                _tokens[i],
-                0,
-                abi.encodeWithSignature("transfer(address,uint256)", msg.sender, _balances[i])
-            );
+            if (_balances[i] > 0)
+                proxy.safeExecute(
+                    _tokens[i],
+                    0,
+                    abi.encodeWithSignature("transfer(address,uint256)", msg.sender, _balances[i])
+                );
         }
     }
 
