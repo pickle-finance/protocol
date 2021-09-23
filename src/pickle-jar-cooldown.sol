@@ -23,7 +23,7 @@ contract PickleJarCooldown is ERC20 {
     address public controller;
 
     uint256 public cooldownTime = 7 days;
-    uint256 public initialWithdrawalFee = 50;
+    uint256 public initialWithdrawalFee = 20;
     uint256 public initialWithdrawalFeeMax = 1000;
 
     mapping (address => uint256) public cooldownStartTime;

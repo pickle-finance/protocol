@@ -46,7 +46,7 @@ const doTestBalancerBehaviorBase = (strategyName, want_addr, reward_token_addr, 
 
       console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
 
-      await rewardToken.transfer(strategy.address, toWei(1));
+      await rewardToken.transfer(strategy.address, toWei(100));
 
       await strategy.harvest();
 
