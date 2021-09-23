@@ -27,22 +27,11 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy, execute } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  await deploy("StrategyIronIS3USD", {
+  await deploy("WithdrawRewards", {
     from: deployer,
-    args: polygonStrategyArgs,
+    gasLimit: 4000000,
+    gasPrice: 45000000000,
+    args: [],
     log: true
   });
-
-  await deploy("PickleJar", {
-    from: deployer,
-    args: [...polygonJarArgs],
-    log: true
-  });
-
-  await execute(
-    "StrategyIronIS3USD",
-    { from: deployer, log: true },
-    "whitelistHarvesters",
-    harvesters
-  );
 };

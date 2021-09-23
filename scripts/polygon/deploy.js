@@ -8,27 +8,24 @@ const deployPickleToken = async () => {
   const minter = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
 
   const PickleTokenFactory = await ethers.getContractFactory("src/polygon/pickle-token.sol:PickleToken");
-  const PickleToken = await PickleTokenFactory.deploy(
-    "PickleToken", "PICKLE", 18, childChainManager, minter
-  );
+  const PickleToken = await PickleTokenFactory.deploy("PickleToken", "PICKLE", 18, childChainManager, minter);
   console.log("pickle token deployed at ", PickleToken.address);
 };
 
 const deployMasterChef = async () => {
   console.log("deploying master chef...");
-  
+
   const pickle = "0x2b88aD57897A8b496595925F43048301C37615Da";
 
   const MasterChefFactory = await ethers.getContractFactory("src/polygon/minichefv2.sol:MiniChefV2");
-  const MasterChef = await MasterChefFactory.deploy(
-    pickle);
+  const MasterChef = await MasterChefFactory.deploy(pickle);
   console.log("minichef deployed at ", MasterChef.address);
   return MasterChef.address;
 };
 
 const addJars = async () => {
   const MasterChef = await ethers.getContractFactory("src/polygon/masterchef.sol:MasterChef");
-  
+
   const masterChef = MasterChef.attach("0xAc7C044e1197dF73aE5F8ec2c1775419b0A248C5");
   // await masterChef.add(1, "0x9eD7e3590F2fB9EEE382dfC55c71F9d3DF12556c", false);
   // await masterChef.add(1, "0x80aB65b1525816Ffe4222607EDa73F86D211AC95", false);
@@ -59,10 +56,7 @@ const deployComethWmaticMustStrategy = async () => {
     controller,
     timelock
   );
-  console.log(
-    "Mai: miMATIC/USDC strategy deployed at ",
-    StrategyComethWmaticMustLpV4.address
-  );
+  console.log("Mai: miMATIC/USDC strategy deployed at ", StrategyComethWmaticMustLpV4.address);
 };
 
 const deployPickleJar = async () => {
@@ -73,15 +67,8 @@ const deployPickleJar = async () => {
   const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
   const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
 
-  const PickleJarFactory = await ethers.getContractFactory(
-    "src/flatten/pickle-jar.sol:PickleJar"
-  );
-  const PickleJar = await PickleJarFactory.deploy(
-    want,
-    governance,
-    timelock,
-    controller
-  );
+  const PickleJarFactory = await ethers.getContractFactory("src/flatten/pickle-jar.sol:PickleJar");
+  const PickleJar = await PickleJarFactory.deploy(want, governance, timelock, controller);
   console.log("PickleJar deployed at ", PickleJar.address);
 };
 
@@ -90,17 +77,11 @@ const setJar = async () => {
   const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
   const picklejar = "0x9eD7e3590F2fB9EEE382dfC55c71F9d3DF12556c";
 
-  const ControllerV4 = await ethers.getContractAt(
-    "src/flatten/controller-v4.sol:ControllerV4",
-    controller
-  );
+  const ControllerV4 = await ethers.getContractAt("src/flatten/controller-v4.sol:ControllerV4", controller);
 
   const strategy = "0x51cF19A126E642948B5c5747471fd722B2EdCa25";
 
-  const deployer = new ethers.Wallet(
-    process.env.DEPLOYER_PRIVATE_KEY,
-    ethers.provider
-  );
+  const deployer = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY, ethers.provider);
 
   console.log("setJar");
   await ControllerV4.connect(deployer).setJar(want, picklejar);
@@ -111,6 +92,17 @@ const setJar = async () => {
   // await ControllerV4.connect(deployer).setStrategy(want, strategy);
 };
 
+const approveBal = async () => {
+  const lpToken = "0x64541216bafffeec8ea535bb71fbc927831d0595";
+  const jar = "0x0be790c83648c28eD285fee5E0BD79D1d57AAe69";
+  const ERC20 = await ethers.getContractAt("src/lib/erc20.sol:ERC20", lpToken);
+
+  const deployer = new ethers.Wallet(process.env.MNEMONIC, ethers.provider);
+  console.log("approving...")
+  await ERC20.connect(deployer).approve(jar, ethers.constants.MaxUint256);
+  console.log("success!")
+};
+
 const main = async () => {
   // await deployPickleToken();
   // await deployMasterChef();
@@ -118,8 +110,9 @@ const main = async () => {
   // await deployTimelock();
   // await deployControllerV4();
   // await deployComethWmaticMustStrategy();
-  await deployPickleJar();
+  // await deployPickleJar();
   // await setJar();
+  await approveBal();
 };
 
 main()

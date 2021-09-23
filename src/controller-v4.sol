@@ -3,8 +3,6 @@
 pragma solidity ^0.6.7;
 pragma experimental ABIEncoderV2;
 
-import "./interfaces/controller.sol";
-
 import "./lib/erc20.sol";
 import "./lib/safe-math.sol";
 
