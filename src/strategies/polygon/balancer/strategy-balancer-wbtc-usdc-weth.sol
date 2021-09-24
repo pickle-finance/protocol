@@ -84,13 +84,12 @@ contract StrategyBalancerWbtcUsdcWethLp is StrategyBase {
 
         // Swap BAL for WETH
         IBVault.SingleSwap memory swapParams;
-        bytes memory data;
         swapParams.poolId = balEthPool;
         swapParams.kind = IBVault.SwapKind.GIVEN_IN;
         swapParams.assetIn = IAsset(bal);
         swapParams.assetOut = IAsset(weth);
         swapParams.amount = _rewardBalance;
-        swapParams.userData = data;
+        swapParams.userData = "0x";
 
         IBVault.FundManagement memory funds;
         funds.sender = address(this);

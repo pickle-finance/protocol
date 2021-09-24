@@ -12,7 +12,6 @@ describe("StrategyBalancerWbtcUsdcWethLp", () => {
 
   before("Get want token", async () => {
     [alice] = await hre.ethers.getSigners();
-    console.log("Here")
     await getWantFromWhale(want_addr, toWei(10), alice, whale_addr);
     await getWantFromWhale(bal_addr, toWei(100), alice, bal_whale_addr);
   });

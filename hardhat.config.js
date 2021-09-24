@@ -35,7 +35,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://arb1.arbitrum.io/rpc/`,
+        url: `https://polygon-rpc.com/`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -50,7 +50,7 @@ module.exports = {
       },
     },
     matic: {
-      url: "https://keen-bell:chaste-gulf-chunk-aloe-deuce-copied@nd-654-291-805.p2pify.com/",
+      url: "https://polygon-rpc.com/",
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },

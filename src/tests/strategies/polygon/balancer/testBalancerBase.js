@@ -18,7 +18,7 @@ const doTestBalancerBehaviorBase = (strategyName, want_addr, reward_token_addr, 
       want = await getContractAt("ERC20", want_addr);
       rewardToken = await getContractAt("ERC20", reward_token_addr);
 
-      [controller, strategy, pickleJar] = await setupWitPickleJar(
+      [controller, strategy, pickleJar] = await setupWithPickleJar(
         "PickleJarCooldown",
         strategyName,
         want,
