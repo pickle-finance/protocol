@@ -101,8 +101,8 @@ contract StrategyBalancerWbtcUsdcWethLp is StrategyBase {
 
         // add liquidity
         uint256 _weth = IERC20(weth).balanceOf(address(this));
-        IERC20(bal).safeApprove(vault, 0);
-        IERC20(bal).safeApprove(vault, _weth);
+        IERC20(weth).safeApprove(vault, 0);
+        IERC20(weth).safeApprove(vault, _weth);
 
         IAsset[] memory assets = new IAsset[](3);
         assets[0] = IAsset(token0);
@@ -115,7 +115,7 @@ contract StrategyBalancerWbtcUsdcWethLp is StrategyBase {
         uint256[] memory amountsIn = new uint256[](3);
         amountsIn[0] = 0;
         amountsIn[1] = 0;
-        amountsIn[2] = 0;
+        amountsIn[2] = _weth;
         uint256 minAmountOut = 1;
 
         bytes memory userData = abi.encode(joinKind, amountsIn, minAmountOut);
