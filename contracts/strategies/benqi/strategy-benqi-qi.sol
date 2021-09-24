@@ -424,9 +424,16 @@ contract StrategyBenqiQi is StrategyBase, Exponential {
             if (borrowedToBeFree > borrowed) {
                 this.deleverageToMin();
             } else {
+                
+                //in the case nothing is borrowed do nothing
+                if (borrowed==0) {
+                }
+                
                 // Otherwise just keep freeing up borrowed amounts until
                 // we hit a safe number to redeem our underlying
-                this.deleverageUntil(supplied.sub(borrowedToBeFree));
+                else {
+                    this.deleverageUntil(supplied.sub(borrowedToBeFree));
+                }
             }
 
             // Redeems underlying
