@@ -6,7 +6,7 @@ import "../strategy-png-farm-base.sol";
 contract StrategyPngAvaxMyakLp is StrategyPngFarmBase {
     //Token addresses
     address public png_avax_myak_lp_rewards =
-        0xb600429CCD364F1727F91FC0E75D67d65D0ee4c5;
+        0x716c19807f46f97ddac0745878675ff5b3a75004;
     address public png_avax_myak_lp =
         0xbccebf064b8fcc0cb4df6c5d15f9f6fead3df88d;
     address public myak = 0xdDAaAD7366B455AfF8E7c82940C43CEB5829B604;
