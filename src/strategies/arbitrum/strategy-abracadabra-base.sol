@@ -1,15 +1,12 @@
 pragma solidity ^0.6.7;
 
-import "../strategy-base.sol";
+import "./strategy-base.sol";
 import "../../interfaces/sorbettiere-farm.sol";
 
 abstract contract StrategyAbracadabraFarmBase is StrategyBase {
-    address public sorbettiere = 0xF43480afE9863da4AcBD4419A47D9Cc7d25A647F;
+    address public sorbettiere = 0x839De324a1ab773F76a53900D70Ac1B913d2B387;
     uint256 public poolId;
-    address public constant ice = 0x090185f2135308BaD17527004364eBcC2D37e5F6;
-
-    uint256 public keepIce = 0;
-    uint256 public constant keepIceMax = 10000;
+    address public constant spell = 0x3E6648C5a70A150A88bCE65F4aD4d506Fe15d2AF;
 
     constructor(
         address _lp,
@@ -23,11 +20,6 @@ abstract contract StrategyAbracadabraFarmBase is StrategyBase {
         StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
     {
         poolId = _poolId;
-    }
-
-    function setKeepSUSHI(uint256 _keepIce) external {
-        require(msg.sender == timelock, "!timelock");
-        keepIce = _keepIce;
     }
 
     function balanceOfPool() public view override returns (uint256) {
