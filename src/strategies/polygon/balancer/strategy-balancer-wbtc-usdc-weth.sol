@@ -5,24 +5,28 @@ pragma experimental ABIEncoderV2;
 import "../strategy-base.sol";
 import "../../../lib/balancer-vault.sol";
 
-contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
+contract StrategyBalancerWbtcUsdcWethLp is StrategyBase {
     // Token addresses
     address public vault = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
     bytes32 public poolId =
-        0x64541216bafffeec8ea535bb71fbc927831d0595000100000000000000000002;
+        0x03cd191f589d12b0582a99808cf19851e468e6b500010000000000000000000a;
 
     bytes32 public balEthPool =
-        0xcc65a812ce382ab909a11e434dbf75b34f1cc59d000200000000000000000001;
+        0xce66904b68f1f070332cbc631de7ee98b650b499000100000000000000000009;
 
-    address public bal = 0x040d1EdC9569d4Bab2D15287Dc5A4F10F56a56B8;
-    address public token0 = 0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f; // wbtc
-    address public token1 = weth;
-    address public token2 = 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8; // usdc
+    address public bal = 0x9a71012B13CA4d3D0Cdc72A177DF3ef03b0E76A3;
+    address public token0 = 0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6; //wbtc
+    address public token1 = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174; // usdc
+    address public token2 = weth;
+
+    // How much BAL tokens to keep?
+    uint256 public keepReward = 0;
+    uint256 public constant keepRewardMax = 10000;
 
     // pool deposit fee
     uint256 public depositFee = 0;
 
-    address _lp = 0x64541216bAFFFEec8ea535BB71Fbc927831d0595;
+    address _lp = 0x03cD191F589d12b0582a99808cf19851E468E6B5;
 
     constructor(
         address _governance,
@@ -35,7 +39,7 @@ contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
     {}
 
     function getName() external pure override returns (string memory) {
-        return "StrategyBalancerWbtcWethUsdcLp";
+        return "StrategyBalancerWbtcUsdcWethLp";
     }
 
     function balanceOfPool() public view override returns (uint256) {
@@ -58,6 +62,13 @@ contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
         return _amount;
     }
 
+    // **** Setters ****
+
+    function setKeepReward(uint256 _keepReward) external {
+        require(msg.sender == timelock, "!timelock");
+        keepReward = _keepReward;
+    }
+
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
@@ -72,8 +83,8 @@ contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
         IERC20(bal).safeApprove(vault, _rewardBalance);
 
         // Swap BAL for WETH
-        bytes memory data; 
         IBVault.SingleSwap memory swapParams;
+        bytes memory data;
         swapParams.poolId = balEthPool;
         swapParams.kind = IBVault.SwapKind.GIVEN_IN;
         swapParams.assetIn = IAsset(bal);
@@ -88,8 +99,8 @@ contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
         funds.toInternalBalance = false;
 
         IBVault(vault).swap(swapParams, funds, 1, now + 60);
-        
-        // approve WETH spending
+
+        // add liquidity
         uint256 _weth = IERC20(weth).balanceOf(address(this));
         IERC20(bal).safeApprove(vault, 0);
         IERC20(bal).safeApprove(vault, _weth);
@@ -99,10 +110,12 @@ contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
         assets[1] = IAsset(token1);
         assets[2] = IAsset(token2);
 
-        IBVault.JoinKind joinKind = IBVault.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT;
+        IBVault.JoinKind joinKind = IBVault
+            .JoinKind
+            .EXACT_TOKENS_IN_FOR_BPT_OUT;
         uint256[] memory amountsIn = new uint256[](3);
         amountsIn[0] = 0;
-        amountsIn[1] = _weth;
+        amountsIn[1] = 0;
         amountsIn[2] = 0;
         uint256 minAmountOut = 1;
 

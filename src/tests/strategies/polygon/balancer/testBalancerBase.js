@@ -18,7 +18,7 @@ const doTestBalancerBehaviorBase = (strategyName, want_addr, reward_token_addr, 
       want = await getContractAt("ERC20", want_addr);
       rewardToken = await getContractAt("ERC20", reward_token_addr);
 
-      [controller, strategy, pickleJar] = await setupWithPickleJar(
+      [controller, strategy, pickleJar] = await setupWitPickleJar(
         "PickleJarCooldown",
         strategyName,
         want,
@@ -120,7 +120,7 @@ const doTestBalancerBehaviorBase = (strategyName, want_addr, reward_token_addr, 
 
       console.log("_after: ", _after.toString());
 
-      const expectedDevFund = _after.mul(50).mul(4).div(1000).div(7);
+      const expectedDevFund = _after.mul(20).mul(4).div(1000).div(7);
 
       const _devAfter = await want.balanceOf(devfund.address);
       _treasuryAfter = await want.balanceOf(treasury.address);
