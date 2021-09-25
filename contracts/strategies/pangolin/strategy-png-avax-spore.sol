@@ -42,10 +42,8 @@ contract StrategyPngAvaxSporeLp is StrategyPngFarmBaseV2 {
         if (_png > 0) {
             // 10% is locked up for future gov
             uint256 _keepPNG = _png.mul(keepPNG).div(keepPNGMax);
-            IERC20(png).safeTransfer(
-                IController(controller).treasury(),
-                _keepPNG
-            );
+            _takeFeePngToSnob(_keepPNG);
+
             _swapPangolin(png, wavax, _png.sub(_keepPNG));
         }
 
