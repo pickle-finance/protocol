@@ -8,7 +8,6 @@ contract StrategyJoeAvaxSnobLp is StrategyJoeFarmBase {
     uint256 public avax_snob_poolId = 8;
 
     address public joe_avax_snob_lp = 0x8fB5bD3aC8eFD05DACae82F512dD03e14aAdAb73;
-    address public snob = 0xC38f41A296A4493Ff429F1238e030924A1542e50;
 
     constructor(
         address _governance,
@@ -43,10 +42,7 @@ contract StrategyJoeAvaxSnobLp is StrategyJoeFarmBase {
         if (_joe > 0) {
             // 10% is sent to treasury
             uint256 _keepJOE = _joe.mul(keepJOE).div(keepJOEMax);
-            IERC20(joe).safeTransfer(
-                IController(controller).treasury(),
-                _keepJOE
-            );
+            _takeFeeJoeToSnob(_keepJOE);
             uint256 _amount = _joe.sub(_keepJOE).div(2);
             IERC20(joe).safeApprove(joeRouter, 0);
             IERC20(joe).safeApprove(joeRouter, _joe.sub(_keepJOE));

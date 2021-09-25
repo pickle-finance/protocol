@@ -17,8 +17,8 @@ abstract contract StrategyJoeFarmBase is StrategyBase {
 
     uint256 public poolId;
 
-    // How much PNG tokens to keep?
-    uint256 public keepJOE = 0;
+    // How much JOE tokens to keep?
+    uint256 public keepJOE = 1000;
     uint256 public constant keepJOEMax = 10000;
 
     constructor(
@@ -110,6 +110,18 @@ abstract contract StrategyJoeFarmBase is StrategyBase {
             path,
             address(this),
             now.add(60)
+        );
+    }
+
+    function _takeFeeJoeToSnob(uint256 _keepJOE) internal {
+        IERC20(joe).safeApprove(joeRouter, 0);
+        IERC20(joe).safeApprove(joeRouter, _keepJOE);
+        path = new address[joe, wavax, snob];
+        _swapTraderJoeWithPath(path, _keepJOE);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob
         );
     }
 }

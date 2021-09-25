@@ -9,7 +9,7 @@ abstract contract StrategyPngFarmBaseV2 is StrategyStakingRewardsBase {
     address public token1;
 
     // How much PNG tokens to keep?
-    uint256 public keepPNG = 0;
+    uint256 public keepPNG = 1000;
     uint256 public constant keepPNGMax = 10000;
 
     constructor(
@@ -39,6 +39,19 @@ abstract contract StrategyPngFarmBaseV2 is StrategyStakingRewardsBase {
     function setKeepPNG(uint256 _keepPNG) external {
         require(msg.sender == timelock, "!timelock");
         keepPNG = _keepPNG;
+    }
+
+        // **** State Mutations ****
+
+    function _takeFeePngToSnob(uint256 _keepPNG) internal {
+        IERC20(joe).safeApprove(pangolinRouter, 0);
+        IERC20(joe).safeApprove(pangolinRouter, _keepPNG);
+        _swapPangolin(png, snob, _keepPNG);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob
+        );
     }
 
         

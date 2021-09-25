@@ -43,10 +43,7 @@ contract StrategyJoeAvaxWetLp is StrategyJoeFarmBase {
         if (_joe > 0) {
             // 10% is sent to treasury
             uint256 _keepJOE = _joe.mul(keepJOE).div(keepJOEMax);
-            IERC20(joe).safeTransfer(
-                IController(controller).treasury(),
-                _keepJOE
-            );
+            _takeFeeJoeToSnob(_keepJOE);
             uint256 _amount = _joe.sub(_keepJOE).div(2);
             IERC20(joe).safeApprove(joeRouter, 0);
             IERC20(joe).safeApprove(joeRouter, _joe.sub(_keepJOE));

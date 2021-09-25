@@ -9,7 +9,7 @@ abstract contract StrategyPngFarmBasePng is StrategyStakingRewardsBase {
     address public token1;
 
     // How much PNG tokens to keep?
-    uint256 public keepPNG = 0;
+    uint256 public keepPNG = 1000;
     uint256 public constant keepPNGMax = 10000;
 
     constructor(
@@ -43,6 +43,17 @@ abstract contract StrategyPngFarmBasePng is StrategyStakingRewardsBase {
 
     // **** State Mutations ****
 
+    function _takeFeePngToSnob(uint256 _keepPNG) internal {
+        IERC20(png).safeApprove(pangolinRouter, 0);
+        IERC20(png).safeApprove(pangolinRouter, _keepPNG);
+        _swapPangolin(png, snob, _keepPNG);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob
+        );
+    }
+
     function harvest() public override onlyBenevolent {
         // Anyone can harvest it at any given time.
         // I understand the possibility of being frontrun
@@ -56,10 +67,7 @@ abstract contract StrategyPngFarmBasePng is StrategyStakingRewardsBase {
         if (_png > 0) {
             // 10% is locked up for future gov
             uint256 _keepPNG = _png.mul(keepPNG).div(keepPNGMax);
-            IERC20(png).safeTransfer(
-                IController(controller).treasury(),
-                _keepPNG
-            );
+            _takeFeePngToSnob(_keepPNG);
             
             //swap Pangolin for token1
             _swapPangolin(png, token1, _png.sub(_keepPNG).div(2));      

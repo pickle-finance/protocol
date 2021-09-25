@@ -9,8 +9,8 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
     address public token1;
 
     // How much PNG tokens to keep?
-    uint256 public keepPNG = 0;
-    uint256 public constant keepPNGMax = 10000;
+    uint256 public keepAVAX = 1000;
+    uint256 public constant keepAVAXMax = 10000;
 
     constructor(
         address _rewards,
@@ -35,12 +35,23 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
 
     // **** Setters ****
 
-    function setKeepPNG(uint256 _keepPNG) external {
+    function setKeepAVAX(uint256 _keepAVAX) external {
         require(msg.sender == timelock, "!timelock");
-        keepPNG = _keepPNG;
+        keepAVAX = _keepAVAX;
     }
 
     // **** State Mutations ****
+
+    function _takeFeeWavaxToSnob(uint256 _keepAVAX) internal {
+        IERC20(wavax).safeApprove(pangolinRouter, 0);
+        IERC20(wavax).safeApprove(pangolinRouter, _keepAVAX);
+        _swapPangolin(wavax, snob, _keepAVAX);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob
+        );
+    }
 
     function harvest() public override onlyBenevolent {
         // Anyone can harvest it at any given time.
@@ -55,7 +66,12 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
         // Swap WAVAX for token
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
-            _swapPangolin(wavax, token1, _wavax);
+            // 10% is locked up for future gov
+            uint256 _keepWAVAX = _wavax.mul(keepAVAX).div(keepAVAXMax);
+            _takeFeeWavaxToSnob(_keepWAVAX);
+
+            //swap WAVAX for token1
+            _swapPangolin(wavax, token1, _wavax.sub(_keepWAVAX).div(2));
         }
 
         // Donate Dust

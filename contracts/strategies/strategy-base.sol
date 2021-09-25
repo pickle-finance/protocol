@@ -20,13 +20,14 @@ abstract contract StrategyBase {
     address public want;
     address public constant wavax = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
     address public constant png = 0x60781C2586D68229fde47564546784ab3fACA982;
+    address public constant snob = 0xf4E0A9224e8827dE91050b528F34e2F99C82Fbf6;
 
     // Dex
     address public pangolinRouter = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
     // Move ^^
 
     // Perfomance fees - start with 10%
-    uint256 public performanceTreasuryFee = 1000;
+    uint256 public performanceTreasuryFee = 0;
     uint256 public constant performanceTreasuryMax = 10000;
 
     uint256 public performanceDevFee = 0;

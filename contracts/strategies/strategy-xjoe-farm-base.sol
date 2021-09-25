@@ -17,8 +17,8 @@ abstract contract StrategyxJoeFarmBase is StrategyBase {
 
     uint256 public poolId;
 
-    // How much PNG tokens to keep?
-    uint256 public keepJOE = 0;
+    // How much JOE tokens to keep?
+    uint256 public keepJOE = 1000;
     uint256 public constant keepJOEMax = 10000;
 
     constructor(
