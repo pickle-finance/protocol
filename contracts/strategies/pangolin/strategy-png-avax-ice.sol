@@ -6,9 +6,9 @@ import "../strategy-png-farm-base.sol";
 contract StrategyPngAvaxIceLp is StrategyPngFarmBase {
     //Token addresses
     address public png_avax_ice_lp_rewards =
-        0x12b493a6e4f185ef1feef45565654f71156c25ba;
-    address public png_avax_ice_lp = 0x24df88626312d37b1cbb46d2e0491477d1bec84a;
-    address public ice = 0xfc108f21931576a21d0b4b301935dac80d9e5086;
+        0x12b493A6E4F185EF1feef45565654F71156C25bA;
+    address public png_avax_ice_lp = 0x24dF88626312D37b1cBb46d2e0491477D1bEc84a;
+    address public ice = 0xfC108f21931576a21D0b4b301935DAc80d9E5086;
 
     constructor(
         address _governance,

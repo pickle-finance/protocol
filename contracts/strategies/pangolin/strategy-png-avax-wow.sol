@@ -6,9 +6,9 @@ import "../strategy-png-farm-base.sol";
 contract StrategyPngAvaxWowLp is StrategyPngFarmBase {
     //Token addresses
     address public png_avax_wow_lp_rewards =
-        0x437352a8e2394379521bc84f0874c66c94f32fbb;
-    address public png_avax_wow_lp = 0x5085678755446f839b1b575cb3d1b6ba85c65760;
-    address public wow = 0xa384bc7cdc0a93e686da9e7b8c0807cd040f4e0b;
+        0x437352A8E2394379521BC84f0874c66c94F32fbb;
+    address public png_avax_wow_lp = 0x5085678755446F839B1B575cB3d1b6bA85C65760;
+    address public wow = 0xA384Bc7Cdc0A93e686da9E7B8C0807cD040F4E0b;
 
     constructor(
         address _governance,
