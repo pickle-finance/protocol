@@ -10,7 +10,7 @@ import "../../interfaces/pangolin.sol";
 import "../../interfaces/controller.sol";
 import "../../interfaces/benqi.sol";
 
-contract StrategyBenqiUsdt is StrategyBase, Exponential {
+contract StrategyBenqiUsdc is StrategyBase, Exponential {
     address public constant comptroller = 0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4; // Through UniTroller Address
     address public constant lens = 0xd513d22422a3062Bd342Ae374b4b9c20E0a9a074;   // Benqi Data  needs update
     address public constant usdt = 0xc7198437980c041c805A1EDcbA50c1Ce5db95118; //qideposit token
