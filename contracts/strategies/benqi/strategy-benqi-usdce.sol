@@ -13,7 +13,7 @@ import "../../interfaces/benqi.sol";
 contract StrategyBenqiUsdc is StrategyBase, Exponential {
     address public constant comptroller = 0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4; // Through UniTroller Address
     address public constant lens = 0xd513d22422a3062Bd342Ae374b4b9c20E0a9a074;   // Benqi Data  needs update
-    address public constant usdt = 0xc7198437980c041c805A1EDcbA50c1Ce5db95118; //qideposit token
+    address public constant usdc = 0xc7198437980c041c805A1EDcbA50c1Ce5db95118; //qideposit token
     address public constant benqi = 0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5; //Qi Token  needs verification
     address public constant qiusdt = 0xc9e5999b8e75C3fEB117F6f73E664b9f3C8ca65C; //lending receipt token
 
