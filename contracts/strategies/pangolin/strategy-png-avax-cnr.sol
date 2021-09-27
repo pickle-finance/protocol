@@ -3,13 +3,12 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-farm-base.sol";
 
-contract StrategyPngAvaxEthELp is StrategyPngFarmBase {
+contract StrategyPngAvaxCnrLp is StrategyPngFarmBase {
     // Token addresses
-    address public png_avax_weth_lp_rewards =
-        0x830A966B9B447c9B15aB24c0369c4018E75F31C9;
-    address public png_avax_weth_lp =
-        0x7c05d54fc5CB6e4Ad87c6f5db3b807C94bB89c52;
-    address public weth = 0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB;
+    address public png_avax_cnr_lp_rewards =
+        0xd43035F5Ef932E1335A664c707d85c54C924667e;
+    address public png_avax_cnr_lp = 0xC04dE3796716ae5A6788b75DC0d4a1ecE06092d9;
+    address public cnr = 0x8D88e48465F30Acfb8daC0b3E35c9D6D7d36abaf;
 
     constructor(
         address _governance,
@@ -19,9 +18,9 @@ contract StrategyPngAvaxEthELp is StrategyPngFarmBase {
     )
         public
         StrategyPngFarmBase(
-            weth,
-            png_avax_weth_lp_rewards,
-            png_avax_weth_lp,
+            cnr,
+            png_avax_cnr_lp_rewards,
+            png_avax_cnr_lp,
             _governance,
             _strategist,
             _controller,
@@ -32,6 +31,6 @@ contract StrategyPngAvaxEthELp is StrategyPngFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAvaxEthELp";
+        return "StrategyPngAvaxCnrLp";
     }
 }
