@@ -5,8 +5,8 @@ async function main() {
   const pools = [
     {
 
-      name: "PngGdlPng",
-      strategy_addr: "0xA514c642b92C8a2c3CBF7Cf7Af53f5C2C835AfC7",
+      name: "PngAvaxMyak",
+      strategy_addr: "0xb66d2FBC206644d962Ef3a8eADeD938A8fF1EdB0",
       // snowglobe_addr: "0x096bAE6C45b0047eF3F1cf1f1c8a56eF0cd58cdE"
 
     }
@@ -24,7 +24,7 @@ async function main() {
   const governance_addr = "0x294aB3200ef36200db84C4128b7f1b4eec71E38a";
   const timelock_addr = governance_addr;
   const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85";
-  const gaugeproxy_addr = "0xFc371bA1E7874Ad893408D7B581F3c8471F03D2C";
+  const gaugeproxy_addr = "0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27";
 
   const Controller = new ethers.Contract(controller_addr, controller_ABI, deployer);
 
@@ -84,11 +84,13 @@ async function main() {
     console.log('whitelisted the harvester for: ',pool.name);
   
     /* Add Gauge */
-    const MultiSig = new ethers.Contract(governance_addr, multisig_ABI, deployer);
-    const iGaugeProxy = new ethers.utils.Interface(gaugeproxy_ABI);
-    const encoding = iGaugeProxy.encodeFunctionData("addGauge", [SnowGlobe.address]);
+    // const MultiSig = new ethers.Contract(governance_addr, multisig_ABI, deployer);
+    // const iGaugeProxy = new ethers.utils.Interface(gaugeproxy_ABI);
+    // const encoding = iGaugeProxy.encodeFunctionData("addGauge", [SnowGlobe.address]);
     
-    const addGauge = await MultiSig.submitTransaction(gaugeproxy_addr, 0, encoding);
+    // const addGauge = await MultiSig.submitTransaction(gaugeproxy_addr, 0, encoding);
+    const gaugeProxy = new ethers.Contract(gaugeproxy_addr, gaugeproxy_ABI, deployer);
+    const addGauge = await gaugeProxy.addGauge(SnowGlobe.address);
     const tx_addGauge = await addGauge.wait(1);
     if (!tx_addGauge.status) {
       console.error("Error adding the gauge to multisig transaction list for: ",pool.name);
