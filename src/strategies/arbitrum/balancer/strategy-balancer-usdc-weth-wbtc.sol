@@ -23,6 +23,7 @@ contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
     uint256 public depositFee = 0;
 
     address _lp = 0x64541216bAFFFEec8ea535BB71Fbc927831d0595;
+    address balDistributor = 0x6bd0B17713aaa29A2d7c9A39dDc120114f9fD809;
 
     constructor(
         address _governance,
@@ -60,6 +61,24 @@ contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
 
     // **** State Mutations ****
 
+    function claimBal(
+        uint256 _week,
+        uint256 _claim,
+        bytes32[] memory merkleProof
+    ) public {
+        IMerkleRedeem(balDistributor).claimWeek(
+            address(this),
+            _week,
+            _claim,
+            merkleProof
+        );
+    }
+
+    function setDistributor(address _distributor) external {
+        require(msg.sender == governance, "not authorized");
+        balDistributor = _distributor;
+    }
+
     function harvest() public override onlyBenevolent {
         uint256 _rewardBalance = IERC20(bal).balanceOf(address(this));
 
@@ -72,14 +91,13 @@ contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
         IERC20(bal).safeApprove(vault, _rewardBalance);
 
         // Swap BAL for WETH
-        bytes memory data; 
         IBVault.SingleSwap memory swapParams;
         swapParams.poolId = balEthPool;
         swapParams.kind = IBVault.SwapKind.GIVEN_IN;
         swapParams.assetIn = IAsset(bal);
         swapParams.assetOut = IAsset(weth);
         swapParams.amount = _rewardBalance;
-        swapParams.userData = data;
+        swapParams.userData = "0x";
 
         IBVault.FundManagement memory funds;
         funds.sender = address(this);
@@ -88,18 +106,20 @@ contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
         funds.toInternalBalance = false;
 
         IBVault(vault).swap(swapParams, funds, 1, now + 60);
-        
+
         // approve WETH spending
         uint256 _weth = IERC20(weth).balanceOf(address(this));
-        IERC20(bal).safeApprove(vault, 0);
-        IERC20(bal).safeApprove(vault, _weth);
+        IERC20(weth).safeApprove(vault, 0);
+        IERC20(weth).safeApprove(vault, _weth);
 
         IAsset[] memory assets = new IAsset[](3);
         assets[0] = IAsset(token0);
         assets[1] = IAsset(token1);
         assets[2] = IAsset(token2);
 
-        IBVault.JoinKind joinKind = IBVault.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT;
+        IBVault.JoinKind joinKind = IBVault
+            .JoinKind
+            .EXACT_TOKENS_IN_FOR_BPT_OUT;
         uint256[] memory amountsIn = new uint256[](3);
         amountsIn[0] = 0;
         amountsIn[1] = _weth;

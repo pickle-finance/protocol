@@ -3,8 +3,16 @@ pragma experimental ABIEncoderV2;
 
 import "./erc20.sol";
 
-interface IAsset {
+interface IMerkleRedeem {
+    function claimWeek(
+        address liquidityProvider,
+        uint256 week,
+        uint256 claimedBalance,
+        bytes32[] calldata merkleProof
+    ) external;
 }
+
+interface IAsset {}
 
 interface IBVault {
     // Internal Balance
@@ -20,7 +28,10 @@ interface IBVault {
     /**
      * @dev Returns `user`'s Internal Balance for a set of tokens.
      */
-    function getInternalBalance(address user, IERC20[] calldata tokens) external view returns (uint256[] memory);
+    function getInternalBalance(address user, IERC20[] calldata tokens)
+        external
+        view
+        returns (uint256[] memory);
 
     /**
      * @dev Performs a set of user balance operations, which involve Internal Balance (deposit, withdraw or transfer)
@@ -81,7 +92,12 @@ interface IBVault {
     //
     // Emits an `ExternalBalanceTransfer` event.
 
-    enum UserBalanceOpKind { DEPOSIT_INTERNAL, WITHDRAW_INTERNAL, TRANSFER_INTERNAL, TRANSFER_EXTERNAL }
+    enum UserBalanceOpKind {
+        DEPOSIT_INTERNAL,
+        WITHDRAW_INTERNAL,
+        TRANSFER_INTERNAL,
+        TRANSFER_EXTERNAL
+    }
 
     /**
      * @dev Emitted when a user's Internal Balance changes, either from calls to `manageUserBalance`, or through
@@ -90,12 +106,21 @@ interface IBVault {
      * Because Internal Balance works exclusively with ERC20 tokens, ETH deposits and withdrawals will use the WETH
      * address.
      */
-    event InternalBalanceChanged(address indexed user, IERC20 indexed token, int256 delta);
+    event InternalBalanceChanged(
+        address indexed user,
+        IERC20 indexed token,
+        int256 delta
+    );
 
     /**
      * @dev Emitted when a user's Vault ERC20 allowance is used by the Vault to transfer tokens to an external account.
      */
-    event ExternalBalanceTransfer(IERC20 indexed token, address indexed sender, address recipient, uint256 amount);
+    event ExternalBalanceTransfer(
+        IERC20 indexed token,
+        address indexed sender,
+        address recipient,
+        uint256 amount
+    );
 
     // Pools
     //
@@ -114,7 +139,11 @@ interface IBVault {
     //  - Two Token: only allows two tokens to be registered. This achieves the lowest possible swap gas cost. Like
     // minimal swap info Pools, these are called via IMinimalSwapInfoPool.
 
-    enum PoolSpecialization { GENERAL, MINIMAL_SWAP_INFO, TWO_TOKEN }
+    enum PoolSpecialization {
+        GENERAL,
+        MINIMAL_SWAP_INFO,
+        TWO_TOKEN
+    }
 
     /**
      * @dev Registers the caller account as a Pool with a given specialization setting. Returns the Pool's ID, which
@@ -129,17 +158,26 @@ interface IBVault {
      *
      * Emits a `PoolRegistered` event.
      */
-    function registerPool(PoolSpecialization specialization) external returns (bytes32);
+    function registerPool(PoolSpecialization specialization)
+        external
+        returns (bytes32);
 
     /**
      * @dev Emitted when a Pool is registered by calling `registerPool`.
      */
-    event PoolRegistered(bytes32 indexed poolId, address indexed poolAddress, PoolSpecialization specialization);
+    event PoolRegistered(
+        bytes32 indexed poolId,
+        address indexed poolAddress,
+        PoolSpecialization specialization
+    );
 
     /**
      * @dev Returns a Pool's contract address and specialization setting.
      */
-    function getPool(bytes32 poolId) external view returns (address, PoolSpecialization);
+    function getPool(bytes32 poolId)
+        external
+        view
+        returns (address, PoolSpecialization);
 
     /**
      * @dev Registers `tokens` for the `poolId` Pool. Must be called by the Pool's contract.
@@ -172,7 +210,11 @@ interface IBVault {
     /**
      * @dev Emitted when a Pool registers tokens by calling `registerTokens`.
      */
-    event TokensRegistered(bytes32 indexed poolId, IERC20[] tokens, address[] assetManagers);
+    event TokensRegistered(
+        bytes32 indexed poolId,
+        IERC20[] tokens,
+        address[] assetManagers
+    );
 
     /**
      * @dev Deregisters `tokens` for the `poolId` Pool. Must be called by the Pool's contract.
@@ -185,7 +227,8 @@ interface IBVault {
      *
      * Emits a `TokensDeregistered` event.
      */
-    function deregisterTokens(bytes32 poolId, IERC20[] calldata tokens) external;
+    function deregisterTokens(bytes32 poolId, IERC20[] calldata tokens)
+        external;
 
     /**
      * @dev Emitted when a Pool deregisters tokens by calling `deregisterTokens`.
@@ -281,8 +324,16 @@ interface IBVault {
         JoinPoolRequest calldata request
     ) external payable;
 
-    enum JoinKind { INIT, EXACT_TOKENS_IN_FOR_BPT_OUT, TOKEN_IN_FOR_EXACT_BPT_OUT }
-    enum ExitKind { EXACT_BPT_IN_FOR_ONE_TOKEN_OUT, EXACT_BPT_IN_FOR_TOKENS_OUT, BPT_IN_FOR_EXACT_TOKENS_OUT }
+    enum JoinKind {
+        INIT,
+        EXACT_TOKENS_IN_FOR_BPT_OUT,
+        TOKEN_IN_FOR_EXACT_BPT_OUT
+    }
+    enum ExitKind {
+        EXACT_BPT_IN_FOR_ONE_TOKEN_OUT,
+        EXACT_BPT_IN_FOR_TOKENS_OUT,
+        BPT_IN_FOR_EXACT_TOKENS_OUT
+    }
 
     struct JoinPoolRequest {
         IAsset[] assets;
@@ -351,7 +402,10 @@ interface IBVault {
         uint256[] protocolFeeAmounts
     );
 
-    enum PoolBalanceChangeKind { JOIN, EXIT }
+    enum PoolBalanceChangeKind {
+        JOIN,
+        EXIT
+    }
 
     // Swaps
     //
@@ -400,7 +454,10 @@ interface IBVault {
     //
     // Finally, Internal Balance can be used when either sending or receiving tokens.
 
-    enum SwapKind { GIVEN_IN, GIVEN_OUT }
+    enum SwapKind {
+        GIVEN_IN,
+        GIVEN_OUT
+    }
 
     /**
      * @dev Performs a swap with a single Pool.
