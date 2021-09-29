@@ -22,6 +22,7 @@ import "./lib/reentrancy-guard.sol";
 import "./lib/safe-math.sol";
 import "./interfaces/univ3/IUniswapV3PositionsNFT.sol";
 import "./interfaces/univ3/IUniswapV3Pool.sol";
+import "hardhat/console.sol";
 
 contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -37,7 +38,6 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     bool public earnAfterDeposit;
 
     uint256 public liquidityOfThis;
-    mapping(address => uint256) liquidityOfUser;
 
     IUniswapV3Pool public pool;
 
@@ -46,15 +46,6 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
     int24 public tick_lower;
     int24 public tick_upper;
-
-    struct UniV3NFTs {
-        uint256 token_id; // for Uniswap V3 LPs
-        uint256 liquidity;
-        int24 tick_lower;
-        int24 tick_upper;
-    }
-
-    UniV3NFTs[] public lockedNfts;
 
     constructor(
         string memory _name,
@@ -162,6 +153,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
     function withdraw(uint256 _shares) public nonReentrant whenNotPaused {
         uint256 r = (liquidity().mul(_shares)).div(totalSupply());
+        (uint256 _expectA0, uint256 _expectA1) = pool.amountsForLiquidity(uint128(r), tick_lower, tick_upper);
         _burn(msg.sender, _shares);
         // Check balance
         uint256 b = liquidityOfThis;
@@ -169,12 +161,16 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
         if (b < r) {
             uint256 _withdraw = r.sub(b);
+            console.log(" [jar] _withdraw => ", _withdraw);
             (uint256 _a0, uint256 _a1) = IControllerV2(controller).withdraw(address(pool), _withdraw);
-            _balances[0] = _balances[0].add(_a0);
-            _balances[1] = _balances[1].add(_a1);
+            _expectA0 = _balances[0].add(_a0);
+            _expectA1 = _balances[1].add(_a1);
         }
-        token0.safeTransfer(msg.sender, _balances[0]);
-        token1.safeTransfer(msg.sender, _balances[1]);
+        console.log(" [jar] _expectA0 => ", _expectA0);
+        console.log(" [jar] _expectA1 => ", _expectA1);
+
+        token0.safeTransfer(msg.sender, _expectA0);
+        token1.safeTransfer(msg.sender, _expectA1);
     }
 
     function getRatio() public view returns (uint256) {

@@ -14,12 +14,10 @@ describe("StrategyFraxDAI", () => {
   const FraxToken = "0x853d955acef822db058eb8505911ed77f175b99e";
   const DAIToken = "0x6b175474e89094c44da98b954eedeac495271d0f";
   const FXSToken = "0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0";
-  const SMARTCHECKER = "0x53c13BA8834a1567474b19822aAD85c6F90D9f9F";
 
   let alice;
-  let frax, dai, fxs, fraxDeployer;
-  let strategy, pickleJar, controller, proxyAdmin, strategyProxy, locker, veFxsVault;
-  let smartChecker;
+  let frax, dai, fxs;
+  let strategy, pickleJar, controller, proxyAdmin, strategyProxy, locker;
   let governance, strategist, devfund, treasury, timelock;
   let preTestSnapshotID;
 
@@ -88,15 +86,6 @@ describe("StrategyFraxDAI", () => {
     await controller.connect(governance).approveStrategy(FRAX_DAI_POOL, strategy.address);
     await controller.connect(governance).setStrategy(FRAX_DAI_POOL, strategy.address);
 
-    veFxsVault = await deployContract("veFXSVault");
-    console.log("✅ veFxsVault is deployed at ", veFxsVault.address);
-
-    await veFxsVault.setProxy(strategyProxy.address);
-    await veFxsVault.setFeeDistribution(strategyProxy.address);
-    await veFxsVault.setLocker(locker.address);
-
-    await strategyProxy.setFXSVault(veFxsVault.address);
-
     frax = await getContractAt("ERC20", FraxToken);
     dai = await getContractAt("ERC20", DAIToken);
     fxs = await getContractAt("ERC20", FXSToken);
@@ -128,29 +117,6 @@ describe("StrategyFraxDAI", () => {
       bob,
       "0xB60C61DBb7456f024f9338c739B02Be68e3F545C"
     );
-
-    await getWantFromWhale(
-      FXSToken,
-      toWei(1000000),
-      charles,
-      "0x1e84614543ab707089cebb022122503462ac51b3"
-    );
-
-    fraxDeployer = await unlockAccount("0x234D953a9404Bf9DbC3b526271d440cD2870bCd2");
-    smartChecker = await getContractAt("ISmartWalletChecker", SMARTCHECKER);
-  });
-  it("should lock to vault correctly", async () => {
-    await smartChecker.connect(fraxDeployer).approveWallet(locker.address);
-    await fxs.connect(charles).transfer(locker.address, toWei(100000));
-    const now = Math.round(new Date().getTime() / 1000);
-    const MAXTIME = 60 * 60 * 24 * 365 * 0.5;
-    await locker.connect(governance).createLock(toWei(100000), now + MAXTIME);
-
-    await fxs.connect(charles).approve(veFxsVault.address, toWei(100000));
-    await veFxsVault.connect(charles).deposit(toWei(100000));
-
-    await increaseTime(60 * 60 * 24 * 14); //travel 30 days
-    await increaseBlock(1000);
   });
 
   it("should harvest correctly", async () => {
@@ -227,9 +193,6 @@ describe("StrategyFraxDAI", () => {
       "Bob frax balance after withdrawal => ",
       (await frax.balanceOf(bob.address)).toString()
     );
-    // console.log("=============== Locker claim ============");
-    // await veFxsVault.connect(charles).claim();
-    console.log("charles fxs balance => ", (await fxs.balanceOf(charles.address)).toString());
 
     console.log("Treasury dai balance => ", (await dai.balanceOf(treasury.address)).toString());
     console.log("Treasury frax balance => ", (await frax.balanceOf(treasury.address)).toString());

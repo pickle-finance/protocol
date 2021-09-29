@@ -214,9 +214,9 @@ contract veFXSVault {
     address public pendingGovernance;
 
     IERC20 public constant FXS = IERC20(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
-    address public constant LOCK = address(0x7600137d41630BB1E35E02332013444302d40Edc);
-    address public proxy;
-    address public feeDistribution;
+    address public locker = 0xd639C2eA4eEFfAD39b599410d00252E6c80008DF;
+    address public proxy = 0x26B62c5F0bA4eB6a4Aff34141AF43Af7b5454a78;
+    address public feeDistribution = 0x26B62c5F0bA4eB6a4Aff34141AF43Af7b5454a78;
 
     IERC20 public constant rewards = IERC20(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
 
@@ -312,7 +312,7 @@ contract veFXSVault {
     }
 
     function _deposit(uint256 _amount) internal {
-        FXS.transferFrom(msg.sender, LOCK, _amount);
+        FXS.transferFrom(msg.sender, locker, _amount);
         _mint(msg.sender, _amount);
         IStrategyProxy(proxy).lock();
     }
@@ -320,6 +320,11 @@ contract veFXSVault {
     function setProxy(address _proxy) external {
         require(msg.sender == governance, "setGovernance: !gov");
         proxy = _proxy;
+    }
+
+    function setLocker(address _locker) external {
+        require(msg.sender == governance, "setGovernance: !gov");
+        locker = _locker;
     }
 
     function setFeeDistribution(address _feeDistribution) external {

@@ -6,6 +6,7 @@ import "../lib/safe-math.sol";
 import "../lib/erc20.sol";
 import "../interfaces/univ3/IUniswapV3PositionsNFT.sol";
 import "../interfaces/backscratcher/FraxGauge.sol";
+import "hardhat/console.sol";
 
 interface IProxy {
     function execute(
@@ -289,6 +290,7 @@ contract StrategyProxy {
         proxy.safeExecute(feeDistribution, 0, abi.encodeWithSignature("getYield()"));
 
         uint256 amount = IERC20(rewards).balanceOf(address(proxy));
+        console.log("   [claim] amount => ", amount);
         if (amount > 0) {
             proxy.safeExecute(rewards, 0, abi.encodeWithSignature("transfer(address,uint256)", recipient, amount));
         }

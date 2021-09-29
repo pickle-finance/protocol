@@ -102,7 +102,7 @@ module.exports = {
     ),
   },
   mocha: {
-    timeout: 20000000,
+    timeout: 200000000,
   },
   vyper: {
     version: "0.2.7",

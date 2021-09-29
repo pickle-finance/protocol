@@ -14,6 +14,7 @@ import "../interfaces/univ3/IUniswapV3Pool.sol";
 import "../interfaces/univ3/ISwapRouter.sol";
 import "../interfaces/controllerv2.sol";
 import "../lib/univ3/PoolActions.sol";
+import "hardhat/console.sol";
 
 // Strategy Contract Basics
 
@@ -152,8 +153,6 @@ abstract contract StrategyUniV3Base {
         governance = _governance;
     }
 
-    function setNFTFee(uint256 _fee) external {}
-
     function setTimelock(address _timelock) external {
         require(msg.sender == timelock, "!timelock");
         timelock = _timelock;
@@ -220,6 +219,9 @@ abstract contract StrategyUniV3Base {
 
         address _jar = IControllerV2(controller).jars(address(pool));
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
+
+        console.log("a0 => ", a0);
+        console.log("a1 => ", a1);
 
         token0.safeTransfer(_jar, a0);
         token1.safeTransfer(_jar, a1);
