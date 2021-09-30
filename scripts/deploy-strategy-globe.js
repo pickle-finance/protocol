@@ -4,9 +4,7 @@ require('dotenv').config();
 
 async function main() {
   const names = [
-    "PngAvaxApein",
-    "PngAvaxCnr",
-    "PngAvaxCycle"
+    "PngAvaxBifi",
   ];
   
   const [deployer] = await ethers.getSigners();
