@@ -4,10 +4,9 @@ require('dotenv').config();
 async function main() {
   const pools = [
     {
-
-      name: "PngAvaxMyak",
-      strategy_addr: "0xb66d2FBC206644d962Ef3a8eADeD938A8fF1EdB0",
-      // snowglobe_addr: "0x096bAE6C45b0047eF3F1cf1f1c8a56eF0cd58cdE"
+      name: "JoeAvaxTeddy",
+      strategy_addr: "0x76D6c102Af065B73D5aA8A9a96cd92a4D14027f1",
+      snowglobe_addr: "0xb357bA896818ccCd020fb3781a443E3d3f93beFf"
 
     }
   ];
@@ -42,46 +41,46 @@ async function main() {
     const Strategy = new ethers.Contract(pool.strategy_addr, strategy_ABI, deployer);
     
 
-    /* Deploy Snowglobe */
-    const lp = await Strategy.want();
-    const globe = await ethers.getContractFactory(snowglobe_name);
-    const SnowGlobe = await globe.deploy(lp, governance_addr, timelock_addr, controller_addr);
-    console.log(`deployed ${snowglobe_name} at : ${SnowGlobe.address}`);
-  
-    // // /* Connect to Snowglobe */
+    // /* Deploy Snowglobe */
     // const lp = await Strategy.want();
-    // const SnowGlobe = new ethers.Contract(pool.snowglobe_addr, snowglobe_ABI, deployer);
+    // const globe = await ethers.getContractFactory(snowglobe_name);
+    // const SnowGlobe = await globe.deploy(lp, governance_addr, timelock_addr, controller_addr);
+    // console.log(`deployed ${snowglobe_name} at : ${SnowGlobe.address}`);
   
-    /* Set Globe */
-    const setGlobe = await Controller.setGlobe(lp, SnowGlobe.address);
-    const tx_setGlobe = await setGlobe.wait(1);
-    if (!tx_setGlobe.status) {
-      console.error("Error setting the globe for: ",pool.name);
-      return;
-    }
-    console.log("Set Globe in the Controller for: ",pool.name);
-
-    /* Approve Strategy */
-    const approveStrategy = await Controller.approveStrategy(lp, Strategy.address);
-    const tx_approveStrategy = await approveStrategy.wait(1);
-    if (!tx_approveStrategy.status) {
-      console.error("Error approving the strategy for: ",pool.name);
-      return;
-    }
-    console.log("Approved Strategy in the Controller for: ",pool.name);
-
-    /* Set Strategy */
-    const setStrategy = await Controller.setStrategy(lp, Strategy.address);
-    const tx_setStrategy = await setStrategy.wait(1);
-    if (!tx_setStrategy.status) {
-      console.error("Error setting the strategy for: ",pool.name);
-      return;
-    }
-    console.log("Set Strategy in the Controller for: ",pool.name);
+    // /* Connect to Snowglobe */
+    const lp = await Strategy.want();
+    const SnowGlobe = new ethers.Contract(pool.snowglobe_addr, snowglobe_ABI, deployer);
   
-    /* Whitelist Harvester */
-    await Strategy.whitelistHarvester("0x096a46142C199C940FfEBf34F0fe2F2d674fDB1F");
-    console.log('whitelisted the harvester for: ',pool.name);
+    // /* Set Globe */
+    // const setGlobe = await Controller.setGlobe(lp, SnowGlobe.address);
+    // const tx_setGlobe = await setGlobe.wait(1);
+    // if (!tx_setGlobe.status) {
+    //   console.error("Error setting the globe for: ",pool.name);
+    //   return;
+    // }
+    // console.log("Set Globe in the Controller for: ",pool.name);
+
+    // /* Approve Strategy */
+    // const approveStrategy = await Controller.approveStrategy(lp, Strategy.address);
+    // const tx_approveStrategy = await approveStrategy.wait(1);
+    // if (!tx_approveStrategy.status) {
+    //   console.error("Error approving the strategy for: ",pool.name);
+    //   return;
+    // }
+    // console.log("Approved Strategy in the Controller for: ",pool.name);
+
+    // /* Set Strategy */
+    // const setStrategy = await Controller.setStrategy(lp, Strategy.address);
+    // const tx_setStrategy = await setStrategy.wait(1);
+    // if (!tx_setStrategy.status) {
+    //   console.error("Error setting the strategy for: ",pool.name);
+    //   return;
+    // }
+    // console.log("Set Strategy in the Controller for: ",pool.name);
+  
+    // /* Whitelist Harvester */
+    // await Strategy.whitelistHarvester("0x096a46142C199C940FfEBf34F0fe2F2d674fDB1F");
+    // console.log('whitelisted the harvester for: ',pool.name);
   
     /* Add Gauge */
     // const MultiSig = new ethers.Contract(governance_addr, multisig_ABI, deployer);
