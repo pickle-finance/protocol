@@ -78,6 +78,7 @@ async function main() {
     // const addGauge = await MultiSig.submitTransaction(gaugeproxy_addr, 0, encoding);
     const GaugeProxy = new ethers.Contract(gaugeproxy_addr, gaugeproxy_ABI, deployer);
     const addGauge = await GaugeProxy.addGauge(SnowGlobe.address);
+
     const tx_addGauge = await addGauge.wait(1);
     if (!tx_addGauge.status) {
       console.error("Error adding the gauge to multisig transaction list for: ",name);
