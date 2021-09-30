@@ -12,6 +12,9 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
     uint256 public keepAVAX = 1000;
     uint256 public constant keepAVAXMax = 10000;
 
+    uint256 public revenueShare = 3000;
+    uint256 public constant revenueShareMax = 10000;
+
     constructor(
         address _rewards,
         address _lp,
@@ -35,9 +38,14 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
 
     // **** Setters ****
 
-    function setKeepAVAX(uint256 _keepAVAX) external {
+    function setKeepAVAX (uint256 _keepAVAX ) external {
         require(msg.sender == timelock, "!timelock");
-        keepAVAX = _keepAVAX;
+        keepAVAX  = _keepAVAX ;
+    }
+
+    function setRevenueShare(uint256 _share) external {
+        require(msg.sender == timelock, "!timelock");
+        revenueShare = _share;
     }
 
     // **** State Mutations ****
@@ -47,9 +55,14 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
         IERC20(wavax).safeApprove(pangolinRouter, _keepAVAX);
         _swapPangolin(wavax, snob, _keepAVAX);
         uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
         IERC20(snob).safeTransfer(
             IController(controller).treasury(),
-            _snob
+            _snob.sub(_share);
         );
     }
 

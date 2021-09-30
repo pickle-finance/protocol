@@ -12,6 +12,9 @@ abstract contract StrategyPngFarmBasePng is StrategyStakingRewardsBase {
     uint256 public keepPNG = 1000;
     uint256 public constant keepPNGMax = 10000;
 
+    uint256 public revenueShare = 3000;
+    uint256 public constant revenueShareMax = 10000;
+
     constructor(
         address _token1,
         address _rewards,
@@ -41,6 +44,11 @@ abstract contract StrategyPngFarmBasePng is StrategyStakingRewardsBase {
         keepPNG = _keepPNG;
     }
 
+    function setRevenueShare(uint256 _share) external {
+        require(msg.sender == timelock, "!timelock");
+        revenueShare = _share;
+    }
+
     // **** State Mutations ****
 
     function _takeFeePngToSnob(uint256 _keepPNG) internal {
@@ -48,9 +56,14 @@ abstract contract StrategyPngFarmBasePng is StrategyStakingRewardsBase {
         IERC20(png).safeApprove(pangolinRouter, _keepPNG);
         _swapPangolin(png, snob, _keepPNG);
         uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
         IERC20(snob).safeTransfer(
             IController(controller).treasury(),
-            _snob
+            _snob.sub(_share);
         );
     }
 

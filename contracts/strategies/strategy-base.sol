@@ -24,7 +24,8 @@ abstract contract StrategyBase {
 
     // Dex
     address public pangolinRouter = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
-    // Move ^^
+    
+    address public feeDistributor = 0xad86ef5fd2ebc25bb9db41a1fe8d0f2a322c7839;
 
     // Perfomance fees - start with 10%
     uint256 public performanceTreasuryFee = 0;
@@ -75,8 +76,8 @@ abstract contract StrategyBase {
     modifier onlyBenevolent {
         require(
             harvesters[msg.sender] ||
-                msg.sender == governance ||
-                msg.sender == strategist
+            msg.sender == governance ||
+            msg.sender == strategist
         );
         _;
     }
@@ -107,6 +108,11 @@ abstract contract StrategyBase {
         require(msg.sender == governance ||
              msg.sender == strategist, "not authorized");
         harvesters[_harvester] = false;
+    }
+
+    function setFeeDistributor(address _feeDistributor) external {
+        require(msg.sender == governance, "not authorized");
+        feeDistributor = _feeDistributor;
     }
 
     function setWithdrawalDevFundFee(uint256 _withdrawalDevFundFee) external {

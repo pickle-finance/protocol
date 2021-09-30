@@ -21,6 +21,9 @@ abstract contract StrategyJoeFarmBase is StrategyBase {
     uint256 public keepJOE = 1000;
     uint256 public constant keepJOEMax = 10000;
 
+    uint256 public revenueShare = 3000;
+    uint256 public constant revenueShareMax = 10000;
+
     constructor(
         uint256 _poolId,
         address _lp,
@@ -52,6 +55,17 @@ abstract contract StrategyJoeFarmBase is StrategyBase {
     }
 
     // **** Setters ****
+
+    function setKeepJOE(uint256 _keepJOE) external {
+        require(msg.sender == timelock, "!timelock");
+        keepJOE = _keepJOE;
+    }
+
+    function setRevenueShare(uint256 _share) external {
+        require(msg.sender == timelock, "!timelock");
+        revenueShare = _share;
+    }
+
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
@@ -119,9 +133,14 @@ abstract contract StrategyJoeFarmBase is StrategyBase {
         path = new address[joe, wavax, snob];
         _swapTraderJoeWithPath(path, _keepJOE);
         uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
         IERC20(snob).safeTransfer(
             IController(controller).treasury(),
-            _snob
+            _snob.sub(_share);
         );
     }
 }
