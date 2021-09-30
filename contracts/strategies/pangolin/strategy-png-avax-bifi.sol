@@ -3,13 +3,13 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-farm-base.sol";
 
-contract StrategyPngAvaxAaveELp is StrategyPngFarmBase {
+contract StrategyPngAvaxBifiLp is StrategyPngFarmBase {
     // Token addresses
-    address public png_avax_aave_lp_rewards =
-        0xa04fCcE7955312709c838982ad0E297375002C32;
-    address public png_avax_aave_lp =
-        0x5944f135e4F1E3fA2E5550d4B5170783868cc4fE;
-    address public aave = 0x63a72806098Bd3D9520cC43356dD78afe5D386D9;
+    address public png_avax_bifi_lp_rewards =
+        0x4E258f7ec60234bb6f3Ea7eCFf5931901182Bd6E;
+    address public png_avax_bifi_lp =
+        0xAaCE68f9C8506610929D76a0729c7C24603641fC;
+    address public bifi = 0xd6070ae98b8069de6B494332d1A1a81B6179D960;
 
     constructor(
         address _governance,
@@ -19,9 +19,9 @@ contract StrategyPngAvaxAaveELp is StrategyPngFarmBase {
     )
         public
         StrategyPngFarmBase(
-            aave,
-            png_avax_aave_lp_rewards,
-            png_avax_aave_lp,
+            bifi,
+            png_avax_bifi_lp_rewards,
+            png_avax_bifi_lp,
             _governance,
             _strategist,
             _controller,
@@ -32,6 +32,6 @@ contract StrategyPngAvaxAaveELp is StrategyPngFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAvaxAaveELp";
+        return "StrategyPngAvaxBifiLp";
     }
 }

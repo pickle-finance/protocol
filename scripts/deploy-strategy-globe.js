@@ -4,7 +4,7 @@ require('dotenv').config();
 
 async function main() {
   const names = [
-    "PngAvaxTeddy",
+    "PngAvaxBifi",
   ];
   
   const [deployer] = await ethers.getSigners();
@@ -76,14 +76,19 @@ async function main() {
     // const encoding = iGaugeProxy.encodeFunctionData("addGauge", [SnowGlobe.address]);
     
     // const addGauge = await MultiSig.submitTransaction(gaugeproxy_addr, 0, encoding);
-    const gaugeProxy = new ethers.Contract(gaugeproxy_addr, gaugeproxy_ABI, deployer);
-    const addGauge = await gaugeProxy.addGauge(SnowGlobe.address);
+    const GaugeProxy = new ethers.Contract(gaugeproxy_addr, gaugeproxy_ABI, deployer);
+    const addGauge = await GaugeProxy.addGauge(SnowGlobe.address);
+
     const tx_addGauge = await addGauge.wait(1);
     if (!tx_addGauge.status) {
       console.error("Error adding the gauge to multisig transaction list for: ",name);
       return;
     }
-    console.log("addGauge transaction submitted for: ",name);
+    console.log(`addGauge for ${name}`);
+
+    const gauge = await GaugeProxy.getGauge(SnowGlobe.address);
+    console.log(`deployed Gauge${name} at: ${gauge}`);
+
     return;
   };
 
