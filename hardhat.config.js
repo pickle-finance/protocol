@@ -35,7 +35,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+        url: `https://arb1.arbitrum.io/rpc`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
