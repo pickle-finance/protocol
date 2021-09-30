@@ -4,7 +4,7 @@ pragma solidity ^0.6.7;
 import "../strategy-joe-farm-base.sol";
 
 contract StrategyJoeAvaxTsdLp is StrategyJoeFarmBase {
-    uint256 public avax_tsd_poolId = 64;
+    uint256 public avax_tsd_poolId = 63;
 
     address public joe_avax_tsd_lp = 0x2d16af2D7f1edB4bC5DBAdF3ffF04670B4BcD0BB;
     address public tsd = 0x4fbf0429599460D327BD5F55625E30E4fC066095;
