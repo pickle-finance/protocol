@@ -4,17 +4,10 @@ require('dotenv').config();
 
 async function main() {
   const names = [
-    // "JoeAvaxAavee",
-    // "JoeAvaxBifi",
-    // "JoeAvaxBnb",
-    // "JoeAvaxChart",
-    // "JoeAvaxKlo",
-    // "JoeAvaxMai",
-    // "JoeAvaxMyak",
-    // "JoeAvaxRelay",
-    // "JoeAvaxTeddy",
-    "JoeAvaxTsd"
-
+    // "JoeUsdceEthe",
+    // "JoeUsdceJoe",
+    "JoeUsdceLinke",
+    "JoeUsdceWBtce",
   ];
   
   const [deployer] = await ethers.getSigners();
