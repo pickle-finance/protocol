@@ -61,11 +61,11 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             // 10% is locked up for future gov
-            uint256 _keepWAVAX = _wavax.mul(keepAVAX).div(keepAVAXMax);
-            _takeFeeWavaxToSnob(_keepWAVAX);
+            uint256 _keep = _wavax.mul(keepAVAX).div(keepAVAXMax);
+            _takeFeeWavaxToSnob(_keep);
 
             //swap WAVAX for token1
-            _swapPangolin(wavax, token1, _wavax.sub(_keepWAVAX).div(2));
+            _swapPangolin(wavax, token1, _wavax.sub(_keep).div(2));
         }
 
         // Donate Dust
