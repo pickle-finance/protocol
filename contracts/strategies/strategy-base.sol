@@ -34,6 +34,14 @@ abstract contract StrategyBase {
     uint256 public performanceDevFee = 0;
     uint256 public constant performanceDevMax = 10000;
 
+    // How many rewards tokens to keep?
+    uint256 public keep = 1000;
+    uint256 public constant keepMax = 10000;
+
+    uint256 public revenueShare = 3000;
+    uint256 public constant revenueShareMax = 10000;
+
+
     // Withdrawal fee 0%
     // - 0% to treasury
     // - 0% to dev fund
@@ -97,6 +105,16 @@ abstract contract StrategyBase {
     function getName() external virtual pure returns (string memory);
 
     // **** Setters **** //
+
+    function setKeep(uint256 _keep) external {
+        require(msg.sender == timelock, "!timelock");
+        keep = _keep;
+    }
+
+    function setRevenueShare(uint256 _share) external {
+        require(msg.sender == timelock, "!timelock");
+        revenueShare = _share;
+    }
 
     function whitelistHarvester(address _harvester) external {
         require(msg.sender == governance ||

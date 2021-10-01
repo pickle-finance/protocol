@@ -8,13 +8,6 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
     // WAVAX/<token1> pair
     address public token1;
 
-    // How much PNG tokens to keep?
-    uint256 public keepAVAX = 1000;
-    uint256 public constant keepAVAXMax = 10000;
-
-    uint256 public revenueShare = 3000;
-    uint256 public constant revenueShareMax = 10000;
-
     constructor(
         address _rewards,
         address _lp,
@@ -34,18 +27,6 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
         )
     {
         token1 = png;
-    }
-
-    // **** Setters ****
-
-    function setKeepAVAX (uint256 _keepAVAX ) external {
-        require(msg.sender == timelock, "!timelock");
-        keepAVAX  = _keepAVAX ;
-    }
-
-    function setRevenueShare(uint256 _share) external {
-        require(msg.sender == timelock, "!timelock");
-        revenueShare = _share;
     }
 
     // **** State Mutations ****

@@ -41,11 +41,11 @@ contract StrategyPngSporePngLp is StrategyPngFarmBaseV2 {
         uint256 _png = IERC20(png).balanceOf(address(this));
         if (_png > 0) {
             // 10% is locked up for future gov
-            uint256 _keepPNG = _png.mul(keepPNG).div(keepPNGMax);
-            _takeFeePngToSnob(_keepPNG);
+            uint256 _keep = _png.mul(keep).div(keepMax);
+            _takeFeePngToSnob(_keep);
             
 			//swap Pangolin for spore
-            _swapPangolin(png, spore, _png.sub(_keepPNG).mul(25).div(47));
+            _swapPangolin(png, spore, _png.sub(_keep).mul(100).div(194));
                        
         }
            

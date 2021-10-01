@@ -42,11 +42,11 @@ contract StrategyJoeAvaxVsoLp is StrategyJoeFarmBase {
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
-            uint256 _keepJOE = _joe.mul(keepJOE).div(keepJOEMax);
-            _takeFeeJoeToSnob(_keepJOE);
-            uint256 _amount = _joe.sub(_keepJOE).div(2);
+            uint256 _keep = _joe.mul(keep).div(keepMax);
+            uint256 _amount = _joe.sub(_keep).div(2);
+            _takeFeeJoeToSnob(_keep);
             IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keepJOE));
+            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keep));
 
             _swapTraderJoe(joe, wavax, _amount);
             _swapTraderJoe(joe, vso, _amount);
@@ -56,7 +56,7 @@ contract StrategyJoeAvaxVsoLp is StrategyJoeFarmBase {
         uint256 _vso = IERC20(vso).balanceOf(address(this));
         if (_vso > 0) {
             // 10% is sent to treasury
-            uint256 _keepVSO = _vso.mul(keepJOE).div(keepJOEMax);
+            uint256 _keepVSO = _vso.mul(keep).div(keepMax);
             IERC20(vso).safeTransfer(
                 IController(controller).treasury(),
                 _keepVSO

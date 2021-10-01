@@ -41,16 +41,16 @@ contract StrategyPngAvaxSporeLp is StrategyPngFarmBaseV2 {
         uint256 _png = IERC20(png).balanceOf(address(this));
         if (_png > 0) {
             // 10% is locked up for future gov
-            uint256 _keepPNG = _png.mul(keepPNG).div(keepPNGMax);
-            _takeFeePngToSnob(_keepPNG);
+            uint256 _keep = _png.mul(keep).div(keepMax);
+            _takeFeePngToSnob(_keep);
 
-            _swapPangolin(png, wavax, _png.sub(_keepPNG));
+            _swapPangolin(png, wavax, _png.sub(_keep));
         }
 
         // Swap half WAVAX for SPORE
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
-            _swapPangolin(wavax, spore, _wavax.mul(25).div(47));
+            _swapPangolin(wavax, spore, _wavax.mul(100).div(194));
         }
 
         // Adds in liquidity for AVAX/SPORE

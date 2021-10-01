@@ -42,11 +42,11 @@ contract StrategyJoexJoe is StrategyxJoeFarmBase {
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
-            uint256 _keepJOE = _joe.mul(keepJOE).div(keepJOEMax);
-            _takeFeeJoeToSnob(_keepJOE);
-            uint256 _amount = _joe.sub(_keepJOE);
+            uint256 _keep = _joe.mul(keep).div(keepMax);
+            uint256 _amount = _joe.sub(_keep);
+            _takeFeeJoeToSnob(_keep);
             IERC20(joe).safeApprove(joeBar, 0);
-            IERC20(joe).safeApprove(joeBar, _joe.sub(_keepJOE));
+            IERC20(joe).safeApprove(joeBar, _joe.sub(_keep));
 
             //Deposit Harvested Joe into xJoe
             IJoeBar(joeBar).enter(_amount);

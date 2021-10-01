@@ -42,13 +42,13 @@ contract StrategyJoeAvaxSporeLp is StrategyJoeFarmBase {
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
-            uint256 _keepJOE = _joe.mul(keepJOE).div(keepJOEMax);
-            _takeFeeJoeToSnob(_keepJOE);
+            uint256 _keep = _joe.mul(keep).div(keepMax);
+            _takeFeeJoeToSnob(_keep);
             IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keepJOE));
+            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keep));
 
-            _swapTraderJoe(joe, wavax, _joe.sub(_keepJOE).mul(22).div(47));
-            _swapTraderJoe(joe, spore, _joe.sub(_keepJOE).mul(25).div(47));
+            _swapTraderJoe(joe, wavax, _joe.sub(_keep).mul(94).div(194));
+            _swapTraderJoe(joe, spore, _joe.sub(_keep).mul(100).div(194));
         }
 
         // Adds in liquidity for AVAX/SPORE

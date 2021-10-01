@@ -8,13 +8,6 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
     // WAVAX/<token1> pair
     address public token1;
 
-    // How much PNG tokens to keep?
-    uint256 public keepPNG = 1000;
-    uint256 public constant keepPNGMax = 10000;
-
-    uint256 public revenueShare = 3000;
-    uint256 public constant revenueShareMax = 10000;
-
     constructor(
         address _token1,
         address _rewards,
@@ -37,24 +30,12 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
         token1 = _token1;
     }
 
-    // **** Setters ****
-
-    function setKeepPNG(uint256 _keepPNG) external {
-        require(msg.sender == timelock, "!timelock");
-        keepPNG = _keepPNG;
-    }
-
-    function setRevenueShare(uint256 _share) external {
-        require(msg.sender == timelock, "!timelock");
-        revenueShare = _share;
-    }
-
     // **** State Mutations ****
 
-    function _takeFeePngToSnob(uint256 _keepPNG) internal {
+    function _takeFeePngToSnob(uint256 _keep) internal {
         IERC20(png).safeApprove(pangolinRouter, 0);
-        IERC20(png).safeApprove(pangolinRouter, _keepPNG);
-        _swapPangolin(png, snob, _keepPNG);
+        IERC20(png).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(png, snob, _keep);
         uint _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
         IERC20(snob).safeTransfer(
@@ -79,13 +60,13 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
         uint256 _png = IERC20(png).balanceOf(address(this));
         if (_png > 0) {
             // 10% is locked up for future gov
-            uint256 _keepPNG = _png.mul(keepPNG).div(keepPNGMax);
-            _takeFeePngToSnob(_keepPNG);
+            uint256 _keep = _png.mul(keep).div(keepMax);
+            _takeFeePngToSnob(_keep);
             
             if (token1 == png) {
-                _swapPangolin(png, wavax, _png.sub(_keepPNG).div(2));
+                _swapPangolin(png, wavax, _png.sub(_keep).div(2));
             } else {            
-             _swapPangolin(png, wavax, _png.sub(_keepPNG));
+             _swapPangolin(png, wavax, _png.sub(_keep));
             }
              
         }
