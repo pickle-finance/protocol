@@ -1,4 +1,4 @@
-        const {doFoldingTest} = require("../generic-test");
+        const {doGenericTest} = require("../generic-test");
 
         const assetAddr = "0x50b7545627a5162F82A992c33b87aDc75187B218";
         const snowglobeAddr = "0x8FA104f65BDfddEcA211867b77e83949Fc9d8b44";
@@ -11,6 +11,6 @@
         
         describe("StrategyBenqiWbtc", () => {
                 
-                doFoldingTest("WBTC.e",assetAddr,snowglobeAddr,strategyAddr,globeABI,stratABI,txnAmt);
+                doGenericTest("WBTC.e",assetAddr,snowglobeAddr,strategyAddr,globeABI,stratABI,txnAmt);
 
         });

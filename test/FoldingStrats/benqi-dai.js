@@ -1,4 +1,4 @@
-        const {doFoldingTest} = require("../generic-test");
+        const {doGenericTest} = require("../generic-test");
 
         const assetAddr = "0xd586e7f844cea2f87f50152665bcbc2c279d8d70";
         const snowglobeAddr = "0x7b2525A502800E496D2e656e5b1188723e547012";
@@ -11,6 +11,6 @@
         
         describe("StrategyBenqiDai", () => {
                 
-                doFoldingTest("DAI.e",assetAddr,snowglobeAddr,strategyAddr,globeABI,stratABI,txnAmt);
+                doGenericTest("DAI.e",assetAddr,snowglobeAddr,strategyAddr,globeABI,stratABI,txnAmt);
 
         });

@@ -8,7 +8,7 @@ const { expect } = chai;
 const {setupSigners} = require("./utils/actors")
 
 
-const doFoldingTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,stratABI, txnAmt) => {
+const doGenericTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,stratABI, txnAmt) => {
 
     const walletAddr = process.env.WALLET_ADDR;
     let assetContract,controllerContract;
@@ -107,4 +107,4 @@ const doFoldingTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,stratA
     
 }
 
-module.exports = {doFoldingTest};
+module.exports = {doGenericTest};
