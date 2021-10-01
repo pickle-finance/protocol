@@ -3,11 +3,15 @@ require('dotenv').config();
 
 async function main() {
   const pools = [
+    // {
+    //   name: "JoeUsdceEthe",
+    //   strategy_addr: "0x14636A5a5Dc8836E7E378B9b6E4614A3C94f48E5",
+    //   snowglobe_addr: "0x5586630339C015dF34EAB3Ae0343D37BE89671f9"
+    // },
     {
-      name: "JoeAvaxTeddy",
-      strategy_addr: "0x76D6c102Af065B73D5aA8A9a96cd92a4D14027f1",
-      snowglobe_addr: "0xb357bA896818ccCd020fb3781a443E3d3f93beFf"
-
+      name: "JoeUsdceJoe",
+      strategy_addr: "0x043a2eCE3C99fcBCB879A469c35BF267Bf842D4C",
+      snowglobe_addr: "0xDe9f979fEdf595FcfD1D09c85d194C700678cC83"
     }
   ];
 
@@ -88,14 +92,19 @@ async function main() {
     // const encoding = iGaugeProxy.encodeFunctionData("addGauge", [SnowGlobe.address]);
     
     // const addGauge = await MultiSig.submitTransaction(gaugeproxy_addr, 0, encoding);
-    const gaugeProxy = new ethers.Contract(gaugeproxy_addr, gaugeproxy_ABI, deployer);
-    const addGauge = await gaugeProxy.addGauge(SnowGlobe.address);
+    const GaugeProxy = new ethers.Contract(gaugeproxy_addr, gaugeproxy_ABI, deployer);
+    const addGauge = await GaugeProxy.addGauge(SnowGlobe.address);
+
     const tx_addGauge = await addGauge.wait(1);
     if (!tx_addGauge.status) {
       console.error("Error adding the gauge to multisig transaction list for: ",pool.name);
       return;
     }
-    console.log("addGauge transaction submitted for: ",pool.name);
+    console.log(`addGauge for ${pool.name}`);
+
+    const gauge = await GaugeProxy.getGauge(SnowGlobe.address);
+    console.log(`deployed Gauge${pool.name} at: ${gauge}`);
+
     return;
   };
 
