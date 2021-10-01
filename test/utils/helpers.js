@@ -21,6 +21,10 @@ const increaseBlock = async (block) => {
   }
 };
 
+const toWei = (amount, decimal = 18) => {
+  return BN.from(amount).mul(BN.from(10).pow(decimal));
+};
+
 const overwriteTokenAmount = async (assetAddr, walletAddr,amount) => {
     const index = ethers.utils.solidityKeccak256(["uint256", "uint256"],[walletAddr, 0]);
     const BN = ethers.BigNumber.from(amount)._hex.toString();
@@ -31,6 +35,7 @@ const overwriteTokenAmount = async (assetAddr, walletAddr,amount) => {
 }
 
 module.exports = {
+    toWei,
     increaseBlock,
     increaseTime,
     overwriteTokenAmount,
