@@ -155,8 +155,8 @@ AVAX - JOE Trader Joe | 0x3272f90cdb902e96c72086fe788678777562af14
 AVAX - SNOB Trader Joe | 0x6d7512704010ea78dc14d739a390a63a2ec269b5
 AVAX - SPORE Trader Joe | 0x76ac2c3d79ee189487b3eaf7cb4299e413af3e66
 
-StableVault Gauge Address
-First Header | Second Header
+
+StableVault Gauge | Address
 ------------ | -------------
 s3D | 0x5994612ffffc31d6c05c4fbec4a17116676d5b22
 s3F | 0x472075680e16d34aba24ce9a6ddb59f27995906a
