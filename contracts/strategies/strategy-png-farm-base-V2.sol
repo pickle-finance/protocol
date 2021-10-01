@@ -56,10 +56,10 @@ abstract contract StrategyPngFarmBaseV2 is StrategyStakingRewardsBase {
 
     // **** State Mutations ****
 
-    function _takeFeePngToSnob(uint256 _keepPNG) internal {
+    function _takeFeePngToSnob(uint256 _keep) internal {
         IERC20(png).safeApprove(pangolinRouter, 0);
-        IERC20(png).safeApprove(pangolinRouter, _keepPNG);
-        _swapPangolin(png, snob, _keepPNG);
+        IERC20(png).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(png, snob, _keep);
         uint _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
         IERC20(snob).safeTransfer(
