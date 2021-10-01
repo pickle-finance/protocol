@@ -47,15 +47,20 @@ contract StrategyJoeAvaxSporeLp is StrategyJoeFarmBase {
             IERC20(joe).safeApprove(joeRouter, 0);
             IERC20(joe).safeApprove(joeRouter, _joe.sub(_keep));
 
-            _swapTraderJoe(joe, wavax, _joe.sub(_keep).mul(94).div(194));
-            _swapTraderJoe(joe, spore, _joe.sub(_keep).mul(100).div(194));
+            _swapTraderJoe(joe, wavax, _joe.sub(_keep));
+        }
+
+        // Swap half WAVAX for SPORE
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        if (_wavax > 0) {
+            IERC20(wavax).safeApprove(joeRouter, 0);
+            IERC20(wavax).safeApprove(joeRouter, _wavax.mul(100).div(194));
+            _swapTraderJoe(wavax, spore, _wavax.mul(100).div(194));
         }
 
         // Adds in liquidity for AVAX/SPORE
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-
+        _wavax = IERC20(wavax).balanceOf(address(this));
         uint256 _spore = IERC20(spore).balanceOf(address(this));
-
         if (_wavax > 0 && _spore > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
