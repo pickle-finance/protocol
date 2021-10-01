@@ -150,11 +150,11 @@ contract StrategyDodoHndEthLp is StrategyBase {
         uint256 _weth = IERC20(weth).balanceOf(address(this));
         if (_weth > 0) {
             IERC20(weth).safeApprove(dodoSwap, 0);
-            IERC20(weth).safeApprove(dodoSwap, _weth);
+            IERC20(weth).safeApprove(dodoSwap, _weth.div(2));
             IDodoSwap(dodoSwap).dodoSwapV2TokenToToken(
                 weth,
                 hnd,
-                _weth,
+                _weth.div(2),
                 1,
                 path,
                 0,
