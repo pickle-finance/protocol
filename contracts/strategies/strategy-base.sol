@@ -26,7 +26,7 @@ abstract contract StrategyBase {
     // Dex
     address public pangolinRouter = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
     
-    address public feeDistributor = 0xad86ef5fd2ebc25bb9db41a1fe8d0f2a322c7839;
+    address public feeDistributor = 0xAd86ef5fD2eBc25bb9Db41A1FE8d0f2a322c7839;
 
     // Perfomance fees - start with 10%
     uint256 public performanceTreasuryFee = 0;

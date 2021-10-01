@@ -15,7 +15,7 @@ contract StrategyBenqiAvax is StrategyQiFarmBase {
     )
         public
         StrategyQiFarmBase(
-            avax, 
+            wavax, 
             qiavax, 
             _governance, 
             _strategist, 

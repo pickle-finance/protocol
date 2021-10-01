@@ -43,8 +43,8 @@ contract StrategyPngAvaxSporeLp is StrategyPngFarmBaseV2 {
             // 10% is locked up for future gov
             uint256 _keep = _png.mul(keep).div(keepMax);
             _takeFeePngToSnob(_keep);
-            IERC20(png).safeApprove(pngRouter, 0);
-            IERC20(png).safeApprove(pngRouter, _png.sub(_keep));
+            IERC20(png).safeApprove(pangolinRouter, 0);
+            IERC20(png).safeApprove(pangolinRouter, _png.sub(_keep));
 
             _swapPangolin(png, wavax, _png.sub(_keep));
         }
@@ -52,8 +52,8 @@ contract StrategyPngAvaxSporeLp is StrategyPngFarmBaseV2 {
         // Swap half WAVAX for SPORE
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
-            IERC20(wavax).safeApprove(pngRouter, 0);
-            IERC20(wavax).safeApprove(pngRouter, _wavax.mul(100).div(194));
+            IERC20(wavax).safeApprove(pangolinRouter, 0);
+            IERC20(wavax).safeApprove(pangolinRouter, _wavax.mul(100).div(194));
             _swapPangolin(wavax, spore, _wavax.mul(100).div(194));
         }
 

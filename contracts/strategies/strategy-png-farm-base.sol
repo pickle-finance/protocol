@@ -44,7 +44,7 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
         );
         IERC20(snob).safeTransfer(
             IController(controller).treasury(),
-            _snob.sub(_share);
+            _snob.sub(_share)
         );
     }
 

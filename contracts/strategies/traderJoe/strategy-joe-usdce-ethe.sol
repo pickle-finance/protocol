@@ -42,7 +42,7 @@ contract StrategyJoeUsdceEtheLp is StrategyJoeFarmBase {
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
-            uint256 _keepJOE = _joe.mul(keepJOE).div(keepJOEMax);
+            uint256 _keepJOE = _joe.mul(keep).div(keepMax);
             IERC20(joe).safeTransfer(
                 IController(controller).treasury(),
                 _keepJOE

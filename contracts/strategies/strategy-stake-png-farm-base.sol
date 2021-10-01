@@ -31,10 +31,10 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
 
     // **** State Mutations ****
 
-    function _takeFeeWavaxToSnob(uint256 _keepAVAX) internal {
+    function _takeFeeWavaxToSnob(uint256 _keep) internal {
         IERC20(wavax).safeApprove(pangolinRouter, 0);
-        IERC20(wavax).safeApprove(pangolinRouter, _keepAVAX);
-        _swapPangolin(wavax, snob, _keepAVAX);
+        IERC20(wavax).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(wavax, snob, _keep);
         uint _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
         IERC20(snob).safeTransfer(
@@ -43,7 +43,7 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
         );
         IERC20(snob).safeTransfer(
             IController(controller).treasury(),
-            _snob.sub(_share);
+            _snob.sub(_share)
         );
     }
 
@@ -61,7 +61,7 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             // 10% is locked up for future gov
-            uint256 _keep = _wavax.mul(keepAVAX).div(keepAVAXMax);
+            uint256 _keep = _wavax.mul(keep).div(keepMax);
             _takeFeeWavaxToSnob(_keep);
 
             //swap WAVAX for token1

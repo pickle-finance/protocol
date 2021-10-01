@@ -1,20 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.2;
 
-import "../../lib/erc20.sol";
-import "../../lib/safe-math.sol";
-import "../../lib/exponential.sol";
-import "../strategy-base.sol";
-import "../../interfaces/globe.sol";
-import "../../interfaces/pangolin.sol";
-import "../../interfaces/controller.sol";
-import "../../interfaces/benqi.sol";
-import "../../interfaces/wavax.sol";
+import "../lib/erc20.sol";
+import "../lib/safe-math.sol";
+import "../lib/exponential.sol";
+import "./strategy-base.sol";
+import "../interfaces/globe.sol";
+import "../interfaces/pangolin.sol";
+import "../interfaces/controller.sol";
+import "../interfaces/benqi.sol";
+import "../interfaces/wavax.sol";
 
-contract StrategyQiFarmBase is StrategyBase, Exponential {
+abstract contract StrategyQiFarmBase is StrategyBase, Exponential {
     address public constant comptroller = 0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4; // Through UniTroller Address
     address public constant benqi = 0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5; //Qi Token  
     
+    address public qiToken;
+
     // Require a 0.04 buffer between
     // market collateral factor and strategy's collateral factor
     // when leveraging.
@@ -33,16 +35,17 @@ contract StrategyQiFarmBase is StrategyBase, Exponential {
     mapping(address => bool) keepers;
 
     constructor(
-        address token,
-        address qiToken,
+        address _token,
+        address _qiToken,
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
     )
         public
-        StrategyBase(token, _governance, _strategist, _controller, _timelock)
+        StrategyBase(_token, _governance, _strategist, _controller, _timelock)
     {
+        qiToken = _qiToken;
         // Enter qiToken Market
         address[] memory qitokens = new address[](1);
         qitokens[0] = qiToken;
@@ -63,10 +66,6 @@ contract StrategyQiFarmBase is StrategyBase, Exponential {
     }
 
     // **** Views **** //
-
-    function getName() external override pure returns (string memory) {
-        return "StrategQiFarmBase";
-    }
 
     function getSuppliedView() public view returns (uint256) {
         (, uint256 qiTokenBal, , uint256 exchangeRate) = IQiToken(qiToken)
@@ -267,11 +266,11 @@ contract StrategyQiFarmBase is StrategyBase, Exponential {
     }
 
     // Leverages until we're supplying <x> amount
-    // 1. Redeem <x> token
-    // 2. Repay <x> token
+    // 1. Redeem <x> want
+    // 2. Repay <x> want
     function leverageUntil(uint256 _supplyAmount) public onlyKeepers {
-        // 1. Borrow out <X> token
-        // 2. Supply <X> token
+        // 1. Borrow out <X> want
+        // 2. Supply <X> want
 
         uint256 leverage = getMaxLeverage();
         uint256 unleveragedSupply = getSuppliedUnleveraged();
@@ -305,8 +304,8 @@ contract StrategyQiFarmBase is StrategyBase, Exponential {
     }
 
     // Deleverages until we're supplying <x> amount
-    // 1. Redeem <x> token
-    // 2. Repay <x> token
+    // 1. Redeem <x> want
+    // 2. Repay <x> want
     function deleverageUntil(uint256 _supplyAmount) public onlyKeepers {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         uint256 supplied = getSupplied();
@@ -331,8 +330,8 @@ contract StrategyQiFarmBase is StrategyBase, Exponential {
                 IQiToken(qiToken).redeemUnderlying(_redeemAndRepay) == 0,
                 "!redeem"
             );
-            IERC20(token).safeApprove(qiToken, 0);
-            IERC20(token).safeApprove(qiToken, _redeemAndRepay);
+            IERC20(want).safeApprove(qiToken, 0);
+            IERC20(want).safeApprove(qiToken, _redeemAndRepay);
             require(IQiToken(qiToken).repayBorrow(_redeemAndRepay) == 0, "!repay");
 
             supplied = supplied.sub(_redeemAndRepay);
@@ -396,47 +395,6 @@ contract StrategyQiFarmBase is StrategyBase, Exponential {
         }
         uint borrowAccrued = IQiToken(qiToken).borrowBalanceStored(account).mul(borrowIndexDelta);
         return rewardAccrued.add(supplyAccrued.sub(borrowAccrued));
-    }
-
-    function deposit() public override {
-        uint256 _want = IERC20(want).balanceOf(address(this));
-        if (_want > 0) {
-            IERC20(want).safeApprove(qiToken, 0);
-            IERC20(want).safeApprove(qiToken, _want);
-            require(IQiToken(qiToken).mint(_want) == 0, "!deposit");
-        }
-    }
-
-    function _withdrawSome(uint256 _amount)
-        internal
-        override
-        returns (uint256)
-    {
-        uint256 _want = balanceOfWant();
-        if (_want < _amount) {
-            uint256 _redeem = _amount.sub(_want);
-            // Make sure market can cover liquidity
-            require(IQiToken(token).getCash() >= _redeem, "!cash-liquidity");
-            // How much borrowed amount do we need to free?
-            uint256 borrowed = getBorrowed();
-            uint256 supplied = getSupplied();
-            uint256 curLeverage = getCurrentLeverage();
-            uint256 borrowedToBeFree = _redeem.mul(curLeverage).div(1e18);
-            // If the amount we need to free is > borrowed
-            // Just free up all the borrowed amount
-            if (borrowed > 0) {
-                if (borrowedToBeFree > borrowed) {
-                    this.deleverageToMin();
-                } else {
-                    // Just keep freeing up borrowed amounts until
-                    // we hit a safe number to redeem our underlying
-                    this.deleverageUntil(supplied.sub(borrowedToBeFree));
-                }
-            }
-            // Redeems underlying
-            require(IQiToken(token).redeemUnderlying(_redeem) == 0, "!redeem");
-        }
-        return _amount;
     }
 
 }

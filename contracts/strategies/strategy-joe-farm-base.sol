@@ -111,7 +111,10 @@ abstract contract StrategyJoeFarmBase is StrategyBase {
     }
 
     function _takeFeeJoeToSnob(uint256 _keep) internal {
-        path = new address[joe, wavax, snob];
+        address[] memory path = new address[](3);
+        path[0] = joe;
+        path[1] = wavax;
+        path[2] = snob;
         IERC20(joe).safeApprove(joeRouter, 0);
         IERC20(joe).safeApprove(joeRouter, _keep);
         _swapTraderJoeWithPath(path, _keep);
@@ -123,7 +126,7 @@ abstract contract StrategyJoeFarmBase is StrategyBase {
         );
         IERC20(snob).safeTransfer(
             IController(controller).treasury(),
-            _snob.sub(_share);
+            _snob.sub(_share)
         );
     }
 }

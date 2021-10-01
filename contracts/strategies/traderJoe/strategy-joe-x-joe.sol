@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-xjoe-farm-base.sol";
+import "../strategy-joe-farm-base.sol";
+import "../../interfaces/JoeBar.sol";
 
-contract StrategyJoexJoe is StrategyxJoeFarmBase {
+contract StrategyJoexJoe is StrategyJoeFarmBase {
 
     uint256 public joeBar_poolId = 24;
 
@@ -17,7 +18,7 @@ contract StrategyJoexJoe is StrategyxJoeFarmBase {
         address _timelock
     )
         public
-        StrategyxJoeFarmBase(
+        StrategyJoeFarmBase(
             joeBar_poolId,
             joeBar,
             _governance,
