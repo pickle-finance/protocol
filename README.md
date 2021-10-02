@@ -18,11 +18,11 @@ To use your local installation of Hardhat, you need to use npx to run it (i.e. n
 
 ## Dev Testing
 
-
-Deploy Mainnet Hardfork
-```bash
-npx hardhat node --fork https://api.avax.network/ext/bc/C/rpc
+Tests are executed on a fork of the Main net of C-Chain as standard. To get started first clone yourself a copy of the .env file used for creating your local accounts:
 ```
+cp .env.example .env
+```
+Then run this one step that will compile all the tests and and run every script in the `/test/` directory:
 
 ```bash
 npx hardhat test
