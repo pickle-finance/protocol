@@ -5,7 +5,7 @@ const chai = require("chai");
 const { BigNumber } = require("@ethersproject/bignumber");
 const {increaseTime, overwriteTokenAmount, increaseBlock} = require("./utils/helpers");
 const { expect } = chai;
-const {setupSigners} = require("./utils/actors")
+const {setupSigners} = require("./utils/actors");
 
 
 const doGenericTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,stratABI, txnAmt) => {
