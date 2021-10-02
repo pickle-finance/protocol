@@ -7,11 +7,10 @@ Solidity files relating to the Snowball protocol.
 We're using hardhat to compile, and test contracts.
 
 Hardhat is used through a local installation in your project. This way your environment will be reproducible, and you will avoid future version conflicts.
+We additionally have other pacakges which we import, so be sure to first run the following:
 
-To install it, you need to create an npm project by going to an empty folder, running npm init, and following its instructions. Once your project is ready, you should run
-
-```bash
-npm install --save-dev hardhat
+```
+npm i
 ```
 
 To use your local installation of Hardhat, you need to use npx to run it (i.e. npx hardhat)
