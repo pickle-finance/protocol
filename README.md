@@ -21,6 +21,10 @@ Tests are executed on a fork of the Main net of C-Chain as standard. To get star
 ```
 cp .env.example .env
 ```
+You may run into memory errors if your node process hasn't been allocated enough heap space, this can be overriden with:
+```
+export NODE_OPTIONS=--max_old_space_size=4096
+```
 Then run this one step that will compile all the tests and and run every script in the `/test/` directory:
 
 ```bash
