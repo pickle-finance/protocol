@@ -5,8 +5,8 @@ import "../strategy-qi-farm-base.sol";
 
 contract StrategyBenqiUsdc is StrategyQiFarmBase {
     
-    address public constant usdc = 0x5947BB275c521040051D82396192181b413227A3; //qideposit token
-    address public constant qiusdc = 0x4e9f683A27a6BdAD3FC2764003759277e93696e6; //lending receipt token
+    address public constant usdc = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664; //qideposit token
+    address public constant qiusdc = 0xBEb5d47A3f720Ec0a390d04b4d41ED7d9688bC7F; //lending receipt token
 
     constructor(
         address _governance,
