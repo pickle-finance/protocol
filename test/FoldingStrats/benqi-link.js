@@ -12,5 +12,5 @@ const txnAmt = "25000000000";
 
 describe("StrategyBenqiLink", async () => {
 
-    doGenericTest("Link.e", assetAddr, snowglobeAddr, strategyAddr, globeABI, stratABI, txnAmt);
+    doGenericTest("Benqi LINK.e", assetAddr, snowglobeAddr, strategyAddr, globeABI, stratABI, txnAmt);
 });

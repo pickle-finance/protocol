@@ -20,7 +20,13 @@ const setupSigners = async () => {
   return [timelockSigner,strategistSigner,controllerSigner,governanceSigner]
 }
 
+const snowballAddr = "0xC38f41A296A4493Ff429F1238e030924A1542e50";
+let treasuryAddr="0x028933a66dd0ccc239a3d5c2243b2d96672f11f5";
+let devAddr= "0x0aa5cb6f365259524f7ece8e09cce9a7b394077a";
 
 module.exports = {
-  setupSigners
+  setupSigners,
+  snowballAddr,
+  treasuryAddr,
+  devAddr
 }
