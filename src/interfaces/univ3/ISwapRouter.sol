@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.6.7;
 pragma experimental ABIEncoderV2;
 
@@ -23,7 +25,7 @@ interface ISwapRouter {
 
     function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
 
-    function exactInput(ExactInputParams memory params) external payable returns (uint256 amountOut);
+    function exactInput(ExactInputParams calldata params) external payable returns (uint256 amountOut);
 }
 
 interface IUniswapV3Factory {

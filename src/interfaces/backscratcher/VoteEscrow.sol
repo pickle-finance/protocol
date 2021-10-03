@@ -6,5 +6,7 @@ interface VoteEscrow {
 
     function increase_amount(uint256) external;
 
+    function locked__end(address) external view returns (uint256);
+
     function withdraw() external;
 }

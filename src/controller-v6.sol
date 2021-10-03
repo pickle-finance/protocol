@@ -83,6 +83,12 @@ contract ControllerV6 is Initializable {
         approvedStrategies[_pool][_strategy] = false;
     }
 
+    // in case of strategy stuck and if we need to relink the new strategy
+    function removeStrategy(address _pool) public {
+        require(msg.sender == strategist || msg.sender == governance, "!strategist");
+        strategies[_pool] = address(0);
+    }
+
     function setStrategy(address _pool, address _strategy) public {
         require(msg.sender == strategist || msg.sender == governance, "!strategist");
         require(approvedStrategies[_pool][_strategy] == true, "!approved");
@@ -112,9 +118,9 @@ contract ControllerV6 is Initializable {
         return IStrategyV2(strategies[_pool]).liquidityOf();
     }
 
-    function withdrawAll(address _token) public returns (uint256 a0, uint256 a1) {
+    function withdrawAll(address _pool) public returns (uint256 a0, uint256 a1) {
         require(msg.sender == strategist || msg.sender == governance, "!strategist");
-        (a0, a1) = IStrategyV2(strategies[_token]).withdrawAll();
+        (a0, a1) = IStrategyV2(strategies[_pool]).withdrawAll();
     }
 
     function inCaseTokensGetStuck(address _token, uint256 _amount) public {

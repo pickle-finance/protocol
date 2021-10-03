@@ -57,6 +57,14 @@ module.exports = {
       hardfork: "london",
       gasPrice: "auto",
     },
+    rinkeby: {
+      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts: {
+        mnemonic: process.env.MNEMONIC,
+      },
+      hardfork: "london",
+      gasPrice: "auto",
+    },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: {
@@ -97,9 +105,7 @@ module.exports = {
     gasPrice: 89,
   },
   preprocess: {
-    eachLine: removeConsoleLog(
-      (hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"
-    ),
+    eachLine: removeConsoleLog((hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"),
   },
   mocha: {
     timeout: 200000000,

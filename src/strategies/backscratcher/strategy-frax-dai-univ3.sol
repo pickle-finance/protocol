@@ -4,7 +4,6 @@ pragma experimental ABIEncoderV2;
 
 import "../strategy-univ3-base.sol";
 import "../../interfaces/backscratcher/IStrategyProxy.sol";
-import "hardhat/console.sol";
 
 contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
     address public strategyProxy;
@@ -27,7 +26,7 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
 
     // **** Views ****
     function setStrategyProxy(address _proxy) external {
-        require(msg.sender == governance, "!governance");
+        require(msg.sender == governance || msg.sender == strategist, "!governance");
         strategyProxy = _proxy;
     }
 
@@ -110,10 +109,7 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
         returns (uint256 amount0, uint256 amount1)
     {
         if (_tokenId == 0 || _liquidity == 0) return (0, 0);
-
         (uint256 _a0Expect, uint256 _a1Expect) = pool.amountsForLiquidity(_liquidity, tick_lower, tick_upper);
-        console.log("_a0Expect => ", _a0Expect);
-        console.log("_a1Expect => ", _a1Expect);
         nftManager.decreaseLiquidity(
             IUniswapV3PositionsNFT.DecreaseLiquidityParams({
                 tokenId: _tokenId,
@@ -134,14 +130,11 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
         );
         amount0 = amount0.add(_a0);
         amount1 = amount1.add(_a1);
-        console.log("amount0 => ", amount0);
-        console.log("amount1 => ", amount1);
     }
 
     function _withdrawSome(uint256 _liquidity) internal override returns (uint256, uint256) {
         LockedNFT[] memory lockedNfts = IStrategyProxy(strategyProxy).lockedNFTsOf(frax_dai_gauge);
         uint256[2] memory _amounts;
-        console.log("_liquidity => ", _liquidity);
 
         uint256 _sum;
         uint256 _count;
@@ -154,13 +147,9 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
             _sum = _sum.add(
                 IStrategyProxy(strategyProxy).withdrawV3(frax_dai_gauge, lockedNfts[i].token_id, rewardTokens)
             );
-            console.log("_sum => ", _sum);
             _count++;
             if (_sum >= _liquidity) break;
         }
-        console.log("fxs balance => ", IERC20(rewardTokens[0]).balanceOf(address(this)));
-        console.log("dai balance => ", IERC20(rewardTokens[1]).balanceOf(address(this)));
-        console.log("frax balance => ", IERC20(rewardTokens[2]).balanceOf(address(this)));
 
         require(_sum >= _liquidity, "insufficient liquidity");
 
