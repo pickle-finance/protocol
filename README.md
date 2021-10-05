@@ -7,22 +7,25 @@ Solidity files relating to the Snowball protocol.
 We're using hardhat to compile, and test contracts.
 
 Hardhat is used through a local installation in your project. This way your environment will be reproducible, and you will avoid future version conflicts.
+We additionally have other pacakges which we import, so be sure to first run the following:
 
-To install it, you need to create an npm project by going to an empty folder, running npm init, and following its instructions. Once your project is ready, you should run
-
-```bash
-npm install --save-dev hardhat
+```
+npm i
 ```
 
 To use your local installation of Hardhat, you need to use npx to run it (i.e. npx hardhat)
 
 ## Dev Testing
 
-
-Deploy Mainnet Hardfork
-```bash
-npx hardhat node --fork https://api.avax.network/ext/bc/C/rpc
+Tests are executed on a fork of the Main net of C-Chain as standard. To get started first clone yourself a copy of the .env file used for creating your local accounts:
 ```
+cp .env.example .env
+```
+You may run into memory errors if your node process hasn't been allocated enough heap space, this can be overriden with:
+```
+export NODE_OPTIONS=--max_old_space_size=4096
+```
+Then run this one step that will compile all the tests and and run every script in the `/test/` directory:
 
 ```bash
 npx hardhat test
