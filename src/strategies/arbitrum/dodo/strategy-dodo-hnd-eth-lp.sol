@@ -10,7 +10,6 @@ contract StrategyDodoHndEthLp is StrategyBase {
     // Token addresses
     address public constant dodo = 0x69Eb4FA4a2fbd498C257C57Ea8b7655a2559A581;
     address public constant hnd = 0x10010078a54396F62c96dF8532dc2B4847d47ED3;
-    address public constant usdc = 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8;
 
     address public constant rewards =
         0x06633cd8E46C3048621A517D6bb5f0A84b4919c6;
@@ -20,6 +19,8 @@ contract StrategyDodoHndEthLp is StrategyBase {
         0x88CBf433471A0CD8240D2a12354362988b4593E5;
     address public constant dodoMultiSwap =
         0x3B6067D4CAa8A14c63fdBE6318F27A0bBc9F9237;
+    address public constant dodo_approve =
+        0xA867241cDC8d3b0C07C85cC06F25a0cD3b5474d8;
 
     address public constant dodoUsdcPair =
         0x6a58c68FF5C4e4D90EB6561449CC74A64F818dA5;
@@ -57,6 +58,10 @@ contract StrategyDodoHndEthLp is StrategyBase {
         ];
         dodoEthPairs = [dodoUsdcPair, usdcEthPair];
         dodoEthSwapTo = [dodoUsdcPair, usdcEthPair, address(this)];
+
+        IERC20(dodo).approve(dodo_approve, uint256(-1));
+        IERC20(hnd).approve(dodo_approve, uint256(-1));
+        IERC20(weth).approve(dodo_approve, uint256(-1));
     }
 
     function balanceOfPool() public view override returns (uint256) {
@@ -110,9 +115,10 @@ contract StrategyDodoHndEthLp is StrategyBase {
         IDodoMine(rewards).claimAllRewards();
         uint256 _dodo = IERC20(dodo).balanceOf(address(this));
         if (_dodo > 0) {
-            bytes[] memory moreInfos;
-            IERC20(dodo).safeApprove(dodoMultiSwap, 0);
-            IERC20(dodo).safeApprove(dodoMultiSwap, _dodo);
+            bytes[] memory moreInfos = new bytes[](2);
+            moreInfos[0] = "0x00";
+            moreInfos[1] = "0x00";
+
             IDodoMultiSwap(dodoMultiSwap).mixSwap(
                 dodo,
                 weth,
@@ -126,14 +132,12 @@ contract StrategyDodoHndEthLp is StrategyBase {
                 now + 60
             );
         }
-
+        
         uint256 _hnd = IERC20(hnd).balanceOf((address(this)));
         address[] memory path = new address[](1);
         path[0] = dodo_hnd_eth_lp;
 
         if (_hnd > 0) {
-            IERC20(hnd).safeApprove(dodoSwap, 0);
-            IERC20(hnd).safeApprove(dodoSwap, _hnd);
             IDodoSwap(dodoSwap).dodoSwapV2TokenToToken(
                 hnd,
                 weth,
@@ -149,8 +153,6 @@ contract StrategyDodoHndEthLp is StrategyBase {
         // Swap half WETH for HND
         uint256 _weth = IERC20(weth).balanceOf(address(this));
         if (_weth > 0) {
-            IERC20(weth).safeApprove(dodoSwap, 0);
-            IERC20(weth).safeApprove(dodoSwap, _weth.div(2));
             IDodoSwap(dodoSwap).dodoSwapV2TokenToToken(
                 weth,
                 hnd,
@@ -167,10 +169,6 @@ contract StrategyDodoHndEthLp is StrategyBase {
         _hnd = IERC20(hnd).balanceOf(address(this));
         _weth = IERC20(weth).balanceOf(address(this));
         if (_weth > 0 && _hnd > 0) {
-            IERC20(weth).safeApprove(dodoSwap, 0);
-            IERC20(weth).safeApprove(dodoSwap, _weth);
-            IERC20(hnd).safeApprove(dodoSwap, 0);
-            IERC20(hnd).safeApprove(dodoSwap, _hnd);
 
             IDodoSwap(dodoSwap).addDVMLiquidity(
                 dodo_hnd_eth_lp,

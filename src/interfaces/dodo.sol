@@ -17,13 +17,28 @@ interface IDodoMine {
     function claimAllRewards() external;
 }
 
+interface IDodoPool { 
+    function _QUOTE_TOKEN_() external view returns (address);
+}
+
 interface IDodoSwap {
+    function dodoSwapV1(
+        address fromToken,
+        address toToken,
+        uint256 fromTokenAmount,
+        uint256 minReturnAmount,
+        address[] calldata dodoPairs,
+        uint256 directions,
+        bool isIncentive,
+        uint256 deadLine
+    ) external returns (uint256 returnAmount);
+
     function dodoSwapV2TokenToToken(
         address fromToken,
         address toToken,
         uint256 fromTokenAmount,
         uint256 minReturnAmount,
-        address[] memory dodoPairs,
+        address[] calldata dodoPairs,
         uint256 directions,
         bool isIncentive,
         uint256 deadLine
@@ -52,11 +67,11 @@ interface IDodoMultiSwap {
         address toToken,
         uint256 fromTokenAmount,
         uint256 minReturnAmount,
-        address[] memory mixAdapters,
-        address[] memory mixPairs,
-        address[] memory assetTo,
+        address[] calldata mixAdapters,
+        address[] calldata mixPairs,
+        address[] calldata assetTo,
         uint256 directions,
-        bytes[] memory moreInfos,
+        bytes[] calldata moreInfos,
         uint256 deadLine
     ) external returns (uint256 returnAmount);
 }
