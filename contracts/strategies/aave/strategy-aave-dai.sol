@@ -122,7 +122,7 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
        results by calling `callStatic`.
     */
 
-    function getMaticAccrued() public view returns (uint256) {
+    function getWavaxAccrued() public view returns (uint256) {
         address[] memory avTokens = new address[](1);
         avTokens[0] = avdai;
 
