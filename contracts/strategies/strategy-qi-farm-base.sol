@@ -345,7 +345,7 @@ abstract contract StrategyQiFarmBase is StrategyBase, Exponential {
     // allow Native Avax
     receive() external payable {}
 
-    function harvest() public override onlyBenevolent {
+    function harvest() public onlyBenevolent {
         address[] memory qitokens = new address[](1);
         qitokens[0] = qiToken;
 

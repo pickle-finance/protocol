@@ -248,8 +248,6 @@ abstract contract StrategyBase {
 
     function _withdrawSome(uint256 _amount) internal virtual returns (uint256);
 
-    function harvest() public virtual;
-
     // **** Emergency functions ****
 
     function execute(address _target, bytes memory _data)
@@ -295,13 +293,10 @@ abstract contract StrategyBase {
         uint256 _amount
     ) internal {
         require(_to != address(0));
-
         // Swap with Pangolin
         IERC20(_from).safeApprove(pangolinRouter, 0);
         IERC20(_from).safeApprove(pangolinRouter, _amount);
-
         address[] memory path;
-
         if (_from == png || _to == png) {
             path = new address[](2);
             path[0] = _from;
@@ -318,7 +313,6 @@ abstract contract StrategyBase {
             path[1] = png;
             path[2] = _to;
         }
-        
         IPangolinRouter(pangolinRouter).swapExactTokensForTokens(
             _amount,
             0,

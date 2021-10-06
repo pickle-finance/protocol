@@ -49,4 +49,6 @@ abstract contract StrategyStakingRewardsBase is StrategyBase {
         IStakingRewards(rewards).withdraw(_amount);
         return _amount;
     }
+    
+    function harvest() public virtual;
 }
