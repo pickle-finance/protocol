@@ -18,7 +18,7 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
     describe("LP Strategy tests for: "+name, async () => {
 
         before( async () => {
-            const strategyName = `Strategy${name}LP`;
+            const strategyName = `Strategy${name}Lp`;
             const snowglobeName = `SnowGlobe${name}`;
 
             await network.provider.send('hardhat_impersonateAccount', [walletAddr]);
@@ -35,7 +35,7 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
             controllerContract = await ethers.getContractAt("ControllerV4", await controllerSigner.getAddress(), governanceSigner);
             console.log(`controllerContract`);
 
-            if (globeAddr == "") {
+            if (snowglobeAddr == "") {
               const globeFactory = await ethers.getContractFactory(snowglobeName);
               globeContract = await globeFactory.deploy(assetAddr, governanceSigner._address, timelockSigner._address, controllerSigner._address);
               await controllerContract.setGlobe(assetAddr, globeContract.address);
@@ -43,7 +43,7 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
             else {
               globeContract = new ethers.Contract(snowglobeAddr, globeABI, governanceSigner);
             }
-            console.log(`globeContract: `,globeContract);
+            console.log(`globeContract`);
 
             //If strategy address not supplied then we should deploy and setup a new strategy
             if (strategyAddr == ""){
@@ -59,7 +59,7 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
             } else {
                 strategyContract = new ethers.Contract(strategyAddr, stratABI, governanceSigner); //This is not an ABI!
             }
-            console.log('strategyContract: ',strategyContract);
+            console.log('strategyContract');
 
             await strategyContract.connect(governanceSigner).whitelistHarvester(walletAddr);
             console.log(`whitelist Harvester`);
