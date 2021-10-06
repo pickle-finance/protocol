@@ -25,8 +25,8 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
             walletSigner = ethers.provider.getSigner(walletAddr);
             [timelockSigner,strategistSigner,controllerSigner,governanceSigner] = await setupSigners();
             // slot = (name.includes("Benqi")) ? 0: 1;
+            
             slot = 0;
-
             await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
             console.log(`overwriteTokenAmount`);
 
@@ -119,6 +119,7 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
         it("Users should earn some money!", async () => {
             await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
             let amt = await assetContract.connect(walletSigner).balanceOf(walletAddr);
+            console.log("amt: ",amt);
             await assetContract.connect(walletSigner).approve(snowglobeAddr,amt);
             await globeContract.connect(walletSigner).deposit(amt);
             await globeContract.connect(walletSigner).earn();
@@ -144,6 +145,7 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
         it("should take no commission when fees not set", async () =>{
             await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
             let amt = await assetContract.connect(walletSigner).balanceOf(walletAddr);
+            console.log("amt: ",amt);
             let snobContract = await ethers.getContractAt("ERC20",snowballAddr,walletSigner);
             await assetContract.connect(walletSigner).approve(snowglobeAddr,amt);
             await globeContract.connect(walletSigner).deposit(amt);
@@ -179,6 +181,7 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
         it("should take some commission when fees are set", async () =>{
             await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
             let amt = await assetContract.connect(walletSigner).balanceOf(walletAddr);
+            console.log("amt: ",amt);
             let snobContract = await ethers.getContractAt("ERC20",snowballAddr,walletSigner);
             await strategyContract.connect(timelockSigner).setPerformanceTreasuryFee(1000);
             await assetContract.connect(walletSigner).approve(snowglobeAddr,amt);
