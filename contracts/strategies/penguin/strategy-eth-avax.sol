@@ -3,31 +3,31 @@ pragma solidity ^0.6.7;
 
 import "../strategy-pefi-base-lp.sol";
 
-contract PenguinStrategyPefiSushie is PefiStrategyForLP {
+contract PenguinStrategyEthAvax is PefiStrategyForLP {
     uint256 public xPefiPerShare; //stores cumulative xPEFI per share, scaled up by 1e18
     uint256 public NEST_STAKING_BIPS; //share of rewards sent to the nest on behalf of users
     mapping(address => uint256) public xPefiDebt; //pending xPEFI for any address is (its balance * xPefiPerShare) - (its xPefiDebt)
 
     // Variables to initialize constructor deployment
-    //String memory _name = "PefiComp_PEFI-Sushi.e-LP-Pefi";
-    //address depositToken =  0x8912a0fadf3588c6791e42310b549a7bc0047b0e;      //pair address
-    //address rewardToken = 0xe896CDeaAC9615145c0cA09C8Cd5C25bced6384c;        //pefi address
-    //address stakingContract = 0x8AC8ED5839ba269Be2619FfeB3507baB6275C257;    //masterchef
+    // String memory _name = "PefiComp_ETH-AVAX-LP-Pefi";
+    // address depositToken =  0x1acf1583bebdca21c8025e172d8e8f2817343d65;
+    // address rewardToken = 0xe896cdeaac9615145c0ca09c8cd5c25bced6384c;
+    // address stakingContract = 0x8ac8ed5839ba269be2619ffeb3507bab6275c257;
     // address router = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
-    //address poolCreator = 0x2510547e292590E93E3F48787A5F2E26c267F6FF;
-    //address nest = 0xD79A36056c271B988C5F1953e664E61416A9820F;
-    //address dev = 0x2510547e292590E93E3F48787A5F2E26c267F6FF;
-    //address alternate = 0x9694695dA8482906B86dB232Bfa9F95785414e0A;
-    //uint _pid = 0;
-    //uint _minTokensToReinvest = 1000000000000000000;
+    // address poolCreator = 0x2510547e292590e93e3f48787a5f2e26c267f6ff;
+    // address nest = 0xd79a36056c271b988c5f1953e664e61416a9820f;
+    // address dev = 0x2510547e292590E93E3F48787A5F2E26c267F6FF;
+    // address alternate = 0x9694695dA8482906B86dB232Bfa9F95785414e0A;
+    // uint _pid = 1;
+    // uint _minTokensToReinvest = 1;
 
-    //uint POOL_CREATOR_FEE_BIPS = 100;
-    //uint NEST_FEE_BIPS = 200;
-    //uint DEV_FEE_BIPS = 180;
-    //uint ALTERNATE_FEE_BIPS = 0;
-    //uint[4] memory _initFeeStructure; //pool creator, nest, dev, alternate ;
-    // address[] memory _pathRewardToToken0 = 0x39cf1bd5f15fb22ec3d9ff86b0727afc203427cc;   //sushi.e address
-    // address[] memory _pathRewardToToken1 = 0xe896CDeaAC9615145c0cA09C8Cd5C25bced6384c;
+    // uint POOL_CREATOR_FEE_BIPS = 1;
+    // uint NEST_FEE_BIPS = 200;
+    // uint DEV_FEE_BIPS = 280;
+    // uint ALTERNATE_FEE_BIPS = 1;
+    // uint[4] memory _initFeeStructure, //pool creator, nest, dev, alternate ;
+    // address[] memory _pathRewardToToken0 = 0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7;
+    // address[] memory _pathRewardToToken1 = 0xf20d962a6c8f70c731bd838a3a388d7d48fa6e15;
     // address _pefiGlobalVariables = 0x37Bf157A569e4c0F478d0d2864af9a49be8e0797;
     // bool _USE_GLOBAL_PEFI_VARIABLES = false;
 

@@ -3,31 +3,31 @@ pragma solidity ^0.6.7;
 
 import "../strategy-pefi-base-lp.sol";
 
-contract PenguinStrategyPefiDaie is PefiStrategyForLP {
+contract PenguinStrategyLydPng is PefiStrategyForLP {
     uint256 public xPefiPerShare; //stores cumulative xPEFI per share, scaled up by 1e18
     uint256 public NEST_STAKING_BIPS; //share of rewards sent to the nest on behalf of users
     mapping(address => uint256) public xPefiDebt; //pending xPEFI for any address is (its balance * xPefiPerShare) - (its xPefiDebt)
 
     // Variables to initialize constructor deployment
-    //String memory _name = "PefiComp_PEFI-DAI.e-LP-Pefi";
-    //address depositToken =  0x07dca207001d5c523749b0b4704d7b81535c6f1f;      //pair address
-    //address rewardToken = 0xe896CDeaAC9615145c0cA09C8Cd5C25bced6384c;        //pefi address
-    //address stakingContract = 0x8AC8ED5839ba269Be2619FfeB3507baB6275C257;    //masterchef
-    // address router = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
-    //address poolCreator = 0x2510547e292590E93E3F48787A5F2E26c267F6FF;
-    //address nest = 0xD79A36056c271B988C5F1953e664E61416A9820F;
-    //address dev = 0x2510547e292590E93E3F48787A5F2E26c267F6FF;
-    //address alternate = 0x9694695dA8482906B86dB232Bfa9F95785414e0A;
-    //uint _pid = 0;
-    //uint _minTokensToReinvest = 1000000000000000000;
+    // String memory _name = "PefiComp_LYD-PNG-LP-Pefi";
+    // address depositToken =  0x161f750b753c7120599d07c352607f458ecb918e;
+    // address rewardToken = 0x4c9b4e1ac6f24cde3660d5e4ef1ebf77c710c084;
+    // address stakingContract = 0xfb26525b14048b7bb1f3794f6129176195db7766;
+    // address router = 0xa52abe4676dbfd04df42ef7755f01a3c41f28d27;
+    // address poolCreator = 0xa5b74743d4fc84971bc73fab079f42b40ab3aa04;
+    // address nest = 0x81bc3d0075fd9026b4a6c0f5ba5d5c8c480db49e;
+    // address dev = 0x2510547e292590E93E3F48787A5F2E26c267F6FF;
+    // address alternate = 0x9694695dA8482906B86dB232Bfa9F95785414e0A;
+    // uint _pid = 7;
+    // uint _minTokensToReinvest = 1;
 
-    //uint POOL_CREATOR_FEE_BIPS = 100;
-    //uint NEST_FEE_BIPS = 200;
-    //uint DEV_FEE_BIPS = 180;
-    //uint ALTERNATE_FEE_BIPS = 0;
-    //uint[4] memory _initFeeStructure; //pool creator, nest, dev, alternate ;
-    // address[] memory _pathRewardToToken0 = 0xd586e7f844cea2f87f50152665bcbc2c279d8d70;   //dai.e address
-    // address[] memory _pathRewardToToken1 = 0xe896CDeaAC9615145c0cA09C8Cd5C25bced6384c;
+    // uint POOL_CREATOR_FEE_BIPS = 100;
+    // uint NEST_FEE_BIPS = 200;
+    // uint DEV_FEE_BIPS = 180;
+    // uint ALTERNATE_FEE_BIPS = 0;
+    // uint[4] memory _initFeeStructure, //pool creator, nest, dev, alternate ;
+    // address[] memory _pathRewardToToken0 = 0x4c9b4e1ac6f24cde3660d5e4ef1ebf77c710c084;
+    // address[] memory _pathRewardToToken1 = 0x60781c2586d68229fde47564546784ab3faca982;
     // address _pefiGlobalVariables = 0x37Bf157A569e4c0F478d0d2864af9a49be8e0797;
     // bool _USE_GLOBAL_PEFI_VARIABLES = false;
 

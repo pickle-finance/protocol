@@ -10,7 +10,7 @@ contract PenguinStrategyPefiSnob is PefiStrategyForLP {
 
     // Variables to initialize constructor deployment
     //String memory _name = "PefiComp_PEFI-Snob-LP-Pefi";
-    //address depositToken =  0x0b9753d73e1c62933e913e9c2c94f2ffa8236f6c;      //pair address
+    //address depositToken = 0x0b9753d73e1c62933e913e9c2c94f2ffa8236f6c;
     //address rewardToken = 0xe896CDeaAC9615145c0cA09C8Cd5C25bced6384c;        //pefi address
     //address stakingContract = 0x8AC8ED5839ba269Be2619FfeB3507baB6275C257;    //masterchef
     // address router = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
@@ -18,13 +18,13 @@ contract PenguinStrategyPefiSnob is PefiStrategyForLP {
     //address nest = 0xD79A36056c271B988C5F1953e664E61416A9820F;
     //address dev = 0x2510547e292590E93E3F48787A5F2E26c267F6FF;
     //address alternate = 0x9694695dA8482906B86dB232Bfa9F95785414e0A;
-    //uint _pid = 0;
-    //uint _minTokensToReinvest = 1000000000000000000;
+    //uint _pid = 3;
+    //uint _minTokensToReinvest = 1;
 
-    //uint POOL_CREATOR_FEE_BIPS = 100;
+    //uint POOL_CREATOR_FEE_BIPS = 1;
     //uint NEST_FEE_BIPS = 200;
-    //uint DEV_FEE_BIPS = 180;
-    //uint ALTERNATE_FEE_BIPS = 0;
+    //uint DEV_FEE_BIPS = 280;
+    //uint ALTERNATE_FEE_BIPS = 1;
     //uint[4] memory _initFeeStructure; //pool creator, nest, dev, alternate ;
     // address[] memory _pathRewardToToken0 = 0xc38f41a296a4493ff429f1238e030924a1542e50;   //snob address
     // address[] memory _pathRewardToToken1 = 0xe896CDeaAC9615145c0cA09C8Cd5C25bced6384c;

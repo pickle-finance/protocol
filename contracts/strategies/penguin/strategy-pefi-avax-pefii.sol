@@ -24,7 +24,7 @@ contract PenguinStrategyPefiAvaxPefi is PefiStrategyForLP {
     // uint POOL_CREATOR_FEE_BIPS = 100;
     // uint NEST_FEE_BIPS = 200;
     // uint DEV_FEE_BIPS = 180;
-    // uint ALTERNATE_FEE_BIPS = 0;
+    // uint ALTERNATE_FEE_BIPS = 1;
     // uint[4] memory _initFeeStructure, //pool creator, nest, dev, alternate ;
     // address[] memory _pathRewardToToken0 = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
     // address[] memory _pathRewardToToken1 = 0xe896CDeaAC9615145c0cA09C8Cd5C25bced6384c;
