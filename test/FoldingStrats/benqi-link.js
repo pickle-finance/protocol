@@ -1,4 +1,4 @@
-const {doGenericTest} = require("../generic-test");
+const {doFoldingStrategyTest} = require("../folding-strategy-test");
 
 // Leaving Strategy Address blank will make generic-test.js instead build and deploy a new Contract specified by stratABI
 const assetAddr = "0x5947bb275c521040051d82396192181b413227a3";
@@ -10,7 +10,7 @@ const stratABI = "StrategyBenqiLink";
 //This is 250 DAI.e
 const txnAmt = "25000000000";
 
-describe("StrategyBenqiLink", async () => {
+describe("BenqiLink", async () => {
 
-    doGenericTest("Benqi LINK.e", assetAddr, snowglobeAddr, strategyAddr, globeABI, stratABI, txnAmt);
+    doFoldingStrategyTest("BenqiLink", assetAddr, snowglobeAddr, strategyAddr, globeABI, stratABI, txnAmt);
 });

@@ -7,7 +7,7 @@ const { expect } = chai;
 const {setupSigners,snowballAddr,treasuryAddr} = require("./utils/static");
 
 
-const doGenericTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,stratABI, txnAmt) => {
+const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,stratABI, txnAmt) => {
 
     const walletAddr = process.env.WALLET_ADDR;
     let assetContract,controllerContract;
@@ -15,31 +15,40 @@ const doGenericTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,stratA
     let globeContract, strategyContract;
     let strategyBalance, slot;
 
-    describe("Folding Strategy tests for: "+name, async () => {
+    describe("LP Strategy tests for: "+name, async () => {
 
         before( async () => {
+            const strategyName = `Strategy${name}LP`;
+            const snowglobeName = `SnowGlobe${name}`;
+
             await network.provider.send('hardhat_impersonateAccount', [walletAddr]);
             walletSigner = ethers.provider.getSigner(walletAddr);
             [timelockSigner,strategistSigner,controllerSigner,governanceSigner] = await setupSigners();
+            // slot = (name.includes("Benqi")) ? 0: 1;
+            slot = 0;
 
-            slot = (name.includes("Benqi")) ? 0: 1;
             await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
-        
+            console.log(`overwriteTokenAmount`);
+
             assetContract = await ethers.getContractAt("ERC20",assetAddr,walletSigner);
-            controllerContract = await ethers.getContractAt("ControllerV4", await controllerSigner.getAddress(),  governanceSigner);
+            console.log(`assetContract`);
+            controllerContract = await ethers.getContractAt("ControllerV4", await controllerSigner.getAddress(), governanceSigner);
+            console.log(`controllerContract`);
+
+            if (globeAddr == "") {
+              const globeFactory = await ethers.getContractFactory(snowglobeName);
+              globeContract = await globeFactory.deploy(assetAddr, governanceSigner._address, timelockSigner._address, controllerSigner._address);
+              await controllerContract.setGlobe(assetAddr, globeContract.address);
+            }
+            else {
+              globeContract = new ethers.Contract(snowglobeAddr, globeABI, governanceSigner);
+            }
+            console.log(`globeContract: `,globeContract);
 
             //If strategy address not supplied then we should deploy and setup a new strategy
-            if (strategyAddr == ""){          
-                globeContract = new ethers.Contract(snowglobeAddr, globeABI, walletSigner);
-                const stratFactory = await ethers.getContractFactory(stratABI);
+            if (strategyAddr == ""){
+                const stratFactory = await ethers.getContractFactory(strategyName);
                 strategyAddr = await controllerContract.strategies(assetAddr);
-
-                if (name.includes("Benqi")){
-                    // Before we can setup new strategy we must deleverage from old one
-                    strategyContract = await stratFactory.attach(strategyAddr);
-                    console.log("\t"+name + " is being deleveraged before new contract is deployed");
-                    await strategyContract.connect(governanceSigner).deleverageToMin();
-                }
 
                 // Now we can deploy the new strategy
                 strategyContract = await stratFactory.deploy(governanceSigner._address, strategistSigner._address,controllerSigner._address,timelockSigner._address);
@@ -48,11 +57,12 @@ const doGenericTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,stratA
                 await controllerContract.connect(timelockSigner).approveStrategy(assetAddr,strategyAddr);
                 await controllerContract.connect(timelockSigner).setStrategy(assetAddr,strategyAddr);
             } else {
-                strategyContract = new ethers.Contract(strategyAddr, stratABI, governanceSigner);
-                globeContract = new ethers.Contract(snowglobeAddr, globeABI, governanceSigner);
+                strategyContract = new ethers.Contract(strategyAddr, stratABI, governanceSigner); //This is not an ABI!
             }
+            console.log('strategyContract: ',strategyContract);
 
             await strategyContract.connect(governanceSigner).whitelistHarvester(walletAddr);
+            console.log(`whitelist Harvester`);
         });
     
         it("user wallet contains asset balance", async () =>{
@@ -212,4 +222,4 @@ const doGenericTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,stratA
     
 }
 
-module.exports = {doGenericTest};
+module.exports = {doLPStrategyTest};
