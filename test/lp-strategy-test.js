@@ -25,15 +25,12 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
             walletSigner = ethers.provider.getSigner(walletAddr);
             [timelockSigner,strategistSigner,controllerSigner,governanceSigner] = await setupSigners();
             // slot = (name.includes("Benqi")) ? 0: 1;
-            
-            slot = 0;
+
+            slot = 1;
             await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
-            console.log(`overwriteTokenAmount`);
 
             assetContract = await ethers.getContractAt("ERC20",assetAddr,walletSigner);
-            console.log(`assetContract`);
             controllerContract = await ethers.getContractAt("ControllerV4", await controllerSigner.getAddress(), governanceSigner);
-            console.log(`controllerContract`);
 
             if (snowglobeAddr == "") {
               const globeFactory = await ethers.getContractFactory(snowglobeName);
@@ -43,7 +40,6 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
             else {
               globeContract = new ethers.Contract(snowglobeAddr, globeABI, governanceSigner);
             }
-            console.log(`globeContract`);
 
             //If strategy address not supplied then we should deploy and setup a new strategy
             if (strategyAddr == ""){
@@ -59,10 +55,8 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
             } else {
                 strategyContract = new ethers.Contract(strategyAddr, stratABI, governanceSigner); //This is not an ABI!
             }
-            console.log('strategyContract');
 
             await strategyContract.connect(governanceSigner).whitelistHarvester(walletAddr);
-            console.log(`whitelist Harvester`);
         });
     
         it("user wallet contains asset balance", async () =>{
@@ -107,6 +101,7 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
             let initialBalance = await strategyContract.balanceOf();
     
             await strategyContract.connect(walletSigner).harvest();
+
             let newBalance = await strategyContract.balanceOf();
             expect(newBalance).to.be.gt(initialBalance);
         });
@@ -119,7 +114,7 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
         it("Users should earn some money!", async () => {
             await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
             let amt = await assetContract.connect(walletSigner).balanceOf(walletAddr);
-            console.log("amt: ",amt);
+
             await assetContract.connect(walletSigner).approve(snowglobeAddr,amt);
             await globeContract.connect(walletSigner).deposit(amt);
             await globeContract.connect(walletSigner).earn();
@@ -145,11 +140,10 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
         it("should take no commission when fees not set", async () =>{
             await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
             let amt = await assetContract.connect(walletSigner).balanceOf(walletAddr);
-            console.log("amt: ",amt);
+
             let snobContract = await ethers.getContractAt("ERC20",snowballAddr,walletSigner);
             await assetContract.connect(walletSigner).approve(snowglobeAddr,amt);
             await globeContract.connect(walletSigner).deposit(amt);
-
             await globeContract.connect(walletSigner).earn();
             await increaseTime(60 * 60 * 24 * 15);
 
@@ -181,7 +175,7 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
         it("should take some commission when fees are set", async () =>{
             await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
             let amt = await assetContract.connect(walletSigner).balanceOf(walletAddr);
-            console.log("amt: ",amt);
+
             let snobContract = await ethers.getContractAt("ERC20",snowballAddr,walletSigner);
             await strategyContract.connect(timelockSigner).setPerformanceTreasuryFee(1000);
             await assetContract.connect(walletSigner).approve(snowglobeAddr,amt);
