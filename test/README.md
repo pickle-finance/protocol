@@ -1,33 +1,47 @@
-## Testing Smart Contracts
+# Snowball Contract Testing :computer:
 
-So far we only have testing for the Strategies for the single asset folding strategies. They can be run with the following
+## Existing Tests
+
+- Single-Asset folding strategies
+
+## Running Tests
+
+Tests can be ran with the following:
 
 ```bash
 npx hardhat test
 ```
 
-To persist the state you can inspect on metamask or via the console you can run:
+To run the tests with a persistent state, you can change networks through inspecting MetaMask or run the following:
 
-```
+```bash
 npx hardhat node
+```
 
-// on new terminal
+...and in another terminal window:
+
+```bash
 npx hardhat test --network localhost
 npx hardhat console --network localhost
 ```
 
-## Testing existing strategies without using the ABI
-Many tests written are using already deployed contract addresses and ABI files. 
+## Tests on Deployed Contracts
 
-If there are valid `.sol` files in the repo, but are deployed already you can instead run:
+Many of the existing tests are running on already deployed contracted addresses and ABI files.
+
+If there are valid `.sol` files in the repository, but the contracts are already deployed, use the following:
+
 ```
 const globeContract = await ethers.getContractAt("SnowGlobeBenqiWbtc", snowglobeAddr,  governanceSigner);
 ```
 
-## Testing new strategies
+## Tests on New Strategies
 
-If you want to simulate deploying a new strategy, you can instead run these which will first create a factory, and then use the deploy task to deploy and istance of that contract:
+To simulate the deployment of a new strategy, use the following:
+
 ```
 const stratFactory = await ethers.getContractFactory("StrategyBenqiWbtc");
 const deployedStrat = await stratFactory.deploy(governanceAddr, strategistAddr, controllerAddr, timelockAddr);
 ```
+
+This code will create a factory, and through `deploy()` create an instance of that contract.
