@@ -13,17 +13,17 @@ import "../../interfaces/aave.sol";
 import "../strategy-base.sol";
 import "../strategy-joe-farm-base.sol";
 
-contract StrategyAaveDaiV3 is StrategyBase, Exponential {
-    address public constant avdai = 0x47AFa96Cdc9fAb46904A55a6ad4bf6660B53c38a;
-    address public constant dai = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
-    address public constant variableDebtDai =
-        0x1852DC24d1a8956a0B356AA18eDe954c7a0Ca5ae;
+contract StrategyAaveWavaxV3 is StrategyBase, Exponential {
+    address public constant avwavax =
+        0xDFE521292EcE2A4f44242efBcD66Bc594CA9714B;
+    address public constant variableDebtWavax =
+        0x66A0FE52Fb629a6cB4D10B8580AFDffE888F5Fd4;
     address public constant lendingPool =
         0x4F01AeD16D97E3aB5ab2B501154DC9bb0F1A5A2C;
     address public constant incentivesController =
         0x01D83Fe6A10D2f2B7AF17034343746188272cAc9;
 
-    uint256 public constant DAI_COLFACTOR = 750000000000000000;
+    uint256 public constant wavax_COLFACTOR = 500000000000000000;
     uint16 public constant REFERRAL_CODE = 0xaa;
 
     // Require a 0.04 buffer between
@@ -43,7 +43,7 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
         address _timelock
     )
         public
-        StrategyBase(dai, _governance, _strategist, _controller, _timelock)
+        StrategyBase(wavax, _governance, _strategist, _controller, _timelock)
     {}
 
     // **** Modifiers **** //
@@ -62,15 +62,15 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
     // **** Views **** //
 
     function getName() external pure override returns (string memory) {
-        return "StrategyAaveDaiV3";
+        return "StrategyAaveWavaxV3";
     }
 
     function getSuppliedView() public view returns (uint256) {
-        return IERC20(avdai).balanceOf(address(this));
+        return IERC20(avwavax).balanceOf(address(this));
     }
 
     function getBorrowedView() public view returns (uint256) {
-        return IERC20(variableDebtDai).balanceOf(address(this));
+        return IERC20(variableDebtWavax).balanceOf(address(this));
     }
 
     function balanceOfPool() public view override returns (uint256) {
@@ -102,7 +102,7 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
     }
 
     function getMarketColFactor() public pure returns (uint256) {
-        return DAI_COLFACTOR;
+        return wavax_COLFACTOR;
     }
 
     // Max leverage we can go up to, w.r.t safe buffer
@@ -124,7 +124,7 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
 
     function getWavaxAccrued() public view returns (uint256) {
         address[] memory avTokens = new address[](1);
-        avTokens[0] = avdai;
+        avTokens[0] = avwavax;
 
         return
             IAaveIncentivesController(incentivesController).getRewardsBalance(
@@ -148,11 +148,11 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
     }
 
     function getSupplied() public view returns (uint256) {
-        return IERC20(avdai).balanceOf(address(this));
+        return IERC20(avwavax).balanceOf(address(this));
     }
 
     function getBorrowed() public view returns (uint256) {
-        return IERC20(variableDebtDai).balanceOf(address(this));
+        return IERC20(variableDebtWavax).balanceOf(address(this));
     }
 
     function getBorrowable() public view returns (uint256) {
@@ -242,11 +242,11 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
     }
 
     // Leverages until we're supplying <x> amount
-    // 1. Redeem <x> DAI
-    // 2. Repay <x> DAI
+    // 1. Redeem <x> wavax
+    // 2. Repay <x> wavax
     function leverageUntil(uint256 _supplyAmount) public onlyKeepers {
-        // 1. Borrow out <X> DAI
-        // 2. Supply <X> DAI
+        // 1. Borrow out <X> wavax
+        // 2. Supply <X> wavax
 
         uint256 leverage = getMaxLeverage();
         uint256 unleveragedSupply = getSuppliedUnleveraged();
@@ -268,7 +268,7 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
             }
 
             ILendingPool(lendingPool).borrow(
-                dai,
+                wavax,
                 _borrowAndSupply,
                 uint256(DataTypes.InterestRateMode.VARIABLE),
                 REFERRAL_CODE,
@@ -286,8 +286,8 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
     }
 
     // Deleverages until we're supplying <x> amount
-    // 1. Redeem <x> DAI
-    // 2. Repay <x> DAI
+    // 1. Redeem <x> wavax
+    // 2. Repay <x> wavax
     function deleverageUntil(uint256 _supplyAmount) public onlyKeepers {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         uint256 supplied = getSupplied();
@@ -311,20 +311,20 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
             // withdraw
             require(
                 ILendingPool(lendingPool).withdraw(
-                    dai,
+                    wavax,
                     _redeemAndRepay,
                     address(this)
                 ) != 0,
                 "!withdraw"
             );
 
-            IERC20(dai).safeApprove(lendingPool, 0);
-            IERC20(dai).safeApprove(lendingPool, _redeemAndRepay);
+            IERC20(wavax).safeApprove(lendingPool, 0);
+            IERC20(wavax).safeApprove(lendingPool, _redeemAndRepay);
 
             // repay
             require(
                 ILendingPool(lendingPool).repay(
-                    dai,
+                    wavax,
                     _redeemAndRepay,
                     uint256(DataTypes.InterestRateMode.VARIABLE),
                     address(this)
@@ -341,18 +341,24 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
 
     function harvest() public override onlyBenevolent {
         address[] memory avTokens = new address[](1);
-        avTokens[0] = avdai;
+        avTokens[0] = avwavax;
 
         IAaveIncentivesController(incentivesController).claimRewards(
             avTokens,
             uint256(-1),
             address(this)
         );
+
+        {
+            /* Doesn't need to be swapped since it is already wavax 
+
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
             _swapPangolin(wavax, want, _wavax);
+        }
+        */
         }
 
         _distributePerformanceFeesAndDeposit();
@@ -364,7 +370,7 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
             IERC20(want).safeApprove(lendingPool, 0);
             IERC20(want).safeApprove(lendingPool, _want);
             ILendingPool(lendingPool).deposit(
-                dai,
+                wavax,
                 _want,
                 address(this),
                 REFERRAL_CODE
@@ -400,7 +406,7 @@ contract StrategyAaveDaiV3 is StrategyBase, Exponential {
             // withdraw
             require(
                 ILendingPool(lendingPool).withdraw(
-                    dai,
+                    wavax,
                     _redeem,
                     address(this)
                 ) != 0,
