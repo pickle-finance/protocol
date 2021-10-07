@@ -17,8 +17,8 @@ const setupSigners = async () => {
   let controllerSigner = ethers.provider.getSigner(controllerAddr);
   let governanceSigner = ethers.provider.getSigner(governanceAddr);
 
-  return [timelockSigner,strategistSigner,controllerSigner,governanceSigner]
-}
+  return [timelockSigner,strategistSigner,controllerSigner,governanceSigner];
+};
 
 const snowballAddr = "0xC38f41A296A4493Ff429F1238e030924A1542e50";
 let treasuryAddr="0x028933a66dd0ccc239a3d5c2243b2d96672f11f5";
@@ -29,4 +29,4 @@ module.exports = {
   snowballAddr,
   treasuryAddr,
   devAddr
-}
+};

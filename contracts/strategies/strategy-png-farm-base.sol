@@ -3,6 +3,9 @@ pragma solidity ^0.6.7;
 
 import "./strategy-staking-rewards-base.sol";
 
+import "hardhat/console.sol";
+
+
 abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
 
     // WAVAX/<token1> pair
@@ -73,6 +76,8 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
 
         // Swap half WAVAX for token
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        console.log("_png pre swap: ",_png);
+        console.log("_wavax pre swap: ",_wavax);
         if (_wavax > 0) {
             _swapPangolin(wavax, token1, _wavax.div(2));
         }
@@ -80,6 +85,10 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
         // Adds in liquidity for WAVAX/token
         _wavax = IERC20(wavax).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
+        _png = IERC20(png).balanceOf(address(this));
+        console.log("_token1 post swap: ",_token1);
+        console.log("_wavax post swap: ",_wavax);
+        console.log("_png post swap: ",_png);
         if (_wavax > 0 && _token1 > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);

@@ -2,6 +2,7 @@
 pragma solidity ^0.6.7;
 
 import "./strategy-staking-rewards-base.sol";
+import "hardhat/console.sol";
 
 abstract contract StrategyPngFarmBasePng is StrategyStakingRewardsBase {
 
@@ -58,6 +59,7 @@ abstract contract StrategyPngFarmBasePng is StrategyStakingRewardsBase {
         // Collects PNG tokens
         IStakingRewards(rewards).getReward();
         uint256 _png = IERC20(png).balanceOf(address(this));
+        console.log("token1: ", token1);
         if (_png > 0) {
             // 10% is locked up for future gov
             uint256 _keep = _png.mul(keep).div(keepMax);
@@ -66,10 +68,12 @@ abstract contract StrategyPngFarmBasePng is StrategyStakingRewardsBase {
             //swap Pangolin for token1
             _swapPangolin(png, token1, _png.sub(_keep).div(2));      
         }
-        
+        console.log("_png pre swap: ",_png);
         // Adds in liquidity for png/token
         _png = IERC20(png).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
+        console.log("_token1 post swap: ",_token1);
+        console.log("_png post swap: ",_png);
         if (_png > 0 && _token1 > 0) {
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
