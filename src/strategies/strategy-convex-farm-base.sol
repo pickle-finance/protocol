@@ -40,7 +40,7 @@ abstract contract StrategyConvexFarmBase is StrategyBase {
         return IBaseRewardPool(getCrvRewardContract()).earned(address(this));
     }
 
-    function get_cvx_earned() public view returns (uint256) {
+    function get_cvx_earned() public view virtual returns (uint256) {
         uint256 crv_earned = get_crv_earned();
 
         uint256 supply = IConvexToken(cvx).totalSupply();
