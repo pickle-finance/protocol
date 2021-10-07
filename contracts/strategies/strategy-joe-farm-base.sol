@@ -9,9 +9,11 @@ import "../interfaces/joe.sol";
 abstract contract StrategyJoeFarmBase is StrategyBase {
     // Token addresses
     address public constant joe = 0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd;
-    address public constant joeRouter = 0x60aE616a2155Ee3d9A68541Ba4544862310933d4;
+    address public constant joeRouter =
+        0x60aE616a2155Ee3d9A68541Ba4544862310933d4;
 
-    address public constant masterChefJoeV2 = 0xd6a4F121CA35509aF06A0Be99093d08462f53052;
+    address public constant masterChefJoeV2 =
+        0xd6a4F121CA35509aF06A0Be99093d08462f53052;
 
     uint256 public poolId;
 
@@ -34,14 +36,18 @@ abstract contract StrategyJoeFarmBase is StrategyBase {
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        (uint256 amount, ) =
-            IMasterChefJoeV2(masterChefJoeV2).userInfo(poolId, address(this));
+        (uint256 amount, ) = IMasterChefJoeV2(masterChefJoeV2).userInfo(
+            poolId,
+            address(this)
+        );
         return amount;
     }
 
     // Updated based on cryptofish's recommendation
     function getHarvestable() external view returns (uint256, uint256) {
-        (uint256 pendingJoe, , , uint256 pendingBonusToken) = IMasterChefJoeV2(masterChefJoeV2).pendingTokens(poolId, address(this));
+        (uint256 pendingJoe, , , uint256 pendingBonusToken) = IMasterChefJoeV2(
+            masterChefJoeV2
+        ).pendingTokens(poolId, address(this));
         return (pendingJoe, pendingBonusToken);
     }
 
@@ -93,10 +99,9 @@ abstract contract StrategyJoeFarmBase is StrategyBase {
         );
     }
 
-    function _swapTraderJoeWithPath(
-        address[] memory path,
-        uint256 _amount
-    ) internal {
+    function _swapTraderJoeWithPath(address[] memory path, uint256 _amount)
+        internal
+    {
         require(path[1] != address(0));
 
         IJoeRouter(joeRouter).swapExactTokensForTokens(
