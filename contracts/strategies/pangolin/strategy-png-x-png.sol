@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-stake-png-farm-base.sol";
 
-contract StrategyPngStakePng is StrategyStakePngFarmBase {
+contract StrategyPngXPng is StrategyStakePngFarmBase {
     // Token addresses
     address public stake_png_rewards = 0xD49B406A7A29D64e081164F6C3353C599A2EeAE9;
     
@@ -27,6 +27,6 @@ contract StrategyPngStakePng is StrategyStakePngFarmBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyPngStakePng";
+        return "StrategyPngXPng";
     }
 }	

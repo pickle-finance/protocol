@@ -43,7 +43,9 @@ contract StrategyJoeAvaxSporeLp is StrategyJoeFarmBase {
         if (_joe > 0) {
             // 10% is sent to treasury
             uint256 _keep = _joe.mul(keep).div(keepMax);
-            _takeFeeJoeToSnob(_keep);
+            if (_keep > 0) {
+                _takeFeeJoeToSnob(_keep);
+            }
             IERC20(joe).safeApprove(joeRouter, 0);
             IERC20(joe).safeApprove(joeRouter, _joe.sub(_keep));
 

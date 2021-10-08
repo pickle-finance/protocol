@@ -41,10 +41,12 @@ contract StrategyJoeAvaxDaiLp is StrategyJoeFarmBase {
 
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
-            // 10% of joe is converted to snob and sent to treasury
+            // 10% is sent to treasury
             uint256 _keep = _joe.mul(keep).div(keepMax);
             uint256 _amount = _joe.sub(_keep).div(2);
-            _takeFeeJoeToSnob(_keep);
+            if (_keep > 0) {
+                _takeFeeJoeToSnob(_keep);
+            }
             IERC20(joe).safeApprove(joeRouter, 0);
             IERC20(joe).safeApprove(joeRouter, _joe.sub(_keep));
 

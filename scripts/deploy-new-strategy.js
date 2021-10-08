@@ -5,11 +5,12 @@ const {
   deployed,
   benqi,
   pangolin,
-  traderjoe
+  traderjoe,
+  stakingStrategies
 } = require("./pools");
 
 async function main() {
-  const pools = pangolin;
+  const pools = stakingStrategies;
 
   const [deployer] = await ethers.getSigners();
   console.log("Deploying new strategy contracts with the account:", deployer.address);
@@ -32,7 +33,7 @@ async function main() {
 
   const deploy = async (pool) => {
     console.log(`deploying new strategy for ${pool.name}`);
-    const strategy_name = `Strategy${pool.name}Lp`;
+    const strategy_name = `Strategy${pool.name}`;
     const snowglobe_name = `SnowGlobe${pool.name}`;
   
     /* Deploy Strategy */
@@ -74,9 +75,9 @@ async function main() {
 
     /* Harvest old strategy */
     const strategies = await Controller.strategies(lp);
-    const oldStrategy = await ethers.Contract(strategies[0], strategy_ABI, deployer);
-    const harvest = oldStrategy.harvest();
-    const tx_harvest = harvest.wait(1);
+    const oldStrategy = new ethers.Contract(strategies, strategy_ABI, deployer);
+    const harvest = await oldStrategy.harvest();
+    const tx_harvest = await harvest.wait(1);
     if (!tx_harvest.status) {
       console.error("Error harvesting the old strategy for: ",pool.name);
       return;

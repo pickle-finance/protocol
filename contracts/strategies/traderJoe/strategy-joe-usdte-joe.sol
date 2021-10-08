@@ -43,9 +43,11 @@ contract StrategyJoeUsdteJoeLp is StrategyJoeFarmBase {
             // 10% is sent to treasury
             uint256 _keep = _joe.mul(keep).div(keepMax);
             uint256 _amount = _joe.sub(_keep).div(2);
-            _takeFeeJoeToSnob(_keep);
+            if (_keep > 0) {
+                _takeFeeJoeToSnob(_keep);
+            }
             IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _amount);
+            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keep));
 
             _swapTraderJoe(joe, usdte, _amount);
         }

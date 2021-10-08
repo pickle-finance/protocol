@@ -45,7 +45,9 @@ contract StrategyJoexJoe is StrategyJoeFarmBase {
             // 10% is sent to treasury
             uint256 _keep = _joe.mul(keep).div(keepMax);
             uint256 _amount = _joe.sub(_keep);
-            _takeFeeJoeToSnob(_keep);
+            if (_keep > 0) {
+                _takeFeeJoeToSnob(_keep);
+            }
             IERC20(joe).safeApprove(joeBar, 0);
             IERC20(joe).safeApprove(joeBar, _joe.sub(_keep));
 

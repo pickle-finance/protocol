@@ -41,14 +41,13 @@ contract StrategyJoeAvaxKloLp is StrategyJoeFarmBase {
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
-            uint256 _keepJOE = _joe.mul(keep).div(keepMax);
-            IERC20(joe).safeTransfer(
-                IController(controller).treasury(),
-                _keepJOE
-            );
-            uint256 _amount = _joe.sub(_keepJOE).div(2);
+            uint256 _keep = _joe.mul(keep).div(keepMax);
+            uint256 _amount = _joe.sub(_keep).div(2);
+            if (_keep > 0) {
+                _takeFeeJoeToSnob(_keep);
+            }
             IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keepJOE));
+            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keep));
 
             _swapTraderJoe(joe, wavax, _amount);
             _swapTraderJoe(joe, klo, _amount);
