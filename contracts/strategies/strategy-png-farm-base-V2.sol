@@ -8,10 +8,6 @@ abstract contract StrategyPngFarmBaseV2 is StrategyStakingRewardsBase {
     // WAVAX/<token1> pair
     address public token1;
 
-    // How much PNG tokens to keep?
-    uint256 public keepPNG = 0;
-    uint256 public constant keepPNGMax = 10000;
-
     constructor(
         address _token1,
         address _rewards,
@@ -34,11 +30,22 @@ abstract contract StrategyPngFarmBaseV2 is StrategyStakingRewardsBase {
         token1 = _token1;
     }
 
-    // **** Setters ****
+    // **** State Mutations ****
 
-    function setKeepPNG(uint256 _keepPNG) external {
-        require(msg.sender == timelock, "!timelock");
-        keepPNG = _keepPNG;
+    function _takeFeePngToSnob(uint256 _keep) internal {
+        IERC20(png).safeApprove(pangolinRouter, 0);
+        IERC20(png).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(png, snob, _keep);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
     }
 
         

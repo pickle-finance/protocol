@@ -13,7 +13,7 @@ import "../../interfaces/aave.sol";
 import "../strategy-base.sol";
 import "../strategy-joe-farm-base.sol";
 
-contract StrategyAaveUsdcV3 is StrategyBase, Exponential {
+contract StrategyAaveUsdc is StrategyBase, Exponential {
     address public constant avusdc = 0x46A51127C3ce23fb7AB1DE06226147F446e4a857;
     address public constant usdc = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
     address public constant variableDebtUsdc =
@@ -339,6 +339,22 @@ contract StrategyAaveUsdcV3 is StrategyBase, Exponential {
         }
     }
 
+    function _takeFeeWavaxToSnob(uint256 _keep) internal {
+        IERC20(wavax).safeApprove(pangolinRouter, 0);
+        IERC20(wavax).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(wavax, snob, _keep);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
     function harvest() public override onlyBenevolent {
         address[] memory avTokens = new address[](1);
         avTokens[0] = avusdc;
@@ -350,11 +366,14 @@ contract StrategyAaveUsdcV3 is StrategyBase, Exponential {
         );
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
+            uint256 _keep = _wavax.mul(keep).div(keepMax);
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
-            _swapPangolin(wavax, want, _wavax);
+            if (_keep > 0) {
+                _takeFeeWavaxToSnob(_keep);
+            }
+            _swapPangolin(wavax, want, _wavax.sub(_keep));
         }
-
         _distributePerformanceFeesAndDeposit();
     }
 

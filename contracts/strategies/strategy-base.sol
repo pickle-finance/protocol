@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT	
 pragma solidity ^0.6.7;
 
 import "../lib/erc20.sol";
@@ -20,17 +21,27 @@ abstract contract StrategyBase {
     address public want;
     address public constant wavax = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
     address public constant png = 0x60781C2586D68229fde47564546784ab3fACA982;
+    address public constant snob = 0xC38f41A296A4493Ff429F1238e030924A1542e50;
 
     // Dex
     address public pangolinRouter = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
-    // Move ^^
+    
+    address public feeDistributor = 0xAd86ef5fD2eBc25bb9Db41A1FE8d0f2a322c7839;
 
     // Perfomance fees - start with 10%
-    uint256 public performanceTreasuryFee = 1000;
+    uint256 public performanceTreasuryFee = 0;
     uint256 public constant performanceTreasuryMax = 10000;
 
     uint256 public performanceDevFee = 0;
     uint256 public constant performanceDevMax = 10000;
+
+    // How many rewards tokens to keep?
+    uint256 public keep = 1000;
+    uint256 public constant keepMax = 10000;
+
+    uint256 public revenueShare = 3000;
+    uint256 public constant revenueShareMax = 10000;
+
 
     // Withdrawal fee 0%
     // - 0% to treasury
@@ -74,8 +85,8 @@ abstract contract StrategyBase {
     modifier onlyBenevolent {
         require(
             harvesters[msg.sender] ||
-                msg.sender == governance ||
-                msg.sender == strategist
+            msg.sender == governance ||
+            msg.sender == strategist
         );
         _;
     }
@@ -96,6 +107,16 @@ abstract contract StrategyBase {
 
     // **** Setters **** //
 
+    function setKeep(uint256 _keep) external {
+        require(msg.sender == timelock, "!timelock");
+        keep = _keep;
+    }
+
+    function setRevenueShare(uint256 _share) external {
+        require(msg.sender == timelock, "!timelock");
+        revenueShare = _share;
+    }
+
     function whitelistHarvester(address _harvester) external {
         require(msg.sender == governance ||
              msg.sender == strategist, "not authorized");
@@ -106,6 +127,11 @@ abstract contract StrategyBase {
         require(msg.sender == governance ||
              msg.sender == strategist, "not authorized");
         harvesters[_harvester] = false;
+    }
+
+    function setFeeDistributor(address _feeDistributor) external {
+        require(msg.sender == governance, "not authorized");
+        feeDistributor = _feeDistributor;
     }
 
     function setWithdrawalDevFundFee(uint256 _withdrawalDevFundFee) external {
@@ -269,13 +295,10 @@ abstract contract StrategyBase {
         uint256 _amount
     ) internal {
         require(_to != address(0));
-
         // Swap with Pangolin
         IERC20(_from).safeApprove(pangolinRouter, 0);
         IERC20(_from).safeApprove(pangolinRouter, _amount);
-
         address[] memory path;
-
         if (_from == png || _to == png) {
             path = new address[](2);
             path[0] = _from;
@@ -292,7 +315,6 @@ abstract contract StrategyBase {
             path[1] = png;
             path[2] = _to;
         }
-        
         IPangolinRouter(pangolinRouter).swapExactTokensForTokens(
             _amount,
             0,

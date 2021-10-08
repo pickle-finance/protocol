@@ -25,17 +25,27 @@ const toWei = (amount, decimal = 18) => {
   return BN.from(amount).mul(BN.from(10).pow(decimal));
 };
 
-const overwriteTokenAmount = async (assetAddr, walletAddr,amount) => {
-    const index = ethers.utils.solidityKeccak256(["uint256", "uint256"],[walletAddr, 0]);
+const fromWei = (amount) => {
+  return amount.div(1000000000000000000).toString();
+};
+
+const toGwei = (amount) => {
+  return amount.div(1000000000).toString();
+};
+
+const overwriteTokenAmount = async (assetAddr, walletAddr,amount, slot =0) => {
+    const index = ethers.utils.solidityKeccak256(["uint256", "uint256"],[walletAddr, slot]);
     const BN = ethers.BigNumber.from(amount)._hex.toString();
     const number = ethers.utils.hexZeroPad(BN,32);
 
     await ethers.provider.send("hardhat_setStorageAt", [assetAddr, index, number]);
     await hre.network.provider.send("evm_mine");
-}
+};
 
 module.exports = {
     toWei,
+    fromWei,
+    toGwei,
     increaseBlock,
     increaseTime,
     overwriteTokenAmount,

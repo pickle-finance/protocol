@@ -13,7 +13,7 @@ import "../../interfaces/aave.sol";
 import "../strategy-base.sol";
 import "../strategy-joe-farm-base.sol";
 
-contract StrategyAaveUsdtV3 is StrategyBase, Exponential {
+contract StrategyAaveUsdt is StrategyBase, Exponential {
     address public constant avusdt = 0x532E6537FEA298397212F09A61e03311686f548e;
     address public constant usdt = 0xc7198437980c041c805A1EDcbA50c1Ce5db95118;
     address public constant variableDebtUsdt =
@@ -339,6 +339,22 @@ contract StrategyAaveUsdtV3 is StrategyBase, Exponential {
         }
     }
 
+    function _takeFeeWavaxToSnob(uint256 _keep) internal {
+        IERC20(wavax).safeApprove(pangolinRouter, 0);
+        IERC20(wavax).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(wavax, snob, _keep);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
     function harvest() public override onlyBenevolent {
         address[] memory avTokens = new address[](1);
         avTokens[0] = avusdt;
@@ -350,9 +366,13 @@ contract StrategyAaveUsdtV3 is StrategyBase, Exponential {
         );
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
+            uint256 _keep = _wavax.mul(keep).div(keepMax);
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
-            _swapPangolin(wavax, want, _wavax);
+            if (_keep > 0) {
+                _takeFeeWavaxToSnob(_keep);
+            }
+            _swapPangolin(wavax, want, _wavax.sub(_keep));
         }
 
         _distributePerformanceFeesAndDeposit();
@@ -389,12 +409,14 @@ contract StrategyAaveUsdtV3 is StrategyBase, Exponential {
 
             // If the amount we need to free is > borrowed
             // Just free up all the borrowed amount
-            if (borrowedToBeFree > borrowed) {
-                this.deleverageToMin();
-            } else {
-                // Otherwise just keep freeing up borrowed amounts until
-                // we hit a safe number to redeem our underlying
-                this.deleverageUntil(supplied.sub(borrowedToBeFree));
+            if (borrowed > 0) {
+                if (borrowedToBeFree > borrowed) {
+                    this.deleverageToMin();
+                } else {
+                    // Just keep freeing up borrowed amounts until
+                    // we hit a safe number to redeem our underlying
+                    this.deleverageUntil(supplied.sub(borrowedToBeFree));
+                }
             }
 
             // withdraw

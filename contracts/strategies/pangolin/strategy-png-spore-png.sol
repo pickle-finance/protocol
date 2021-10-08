@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-png-farm-base-V2.sol";
+import "../strategy-png-farm-base-v2.sol";
 
 contract StrategyPngSporePngLp is StrategyPngFarmBaseV2 {
     // Token addresses
@@ -41,14 +41,15 @@ contract StrategyPngSporePngLp is StrategyPngFarmBaseV2 {
         uint256 _png = IERC20(png).balanceOf(address(this));
         if (_png > 0) {
             // 10% is locked up for future gov
-            uint256 _keepPNG = _png.mul(keepPNG).div(keepPNGMax);
-            IERC20(png).safeTransfer(
-                IController(controller).treasury(),
-                _keepPNG
-            );
+            uint256 _keep = _png.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeePngToSnob(_keep);
+            }
+            IERC20(png).safeApprove(pangolinRouter, 0);
+            IERC20(png).safeApprove(pangolinRouter, _png.sub(_keep).mul(100).div(194));
             
 			//swap Pangolin for spore
-            _swapPangolin(png, spore, _png.sub(_keepPNG).mul(25).div(47));
+            _swapPangolin(png, spore, _png.sub(_keep).mul(100).div(194));
                        
         }
            

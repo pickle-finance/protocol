@@ -13,7 +13,7 @@ import "../../interfaces/aave.sol";
 import "../strategy-base.sol";
 import "../strategy-joe-farm-base.sol";
 
-contract StrategyAaveWavaxV3 is StrategyBase, Exponential {
+contract StrategyAaveWavax is StrategyBase, Exponential {
     address public constant avwavax =
         0xDFE521292EcE2A4f44242efBcD66Bc594CA9714B;
     address public constant variableDebtWavax =
@@ -339,6 +339,22 @@ contract StrategyAaveWavaxV3 is StrategyBase, Exponential {
         }
     }
 
+    function _takeFeeWavaxToSnob(uint256 _keep) internal {
+        IERC20(wavax).safeApprove(pangolinRouter, 0);
+        IERC20(wavax).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(wavax, snob, _keep);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
     function harvest() public override onlyBenevolent {
         address[] memory avTokens = new address[](1);
         avTokens[0] = avwavax;
@@ -348,17 +364,12 @@ contract StrategyAaveWavaxV3 is StrategyBase, Exponential {
             uint256(-1),
             address(this)
         );
-
-        {
-            /* Doesn't need to be swapped since it is already wavax 
-
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
-            IERC20(wavax).safeApprove(pangolinRouter, 0);
-            IERC20(wavax).safeApprove(pangolinRouter, _wavax);
-            _swapPangolin(wavax, want, _wavax);
-        }
-        */
+            uint256 _keep = _wavax.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeeWavaxToSnob(_keep);
+            }
         }
 
         _distributePerformanceFeesAndDeposit();
