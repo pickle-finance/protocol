@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-png-farm-base-png.sol";
+import "../strategy-png-farm-base.sol";
 
-contract StrategyPngVsoPngLp is StrategyPngFarmBasePng {
+contract StrategyPngVsoPngLp is StrategyPngFarmBase {
     // Token addresses
     address public png_vso_png_rewards =
         0x759ee0072901f409e4959E00b00a16FD729397eC;
@@ -17,7 +17,7 @@ contract StrategyPngVsoPngLp is StrategyPngFarmBasePng {
         address _timelock
     )
         public
-        StrategyPngFarmBasePng(
+        StrategyPngFarmBase(
             vso,
             png_vso_png_rewards,
             png_vso_png_lp,
