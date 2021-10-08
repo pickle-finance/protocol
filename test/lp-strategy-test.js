@@ -18,13 +18,13 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
     describe("LP Strategy tests for: "+name, async () => {
 
         before( async () => {
-            const strategyName = `Strategy${name}Lp`;
+            const strategyName = `Strategy${name}`;
             const snowglobeName = `SnowGlobe${name}`;
 
             await network.provider.send('hardhat_impersonateAccount', [walletAddr]);
             walletSigner = ethers.provider.getSigner(walletAddr);
             [timelockSigner,strategistSigner,controllerSigner,governanceSigner] = await setupSigners();
-            slot = 1;
+            slot = 0;
             await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
             assetContract = await ethers.getContractAt("ERC20",assetAddr,walletSigner);
             controllerContract = await ethers.getContractAt("ControllerV4", await controllerSigner.getAddress(), governanceSigner);

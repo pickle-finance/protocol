@@ -1,7 +1,11 @@
 const stakingStrategies = [
+  // {
+  //   name: "PngXPng",
+  //   snowglobe_addr: "0xA22D8FD15FB36aA9e1Db795A78db8b688F6284F6",
+  // },
   {
-    name: "PngXPng",
-    snowglobe_addr: "0xA22D8FD15FB36aA9e1Db795A78db8b688F6284F6",
+    name: "JoexJoe",
+    snowglobe_addr: "0x8c06828A1707b0322baaa46e3B0f4D1D55f6c3E6",
   },
 ];
 
@@ -368,10 +372,6 @@ const traderjoe = [
   {
     name: "JoeAvaxQi",
     snowglobe_addr: "0x9937dD4aaaCfD77BD34a88f9282fAe36fAE364f9",
-  },
-  {
-    name: "JoexJoe",
-    snowglobe_addr: "0x8c06828A1707b0322baaa46e3B0f4D1D55f6c3E6",
   },
   {
     name: "JoeAvaxMim",
