@@ -7,7 +7,7 @@ import "../../interfaces/controller.sol";
 import "../../lib/erc20.sol";
 import "../../lib/safe-math.sol";
 
-contract SnowGlobePngAvaxRai is ERC20 {
+contract SnowGlobeAaveUsdc is ERC20 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -21,12 +21,7 @@ contract SnowGlobePngAvaxRai is ERC20 {
     address public timelock;
     address public controller;
 
-    constructor(
-        address _token,
-        address _governance,
-        address _timelock,
-        address _controller
-    )
+    constructor(address _token, address _governance, address _timelock, address _controller)
         public
         ERC20(
             string(abi.encodePacked("freezing ", ERC20(_token).name())),

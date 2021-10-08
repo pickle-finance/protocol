@@ -345,26 +345,67 @@ abstract contract StrategyQiFarmBase is StrategyBase, Exponential {
     // allow Native Avax
     receive() external payable {}
 
-    function harvest() public onlyBenevolent {
+    function _takeFeeWavaxToSnob(uint256 _keep) internal {
+        IERC20(wavax).safeApprove(pangolinRouter, 0);
+        IERC20(wavax).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(wavax, snob, _keep);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
+    function _takeFeeQiToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = benqi;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(benqi).safeApprove(pangolinRouter, 0);
+        IERC20(benqi).safeApprove(pangolinRouter, _keep);
+        _swapPangolinWithPath(path, _keep);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
+    function harvest() public override onlyBenevolent {
         address[] memory qitokens = new address[](1);
         qitokens[0] = qiToken;
+        uint256 _keep;
 
         IComptroller(comptroller).claimReward(0, address(this)); //ClaimQi
         if (want != benqi) {
             uint256 _benqi = IERC20(benqi).balanceOf(address(this));
             if (_benqi > 0) {
-                _swapPangolin(benqi, want, _benqi);
+                _keep = _benqi.mul(keep).div(keepMax);
+                _takeFeeQiToSnob(_keep);
+                _swapPangolin(benqi, want, _benqi.sub(_keep));
             }
         }
-            IComptroller(comptroller).claimReward(1, address(this)); //ClaimAvax
-            uint256 _avax = address(this).balance;            //get balance of native Avax
+        IComptroller(comptroller).claimReward(1, address(this)); //ClaimAvax
+        uint256 _avax = address(this).balance;            //get balance of native Avax
         if (_avax > 0) {                                 //wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
         }
         
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
-            _swapPangolin(wavax, want, _wavax);
+            _keep = _wavax.mul(keep).div(keepMax);
+            _takeFeeWavaxToSnob(_keep);
+            _swapPangolin(wavax, want, _wavax.sub(_keep));
         }
 
         _distributePerformanceFeesAndDeposit();

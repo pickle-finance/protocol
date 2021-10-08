@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-farm-base-v2.sol";
 
-contract StrategyPngAvaxGBLp is StrategyPngFarmBaseV2 {
+contract StrategyPngAvaxGbLp is StrategyPngFarmBaseV2 {
     // Token addresses
     address public png_avax_gb_lp_rewards =
         0x6cFdB5Ce2a26a5b07041618fDAD81273815c8bb4;
@@ -42,17 +42,19 @@ contract StrategyPngAvaxGBLp is StrategyPngFarmBaseV2 {
         uint256 _png = IERC20(png).balanceOf(address(this));
         if (_png > 0) {
             // 10% is locked up for future gov
-            uint256 _keepPNG = _png.mul(keepPNG).div(keepPNGMax);
-            IERC20(png).safeTransfer(
-                IController(controller).treasury(),
-                _keepPNG
-            );
-            _swapPangolin(png, wavax, _png.sub(_keepPNG));
+            uint256 _keep = _png.mul(keep).div(keepMax);
+            _takeFeePngToSnob(_keep);
+            IERC20(png).safeApprove(pangolinRouter, 0);
+            IERC20(png).safeApprove(pangolinRouter, _png.sub(_keep));
+
+            _swapPangolin(png, wavax, _png.sub(_keep));
         }
 
         // Swap half WAVAX for GB
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
+            IERC20(wavax).safeApprove(pangolinRouter, 0);
+            IERC20(wavax).safeApprove(pangolinRouter, _wavax.mul(100).div(199));
             _swapPangolin(wavax, gb, _wavax.mul(100).div(199));
         }
 

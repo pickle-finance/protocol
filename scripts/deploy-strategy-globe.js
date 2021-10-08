@@ -4,10 +4,10 @@ require('dotenv').config();
 
 async function main() {
   const names = [
-    // "JoeUsdceEthe",
-    // "JoeUsdceJoe",
-    "JoeUsdceLinke",
-    "JoeUsdceWBtce",
+    "PngAaveEPng",
+    "PngAvaxAaveE",
+    "JoeAvaxAaveE",
+    "JoeDaiEJoe",
   ];
   
   const [deployer] = await ethers.getSigners();
@@ -20,8 +20,11 @@ async function main() {
   const governance_addr = "0x294aB3200ef36200db84C4128b7f1b4eec71E38a";
   const timelock_addr = governance_addr;
   const strategist_addr = "0xc9a51fB9057380494262fd291aED74317332C0a2";
-  const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85";
   const gaugeproxy_addr = "0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27";
+
+  const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
+  
+  // const controller_addr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; //Aave
 
   const Controller = new ethers.Contract(controller_addr, controller_ABI, deployer);
 

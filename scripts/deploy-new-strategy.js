@@ -1,32 +1,18 @@
 const { ethers } = require("hardhat");
 require('dotenv').config();
 
+const {
+  deployed,
+  benqi,
+  pangolin,
+  traderjoe
+} = require("./pools");
+
 async function main() {
-  const pools = [
-    // "PngAaveEPng",
-    // "PngAvaxAaveE",
-    // "JoeAvaxAaveE",
-    // "JoeDaiEJoe",
-    {
-      name: "PngAvaxAaveE",
-      snowglobe_addr: "0x7F8E7a8Bd63A113B202AE905877918Fb9cA13091"
-    },
-    {
-      name: "PngVsoPng",
-      snowglobe_addr: "0x8309C64390F376fD778BDd701d54d1F8DFfe1F39"
-    },
-    {
-      name: "JoeUsdceJoe",
-      snowglobe_addr: "0xDe9f979fEdf595FcfD1D09c85d194C700678cC83"
-    },
-    {
-      name: "JoeAvaxAaveE",
-      snowglobe_addr: "0xE7FfFc0D15fc238F8F1AcC40Db5B5A0240Fb116a"
-    }
-  ];
+  const pools = pangolin;
 
   const [deployer] = await ethers.getSigners();
-  console.log("Deploying new strategies with the account:", deployer.address);
+  console.log("Deploying new strategy contracts with the account:", deployer.address);
 
   const controller_ABI = [{"type":"constructor","stateMutability":"nonpayable","inputs":[{"type":"address","name":"_governance","internalType":"address"},{"type":"address","name":"_strategist_addr","internalType":"address"},{"type":"address","name":"_timelock","internalType":"address"},{"type":"address","name":"_devfund","internalType":"address"},{"type":"address","name":"_treasury","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"approveGlobeConverter","inputs":[{"type":"address","name":"_converter","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"approveStrategy","inputs":[{"type":"address","name":"_token","internalType":"address"},{"type":"address","name":"_strategy","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"bool","name":"","internalType":"bool"}],"name":"approvedGlobeConverters","inputs":[{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"bool","name":"","internalType":"bool"}],"name":"approvedStrategies","inputs":[{"type":"address","name":"","internalType":"address"},{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"balanceOf","inputs":[{"type":"address","name":"_token","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"burn","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"convenienceFee","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"convenienceFeeMax","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"converters","inputs":[{"type":"address","name":"","internalType":"address"},{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"devfund","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"earn","inputs":[{"type":"address","name":"_token","internalType":"address"},{"type":"uint256","name":"_amount","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"expected","internalType":"uint256"}],"name":"getExpectedReturn","inputs":[{"type":"address","name":"_strategy","internalType":"address"},{"type":"address","name":"_token","internalType":"address"},{"type":"uint256","name":"parts","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"globes","inputs":[{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"governance","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"inCaseStrategyTokenGetStuck","inputs":[{"type":"address","name":"_strategy","internalType":"address"},{"type":"address","name":"_token","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"inCaseTokensGetStuck","inputs":[{"type":"address","name":"_token","internalType":"address"},{"type":"uint256","name":"_amount","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"max","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"onesplit","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"revokeGlobeConverter","inputs":[{"type":"address","name":"_converter","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"revokeStrategy","inputs":[{"type":"address","name":"_token","internalType":"address"},{"type":"address","name":"_strategy","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setConvenienceFee","inputs":[{"type":"uint256","name":"_convenienceFee","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setDevFund","inputs":[{"type":"address","name":"_devfund","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setGlobe","inputs":[{"type":"address","name":"_token","internalType":"address"},{"type":"address","name":"_globe","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setGovernance","inputs":[{"type":"address","name":"_governance","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setOneSplit","inputs":[{"type":"address","name":"_onesplit","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setSplit","inputs":[{"type":"uint256","name":"_split","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setStrategist_addr","inputs":[{"type":"address","name":"_strategist_addr","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setStrategy","inputs":[{"type":"address","name":"_token","internalType":"address"},{"type":"address","name":"_strategy","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setTimelock","inputs":[{"type":"address","name":"_timelock","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setTreasury","inputs":[{"type":"address","name":"_treasury","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"split","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"strategies","inputs":[{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"strategist_addr","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"swapExactGlobeForGlobe","inputs":[{"type":"address","name":"_fromGlobe","internalType":"address"},{"type":"address","name":"_toGlobe","internalType":"address"},{"type":"uint256","name":"_fromGlobeAmount","internalType":"uint256"},{"type":"uint256","name":"_toGlobeMinAmount","internalType":"uint256"},{"type":"address[]","name":"_targets","internalType":"address payable[]"},{"type":"bytes[]","name":"_data","internalType":"bytes[]"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"timelock_addr","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"treasury","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"withdraw","inputs":[{"type":"address","name":"_token","internalType":"address"},{"type":"uint256","name":"_amount","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"withdrawAll","inputs":[{"type":"address","name":"_token","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"yearn","inputs":[{"type":"address","name":"_strategy","internalType":"address"},{"type":"address","name":"_token","internalType":"address"},{"type":"uint256","name":"parts","internalType":"uint256"}]}];
   const gaugeproxy_ABI = [{"type":"constructor","stateMutability":"nonpayable","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"contract IceQueen"}],"name":"MASTER","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"contract IERC20"}],"name":"SNOWBALL","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"contract IERC20"}],"name":"SNOWCONE","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"contract IERC20"}],"name":"TOKEN","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"acceptGovernance","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"addGauge","inputs":[{"type":"address","name":"_token","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"collect","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"deposit","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"distribute","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"gauges","inputs":[{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"getGauge","inputs":[{"type":"address","name":"_token","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"governance","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"length","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"pendingGovernance","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"pid","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"poke","inputs":[{"type":"address","name":"_owner","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"reset","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setGovernance","inputs":[{"type":"address","name":"_governance","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"setPID","inputs":[{"type":"uint256","name":"_pid","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"tokenVote","inputs":[{"type":"address","name":"","internalType":"address"},{"type":"uint256","name":"","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address[]","name":"","internalType":"address[]"}],"name":"tokens","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"totalWeight","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"usedWeights","inputs":[{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"vote","inputs":[{"type":"address[]","name":"_tokenVote","internalType":"address[]"},{"type":"uint256[]","name":"_weights","internalType":"uint256[]"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"votes","inputs":[{"type":"address","name":"","internalType":"address"},{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"weights","inputs":[{"type":"address","name":"","internalType":"address"}]}];
@@ -37,6 +23,7 @@ async function main() {
   const governance_addr = "0x294aB3200ef36200db84C4128b7f1b4eec71E38a";
   const timelock_addr = governance_addr;
   const gaugeproxy_addr = "0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27";
+  const strategist_addr = "0xc9a51fB9057380494262fd291aED74317332C0a2";
 
   const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
   // const controller_addr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; //Aave
@@ -44,17 +31,17 @@ async function main() {
   const Controller = new ethers.Contract(controller_addr, controller_ABI, deployer);
 
   const deploy = async (pool) => {
-    console.log(`mending deploy for ${pool.name}`);
+    console.log(`deploying new strategy for ${pool.name}`);
     const strategy_name = `Strategy${pool.name}Lp`;
     const snowglobe_name = `SnowGlobe${pool.name}`;
   
-    // /* Deploy Strategy */
-    // const strategy = await ethers.getContractFactory(strategy_name);
-    // const Strategy = await strategy.deploy(governance_addr, strategist_addr, controller_addr, timelock_addr);
-    // console.log(`deployed ${strategy_name} at : ${Strategy.address}`);
+    /* Deploy Strategy */
+    const strategy = await ethers.getContractFactory(strategy_name);
+    const Strategy = await strategy.deploy(governance_addr, strategist_addr, controller_addr, timelock_addr);
+    console.log(`deployed ${strategy_name} at : ${Strategy.address}`);
     
-    /* Connect to Strategy */
-    const Strategy = new ethers.Contract(pool.strategy_addr, strategy_ABI, deployer);
+    // /* Connect to Strategy */
+    // const Strategy = new ethers.Contract(pool.strategy_addr, strategy_ABI, deployer);
     
 
     // /* Deploy Snowglobe */
@@ -67,14 +54,14 @@ async function main() {
     const lp = await Strategy.want();
     const SnowGlobe = new ethers.Contract(pool.snowglobe_addr, snowglobe_ABI, deployer);
   
-    /* Set Globe */
-    const setGlobe = await Controller.setGlobe(lp, SnowGlobe.address);
-    const tx_setGlobe = await setGlobe.wait(1);
-    if (!tx_setGlobe.status) {
-      console.error("Error setting the globe for: ",pool.name);
-      return;
-    }
-    console.log("Set Globe in the Controller for: ",pool.name);
+    // /* Set Globe */
+    // const setGlobe = await Controller.setGlobe(lp, SnowGlobe.address);
+    // const tx_setGlobe = await setGlobe.wait(1);
+    // if (!tx_setGlobe.status) {
+    //   console.error("Error setting the globe for: ",pool.name);
+    //   return;
+    // }
+    // console.log("Set Globe in the Controller for: ",pool.name);
 
     /* Approve Strategy */
     const approveStrategy = await Controller.approveStrategy(lp, Strategy.address);
@@ -85,6 +72,17 @@ async function main() {
     }
     console.log("Approved Strategy in the Controller for: ",pool.name);
 
+    /* Harvest old strategy */
+    const strategies = await Controller.strategies(lp);
+    const oldStrategy = await ethers.Contract(strategies[0], strategy_ABI, deployer);
+    const harvest = oldStrategy.harvest();
+    const tx_harvest = harvest.wait(1);
+    if (!tx_harvest.status) {
+      console.error("Error harvesting the old strategy for: ",pool.name);
+      return;
+    }
+    console.log("Harvested the old strategy for: ",pool.name);
+
     /* Set Strategy */
     const setStrategy = await Controller.setStrategy(lp, Strategy.address);
     const tx_setStrategy = await setStrategy.wait(1);
@@ -93,29 +91,38 @@ async function main() {
       return;
     }
     console.log("Set Strategy in the Controller for: ",pool.name);
+
+    /* Earn */
+    const earn = await SnowGlobe.earn();
+    const tx_earn = await earn.wait(1);
+    if (!tx_earn.status) {
+      console.error("Error calling earn in the Snowglobe for: ",pool.name);
+      return;
+    }
+    console.log("Called earn in the Snowglobe for: ",pool.name);
   
     /* Whitelist Harvester */
     await Strategy.whitelistHarvester("0x096a46142C199C940FfEBf34F0fe2F2d674fDB1F");
     console.log('whitelisted the harvester for: ',pool.name);
   
-    /* Add Gauge */
-    // const MultiSig = new ethers.Contract(governance_addr, multisig_ABI, deployer);
-    // const iGaugeProxy = new ethers.utils.Interface(gaugeproxy_ABI);
-    // const encoding = iGaugeProxy.encodeFunctionData("addGauge", [SnowGlobe.address]);
+    // /* Add Gauge */
+    // // const MultiSig = new ethers.Contract(governance_addr, multisig_ABI, deployer);
+    // // const iGaugeProxy = new ethers.utils.Interface(gaugeproxy_ABI);
+    // // const encoding = iGaugeProxy.encodeFunctionData("addGauge", [SnowGlobe.address]);
     
-    // const addGauge = await MultiSig.submitTransaction(gaugeproxy_addr, 0, encoding);
-    const GaugeProxy = new ethers.Contract(gaugeproxy_addr, gaugeproxy_ABI, deployer);
-    const addGauge = await GaugeProxy.addGauge(SnowGlobe.address);
+    // // const addGauge = await MultiSig.submitTransaction(gaugeproxy_addr, 0, encoding);
+    // const GaugeProxy = new ethers.Contract(gaugeproxy_addr, gaugeproxy_ABI, deployer);
+    // const addGauge = await GaugeProxy.addGauge(SnowGlobe.address);
 
-    const tx_addGauge = await addGauge.wait(1);
-    if (!tx_addGauge.status) {
-      console.error("Error adding the gauge to multisig transaction list for: ",pool.name);
-      return;
-    }
-    console.log(`addGauge for ${pool.name}`);
+    // const tx_addGauge = await addGauge.wait(1);
+    // if (!tx_addGauge.status) {
+    //   console.error("Error adding the gauge to multisig transaction list for: ",pool.name);
+    //   return;
+    // }
+    // console.log(`addGauge for ${pool.name}`);
 
-    const gauge = await GaugeProxy.getGauge(SnowGlobe.address);
-    console.log(`deployed Gauge${pool.name} at: ${gauge}`);
+    // const gauge = await GaugeProxy.getGauge(SnowGlobe.address);
+    // console.log(`deployed Gauge${pool.name} at: ${gauge}`);
 
     return;
   };

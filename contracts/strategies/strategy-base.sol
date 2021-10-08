@@ -248,6 +248,8 @@ abstract contract StrategyBase {
 
     function _withdrawSome(uint256 _amount) internal virtual returns (uint256);
 
+    function harvest() public virtual;
+
     // **** Emergency functions ****
 
     function execute(address _target, bytes memory _data)

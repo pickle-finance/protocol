@@ -21,12 +21,15 @@ const setupSigners = async () => {
 };
 
 const snowballAddr = "0xC38f41A296A4493Ff429F1238e030924A1542e50";
-let treasuryAddr="0x028933a66dd0ccc239a3d5c2243b2d96672f11f5";
-let devAddr= "0x0aa5cb6f365259524f7ece8e09cce9a7b394077a";
+const treasuryAddr="0x028933a66dd0ccc239a3d5c2243b2d96672f11f5";
+const devAddr= "0x0aa5cb6f365259524f7ece8e09cce9a7b394077a";
+const aaveControllerAddr = "0xacc69deef119ab5bbf14e6aaf0536eafb3d6e046";
+  
 
 module.exports = {
   setupSigners,
   snowballAddr,
   treasuryAddr,
-  devAddr
+  devAddr,
+  aaveControllerAddr
 };
