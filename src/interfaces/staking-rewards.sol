@@ -8,6 +8,8 @@ interface IStakingRewards {
 
     function exit() external;
 
+    function getReward(uint256 rewardsTokenId) external;
+
     function getReward() external;
 
     function getRewardForDuration() external view returns (uint256);
