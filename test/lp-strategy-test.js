@@ -7,7 +7,7 @@ const { expect } = chai;
 const {setupSigners,snowballAddr, treasuryAddr} = require("./utils/static");
 
 
-const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,stratABI, txnAmt) => {
+const doLPStrategyTest = (name, _assetAddr, _snowglobeAddr, _strategyAddr, globeABI, stratABI, _txnAmt) => {
 
     const walletAddr = process.env.WALLET_ADDR;
     let assetContract,controllerContract;
@@ -20,14 +20,32 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
         before( async () => {
             const strategyName = `Strategy${name}Lp`;
             const snowglobeName = `SnowGlobe${name}`;
+            let assetAddr = _assetAddr ? _assetAddr : "";
+            let snowglobeAddr = _snowglobeAddr ? _snowglobeAddr : "";
+            let strategyAddr = _strategyAddr ? _strategyAddr : "";
+            const txnAmt = _txnAmnt ? _txnAmnt : "25000000000000000000000";
 
             await network.provider.send('hardhat_impersonateAccount', [walletAddr]);
             walletSigner = ethers.provider.getSigner(walletAddr);
             [timelockSigner,strategistSigner,controllerSigner,governanceSigner] = await setupSigners();
             slot = 1;
-            await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
-            assetContract = await ethers.getContractAt("ERC20",assetAddr,walletSigner);
+
             controllerContract = await ethers.getContractAt("ControllerV4", await controllerSigner.getAddress(), governanceSigner);
+
+            //If strategy address not supplied then we should deploy and setup a new strategy
+            if (strategyAddr == ""){
+                const stratFactory = await ethers.getContractFactory(strategyName);
+                // strategyAddr = await controllerContract.strategies(assetAddr);
+
+                // Now we can deploy the new strategy
+                strategyContract = await stratFactory.deploy(governanceSigner._address, strategistSigner._address,controllerSigner._address,timelockSigner._address);
+                assetAddr = await strategyContract.want();
+                strategyAddr = strategyContract.address;
+                await controllerContract.connect(timelockSigner).approveStrategy(assetAddr,strategyAddr);
+                await controllerContract.connect(timelockSigner).setStrategy(assetAddr,strategyAddr);
+            } else {
+                strategyContract = new ethers.Contract(strategyAddr, stratABI, governanceSigner); //This is not an ABI!
+            }
 
             if (snowglobeAddr == "") {
               const globeFactory = await ethers.getContractFactory(snowglobeName);
@@ -38,19 +56,9 @@ const doLPStrategyTest = (name,assetAddr,snowglobeAddr,strategyAddr,globeABI,str
               globeContract = new ethers.Contract(snowglobeAddr, globeABI, governanceSigner);
             }
             
-            //If strategy address not supplied then we should deploy and setup a new strategy
-            if (strategyAddr == ""){
-                const stratFactory = await ethers.getContractFactory(strategyName);
-                strategyAddr = await controllerContract.strategies(assetAddr);
-
-                // Now we can deploy the new strategy
-                strategyContract = await stratFactory.deploy(governanceSigner._address, strategistSigner._address,controllerSigner._address,timelockSigner._address);
-                strategyAddr = strategyContract.address;
-                await controllerContract.connect(timelockSigner).approveStrategy(assetAddr,strategyAddr);
-                await controllerContract.connect(timelockSigner).setStrategy(assetAddr,strategyAddr);
-            } else {
-                strategyContract = new ethers.Contract(strategyAddr, stratABI, governanceSigner); //This is not an ABI!
-            }
+            await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
+            assetContract = await ethers.getContractAt("ERC20",assetAddr,walletSigner);
+            
             await strategyContract.connect(governanceSigner).whitelistHarvester(walletAddr);
         });
     
