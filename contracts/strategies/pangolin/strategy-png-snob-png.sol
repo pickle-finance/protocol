@@ -8,8 +8,7 @@ contract StrategyPngSnobPngLp is StrategyPngFarmBase {
     address public png_snob_png_rewards =
         0x08B9A023e34Bad6Db868B699fa642Bf5f12Ebe76;
     address public png_snob_png_lp = 0x97B4957df08E185502A0ac624F332c7f8967eE8D;
-    address public snob = 0xC38f41A296A4493Ff429F1238e030924A1542e50;
-
+    
     constructor(
         address _governance,
         address _strategist,
