@@ -36,7 +36,7 @@ interface IStakingRewards {
 
     function rewardsToken() external view returns (address);
 
-    function stake(uint256 amount) external;
+    function stake(uint256 amount) external payable;
 
     function deposit(uint256 amount) external;
 
