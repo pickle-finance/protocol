@@ -5,8 +5,8 @@ import "../strategy-bankerjoe-farm-base.sol";
 
 contract StrategyJoeDai is StrategyBankerJoeFarmBase {
     
-    address public constant dai = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70; //banker joe deposit token
-    address public constant jDAI = 0xc988c170d0E38197DC634A45bF00169C7Aa7CA19; //lending receipt token
+    address public constant dai = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70; //qideposit token
+    address public constant jDAI = 0xe194c4c5aC32a3C9ffDb358d9Bfd523a0B6d1568; //lending receipt token
 
     constructor(
         address _governance,
