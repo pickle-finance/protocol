@@ -126,30 +126,6 @@ interface IJAvax {
 }
 
 interface IJoetroller {
-	function rewardAccrued(uint8 rewardType, address holder) 
-		external 
-		view 
-		returns (uint);
-	
-    function rewardSupplyState(uint8 rewardType, address holder) 
-		external 
-		view 
-		returns (uint224 index, uint32 timestamp);
-	
-    function rewardBorrowState(uint8 rewardType, address holder) 
-		external 
-		view 
-		returns (uint224 index, uint32 timestamp);
-	
-    function rewardSupplierIndex(uint8 rewardType, address jContractAddress, address holder) 
-		external 
-		view 
-		returns (uint supplierIndex);
-    
-	function rewardBorrowerIndex(uint8 rewardType, address jContractAddress, address holder) 	
-		external 
-		view 
-		returns (uint borrowerIndex);
 	
 
     /*** Assets You Are In ***/
@@ -270,19 +246,7 @@ interface IJoetroller {
         uint256 repayAmount
     ) external view returns (uint256, uint256);
 
-    // Claim all the Reward Token accrued by holder in all markets
-    function claimReward(uint8 rewardId, address holder) external;
-
-    // Claim all the Reward Token accrued by holder in specific markets
-    function claimReward(uint8 rewardId, address holder, address[] calldata jTokens) external;
-
-    // Claim all the Reward Token accrued by specific holders in specific markets for their supplies and/or borrows
-    function claimReward(uint8 rewardId,
-        address[] calldata holders,
-        address[] calldata jTokens,
-        bool borrowers,
-        bool suppliers
-    ) external;
+    
 		
     function markets(address jTokenAddress)
         external
@@ -303,4 +267,45 @@ interface IJoeLens {
             address delegate,
             uint256 allocated
         );
+}
+
+interface IRewardDistributor {
+    function rewardAccrued(uint8 rewardType, address holder) 
+		external 
+		view 
+		returns (uint);
+	
+    function rewardSupplyState(uint8 rewardType, address holder) 
+		external 
+		view 
+		returns (uint224 index, uint32 timestamp);
+	
+    function rewardBorrowState(uint8 rewardType, address holder) 
+		external 
+		view 
+		returns (uint224 index, uint32 timestamp);
+	
+    function rewardSupplierIndex(uint8 rewardType, address jContractAddress, address holder) 
+		external 
+		view 
+		returns (uint supplierIndex);
+    
+	function rewardBorrowerIndex(uint8 rewardType, address jContractAddress, address holder) 	
+		external 
+		view 
+		returns (uint borrowerIndex);
+	
+    // Claim all the Reward Token accrued by holder in all markets
+    function claimReward(uint8 rewardId, address holder) external;
+
+    // Claim all the Reward Token accrued by holder in specific markets
+    function claimReward(uint8 rewardId, address holder, address[] calldata jTokens) external;
+
+    // Claim all the Reward Token accrued by specific holders in specific markets for their supplies and/or borrows
+    function claimReward(uint8 rewardId,
+        address[] calldata holders,
+        address[] calldata jTokens,
+        bool borrowers,
+        bool suppliers
+    ) external;
 }

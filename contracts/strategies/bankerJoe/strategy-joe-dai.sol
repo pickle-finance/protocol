@@ -5,11 +5,7 @@ import "../strategy-bankerjoe-farm-base.sol";
 
 contract StrategyJoeDai is StrategyBankerJoeFarmBase {
     
-<<<<<<< HEAD
-    address public constant dai = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70; //qideposit token
-=======
     address public constant dai = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70; //banker joe deposit token
->>>>>>> 3fc18713e361ce1b5d1a644a59de2fba5c0b426a
     address public constant jDAI = 0xc988c170d0E38197DC634A45bF00169C7Aa7CA19; //lending receipt token
 
     constructor(
@@ -44,10 +40,11 @@ contract StrategyJoeDai is StrategyBankerJoeFarmBase {
         returns (uint256)
     {
         uint256 _want = balanceOfWant();
+        
         if (_want < _amount) {
             uint256 _redeem = _amount.sub(_want);
             // Make sure market can cover liquidity
-            require(IJToken(want).getCash() >= _redeem, "!cash-liquidity");
+            require(IJToken(jToken).getCash() >= _redeem, "!cash-liquidity");
             // How much borrowed amount do we need to free?
             uint256 borrowed = getBorrowed();
             uint256 supplied = getSupplied();
@@ -65,7 +62,7 @@ contract StrategyJoeDai is StrategyBankerJoeFarmBase {
                 }
             }
             // Redeems underlying
-            require(IJToken(want).redeemUnderlying(_redeem) == 0, "!redeem");
+            require(IJToken(jToken).redeemUnderlying(_redeem) == 0, "!redeem");
         }
         return _amount;
     }

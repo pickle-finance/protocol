@@ -331,7 +331,10 @@ abstract contract StrategyJoeBase {
         uint256 _amount
     ) internal {
         require(path[1] != address(0));
-
+        //approvals
+        IERC20(joe).safeApprove(joeRouter, 0);
+        IERC20(joe).safeApprove(joeRouter,_amount);
+        //swap
         IJoeRouter(joeRouter).swapExactTokensForTokens(
             _amount,
             0,
@@ -340,6 +343,7 @@ abstract contract StrategyJoeBase {
             now.add(60)
         );
     }
+        
 
     function _takeFeeJoeToSnob(uint256 _keep) internal {
         address[] memory path = new address[](3);

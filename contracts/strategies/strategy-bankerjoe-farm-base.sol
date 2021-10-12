@@ -13,6 +13,7 @@ import "../interfaces/wavax.sol";
 
 abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
     address public constant joetroller = 0xdc13687554205E5b89Ac783db14bb5bba4A1eDaC; // Through UniTroller Address
+    address public constant rewardDistributor = 0x2274491950B2D6d79b7e69b683b482282ba14885; //separate function handling rewards
     address public constant joeLens = 0x997fbA28c75747417571c5F3fe50015AaC2BB073; 
        
     address public jToken;
@@ -149,7 +150,7 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
     function getJoeAccrued() public returns (uint256) {
         (, , , uint256 accrued) = IJoeLens(joeLens).getJTokenBalanceInternal(
             joe,
-            joetroller,
+            rewardDistributor,
             address(this)
         );
 
@@ -377,17 +378,22 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
         address[] memory jTokens = new address[](1);
         jTokens[0] = jToken;
         uint256 _keep;
-
-        IJoetroller(joetroller).claimReward(0, address(this)); //Claim
+        IRewardDistributor(rewardDistributor).claimReward(0, address(this)); //Claim
         if (want != joe) {
             uint256 _joe = IERC20(joe).balanceOf(address(this));
             if (_joe > 0) {
                 _keep = _joe.mul(keep).div(keepMax);
-                _takeFeeJoeToSnob(_keep);
-                _swapTraderJoe(joe, want, _joe.sub(_keep));
+                if (_keep > 0){
+                    _takeFeeJoeToSnob(_keep);
+                }
+                address[] memory path = new address[](3);
+                path[0] = joe;
+                path[1] = wavax;
+                path[2] = want;
+                _swapTraderJoeWithPath(path, _joe.sub(_keep));
             }
         }
-        IJoetroller(joetroller).claimReward(1, address(this)); //ClaimAvax
+        IRewardDistributor(rewardDistributor).claimReward(1, address(this)); //ClaimAvax
         uint256 _avax = address(this).balance;            //get balance of native Avax
         if (_avax > 0) {                                 //wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
@@ -412,16 +418,16 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
     }
 
     function _calculateHarvestable(uint8 tokenIndex, address account) internal view returns (uint) {
-        uint rewardAccrued = IJoetroller(joetroller).rewardAccrued(tokenIndex, account);
-        (uint224 supplyIndex, ) = IJoetroller(joetroller).rewardSupplyState(tokenIndex, account);
-        uint supplierIndex = IJoetroller(joetroller).rewardSupplierIndex(tokenIndex, jToken, account);
+        uint rewardAccrued = IRewardDistributor(rewardDistributor).rewardAccrued(tokenIndex, account);
+        (uint224 supplyIndex, ) = IRewardDistributor(rewardDistributor).rewardSupplyState(tokenIndex, account);
+        uint supplierIndex = IRewardDistributor(rewardDistributor).rewardSupplierIndex(tokenIndex, jToken, account);
         uint supplyIndexDelta = 0;
         if (supplyIndex > supplierIndex) {
             supplyIndexDelta = supplyIndex - supplierIndex; 
         }
         uint supplyAccrued = IJToken(jToken).balanceOf(account).mul(supplyIndexDelta);
-        (uint224 borrowIndex, ) = IJoetroller(joetroller).rewardBorrowState(tokenIndex, account);
-        uint borrowerIndex = IJoetroller(joetroller).rewardBorrowerIndex(tokenIndex, jToken, account);
+        (uint224 borrowIndex, ) = IRewardDistributor(rewardDistributor).rewardBorrowState(tokenIndex, account);
+        uint borrowerIndex = IRewardDistributor(rewardDistributor).rewardBorrowerIndex(tokenIndex, jToken, account);
         uint borrowIndexDelta = 0;
         if (borrowIndex > borrowerIndex) {
             borrowIndexDelta = borrowIndex - borrowerIndex;

@@ -3,10 +3,10 @@ pragma solidity ^0.6.2;
 
 import "../strategy-bankerjoe-farm-base.sol";
 
-contract StrategyJoeLink is StrategyBankerJoeFarmBase {
+contract StrategyJoeUsdt is StrategyBankerJoeFarmBase {
     
-    address public constant link = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;  //banker joe deposit token
-    address public constant jLINK = 0x585E7bC75089eD111b656faA7aeb1104F5b96c15; //lending receipt token
+    address public constant usdt = 0x8b650e26404AC6837539ca96812f0123601E4448;  //banker joe deposit token
+    address public constant jUSDT = 0x585E7bC75089eD111b656faA7aeb1104F5b96c15; //lending receipt token
 
     constructor(
         address _governance,
@@ -16,8 +16,8 @@ contract StrategyJoeLink is StrategyBankerJoeFarmBase {
     )
         public
         StrategyBankerJoeFarmBase(
-            link, 
-            jLINK, 
+            usdt, 
+            jUSDT, 
             _governance, 
             _strategist, 
             _controller, 
@@ -43,7 +43,7 @@ contract StrategyJoeLink is StrategyBankerJoeFarmBase {
         if (_want < _amount) {
             uint256 _redeem = _amount.sub(_want);
             // Make sure market can cover liquidity
-            require(IJToken(want).getCash() >= _redeem, "!cash-liquidity");
+            require(IJToken(jToken).getCash() >= _redeem, "!cash-liquidity");
             // How much borrowed amount do we need to free?
             uint256 borrowed = getBorrowed();
             uint256 supplied = getSupplied();
@@ -61,7 +61,7 @@ contract StrategyJoeLink is StrategyBankerJoeFarmBase {
                 }
             }
             // Redeems underlying
-            require(IJToken(want).redeemUnderlying(_redeem) == 0, "!redeem");
+            require(IJToken(jToken).redeemUnderlying(_redeem) == 0, "!redeem");
         }
         return _amount;
     }
@@ -69,6 +69,6 @@ contract StrategyJoeLink is StrategyBankerJoeFarmBase {
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {
-        return "StrategyJoeLink";
+        return "StrategyJoeUsdt";
     }
 }
