@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-png-farm-base-v2.sol";
+import "../strategy-png-farm-base-V2.sol";
 
 contract StrategyPngSporePngLp is StrategyPngFarmBaseV2 {
     // Token addresses
