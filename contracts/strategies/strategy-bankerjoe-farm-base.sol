@@ -43,7 +43,7 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
         address _timelock
     )
         public
-        StrategyBase(_token, _governance, _strategist, _controller, _timelock)
+        StrategyJoeBase(_token, _governance, _strategist, _controller, _timelock)
     {
         jToken = _jToken;
         // Enter jToken Market
@@ -147,7 +147,7 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
     */
 
     function getJoeAccrued() public returns (uint256) {
-        (, , , uint256 accrued) = IJoeLens(joeLens).getJoeBalanceMetadataExt(
+        (, , , uint256 accrued) = IJoeLens(joeLens).getJTokenBalanceInternal(
             joe,
             joetroller,
             address(this)
@@ -372,37 +372,18 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
         );
     }
 
-    function _takeFeeQiToSnob(uint256 _keep) internal {
-        address[] memory path = new address[](3);
-        path[0] = joe;
-        path[1] = wavax;
-        path[2] = snob;
-        IERC20(joe).safeApprove(joeRouter, 0);
-        IERC20(joe).safeApprove(joeRouter, _keep);
-        _swapTraderJoeWithPath(path, _keep);
-        uint _snob = IERC20(snob).balanceOf(address(this));
-        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
-        IERC20(snob).safeTransfer(
-            feeDistributor,
-            _share
-        );
-        IERC20(snob).safeTransfer(
-            IController(controller).treasury(),
-            _snob.sub(_share)
-        );
-    }
-
+    
     function harvest() public override onlyBenevolent {
         address[] memory jTokens = new address[](1);
         jTokens[0] = jToken;
         uint256 _keep;
 
-        IJoetroller(joetroller).claimReward(0, address(this)); //ClaimQi
+        IJoetroller(joetroller).claimReward(0, address(this)); //Claim
         if (want != joe) {
             uint256 _joe = IERC20(joe).balanceOf(address(this));
             if (_joe > 0) {
                 _keep = _joe.mul(keep).div(keepMax);
-                _takeFeeQiToSnob(_keep);
+                _takeFeeJoeToSnob(_keep);
                 _swapTraderJoe(joe, want, _joe.sub(_keep));
             }
         }

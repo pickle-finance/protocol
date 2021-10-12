@@ -360,7 +360,7 @@ abstract contract StrategyJoeBase {
             _snob.sub(_share)
         );
     }
-}
+
 
     function _distributePerformanceFeesAndDeposit() internal {
         uint256 _want = IERC20(want).balanceOf(address(this));
