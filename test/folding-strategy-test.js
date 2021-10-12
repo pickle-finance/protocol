@@ -4,67 +4,66 @@ const chai = require("chai");
 const { BigNumber } = require("@ethersproject/bignumber");
 const {increaseTime, overwriteTokenAmount, increaseBlock, toGwei, fromWei} = require("./utils/helpers");
 const { expect } = chai;
-const {setupSigners,snowballAddr,treasuryAddr, aaveControllerAddr} = require("./utils/static");
+const {setupSigners,snowballAddr,treasuryAddr, bankerJoeControllerAddr} = require("./utils/static");
 
 
-const doFoldingStrategyTest = (name, assetAddr, snowglobeAddr, strategyAddr, globeABI, stratABI, txnAmt, slot) => {
-    // console.log('txnAmt: ',txnAmt);
-    // console.log('name: ',name);
+const doFoldingStrategyTest = (name, _assetAddr, _snowglobeAddr, _strategyAddr, globeABI, stratABI, _txnAmt, _slot) => {
     const walletAddr = process.env.WALLET_ADDR;
     let assetContract,controllerContract;
     let governanceSigner, strategistSigner, controllerSigner, timelockSigner;
     let globeContract, strategyContract;
     let strategyBalance;
+    const strategyName = `Strategy${name}`;
+    const snowglobeName = `SnowGlobe${name}`;
+    let assetAddr = _assetAddr ? _assetAddr : "";
+    let snowglobeAddr = _snowglobeAddr ? _snowglobeAddr : "";
+    let strategyAddr = _strategyAddr ? _strategyAddr : "";
+    const txnAmt = _txnAmt ? _txnAmt : "25000000000000000000000";
+    const slot = _slot ? _slot : 0;
 
     describe("Folding Strategy tests for: "+name, async () => {
 
         before( async () => {
-            const strategyName = `Strategy${name}`;
-            const snowglobeName = `SnowGlobe${name}`;
-
-            [timelockSigner,strategistSigner,controllerSigner,governanceSigner] = await setupSigners();
-            let controllerAddr = (name.includes("Aave")) ? aaveControllerAddr : controllerSigner.getAddress();
-
             await network.provider.send('hardhat_impersonateAccount', [walletAddr]);
             walletSigner = ethers.provider.getSigner(walletAddr);
+            [timelockSigner,strategistSigner,controllerSigner,governanceSigner] = await setupSigners();
+            controllerContract = await ethers.getContractAt("ControllerV4", await controllerSigner.getAddress(), governanceSigner);
 
-            await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
-        
-            assetContract = await ethers.getContractAt("ERC20",assetAddr,walletSigner);
-            controllerContract = await ethers.getContractAt("ControllerV4", controllerAddr,  governanceSigner);
+            //If strategy address not supplied then we should deploy and setup a new strategy
+            if (strategyAddr == ""){
+                console.log("deploy strategy");
+                const stratFactory = await ethers.getContractFactory(strategyName);
+                // strategyAddr = await controllerContract.strategies(assetAddr);
+
+                // Now we can deploy the new strategy
+                strategyContract = await stratFactory.deploy(governanceSigner._address, strategistSigner._address,controllerSigner._address,timelockSigner._address);
+                assetAddr = await strategyContract.want();
+                strategyAddr = strategyContract.address;
+                await controllerContract.connect(timelockSigner).approveStrategy(assetAddr,strategyAddr);
+                await controllerContract.connect(timelockSigner).setStrategy(assetAddr,strategyAddr);
+            } else {
+                console.log("connect to strategy");
+                strategyContract = new ethers.Contract(strategyAddr, stratABI, governanceSigner);
+            }
 
             if (snowglobeAddr == "") {
+                console.log("deploy snowglobe");
                 const globeFactory = await ethers.getContractFactory(snowglobeName);
-                globeContract = await globeFactory.deploy(assetAddr, governanceSigner._address, timelockSigner._address, controllerAddr);
+                globeContract = await globeFactory.deploy(assetAddr, governanceSigner._address, timelockSigner._address, controllerSigner._address);
                 await controllerContract.setGlobe(assetAddr, globeContract.address);
                 snowglobeAddr = globeContract.address;
             }
             else {
+                console.log("connect to snowglobe");
                 globeContract = new ethers.Contract(snowglobeAddr, globeABI, governanceSigner);
             }
 
-            //If strategy address not supplied then we should deploy and setup a new strategy
-            if (strategyAddr == ""){          
-                const stratFactory = await ethers.getContractFactory(strategyName);
-                strategyAddr = await controllerContract.strategies(assetAddr);
-
-                if (name.includes("Benqi")){
-                    // Before we can setup new strategy we must deleverage from old one
-                    strategyContract = await stratFactory.attach(strategyAddr);
-                    console.log("\t"+name + " is being deleveraged before new contract is deployed");
-                    await strategyContract.connect(governanceSigner).deleverageToMin();
-                }
-
-                // Now we can deploy the new strategy
-                strategyContract = await stratFactory.deploy(governanceSigner._address, strategistSigner._address,controllerAddr,timelockSigner._address);
-                strategyAddr = strategyContract.address;
-                // console.log("\tDeployed strategy address is: " + strategyAddr);
-                await controllerContract.connect(timelockSigner).approveStrategy(assetAddr,strategyAddr);
-                await controllerContract.connect(timelockSigner).setStrategy(assetAddr,strategyAddr);
-            } else {
-                strategyContract = new ethers.Contract(strategyAddr, stratABI, governanceSigner); //This is not an ABI!
-            }
-
+            console.log("overwrite token amount");
+            console.log("assetAddr: ",assetAddr);
+            await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
+            assetContract = await ethers.getContractAt("ERC20",assetAddr,walletSigner);
+            
+            console.log("whitelist harvester");
             await strategyContract.connect(governanceSigner).whitelistHarvester(walletAddr);
         });
     
@@ -104,22 +103,24 @@ const doFoldingStrategyTest = (name, assetAddr, snowglobeAddr, strategyAddr, glo
         it("Harvests should make some money!", async () => {
             await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
             let amt = await assetContract.connect(walletSigner).balanceOf(walletAddr);
-            // console.log("amt: ",amt.toString());
+            console.log("amt: ",amt.toString());
 
             await assetContract.connect(walletSigner).approve(snowglobeAddr,amt);
             await globeContract.connect(walletSigner).deposit(amt);
             await globeContract.connect(walletSigner).earn();
-            // let block = await hre.ethers.provider.getBlock("latest");
-            // console.log('block: ',block["number"]);
             await increaseTime(60 * 60 * 24);
             await increaseBlock(60 * 60);
-            // block = await hre.ethers.provider.getBlock("latest");
-            // console.log('newBlock: ',block["number"]);
+
+            let harvestable = await strategyContract.getHarvestable();
+            console.log("harvestable before: ",harvestable.toString());
 
             let initialBalance = await strategyContract.balanceOf();
     
             await strategyContract.connect(walletSigner).harvest();
             await increaseBlock(1);
+
+            harvestable = await strategyContract.getHarvestable();
+            console.log("harvestable after: ",harvestable.toString());
             
             let newBalance = await strategyContract.balanceOf();
             expect(newBalance).to.be.gt(initialBalance);
@@ -133,21 +134,22 @@ const doFoldingStrategyTest = (name, assetAddr, snowglobeAddr, strategyAddr, glo
         it("Users should earn some money!", async () => {
             await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
             let amt = await assetContract.connect(walletSigner).balanceOf(walletAddr);
-            // console.log("amt: ",amt.toString());
+            console.log("amt: ",amt.toString());
 
             await assetContract.connect(walletSigner).approve(snowglobeAddr,amt);
             await globeContract.connect(walletSigner).deposit(amt);
             await globeContract.connect(walletSigner).earn();
-            // let block = await hre.ethers.provider.getBlock("latest");
-            // console.log('block: ',block["number"]);
             await increaseTime(60 * 60 * 24);
             await increaseBlock(60 * 60);
-            // block = await hre.ethers.provider.getBlock("latest");
-            // console.log('newBlock: ',block["number"]);
 
+            let harvestable = await strategyContract.getHarvestable();
+            console.log("harvestable before: ",harvestable.toString());
 
             await strategyContract.connect(walletSigner).harvest();
             await increaseBlock(1);
+
+            harvestable = await strategyContract.getHarvestable();
+            console.log("harvestable after: ",harvestable.toString());
             
             await globeContract.connect(walletSigner).withdrawAll();
             let newAmt = await assetContract.connect(walletSigner).balanceOf(walletAddr);
@@ -195,9 +197,14 @@ const doFoldingStrategyTest = (name, assetAddr, snowglobeAddr, strategyAddr, glo
             //console.log("\tTreasury balance before harvest: ", treasuryBefore.toString());
             //console.log("\tQI harvest is: " + harvestQI+", AVAX harvest is: "+ harvestAVAX);
 
+            let harvestable = await strategyContract.getHarvestable();
+            console.log("harvestable before: ",harvestable.toString());
            
             await strategyContract.connect(walletSigner).harvest();
             await increaseBlock(1);
+
+            harvestable = await strategyContract.getHarvestable();
+            console.log("harvestable after: ",harvestable.toString());
             
             const globeAfter = await globeContract.balance();
             const treasuryAfter = await assetContract.connect(walletSigner).balanceOf(treasuryAddr);
@@ -218,7 +225,7 @@ const doFoldingStrategyTest = (name, assetAddr, snowglobeAddr, strategyAddr, glo
         it("should take some commission when fees are set", async () =>{
             await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
             let amt = await assetContract.connect(walletSigner).balanceOf(walletAddr);
-            // console.log("amt: ",amt.toString());
+            console.log("amt: ",amt.toString());
 
             await assetContract.connect(walletSigner).approve(snowglobeAddr,amt);
             await globeContract.connect(walletSigner).deposit(amt);
@@ -244,9 +251,14 @@ const doFoldingStrategyTest = (name, assetAddr, snowglobeAddr, strategyAddr, glo
             // console.log("\tTreasury balance before harvest: ", treasuryBefore.toString());
             // console.log("\tQI harvest is: " + harvestQI+", AVAX harvest is: "+ harvestAVAX);
 
-            
+            let harvestable = await strategyContract.getHarvestable();
+            console.log("harvestable before: ",harvestable.toString());
+
             await strategyContract.connect(walletSigner).harvest();
             await increaseBlock(1);
+
+            harvestable = await strategyContract.getHarvestable();
+            console.log("harvestable after: ",harvestable.toString());
             
             const globeAfter = await globeContract.balance();
             const treasuryAfter = await assetContract.connect(walletSigner).balanceOf(treasuryAddr);
