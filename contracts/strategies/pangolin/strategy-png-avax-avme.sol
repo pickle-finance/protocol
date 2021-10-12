@@ -3,12 +3,14 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-farm-base.sol";
 
-contract StrategyPngSnobPngLp is StrategyPngFarmBase {
+contract StrategyPngAvaxAvmeLp is StrategyPngFarmBase {
     // Token addresses
-    address public png_snob_png_rewards =
-        0x08B9A023e34Bad6Db868B699fa642Bf5f12Ebe76;
-    address public png_snob_png_lp = 0x97B4957df08E185502A0ac624F332c7f8967eE8D;
-    
+    address public png_avax_avme_lp_rewards =
+        0xE4FED988974C0B7DFEB162287DeD67c6B197Af63;
+    address public png_avax_avme_lp =
+        0x381CC7bCbA0afd3aEB0eaec3cb05d7796ddFd860;
+    address public avme = 0x1ECd47FF4d9598f89721A2866BFEb99505a413Ed;
+
     constructor(
         address _governance,
         address _strategist,
@@ -17,9 +19,9 @@ contract StrategyPngSnobPngLp is StrategyPngFarmBase {
     )
         public
         StrategyPngFarmBase(
-            snob,
-            png_snob_png_rewards,
-            png_snob_png_lp,
+            avme,
+            png_avax_avme_lp_rewards,
+            png_avax_avme_lp,
             _governance,
             _strategist,
             _controller,
@@ -30,6 +32,6 @@ contract StrategyPngSnobPngLp is StrategyPngFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngSnobPngLp";
+        return "StrategyPngAvaxAvmeLp";
     }
 }
