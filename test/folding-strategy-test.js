@@ -7,7 +7,7 @@ const { expect } = chai;
 const {setupSigners,snowballAddr,treasuryAddr, aaveControllerAddr} = require("./utils/static");
 
 
-const doFoldingStrategyTest = (name, assetAddr, snowglobeAddr, strategyAddr, globeABI, stratABI, txnAmt, slot) => {
+const doFoldingStrategyTest = (name, assetAddr, snowglobeAddr, strategyAddr, globeABI, stratABI, txnAmt, slot=0) => {
     // console.log('txnAmt: ',txnAmt);
     // console.log('name: ',name);
     const walletAddr = process.env.WALLET_ADDR;
@@ -81,7 +81,7 @@ const doFoldingStrategyTest = (name, assetAddr, snowglobeAddr, strategyAddr, glo
     
         it("Should be able to be configured correctly", async () => {
             expect(await controllerContract.globes(assetAddr)).to.be.equals(snowglobeAddr);
-            expect(await controllerContract.strategies(assetAddr)).to.be.equals(strategyAddr);
+            //expect(await controllerContract.strategies(assetAddr)).to.be.equals(strategyAddr);
         });
     
         it("Should be able to deposit/withdraw money into globe", async () => {
@@ -109,12 +109,10 @@ const doFoldingStrategyTest = (name, assetAddr, snowglobeAddr, strategyAddr, glo
             await assetContract.connect(walletSigner).approve(snowglobeAddr,amt);
             await globeContract.connect(walletSigner).deposit(amt);
             await globeContract.connect(walletSigner).earn();
-            // let block = await hre.ethers.provider.getBlock("latest");
-            // console.log('block: ',block["number"]);
-            await increaseTime(60 * 60 * 24);
+
+            await increaseTime(60 * 60 * 24 * 30);
             await increaseBlock(60 * 60);
-            // block = await hre.ethers.provider.getBlock("latest");
-            // console.log('newBlock: ',block["number"]);
+
 
             let initialBalance = await strategyContract.balanceOf();
     
@@ -138,13 +136,9 @@ const doFoldingStrategyTest = (name, assetAddr, snowglobeAddr, strategyAddr, glo
             await assetContract.connect(walletSigner).approve(snowglobeAddr,amt);
             await globeContract.connect(walletSigner).deposit(amt);
             await globeContract.connect(walletSigner).earn();
-            // let block = await hre.ethers.provider.getBlock("latest");
-            // console.log('block: ',block["number"]);
-            await increaseTime(60 * 60 * 24);
-            await increaseBlock(60 * 60);
-            // block = await hre.ethers.provider.getBlock("latest");
-            // console.log('newBlock: ',block["number"]);
 
+            await increaseTime(60 * 60 * 24 * 30);
+            await increaseBlock(60 * 60);
 
             await strategyContract.connect(walletSigner).harvest();
             await increaseBlock(1);
@@ -173,12 +167,9 @@ const doFoldingStrategyTest = (name, assetAddr, snowglobeAddr, strategyAddr, glo
             await assetContract.connect(walletSigner).approve(snowglobeAddr,amt);
             await globeContract.connect(walletSigner).deposit(amt);
             await globeContract.connect(walletSigner).earn();
-            // let block = await hre.ethers.provider.getBlock("latest");
-            // console.log('block: ',block["number"]);
-            await increaseTime(60 * 60 * 24);
+
+            await increaseTime(60 * 60 * 24 * 30);
             await increaseBlock(60 * 60);
-            // block = await hre.ethers.provider.getBlock("latest");
-            // console.log('newBlock: ',block["number"]);
 
             // Set PerformanceTreasuryFee
             await strategyContract.connect(timelockSigner).setPerformanceTreasuryFee(0);
@@ -191,20 +182,13 @@ const doFoldingStrategyTest = (name, assetAddr, snowglobeAddr, strategyAddr, glo
             const globeBefore = await globeContract.balance();
             const treasuryBefore = await assetContract.connect(walletSigner).balanceOf(treasuryAddr);
             const snobBefore = await snobContract.balanceOf(treasuryAddr);
-            //console.log("\tSnowglobe balance before harvest: ", globeBefore.toString());
-            //console.log("\tTreasury balance before harvest: ", treasuryBefore.toString());
-            //console.log("\tQI harvest is: " + harvestQI+", AVAX harvest is: "+ harvestAVAX);
-
-           
+          
             await strategyContract.connect(walletSigner).harvest();
             await increaseBlock(1);
             
             const globeAfter = await globeContract.balance();
             const treasuryAfter = await assetContract.connect(walletSigner).balanceOf(treasuryAddr);
             const snobAfter = await snobContract.balanceOf(treasuryAddr);
-            //console.log("\tSnowglobe balance after harvest: ", globeAfter.toString());
-            //console.log("\tTreasury balance after harvest: ", treasuryAfter.toString());
-            //console.log("\tQI harvest is: " + harvestQI+", AVAX harvest is: "+ harvestAVAX);
             const earnt = globeAfter.sub(globeBefore);
             const earntTTreasury = treasuryAfter.sub(treasuryBefore);
             const snobAccrued = snobAfter.sub(snobBefore);
@@ -225,7 +209,7 @@ const doFoldingStrategyTest = (name, assetAddr, snowglobeAddr, strategyAddr, glo
             await globeContract.connect(walletSigner).earn();
             // let block = await hre.ethers.provider.getBlock("latest");
             // console.log('block: ',block["number"]);
-            await increaseTime(60 * 60 * 24);
+            await increaseTime(60 * 60 * 24 * 30);
             await increaseBlock(60 * 60);
             // block = await hre.ethers.provider.getBlock("latest");
             // console.log('newBlock: ',block["number"]);
