@@ -7,28 +7,27 @@ const { expect } = chai;
 const {setupSigners,snowballAddr, treasuryAddr} = require("./utils/static");
 
 
-const doLPStrategyTest = (name, _assetAddr, _snowglobeAddr, _strategyAddr, globeABI, stratABI, _txnAmt) => {
+const doLPStrategyTest = (name, _assetAddr, _snowglobeAddr, _strategyAddr, globeABI, stratABI, _txnAmt, _slot) => {
 
     const walletAddr = process.env.WALLET_ADDR;
     let assetContract,controllerContract;
     let governanceSigner, strategistSigner, controllerSigner, timelockSigner;
     let globeContract, strategyContract;
-    let strategyBalance, slot;
+    let strategyBalance;
+    const strategyName = `Strategy${name}Lp`;
+    const snowglobeName = `SnowGlobe${name}`;
+    let assetAddr = _assetAddr ? _assetAddr : "";
+    let snowglobeAddr = _snowglobeAddr ? _snowglobeAddr : "";
+    let strategyAddr = _strategyAddr ? _strategyAddr : "";
+    const txnAmt = _txnAmt ? _txnAmt : "25000000000000000000000";
+    const slot = _slot ? _slot : 0;
 
     describe("LP Strategy tests for: "+name, async () => {
 
         before( async () => {
-            const strategyName = `Strategy${name}Lp`;
-            const snowglobeName = `SnowGlobe${name}`;
-            let assetAddr = _assetAddr ? _assetAddr : "";
-            let snowglobeAddr = _snowglobeAddr ? _snowglobeAddr : "";
-            let strategyAddr = _strategyAddr ? _strategyAddr : "";
-            const txnAmt = _txnAmnt ? _txnAmnt : "25000000000000000000000";
-
             await network.provider.send('hardhat_impersonateAccount', [walletAddr]);
             walletSigner = ethers.provider.getSigner(walletAddr);
             [timelockSigner,strategistSigner,controllerSigner,governanceSigner] = await setupSigners();
-            slot = 1;
 
             controllerContract = await ethers.getContractAt("ControllerV4", await controllerSigner.getAddress(), governanceSigner);
 
@@ -51,11 +50,12 @@ const doLPStrategyTest = (name, _assetAddr, _snowglobeAddr, _strategyAddr, globe
               const globeFactory = await ethers.getContractFactory(snowglobeName);
               globeContract = await globeFactory.deploy(assetAddr, governanceSigner._address, timelockSigner._address, controllerSigner._address);
               await controllerContract.setGlobe(assetAddr, globeContract.address);
+              snowglobeAddr = globeContract.address;
             }
             else {
               globeContract = new ethers.Contract(snowglobeAddr, globeABI, governanceSigner);
             }
-            
+
             await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
             assetContract = await ethers.getContractAt("ERC20",assetAddr,walletSigner);
             
@@ -113,10 +113,12 @@ const doLPStrategyTest = (name, _assetAddr, _snowglobeAddr, _strategyAddr, globe
             await increaseBlock(60 * 60);
 
             let initialBalance = await strategyContract.balanceOf();
-    
+            let harvestable = await strategyContract.getHarvestable();
+            console.log("harvestable before: ",harvestable.toString());
             await strategyContract.connect(walletSigner).harvest();
             await increaseBlock(1);
-            
+            harvestable = await strategyContract.getHarvestable();
+            console.log("harvestable after: ",harvestable.toString());
             let newBalance = await strategyContract.balanceOf();
             expect(newBalance).to.be.gt(initialBalance);
         });
@@ -246,9 +248,14 @@ const doLPStrategyTest = (name, _assetAddr, _snowglobeAddr, _strategyAddr, globe
             // console.log("\tTreasury balance before harvest: ", treasuryBefore.toString());
             // console.log("\tQI harvest is: " + harvestQI+", AVAX harvest is: "+ harvestAVAX);
 
+            let harvestable = await strategyContract.getHarvestable();
+            console.log("harvestable before: ",harvestable.toString());
             
             await strategyContract.connect(walletSigner).harvest();
             await increaseBlock(1);
+
+            harvestable = await strategyContract.getHarvestable();
+            console.log("harvestable after: ",harvestable.toString());
             
             const globeAfter = await globeContract.balance();
             // const treasuryAfter = await assetContract.connect(walletSigner).balanceOf(treasuryAddr);
