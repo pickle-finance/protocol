@@ -5,9 +5,9 @@ import "../strategy-bankerjoe-farm-base.sol";
 
 contract StrategyJoeLink is StrategyBankerJoeFarmBase {
     
-    address public constant link = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;  //banker joe deposit token
+    address public constant link = 0x5947BB275c521040051D82396192181b413227A3;  //banker joe deposit token
     address public constant jLINK = 0x585E7bC75089eD111b656faA7aeb1104F5b96c15; //lending receipt token
-
+ 
     constructor(
         address _governance,
         address _strategist,

@@ -5,18 +5,16 @@ const stratBaseABI = [{"inputs":[{"internalType":"address","name":"_want","type"
 
 
 const tests = [
-  {
-    name: "JoeDai",
-    tokenAddress: "0xd586E7F844cEa2F87f50152665BCbc2C279D8d70",
-    strategyAddress: "",
-    snowglobeAddress: "",
-    amount: "",
-    slot: null
-  }
+  "JoeDai",
+  "JoeEth",
+  "JoeLink",
+  "JoeUsdc",
+  "JoeUsdt",
+  "JoeWbtc"
 ];
 
 for (const test of tests) {
-  describe(test.name, async () => {
-    doFoldingStrategyTest(test.name, test.tokenAddress, test.snowglobeAddress, test.strategyAddress, globeABI, stratBaseABI, test.amount, test.slot);
+  describe(test, async () => {
+    doFoldingStrategyTest(test, "", "", "", globeABI, stratBaseABI, "", 0);
   });
 }

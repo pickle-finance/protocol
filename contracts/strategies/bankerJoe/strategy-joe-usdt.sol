@@ -5,8 +5,8 @@ import "../strategy-bankerjoe-farm-base.sol";
 
 contract StrategyJoeUsdt is StrategyBankerJoeFarmBase {
     
-    address public constant usdt = 0x8b650e26404AC6837539ca96812f0123601E4448;  //banker joe deposit token
-    address public constant jUSDT = 0x585E7bC75089eD111b656faA7aeb1104F5b96c15; //lending receipt token
+    address public constant usdt = 0xc7198437980c041c805A1EDcbA50c1Ce5db95118;  //banker joe deposit token
+    address public constant jUSDT = 0x8b650e26404AC6837539ca96812f0123601E4448; //lending receipt token
 
     constructor(
         address _governance,
