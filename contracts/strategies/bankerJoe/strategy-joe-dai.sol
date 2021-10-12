@@ -39,10 +39,11 @@ contract StrategyJoeDai is StrategyBankerJoeFarmBase {
         returns (uint256)
     {
         uint256 _want = balanceOfWant();
+        
         if (_want < _amount) {
             uint256 _redeem = _amount.sub(_want);
             // Make sure market can cover liquidity
-            require(IJToken(want).getCash() >= _redeem, "!cash-liquidity");
+            require(IJToken(jToken).getCash() >= _redeem, "!cash-liquidity");
             // How much borrowed amount do we need to free?
             uint256 borrowed = getBorrowed();
             uint256 supplied = getSupplied();
@@ -60,7 +61,7 @@ contract StrategyJoeDai is StrategyBankerJoeFarmBase {
                 }
             }
             // Redeems underlying
-            require(IJToken(want).redeemUnderlying(_redeem) == 0, "!redeem");
+            require(IJToken(jToken).redeemUnderlying(_redeem) == 0, "!redeem");
         }
         return _amount;
     }
