@@ -176,7 +176,7 @@ contract StrategyDodoHndEthLp is StrategyBase {
                 _hnd,
                 1,
                 1,
-                1,
+                0,
                 now + 60
             );
 
