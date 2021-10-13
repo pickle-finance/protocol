@@ -24,24 +24,18 @@ contract StrategyBenqiAvax is StrategyQiFarmBase {
         )
     {}
 
-     function depositQIAvax() public  payable {
+    function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
-        
-            require(_want > 0, "Balance of strategy empty");
+        if (_want > 0) {
             //unwrap wavax to avax for benqi
-               WAVAX(want).withdraw(_want);
-            //  confirm that msg.sender received avax
-             require(address(this).balance >= _want, "!unwrap unsuccessful");
-           
-            // mint qiTokens external payable
-              IQiAvax(qiavax).mint{value: _want}();
-              
-            //confirm that qiTokens is received in exchange
-          require( IQiToken(qiavax).balanceOf(address(this)) > 0 , "qitokens not received" );
-            
+            WAVAX(want).withdraw(_want);
+            //make sure the contract address receives avax
+            IERC20(want).safeApprove(qiavax, 0);
+            IERC20(want).safeApprove(qiavax, _want);
+            //IqiToken.mint external payable
+            require(IQiToken(qiavax).mint(_want) == 0, "!deposit");
+        }
     }
-
-
     function _withdrawSome(uint256 _amount)
         internal
         override
@@ -50,16 +44,17 @@ contract StrategyBenqiAvax is StrategyQiFarmBase {
         uint256 _want = balanceOfWant();
         if (_want < _amount) {
             uint256 _redeem = _amount.sub(_want);
+
             //unwrap wavax to avax for benqi
             WAVAX(want).withdraw(_redeem);
             // Make sure market can cover liquidity
             require(IQiToken(qiavax).getCash() >= _redeem, "!cash-liquidity");
+
             // How much borrowed amount do we need to free?
             uint256 borrowed = getBorrowed();
             uint256 supplied = getSupplied();
             uint256 curLeverage = getCurrentLeverage();
             uint256 borrowedToBeFree = _redeem.mul(curLeverage).div(1e18);
-
             // If the amount we need to free is > borrowed
             // Just free up all the borrowed amount
             if (borrowedToBeFree > borrowed) {
@@ -69,13 +64,15 @@ contract StrategyBenqiAvax is StrategyQiFarmBase {
                 // we hit a safe number to redeem our underlying
                 this.deleverageUntil(supplied.sub(borrowedToBeFree));
             }
+
             // Redeems underlying
             require(IQiToken(qiavax).redeemUnderlying(_redeem) == 0, "!redeem");
-             //wrap avax to wavax
-             WAVAX(wavax).deposit{value: _redeem}();
-             //confirm contract address now holds enough wavax;
-             require(IERC20(want).balanceOf(address(this)) >= _amount, "!NotEnoughWavax");
+            //wrap avax to wavax
+            WAVAX(want).deposit();
+            //confirm contract address now holds enough wavax;
+            require(IERC20(want).balanceOf(address(this)) >= _amount, "!NotEnoughWavax");
         }
+
         return _amount;
     }
 
