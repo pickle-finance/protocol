@@ -19,6 +19,10 @@ const setupSigners = async () => {
   let controllerSigner = ethers.provider.getSigner(controllerAddr);
   let governanceSigner = ethers.provider.getSigner(governanceAddr);
 
+  await network.provider.send("hardhat_setBalance", [governanceSigner._address,"0x10000000000000000000000",]);
+  await network.provider.send("hardhat_setBalance", [timelockSigner._address,"0x10000000000000000000000",]);
+  await network.provider.send("hardhat_setBalance", [strategistSigner._address,"0x10000000000000000000000",]);
+
   return [timelockSigner,strategistSigner,controllerSigner,governanceSigner];
 };
 
