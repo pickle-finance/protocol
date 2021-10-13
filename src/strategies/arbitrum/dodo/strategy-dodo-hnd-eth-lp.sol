@@ -172,7 +172,7 @@ contract StrategyDodoHndEthLp is StrategyBase {
 
             IDodoSwap(dodoSwap).addDVMLiquidity(
                 dodo_hnd_eth_lp,
-                _weth.div(2),
+                _weth,
                 _hnd,
                 1,
                 1,
