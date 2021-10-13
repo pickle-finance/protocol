@@ -42,6 +42,11 @@ const overwriteTokenAmount = async (assetAddr, walletAddr,amount, slot =0) => {
     await hre.network.provider.send("evm_mine");
 };
 
+const returnSigner = async (address) => {
+  await network.provider.send('hardhat_impersonateAccount', [address]);
+  return ethers.provider.getSigner(address)
+}
+
 module.exports = {
     toWei,
     fromWei,
@@ -49,4 +54,5 @@ module.exports = {
     increaseBlock,
     increaseTime,
     overwriteTokenAmount,
+    returnSigner
   };
