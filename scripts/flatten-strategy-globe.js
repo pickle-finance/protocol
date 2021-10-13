@@ -3,12 +3,12 @@ const {exec} = require('child_process');
 async function main() {
   const platform = "bankerJoe";
   const names = [
-    "JoeDai",
-    "JoeEth",
-    "JoeLink",
-    "JoeUsdc",
-    "JoeUsdt",
-    "JoeWbtc"
+    "Joe-Dai",
+    "Joe-Eth",
+    "Joe-Link",
+    "Joe-Usdc",
+    "Joe-Usdt",
+    "Joe-Wbtc"
   ];
 
   const flatten = name => {
