@@ -92,7 +92,7 @@ contract StrategyConvexCvxCrv is StrategyConvexFarmBase {
             _swapSushiswap(cvx, crv, _cvx);
         }
 
-        // Exchange 3crv to USDC
+        // Withdraw 3crv to USDC
         uint256 _three_crv = IERC20(three_crv).balanceOf(address(this));
         if (_three_crv > 0) {
             IERC20(three_crv).safeApprove(threePool, 0);

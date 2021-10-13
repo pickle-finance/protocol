@@ -51,7 +51,7 @@ module.exports = {
     },
     hardhat: {
       forking: {
-        url: `https://arb1.arbitrum.io/rpc`,
+        url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -60,21 +60,13 @@ module.exports = {
       hardfork: "london",
       gasPrice: "auto",
     },
-    rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
-      hardfork: "london",
-      gasPrice: "auto",
-    },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
-      hardfork: "london",
-      gasPrice: "auto",
+      accounts: [`0x${process.env.MNEMONIC}`],
+    },
+    matic: {
+      url: "https://keen-bell:chaste-gulf-chunk-aloe-deuce-copied@nd-654-291-805.p2pify.com/",
+      accounts: [`0x${process.env.MNEMONIC}`]
     },
     matic: {
       url: 'https://keen-bell:chaste-gulf-chunk-aloe-deuce-copied@nd-654-291-805.p2pify.com/',
