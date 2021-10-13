@@ -36,6 +36,7 @@ const doFoldingStrategyTest = (
                 case "main": controllerAddr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85";break;
                 case "backup":controllerAddr = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; break;
                 case "aave":controllerAddr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; break;
+                case "bankerJoe": controllerAddr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
                 default : break;
             }
 
@@ -100,7 +101,7 @@ const doFoldingStrategyTest = (
         });
 
         it("Should be able to be configured correctly", async () => {
-            expect(await controllerContract.globes(assetAddr)).to.be.equals(snowglobeAddr);
+            expect(await controllerContract.globes(assetAddr)).to.contains(snowglobeAddr);
             //expect(await controllerContract.strategies(assetAddr)).to.be.equals(strategyAddr);
         });
 
