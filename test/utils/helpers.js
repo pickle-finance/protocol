@@ -2,6 +2,7 @@ const hre = require("hardhat");
 const {BigNumber: BN} = require("ethers");
 
 var chaiAsPromised = require("chai-as-promised");
+const { Contract } = require("hardhat/internal/hardhat-network/stack-traces/model");
 const {expect, Assertion} = require("chai").use(chaiAsPromised);
 
 const increaseTime = async (sec) => {
@@ -21,6 +22,14 @@ const increaseBlock = async (block) => {
   }
 };
 
+const fastForwardAWeek = async () => {
+  let i = 0;
+  do {
+      await increaseTime(60 * 60 * 24);
+      await increaseBlock(60 * 60);
+      i++;
+  } while (i < 8);
+}
 const toWei = (amount, decimal = 18) => {
   return BN.from(amount).mul(BN.from(10).pow(decimal));
 };
@@ -42,6 +51,12 @@ const overwriteTokenAmount = async (assetAddr, walletAddr,amount, slot =0) => {
     await hre.network.provider.send("evm_mine");
 };
 
+const returnSigner = async (address) => {
+  await network.provider.send('hardhat_impersonateAccount', [address]);
+  return ethers.provider.getSigner(address)
+};
+
+
 module.exports = {
     toWei,
     fromWei,
@@ -49,4 +64,6 @@ module.exports = {
     increaseBlock,
     increaseTime,
     overwriteTokenAmount,
+    returnSigner,
+    fastForwardAWeek,
   };
