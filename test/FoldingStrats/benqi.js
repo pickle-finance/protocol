@@ -10,7 +10,7 @@ const tests = [
     tokenAddress: "0xd586e7f844cea2f87f50152665bcbc2c279d8d70",
     strategyAddress: "",
     snowglobeAddress: "0x7b2525A502800E496D2e656e5b1188723e547012",
-  },/*
+  },
   {
     name: "BenqiUsdc",
     tokenAddress: "0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664",
@@ -50,7 +50,7 @@ const tests = [
     tokenAddress: "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7",
     strategyAddress: "",
     snowglobeAddress: "0x37d4b7B04ccfC14d3D660EDca1637417f5cA37f3",
-  },*/
+  },
 ];
 
 for (const test of tests) {
