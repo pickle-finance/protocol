@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.2;
 
-import "../strategy-qi-farm-base.sol";
+import "../strategy-bankerjoe-farm-base.sol";
 
-contract StrategyBenqiEth is StrategyQiFarmBase {
+contract StrategyJoeUsdc is StrategyBankerJoeFarmBase {
     
-    address public constant eth = 0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB; //qideposit token
-    address public constant qieth = 0x334AD834Cd4481BB02d09615E7c11a00579A7909; //lending receipt token
+    address public constant usdc = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664; //banker joe deposit token
+    address public constant jUSDC = 0xEd6AaF91a2B084bd594DBd1245be3691F9f637aC; //lending receipt token
 
     constructor(
         address _governance,
@@ -15,9 +15,9 @@ contract StrategyBenqiEth is StrategyQiFarmBase {
         address _timelock
     )
         public
-        StrategyQiFarmBase(
-            eth, 
-            qieth, 
+        StrategyBankerJoeFarmBase(
+            usdc, 
+            jUSDC, 
             _governance, 
             _strategist, 
             _controller, 
@@ -28,9 +28,9 @@ contract StrategyBenqiEth is StrategyQiFarmBase {
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(qiToken, 0);
-            IERC20(want).safeApprove(qiToken, _want);
-            require(IQiToken(qiToken).mint(_want) == 0, "!deposit");
+            IERC20(want).safeApprove(jToken, 0);
+            IERC20(want).safeApprove(jToken, _want);
+            require(IJToken(jToken).mint(_want) == 0, "!deposit");
         }
     }
 
@@ -43,7 +43,7 @@ contract StrategyBenqiEth is StrategyQiFarmBase {
         if (_want < _amount) {
             uint256 _redeem = _amount.sub(_want);
             // Make sure market can cover liquidity
-            require(IQiToken(qiToken).getCash() >= _redeem, "!cash-liquidity");
+            require(IJToken(jToken).getCash() >= _redeem, "!cash-liquidity");
             // How much borrowed amount do we need to free?
             uint256 borrowed = getBorrowed();
             uint256 supplied = getSupplied();
@@ -61,14 +61,14 @@ contract StrategyBenqiEth is StrategyQiFarmBase {
                 }
             }
             // Redeems underlying
-            require(IQiToken(qiToken).redeemUnderlying(_redeem) == 0, "!redeem");
+            require(IJToken(jToken).redeemUnderlying(_redeem) == 0, "!redeem");
         }
         return _amount;
     }
-    
+
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {
-        return "StrategyBenqiEth";
+        return "StrategyJoeUsdc";
     }
 }
