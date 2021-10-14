@@ -6,7 +6,7 @@ import "../interfaces/fox-staking-rewards.sol";
 
 abstract contract StrategyFoxFarmBase is StrategyBase {
     // Token addresses
-    address public constant stakingRewards = 0xDd80E21669A664Bce83E3AD9a0d74f8Dad5D9E72;
+    address public constant stakingRewards = 0xc54B9F82C1c54E9D4d274d633c7523f2299c42A0;
     address public constant fox = 0xc770EEfAd204B5180dF6a14Ee197D99d808ee52d;
 
     // WETH/<token1> pair
