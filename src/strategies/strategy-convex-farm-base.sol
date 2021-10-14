@@ -32,15 +32,15 @@ abstract contract StrategyConvexFarmBase is StrategyBase {
         return crvRewards;
     }
 
-    function balanceOfPool() public view override returns (uint256) {
+    function balanceOfPool() public view virtual override returns (uint256) {
         return IBaseRewardPool(getCrvRewardContract()).balanceOf(address(this));
     }
 
-    function get_crv_earned() public view returns (uint256) {
+    function get_crv_earned() public view virtual returns (uint256) {
         return IBaseRewardPool(getCrvRewardContract()).earned(address(this));
     }
 
-    function get_cvx_earned() public view returns (uint256) {
+    function get_cvx_earned() public view virtual returns (uint256) {
         uint256 crv_earned = get_crv_earned();
 
         uint256 supply = IConvexToken(cvx).totalSupply();
@@ -68,7 +68,7 @@ abstract contract StrategyConvexFarmBase is StrategyBase {
         return 0;
     }
 
-    function deposit() public override {
+    function deposit() public virtual override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
             IERC20(want).safeApprove(convexBooster, 0);
@@ -80,6 +80,7 @@ abstract contract StrategyConvexFarmBase is StrategyBase {
 
     function _withdrawSome(uint256 _amount)
         internal
+        virtual
         override
         returns (uint256)
     {
