@@ -11,79 +11,59 @@ contract BigGreenButton {
     using Address for address;
     using SafeMath for uint256;
 
-    address controller;
-
     address public governance;
-    address public strategist;
-    address public timelock;
 
     constructor(
-        address _controller
         address _governance,
-        address _strategist,
-        address _timelock,
     ) public {
         governance = _governance;
-        strategist = _strategist;
-        timelock = _timelock;
-        controller = _controller;
     }
 
-    function setController(address _controller) public {
+    function setStrategist(address _controller, address _strategist) public {
         require(msg.sender == governance, "!governance");
-        controller = _controller;
+        IController(_controller).setStrategist(_strategist);
     }
 
-    function setStrategist(address _strategist) public {
-        require(msg.sender == governance, "!governance");
-        strategist = _strategist;
-    }
-
-    function setGovernance(address _governance) public {
+    function setGovernance(address _controller, address _governance) public {
         require(msg.sender == governance, "!governance");
         governance = _governance;
+        IController(_controller).setGovernance(_governance);
     }
 
-    function setTimelock(address _timelock) public {
-        require(msg.sender == timelock, "!timelock");
-        timelock = _timelock;
+    function setTimelock(address _controller, address _timelock) public {
+        require(msg.sender == governance, "!governance");
+        IController(_controller).setTimelock(_timelock);
     }
 
-    function setGlobes(address[] _tokens, address[] _globes) public {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!strategist"
-        );
+    function setGlobes(address _controller, address[] _tokens, address[] _globes) public {
+        require(msg.sender == governance, "!governance");
         require(_tokens.length == _globes.length, "!length");
         for (uint256 i = 0; i < _tokens.length; i++) {
-            IController(controller).setGlobe(_tokens[i], _globes[i]);
+            IController(_controller).setGlobe(_tokens[i], _globes[i]);
         }
     }
 
-    function approveStrategies(address[] _tokens, address[] _strategies) public {
-        require(msg.sender == timelock, "!timelock");
-        require(_tokens.length == _strategies.length, "!length");
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            IController(controller).approveStrategy(_tokens[i], _strategies[i]);
-        }
-    }
-
-    function revokeStrategies(address[] _tokens, address[] _strategies) public {
+    function approveStrategies(address _controller, address[] _tokens, address[] _strategies) public {
         require(msg.sender == governance, "!governance");
         require(_tokens.length == _strategies.length, "!length");
         for (uint256 i = 0; i < _tokens.length; i++) {
-            IController(controller).revokeStrategy(_tokens[i], _strategies[i]);
+            IController(_controller).approveStrategy(_tokens[i], _strategies[i]);
         }
     }
 
-    function setStrategies(address[] _tokens, address[] _strategies) public {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!strategist"
-        );
+    function revokeStrategies(address _controller, address[] _tokens, address[] _strategies) public {
+        require(msg.sender == governance, "!governance");
         require(_tokens.length == _strategies.length, "!length");
         for (uint256 i = 0; i < _tokens.length; i++) {
-            IController(controller).setStrategy(_tokens[i], _strategies[i]);
+            IController(_controller).revokeStrategy(_tokens[i], _strategies[i]);
+        }
+    }
+
+    function setStrategies(address _controller, address[] _tokens, address[] _strategies) public {
+        require(msg.sender == governance, "!governance");
+        require(_tokens.length == _strategies.length, "!length");
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            IController(_controller).setStrategy(_tokens[i], _strategies[i]);
         }
     }
 }
