@@ -14,7 +14,7 @@ contract BigGreenButton {
     address public governance;
 
     constructor(
-        address _governance,
+        address _governance
     ) public {
         governance = _governance;
     }
@@ -24,9 +24,13 @@ contract BigGreenButton {
         IController(_controller).setStrategist(_strategist);
     }
 
-    function setGovernance(address _controller, address _governance) public {
+    function setGovernance(address _governance) public {
         require(msg.sender == governance, "!governance");
         governance = _governance;
+    }
+
+    function setControllerGovernance(address _controller, address _governance) public {
+        require(msg.sender == governance, "!governance");
         IController(_controller).setGovernance(_governance);
     }
 
@@ -35,7 +39,7 @@ contract BigGreenButton {
         IController(_controller).setTimelock(_timelock);
     }
 
-    function setGlobes(address _controller, address[] _tokens, address[] _globes) public {
+    function setGlobes(address _controller, address[] memory _tokens, address[] memory _globes) public {
         require(msg.sender == governance, "!governance");
         require(_tokens.length == _globes.length, "!length");
         for (uint256 i = 0; i < _tokens.length; i++) {
@@ -43,7 +47,7 @@ contract BigGreenButton {
         }
     }
 
-    function approveStrategies(address _controller, address[] _tokens, address[] _strategies) public {
+    function approveStrategies(address _controller, address[] memory _tokens, address[] memory _strategies) public {
         require(msg.sender == governance, "!governance");
         require(_tokens.length == _strategies.length, "!length");
         for (uint256 i = 0; i < _tokens.length; i++) {
@@ -51,7 +55,7 @@ contract BigGreenButton {
         }
     }
 
-    function revokeStrategies(address _controller, address[] _tokens, address[] _strategies) public {
+    function revokeStrategies(address _controller, address[] memory _tokens, address[] memory _strategies) public {
         require(msg.sender == governance, "!governance");
         require(_tokens.length == _strategies.length, "!length");
         for (uint256 i = 0; i < _tokens.length; i++) {
@@ -59,7 +63,7 @@ contract BigGreenButton {
         }
     }
 
-    function setStrategies(address _controller, address[] _tokens, address[] _strategies) public {
+    function setStrategies(address _controller, address[] memory _tokens, address[] memory _strategies) public {
         require(msg.sender == governance, "!governance");
         require(_tokens.length == _strategies.length, "!length");
         for (uint256 i = 0; i < _tokens.length; i++) {

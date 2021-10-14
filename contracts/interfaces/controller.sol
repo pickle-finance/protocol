@@ -26,4 +26,10 @@ interface IController {
     function revokeStrategy(address _token, address _strategy) external;
 
     function setStrategy(address _token, address _strategy) external;
+
+    function setStrategist(address _strategist) external;
+
+    function setGovernance(address _governance) external;
+
+    function setTimelock(address _timelock) external;
 }
