@@ -16,4 +16,14 @@ interface IController {
     function withdraw(address, uint256) external;
 
     function earn(address, uint256) external;
+
+    // For Big Green Button:
+
+    function setGlobe(address _token, address _globe) external;
+
+    function approveStrategy(address _token, address _strategy) external;
+
+    function revokeStrategy(address _token, address _strategy) external;
+
+    function setStrategy(address _token, address _strategy) external;
 }
