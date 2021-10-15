@@ -269,6 +269,32 @@ abstract contract StrategyUniV3Base {
     }
 
     // **** Internal functions ****
+    
+
+    function _swapUniswapV3(
+        address _from,
+        address _to,
+        uint256 _amount
+    ) internal {
+        require(_to != address(0));
+
+        address[] memory path;
+
+        if (_from == weth || _to == weth) {
+            path = new address[](2);
+            path[0] = _from;
+            path[1] = _to;
+        } else {
+            path = new address[](3);
+            path[0] = _from;
+            path[1] = weth;
+            path[2] = _to;
+        }
+
+        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
+    }
+
+
     function _swapUniswap(
         address _from,
         address _to,

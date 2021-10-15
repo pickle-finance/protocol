@@ -1,8 +1,5 @@
 require("@nomiclabs/hardhat-waffle");
-<<<<<<< HEAD
 require("@nomiclabs/hardhat-truffle5");
-=======
->>>>>>> Add unit test
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-ethers");
 require("solidity-coverage");
@@ -60,18 +57,28 @@ module.exports = {
       hardfork: "london",
       gasPrice: "auto",
     },
+    rinkeby: {
+      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts: {
+        mnemonic: process.env.MNEMONIC,
+      },
+      hardfork: "london",
+      gasPrice: "auto",
+    },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
-      accounts: [`0x${process.env.MNEMONIC}`],
+      accounts: {
+        mnemonic: process.env.MNEMONIC,
+      },
+      hardfork: "london",
+      gasPrice: "auto",
     },
     matic: {
       url: "https://keen-bell:chaste-gulf-chunk-aloe-deuce-copied@nd-654-291-805.p2pify.com/",
-      accounts: [`0x${process.env.MNEMONIC}`]
+      accounts: {
+        mnemonic: process.env.MNEMONIC,
+      },
     },
-    matic: {
-      url: 'https://keen-bell:chaste-gulf-chunk-aloe-deuce-copied@nd-654-291-805.p2pify.com/',
-      accounts: [process.env.MNEMONIC]
-    }
   },
   contractSizer: {
     alphaSort: true,
@@ -79,29 +86,6 @@ module.exports = {
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_APIKEY,
-  },
-  gasReporter: {
-    enabled: true,
-    coinmarketcap: process.env.COINMARKETCAP,
-    currency: "USD",
-    gasPrice: 32,
-  },
-  preprocess: {
-    eachLine: removeConsoleLog(
-      (hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"
-    ),
-  },
-  solidity: {
-    version: "0.6.7",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 9999,
-      },
-    },
-  },
-  mocha: {
-    timeout: 20000000,
   },
   paths: {
     sources: "./src",
@@ -124,7 +108,7 @@ module.exports = {
     eachLine: removeConsoleLog((hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"),
   },
   mocha: {
-    timeout: 20000000,
+    timeout: 200000000,
   },
   vyper: {
     version: "0.2.7",
