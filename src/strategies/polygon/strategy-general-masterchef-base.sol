@@ -138,7 +138,7 @@ abstract contract StrategyGeneralMasterChefBase is StrategyBase {
             );
             token0Amount = IERC20(token0).balanceOf(address(this));
         } else {
-            // otherwise we assme token0 is the reward token itself
+            // otherwise we assume token0 is the reward token itself
             token0Amount = toToken0;
         }
 
