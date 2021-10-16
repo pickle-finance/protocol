@@ -215,25 +215,25 @@ abstract contract ReentrancyGuard {
 contract Gauge is ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-    
+
     IERC20 public constant PICKLE = IERC20(0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5);
     IERC20 public constant DILL = IERC20(0xbBCf169eE191A1Ba7371F30A1C344bFC498b29Cf);
     address public constant TREASURY = address(0x066419EaEf5DE53cc5da0d8702b990c5bc7D1AB3);
-    
+
     IERC20 public immutable TOKEN;
     address public immutable DISTRIBUTION;
     uint256 public constant DURATION = 7 days;
-    
+
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;
     uint256 public rewardPerTokenStored;
-    
+
     modifier onlyDistribution() {
         require(msg.sender == DISTRIBUTION, "Caller is not RewardsDistribution contract");
         _;
     }
-    
+
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
 
@@ -242,12 +242,12 @@ contract Gauge is ReentrancyGuard {
     mapping(address => uint256) private _balances;
     mapping(address => uint256) public derivedBalances;
     mapping(address => uint) private _base;
-    
+
     constructor(address _token) public {
         TOKEN = IERC20(_token);
         DISTRIBUTION = msg.sender;
     }
-    
+
     function totalSupply() external view returns (uint256) {
         return _totalSupply;
     }
@@ -269,14 +269,14 @@ contract Gauge is ReentrancyGuard {
                 lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(derivedSupply)
             );
     }
-    
+
     function derivedBalance(address account) public view returns (uint) {
         uint _balance = _balances[account];
         uint _derived = _balance.mul(40).div(100);
         uint _adjusted = (_totalSupply.mul(DILL.balanceOf(account)).div(DILL.totalSupply())).mul(60).div(100);
         return Math.min(_derived.add(_adjusted), _balance);
     }
-    
+
     function kick(address account) public {
         uint _derivedBalance = derivedBalances[account];
         derivedSupply = derivedSupply.sub(_derivedBalance);
@@ -292,19 +292,19 @@ contract Gauge is ReentrancyGuard {
     function getRewardForDuration() external view returns (uint256) {
         return rewardRate.mul(DURATION);
     }
-    
+
     function depositAll() external {
         _deposit(TOKEN.balanceOf(msg.sender), msg.sender);
     }
-    
+
     function deposit(uint256 amount) external {
         _deposit(amount, msg.sender);
     }
-    
+
     function depositFor(uint256 amount, address account) external {
         _deposit(amount, account);
     }
-    
+
     function _deposit(uint amount, address account) internal nonReentrant updateReward(account) {
         require(amount > 0, "Cannot stake 0");
         _totalSupply = _totalSupply.add(amount);
@@ -312,7 +312,7 @@ contract Gauge is ReentrancyGuard {
         emit Staked(account, amount);
         TOKEN.safeTransferFrom(account, address(this), amount);
     }
-    
+
     function withdrawAll() external {
         _withdraw(_balances[msg.sender]);
     }
@@ -320,7 +320,7 @@ contract Gauge is ReentrancyGuard {
     function withdraw(uint256 amount) external {
         _withdraw(amount);
     }
-    
+
     function _withdraw(uint amount) internal nonReentrant updateReward(msg.sender) {
         require(amount > 0, "Cannot withdraw 0");
         _totalSupply = _totalSupply.sub(amount);
@@ -342,7 +342,7 @@ contract Gauge is ReentrancyGuard {
        _withdraw(_balances[msg.sender]);
         getReward();
     }
-    
+
     function notifyRewardAmount(uint256 reward) external onlyDistribution updateReward(address(0)) {
         PICKLE.safeTransferFrom(DISTRIBUTION, address(this), reward);
         if (block.timestamp >= periodFinish) {
@@ -394,7 +394,7 @@ contract ProtocolGovernance {
     /// @notice governance address for the governance contract
     address public governance;
     address public pendingGovernance;
-    
+
     /**
      * @notice Allows governance to change governance (for future upgradability)
      * @param _governance new governance address to set
@@ -436,7 +436,7 @@ contract MasterDill {
 
     /// @notice The standard EIP-20 approval event
     event Approval(address indexed owner, address indexed spender, uint amount);
-    
+
     constructor() public {
         balances[msg.sender] = 1e18;
         emit Transfer(address(0x0), msg.sender, 1e18);
@@ -522,41 +522,42 @@ contract MasterDill {
 contract GaugeProxy is ProtocolGovernance {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-    
+
     MasterChef public constant MASTER = MasterChef(0xbD17B1ce622d73bD438b9E658acA5996dc394b0d);
     IERC20 public constant DILL = IERC20(0xbBCf169eE191A1Ba7371F30A1C344bFC498b29Cf);
     IERC20 public constant PICKLE = IERC20(0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5);
-    
+
     IERC20 public immutable TOKEN;
-    
+
     uint public pid;
     uint public totalWeight;
-    
+    uint public deadWeight;
+
     address[] internal _tokens;
     mapping(address => address) public gauges; // token => gauge
     mapping(address => uint) public weights; // token => weight
     mapping(address => mapping(address => uint)) public votes; // msg.sender => votes
     mapping(address => address[]) public tokenVote;// msg.sender => token
     mapping(address => uint) public usedWeights;  // msg.sender => total voting weight of user
-    
+
     function tokens() external view returns (address[] memory) {
         return _tokens;
     }
-    
+
     function getGauge(address _token) external view returns (address) {
         return gauges[_token];
     }
-    
+
     constructor() public {
         TOKEN = IERC20(address(new MasterDill()));
         governance = msg.sender;
     }
-    
+
     // Reset votes to 0
     function reset() external {
         _reset(msg.sender);
     }
-    
+
     // Reset votes to 0
     function _reset(address _owner) internal {
         address[] storage _tokenVote = tokenVote[_owner];
@@ -565,26 +566,31 @@ contract GaugeProxy is ProtocolGovernance {
         for (uint i = 0; i < _tokenVoteCnt; i ++) {
             address _token = _tokenVote[i];
             uint _votes = votes[_owner][_token];
-            
+
             if (_votes > 0) {
                 totalWeight = totalWeight.sub(_votes);
                 weights[_token] = weights[_token].sub(_votes);
-                
+
                 votes[_owner][_token] = 0;
+
+                if(_token == address(0x0))
+                {
+                  deadWeight = deadWeight.sub(_votes);
+                }
             }
         }
 
         delete tokenVote[_owner];
     }
-    
+
     // Adjusts _owner's votes according to latest _owner's DILL balance
     function poke(address _owner) public {
         address[] memory _tokenVote = tokenVote[_owner];
         uint256 _tokenCnt = _tokenVote.length;
         uint256[] memory _weights = new uint[](_tokenCnt);
-        
+
         uint256 _prevUsedWeight = usedWeights[_owner];
-        uint256 _weight = DILL.balanceOf(_owner);        
+        uint256 _weight = DILL.balanceOf(_owner);
 
         for (uint256 i = 0; i < _tokenCnt; i ++) {
             uint256 _prevWeight = votes[_owner][_tokenVote[i]];
@@ -593,7 +599,7 @@ contract GaugeProxy is ProtocolGovernance {
 
         _vote(_owner, _tokenVote, _weights);
     }
-    
+
     function _vote(address _owner, address[] memory _tokenVote, uint256[] memory _weights) internal {
         // _weights[i] = percentage * 100
         _reset(_owner);
@@ -622,14 +628,14 @@ contract GaugeProxy is ProtocolGovernance {
 
         usedWeights[_owner] = _usedWeight;
     }
-    
-    
+
+
     // Vote with DILL on a gauge
     function vote(address[] calldata _tokenVote, uint256[] calldata _weights) external {
         require(_tokenVote.length == _weights.length);
         _vote(msg.sender, _tokenVote, _weights);
     }
-    
+
     // Add new token gauge
     function addGauge(address _token) external {
         require(msg.sender == governance, "!gov");
@@ -637,8 +643,21 @@ contract GaugeProxy is ProtocolGovernance {
         gauges[_token] = address(new Gauge(_token));
         _tokens.push(_token);
     }
-    
-    
+
+    // Remove token gauge
+    function removeGauge(address _token) external {
+        require(msg.sender == governance, "!gov");
+        require(gauges[_token] != address(0x0), "!exists");
+        gauges[_token] = address(0x0);
+        deadWeight = deadWeight.add(weights[_token]);
+        for (uint i = 0; i < _tokens.length; i++) {
+           if(_tokens[i] == _token) {
+             _tokens[i] = address(0x0);
+             break;
+           }
+        }
+    }
+
     // Sets MasterChef PID
     function setPID(uint _pid) external {
         require(msg.sender == governance, "!gov");
@@ -646,8 +665,8 @@ contract GaugeProxy is ProtocolGovernance {
         require(_pid > 0, "invalid pid");
         pid = _pid;
     }
-    
-    
+
+
     // Deposits mDILL into MasterChef
     function deposit() public {
         require(pid > 0, "pid not initialized");
@@ -657,27 +676,30 @@ contract GaugeProxy is ProtocolGovernance {
         _token.safeApprove(address(MASTER), _balance);
         MASTER.deposit(pid, _balance);
     }
-    
-    
+
+
     // Fetches Pickle
     function collect() public {
         (uint _locked,) = MASTER.userInfo(pid, address(this));
         MASTER.withdraw(pid, _locked);
         deposit();
     }
-    
+
     function length() external view returns (uint) {
         return _tokens.length;
     }
-    
+
     function distribute() external {
         collect();
         uint _balance = PICKLE.balanceOf(address(this));
         if (_balance > 0 && totalWeight > 0) {
             for (uint i = 0; i < _tokens.length; i++) {
+                if (_tokens[i] == address(0x0)) {
+                  continue;
+                }
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
-                uint _reward = _balance.mul(weights[_token]).div(totalWeight);
+                uint _reward = _balance.mul(weights[_token]).div(totalWeight.sub(deadWeight));
                 if (_reward > 0) {
                     PICKLE.safeApprove(_gauge, 0);
                     PICKLE.safeApprove(_gauge, _reward);
