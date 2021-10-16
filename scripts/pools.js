@@ -1,5 +1,9 @@
 const deployed = [
   {
+    name: "PngAvaxPng",
+    snowglobe_addr: "0x621207093D2e65Bf3aC55dD8Bf0351B980A63815",
+  },
+  {
     name: "JoeAvaxEthE",
     snowglobe_addr: "0xe13E1a491eDc640b0591D70390897620f31bbF6E",
   },
@@ -421,10 +425,7 @@ const benqi = [
     name: "BenqiQi",
     snowglobe_addr: "0x68b8037876385BBd6bBe80bAbB2511b95DA372C4",
   },
-  {
-    name: "PngAvaxPng",
-    snowglobe_addr: "0x621207093D2e65Bf3aC55dD8Bf0351B980A63815",
-  },
+
 ];
 
 const single = [

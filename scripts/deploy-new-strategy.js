@@ -10,7 +10,7 @@ const {
 } = require("./pools");
 
 async function main() {
-  const pools = benqi;
+  const pools = pangolin;
 
   const [deployer] = await ethers.getSigners();
   console.log("Deploying new strategy contracts with the account:", deployer.address);
@@ -31,7 +31,7 @@ async function main() {
 
   const deploy = async (pool) => {
     console.log(`deploying new strategy for ${pool.name}`);
-    const strategy_name = `Strategy${pool.name}`;
+    const strategy_name = `Strategy${pool.name}Lp`;
     const snowglobe_name = `SnowGlobe${pool.name}`;
     let Strategy;
 
@@ -80,7 +80,7 @@ async function main() {
     }
 
     /* Deleverage to min */
-    if (!pool.deleveraged) {
+    if (pool.name.includes("Benqi") && !pool.deleveraged) {
       const deleverage = await Strategy.deleverageToMin();
       const tx_deleverage = await deleverage.wait(1);
       if (!tx_deleverage.status) {
@@ -113,7 +113,7 @@ async function main() {
     }
 
     /* Leverage to the max */
-    if (!pool.leveraged) {
+    if (pool.name.includes("Benqi") && !pool.leveraged) {
       const leverage = await Strategy.leverageToMax();
       const tx_leverage = await leverage.wait(1);
       if (!tx_leverage.status) {
