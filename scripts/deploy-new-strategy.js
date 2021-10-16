@@ -6,11 +6,11 @@ const {
   benqi,
   pangolin,
   traderjoe,
-  stakingStrategies
+  single,
 } = require("./pools");
 
 async function main() {
-  const pools = stakingStrategies;
+  const pools = benqi;
 
   const [deployer] = await ethers.getSigners();
   console.log("Deploying new strategy contracts with the account:", deployer.address);
@@ -26,82 +26,103 @@ async function main() {
   const gaugeproxy_addr = "0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27";
   const strategist_addr = "0xc9a51fB9057380494262fd291aED74317332C0a2";
 
-  const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
+  // let controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
   // const controller_addr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; //Aave
-
-  const Controller = new ethers.Contract(controller_addr, controller_ABI, deployer);
 
   const deploy = async (pool) => {
     console.log(`deploying new strategy for ${pool.name}`);
     const strategy_name = `Strategy${pool.name}`;
     const snowglobe_name = `SnowGlobe${pool.name}`;
-  
-    /* Deploy Strategy */
-    const strategy = await ethers.getContractFactory(strategy_name);
-    const Strategy = await strategy.deploy(governance_addr, strategist_addr, controller_addr, timelock_addr);
-    console.log(`deployed ${strategy_name} at : ${Strategy.address}`);
-    
-    // /* Connect to Strategy */
-    // const Strategy = new ethers.Contract(pool.strategy_addr, strategy_ABI, deployer);
-    
+    let Strategy;
 
-    // /* Deploy Snowglobe */
-    // const lp = await Strategy.want();
-    // const globe = await ethers.getContractFactory(snowglobe_name);
-    // const SnowGlobe = await globe.deploy(lp, governance_addr, timelock_addr, controller_addr);
-    // console.log(`deployed ${snowglobe_name} at : ${SnowGlobe.address}`);
+    /* Get Controller */
+    let controller_addr = pool.controller_addr ? pool.controller_addr : "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85";
+    const Controller = new ethers.Contract(controller_addr, controller_ABI, deployer);
   
+    /* Connect to Strategy */
+    if (pool.strategy_addr) {
+      Strategy = new ethers.Contract(pool.strategy_addr, strategy_ABI, deployer);
+      console.log(`connected to ${strategy_name} at : ${Strategy.address}`);
+    }
+    else {
+      /* Deploy Strategy */
+      const strategy = await ethers.getContractFactory(strategy_name);
+      Strategy = await strategy.deploy(governance_addr, strategist_addr, controller_addr, timelock_addr);
+      console.log(`deployed ${strategy_name} at : ${Strategy.address}`);  
+    }
+
     // /* Connect to Snowglobe */
     const lp = await Strategy.want();
     const SnowGlobe = new ethers.Contract(pool.snowglobe_addr, snowglobe_ABI, deployer);
-  
-    // /* Set Globe */
-    // const setGlobe = await Controller.setGlobe(lp, SnowGlobe.address);
-    // const tx_setGlobe = await setGlobe.wait(1);
-    // if (!tx_setGlobe.status) {
-    //   console.error("Error setting the globe for: ",pool.name);
-    //   return;
-    // }
-    // console.log("Set Globe in the Controller for: ",pool.name);
 
     /* Approve Strategy */
-    const approveStrategy = await Controller.approveStrategy(lp, Strategy.address);
-    const tx_approveStrategy = await approveStrategy.wait(1);
-    if (!tx_approveStrategy.status) {
-      console.error("Error approving the strategy for: ",pool.name);
-      return;
+    if (!pool.approved){
+      const approveStrategy = await Controller.approveStrategy(lp, Strategy.address);
+      const tx_approveStrategy = await approveStrategy.wait(1);
+      if (!tx_approveStrategy.status) {
+        console.error("Error approving the strategy for: ",pool.name);
+        return;
+      }
+      console.log("Approved Strategy in the Controller for: ",pool.name);
     }
-    console.log("Approved Strategy in the Controller for: ",pool.name);
 
     /* Harvest old strategy */
-    const strategies = await Controller.strategies(lp);
-    const oldStrategy = new ethers.Contract(strategies, strategy_ABI, deployer);
-    const harvest = await oldStrategy.harvest();
-    const tx_harvest = await harvest.wait(1);
-    if (!tx_harvest.status) {
-      console.error("Error harvesting the old strategy for: ",pool.name);
-      return;
+    if (!pool.harvested){
+      const strategies = await Controller.strategies(lp);
+      const oldStrategy = new ethers.Contract(strategies, strategy_ABI, deployer);
+      const harvest = await oldStrategy.harvest();
+      const tx_harvest = await harvest.wait(1);
+      if (!tx_harvest.status) {
+        console.error("Error harvesting the old strategy for: ",pool.name);
+        return;
+      }
+      console.log("Harvested the old strategy for: ",pool.name);
     }
-    console.log("Harvested the old strategy for: ",pool.name);
 
-    /* Set Strategy */
-    const setStrategy = await Controller.setStrategy(lp, Strategy.address);
-    const tx_setStrategy = await setStrategy.wait(1);
-    if (!tx_setStrategy.status) {
-      console.error("Error setting the strategy for: ",pool.name);
-      return;
+    /* Deleverage to min */
+    if (!pool.deleveraged) {
+      const deleverage = await Strategy.deleverageToMin();
+      const tx_deleverage = await deleverage.wait(1);
+      if (!tx_deleverage.status) {
+        console.error("Error deleveraging the old strategy for: ",pool.name);
+        return;
+      }
+      console.log("Deleveraged the old strategy for: ",pool.name);
     }
-    console.log("Set Strategy in the Controller for: ",pool.name);
+    
+    /* Set Strategy */
+    if (!pool.set_strategy) {
+      const setStrategy = await Controller.setStrategy(lp, Strategy.address);
+      const tx_setStrategy = await setStrategy.wait(1);
+      if (!tx_setStrategy.status) {
+        console.error("Error setting the strategy for: ",pool.name);
+        return;
+      }
+      console.log("Set Strategy in the Controller for: ",pool.name);
+    }
 
     /* Earn */
-    const earn = await SnowGlobe.earn();
-    const tx_earn = await earn.wait(1);
-    if (!tx_earn.status) {
-      console.error("Error calling earn in the Snowglobe for: ",pool.name);
-      return;
+    if (!pool.earn){
+      const earn = await SnowGlobe.earn();
+      const tx_earn = await earn.wait(1);
+      if (!tx_earn.status) {
+        console.error("Error calling earn in the Snowglobe for: ",pool.name);
+        return;
+      }
+      console.log("Called earn in the Snowglobe for: ",pool.name);
     }
-    console.log("Called earn in the Snowglobe for: ",pool.name);
-  
+
+    /* Leverage to the max */
+    if (!pool.leveraged) {
+      const leverage = await Strategy.leverageToMax();
+      const tx_leverage = await leverage.wait(1);
+      if (!tx_leverage.status) {
+        console.error("Error leverage the old strategy for: ",pool.name);
+        return;
+      }
+      console.log("Leverage the old strategy for: ",pool.name);
+    }
+ 
     /* Whitelist Harvester */
     await Strategy.whitelistHarvester("0x096a46142C199C940FfEBf34F0fe2F2d674fDB1F");
     console.log('whitelisted the harvester for: ',pool.name);
