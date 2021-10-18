@@ -3,8 +3,6 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-farm-base-v2.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyPngSporePngLp is StrategyPngFarmBaseV2 {
     // Token addresses
     address public png_spore_png_rewards = 0x12A33F6B0dd0D35279D402aB61587fE7eB23f7b0;
@@ -79,7 +77,6 @@ contract StrategyPngSporePngLp is StrategyPngFarmBaseV2 {
             // Donates DUST
             _png = IERC20(png).balanceOf(address(this));
             if (_png > 0) {
-                console.log("_png: ",_png);
                 IERC20(png).transfer(
                     IController(controller).treasury(),
                     _png
@@ -87,7 +84,6 @@ contract StrategyPngSporePngLp is StrategyPngFarmBaseV2 {
             }
             _spore = IERC20(spore).balanceOf(address(this));
             if (_spore > 0) {
-                console.log("_spore: ",_spore);
                 IERC20(spore).safeTransfer(
                     IController(controller).treasury(),
                     _spore
