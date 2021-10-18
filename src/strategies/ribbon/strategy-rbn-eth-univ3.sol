@@ -73,7 +73,9 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             address(this),
             univ3_staker,
             tokenId,
-            abi.encodePacked(key, IUniswapV3Staker.IncentiveKey)
+            abi.encodePacked(
+                IUniswapV3Staker.IncentiveKey(key.rewardToken, key.pool, key.startTime, key.endTime, key.refundee)
+            )
         );
     }
 
@@ -151,7 +153,9 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             address(this),
             univ3_staker,
             tokenId,
-            abi.encodePacked(key, IUniswapV3Staker.IncentiveKey)
+            abi.encodePacked(
+                IUniswapV3Staker.IncentiveKey(key.rewardToken, key.pool, key.startTime, key.endTime, key.refundee)
+            )
         );
     }
 
