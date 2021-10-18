@@ -70,14 +70,14 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
             if (token1 == png) {
                 _swapPangolin(png, wavax, _png.sub(_keep).div(2));
             } else {            
-             _swapPangolin(png, wavax, _png.sub(_keep));
+                _swapPangolin(png, wavax, _png.sub(_keep));
             }
              
         }
 
         // Swap half WAVAX for token
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0) {
+        if (_wavax > 0 && token1 != png) {
             _swapPangolin(wavax, token1, _wavax.div(2));
         }
 
