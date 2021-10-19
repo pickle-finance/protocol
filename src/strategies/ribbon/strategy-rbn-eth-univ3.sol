@@ -39,14 +39,14 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         return "StrategyRbnEthUniV3";
     }
 
-    function depositInitial() public returns (uint256) {
+    function depositInitial() public returns (uint256 _tokenId) {
         require(msg.sender == governance || msg.sender == strategist, "not authorized");
         require(tokenId == 0, "token already set");
 
         uint256 _token0 = token0.balanceOf(address(this)); // rbn
         uint256 _token1 = token1.balanceOf(address(this)); // weth
 
-        (uint256 _tokenId, , , ) = nftManager.mint(
+        (_tokenId, , , ) = nftManager.mint(
             IUniswapV3PositionsNFT.MintParams({
                 token0: address(token0),
                 token1: address(token1),
@@ -68,21 +68,24 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         // Record tokenId
         tokenId = _tokenId;
 
-        // Deposit in Uni v3 staker
-        IERC721(address(nftManager)).safeTransferFrom(
-            address(this),
-            univ3_staker,
-            tokenId,
-            abi.encodePacked(
-                IUniswapV3Staker.IncentiveKey(key.rewardToken, key.pool, key.startTime, key.endTime, key.refundee)
-            )
-        );
+        // Deposit + stake in Uni v3 staker
+        nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
+        IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
     }
 
     function harvest() public override onlyBenevolent {
         IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
         IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rbn), address(this), 0);
         IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
+
+        nftManager.collect(
+            IUniswapV3PositionsNFT.CollectParams({
+                tokenId: tokenId,
+                recipient: address(this),
+                amount0Max: type(uint128).max,
+                amount1Max: type(uint128).max
+            })
+        );
 
         uint256 _rbn = IERC20(rbn).balanceOf(address(this));
         uint256 _weth = IERC20(weth).balanceOf(address(this));
@@ -134,7 +137,10 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
     // **** Setters ****
 
     function deposit() public override {
-        IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
+        if (nftManager.ownerOf(tokenId) != address(this)) {
+            IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
+            IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
+        }
 
         uint256 _token0 = token0.balanceOf(address(this)); // rbn
         uint256 _token1 = token1.balanceOf(address(this)); // weth
@@ -149,26 +155,19 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
                 deadline: block.timestamp + 300
             })
         );
-        nftManager.safeTransferFrom(
-            address(this),
-            univ3_staker,
-            tokenId,
-            abi.encodePacked(
-                IUniswapV3Staker.IncentiveKey(key.rewardToken, key.pool, key.startTime, key.endTime, key.refundee)
-            )
-        );
+        // Deposit + stake in Uni v3 staker
+        nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
+        IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
     }
 
-    function _withdrawSome(uint256 _liquidity) internal override returns (uint256, uint256) {
+    function _withdrawSome(uint256 _liquidity) internal override returns (uint256 amount0, uint256 amount1) {
         if (_liquidity == 0) return (0, 0);
-        uint256 amount0;
-        uint256 amount1;
+
         IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
-        IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rbn), address(this), 0);
         IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
 
         (uint256 _a0Expect, uint256 _a1Expect) = pool.amountsForLiquidity(uint128(_liquidity), tick_lower, tick_upper);
-        nftManager.decreaseLiquidity(
+        (uint256 amount0, uint256 amount1) = nftManager.decreaseLiquidity(
             IUniswapV3PositionsNFT.DecreaseLiquidityParams({
                 tokenId: tokenId,
                 liquidity: uint128(_liquidity),
@@ -178,7 +177,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             })
         );
 
-        (uint256 _a0, uint256 _a1) = nftManager.collect(
+        (amount0, amount1) = nftManager.collect(
             IUniswapV3PositionsNFT.CollectParams({
                 tokenId: tokenId,
                 recipient: address(this),
@@ -186,8 +185,19 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
                 amount1Max: type(uint128).max
             })
         );
-        amount0 = amount0.add(_a0);
-        amount1 = amount1.add(_a1);
-        return (amount0, amount1);
+    }
+
+    // Override base withdraw function to redeposit
+    function withdraw(uint256 _liquidity) external override returns (uint256 a0, uint256 a1) {
+        require(msg.sender == controller, "!controller");
+        (a0, a1) = _withdrawSome(_liquidity);
+
+        address _jar = IControllerV2(controller).jars(address(pool));
+        require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
+
+        token0.safeTransfer(_jar, a0);
+        token1.safeTransfer(_jar, a1);
+
+        deposit();
     }
 }

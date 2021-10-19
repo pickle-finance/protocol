@@ -212,7 +212,7 @@ abstract contract StrategyUniV3Base {
     }
 
     // Withdraw partial funds, normally used with a jar withdrawal
-    function withdraw(uint256 _liquidity) external returns (uint256 a0, uint256 a1) {
+    function withdraw(uint256 _liquidity) external virtual returns (uint256 a0, uint256 a1) {
         require(msg.sender == controller, "!controller");
         (a0, a1) = _withdrawSome(_liquidity);
 
