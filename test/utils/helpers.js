@@ -56,6 +56,20 @@ const returnSigner = async (address) => {
   return ethers.provider.getSigner(address)
 };
 
+const findSlot = (address) => {
+  let slot;
+  switch (address){
+    case "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7": slot = "3"; break; //WAVAX
+    case "0x8729438eb15e2c8b576fcc6aecda6a148776c0f5": slot = "1"; break; //QI
+    case "0xdc42728b0ea910349ed3c6e1c9dc06b5fb591f98": slot = "2"; break; //FRAX
+    case "0x1c20e891bab6b1727d14da358fae2984ed9b59eb": slot = "14"; break; //TUSD
+    case "0xB91124eCEF333f17354ADD2A8b944C76979fE3EC": slot = "51"; break; //s4D
+    default : slot = "0"; break; 
+  }
+
+  return slot;
+}
+
 
 module.exports = {
     toWei,
@@ -66,4 +80,5 @@ module.exports = {
     overwriteTokenAmount,
     returnSigner,
     fastForwardAWeek,
+    findSlot
   };
