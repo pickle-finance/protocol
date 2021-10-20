@@ -17,13 +17,15 @@ describe("StrategyRbnEthUniV3", () => {
   let alice;
   let rbn, weth
   let strategy, pickleJar, controller;
-  let governance, strategist, devfund, treasury, timelock;
+  let governance, strategist, timelock, devfund, treasury;
 
   before("Setup Contracts", async () => {
-    [alice, bob, charles, devfund, treasury] = await hre.ethers.getSigners();
+    [alice, bob, charles] = await hre.ethers.getSigners();
     governance = alice;
     strategist = alice;
     timelock = alice;
+    devfund = alice;
+    treasury = alice;
 
     proxyAdmin = await deployContract("ProxyAdmin");
     console.log("✅ ProxyAdmin is deployed at ", proxyAdmin.address);
@@ -75,20 +77,20 @@ describe("StrategyRbnEthUniV3", () => {
     rbn = await getContractAt("ERC20", RBN_TOKEN);
     weth = await getContractAt("ERC20", WETH_TOKEN);
 
-    await getWantFromWhale(RBN_TOKEN, toWei(100000), alice, "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098");
+    await getWantFromWhale(RBN_TOKEN, toWei(110000), alice, "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098");
 
-    await getWantFromWhale(WETH_TOKEN, toWei(100), alice, "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098");
+    await getWantFromWhale(WETH_TOKEN, toWei(80), alice, "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098");
 
     await getWantFromWhale(RBN_TOKEN, toWei(100000), bob, "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098");
 
-    await getWantFromWhale(WETH_TOKEN, toWei(100), bob, "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098");
+    await getWantFromWhale(WETH_TOKEN, toWei(80), bob, "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098");
 
     await getWantFromWhale(RBN_TOKEN, toWei(100000), charles, "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098");
 
-    await getWantFromWhale(WETH_TOKEN, toWei(100), charles, "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098");
+    await getWantFromWhale(WETH_TOKEN, toWei(30), charles, "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098");
 
     // Initial deposit to create NFT
-    const amountRbn = toWei(10);
+    const amountRbn = toWei(1);
     const amountWeth = await getAmountB(amountRbn);
 
     await rbn.connect(alice).transfer(strategy.address, amountRbn)
@@ -97,13 +99,12 @@ describe("StrategyRbnEthUniV3", () => {
   });
   
   it("should harvest correctly", async () => {
-    let depositA = toWei(40000);
+    let depositA = toWei(100000);
     let depositB = await getAmountB(depositA);
     let aliceShare, bobShare, charlesShare;
 
     console.log("=============== Alice deposit ==============");
     await deposit(alice, depositA, depositB);
-    console.log("rbn balance....", await rbn.balanceOf(pickleJar.address).toString())
     await pickleJar.earn();
     await harvest();
 
@@ -128,11 +129,13 @@ describe("StrategyRbnEthUniV3", () => {
     console.log("Alice rbn balance after withdrawal => ", (await rbn.balanceOf(alice.address)).toString());
     console.log("Alice weth balance after withdrawal => ", (await weth.balanceOf(alice.address)).toString());
 
+    console.log("Alice shares remaining => ", (await pickleJar.balanceOf(alice.address)).toString())
+
     await increaseTime(60 * 60 * 24 * 1); //travel 14 days
 
     console.log("=============== Charles deposit ==============");
 
-    depositA = toWei(70000);
+    depositA = toWei(30000);
     depositB = await getAmountB(depositA);
 
     await deposit(charles, depositA, depositB);
@@ -201,7 +204,7 @@ describe("StrategyRbnEthUniV3", () => {
     console.log("============ Harvest Started ==============");
 
     console.log("Ratio before harvest => ", (await pickleJar.getRatio()).toString());
-    await increaseTime(60 * 60 * 24 * 14); //travel 30 days
+    await increaseTime(60 * 60 * 24 * 14); //travel 14 days
     await increaseBlock(1000);
     await strategy.harvest();
     console.log("Ratio after harvest => ", (await pickleJar.getRatio()).toString());

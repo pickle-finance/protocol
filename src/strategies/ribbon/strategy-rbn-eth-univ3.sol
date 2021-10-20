@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 import "../strategy-univ3-base.sol";
 import "../../interfaces//univ3/IUniswapV3Staker.sol";
 import "../../interfaces/weth.sol";
+import "hardhat/console.sol";
 
 contract StrategyRbnEthUniV3 is StrategyUniV3Base {
     address public rbn_eth_pool = 0x94981F69F7483AF3ae218CbfE65233cC3c60d93a;
@@ -89,38 +90,29 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
 
         uint256 _rbn = IERC20(rbn).balanceOf(address(this));
         uint256 _weth = IERC20(weth).balanceOf(address(this));
+        console.log("rbn balance BEFORE swapping: %s", _rbn);
+        console.log("weth balance BEFORE swapping: %s", _weth);
 
-        uint256 _ratio = getProportion();
-        uint256 _amount1Desired = (_weth.add(_rbn)).mul(_ratio).div(_ratio.add(1e18));
-        uint256 _amount;
-        address from;
-        address to;
-
-        if (_amount1Desired < _rbn) {
-            _amount = _rbn.sub(_amount1Desired);
-            from = rbn;
-            to = weth;
-        } else {
-            _amount = _amount1Desired.sub(_rbn);
-            from = weth;
-            to = rbn;
-        }
-
-        IERC20(from).safeApprove(univ3Router, 0);
-        IERC20(from).safeApprove(univ3Router, _amount);
+        IERC20(rbn).safeApprove(univ3Router, 0);
+        IERC20(rbn).safeApprove(univ3Router, _rbn.div(2));
 
         ISwapRouter(univ3Router).exactInputSingle(
             ISwapRouter.ExactInputSingleParams({
-                tokenIn: from,
-                tokenOut: to,
+                tokenIn: rbn,
+                tokenOut: weth,
                 fee: pool.fee(),
                 recipient: address(this),
                 deadline: block.timestamp + 300,
-                amountIn: _amount,
+                amountIn: _rbn.div(2),
                 amountOutMinimum: 0,
                 sqrtPriceLimitX96: 0
             })
         );
+
+        _rbn = IERC20(rbn).balanceOf(address(this));
+        _weth = IERC20(weth).balanceOf(address(this));
+        console.log("rbn balance AFTER swapping: %s", _rbn);
+        console.log("weth balance AFTER swapping: %s", _weth);
         nftManager.sweepToken(weth, 0, address(this));
         nftManager.sweepToken(rbn, 0, address(this));
 
@@ -137,6 +129,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
     // **** Setters ****
 
     function deposit() public override {
+        // If NFT is held by staker, then withdraw
         if (nftManager.ownerOf(tokenId) != address(this)) {
             IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
             IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
@@ -155,12 +148,16 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
                 deadline: block.timestamp + 300
             })
         );
-        // Deposit + stake in Uni v3 staker
+        redeposit();
+    }
+
+    // Deposit + stake in Uni v3 staker
+    function redeposit() internal {
         nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
         IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
     }
 
-    function _withdrawSome(uint256 _liquidity) internal override returns (uint256 amount0, uint256 amount1) {
+    function _withdrawSome(uint256 _liquidity) internal override returns (uint256, uint256) {
         if (_liquidity == 0) return (0, 0);
 
         IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
@@ -177,7 +174,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             })
         );
 
-        (amount0, amount1) = nftManager.collect(
+        nftManager.collect(
             IUniswapV3PositionsNFT.CollectParams({
                 tokenId: tokenId,
                 recipient: address(this),
@@ -185,6 +182,10 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
                 amount1Max: type(uint128).max
             })
         );
+
+        uint256 _amount0 = IERC20(token0).balanceOf(address(this));
+        uint256 _amount1 = IERC20(token1).balanceOf(address(this));
+        return (amount0, amount1);
     }
 
     // Override base withdraw function to redeposit
@@ -198,6 +199,6 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         token0.safeTransfer(_jar, a0);
         token1.safeTransfer(_jar, a1);
 
-        deposit();
+        redeposit();
     }
 }
