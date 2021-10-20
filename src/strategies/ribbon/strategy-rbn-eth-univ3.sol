@@ -90,8 +90,6 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
 
         uint256 _rbn = IERC20(rbn).balanceOf(address(this));
         uint256 _weth = IERC20(weth).balanceOf(address(this));
-        console.log("rbn balance BEFORE swapping: %s", _rbn);
-        console.log("weth balance BEFORE swapping: %s", _weth);
 
         IERC20(rbn).safeApprove(univ3Router, 0);
         IERC20(rbn).safeApprove(univ3Router, _rbn.div(2));
@@ -109,10 +107,6 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             })
         );
 
-        _rbn = IERC20(rbn).balanceOf(address(this));
-        _weth = IERC20(weth).balanceOf(address(this));
-        console.log("rbn balance AFTER swapping: %s", _rbn);
-        console.log("weth balance AFTER swapping: %s", _weth);
         nftManager.sweepToken(weth, 0, address(this));
         nftManager.sweepToken(rbn, 0, address(this));
 
