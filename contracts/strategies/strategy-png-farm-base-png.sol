@@ -61,7 +61,11 @@ abstract contract StrategyPngFarmBasePng is StrategyStakingRewardsBase {
         if (_png > 0) {
             // 10% is locked up for future gov
             uint256 _keep = _png.mul(keep).div(keepMax);
-            _takeFeePngToSnob(_keep);
+            if (_keep > 0) {
+                _takeFeePngToSnob(_keep);
+            }
+            IERC20(png).safeApprove(pangolinRouter, 0);
+            IERC20(png).safeApprove(pangolinRouter, _png.sub(_keep));
             
             //swap Pangolin for token1
             _swapPangolin(png, token1, _png.sub(_keep).div(2));      

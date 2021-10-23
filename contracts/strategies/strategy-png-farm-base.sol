@@ -4,6 +4,7 @@ pragma solidity ^0.6.7;
 import "./strategy-staking-rewards-base.sol";
 
 abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
+
     // WAVAX/<token1> pair
     address public token1;
 
@@ -35,9 +36,12 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
         IERC20(png).safeApprove(pangolinRouter, 0);
         IERC20(png).safeApprove(pangolinRouter, _keep);
         _swapPangolin(png, snob, _keep);
-        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
-        IERC20(snob).safeTransfer(feeDistributor, _share);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
         IERC20(snob).safeTransfer(
             IController(controller).treasury(),
             _snob.sub(_share)
@@ -60,17 +64,20 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
             if (_keep > 0) {
                 _takeFeePngToSnob(_keep);
             }
-
+            IERC20(png).safeApprove(pangolinRouter, 0);
+            IERC20(png).safeApprove(pangolinRouter, _png.sub(_keep));
+            
             if (token1 == png) {
                 _swapPangolin(png, wavax, _png.sub(_keep).div(2));
-            } else {
+            } else {            
                 _swapPangolin(png, wavax, _png.sub(_keep));
             }
+             
         }
 
         // Swap half WAVAX for token
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0) {
+        if (_wavax > 0 && token1 != png) {
             _swapPangolin(wavax, token1, _wavax.div(2));
         }
 

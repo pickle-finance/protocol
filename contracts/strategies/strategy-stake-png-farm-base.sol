@@ -62,7 +62,9 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
         if (_wavax > 0) {
             // 10% is locked up for future gov
             uint256 _keep = _wavax.mul(keep).div(keepMax);
-            _takeFeeWavaxToSnob(_keep);
+            if (_keep > 0) {
+                _takeFeeWavaxToSnob(_keep);
+            }
 
             //swap WAVAX for token1
             _swapPangolin(wavax, token1, _wavax.sub(_keep).div(2));
