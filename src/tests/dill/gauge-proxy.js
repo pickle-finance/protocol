@@ -40,7 +40,7 @@ describe('GaugeProxy', () => {
        governanceSigner
      );
      masterChef.connect(governanceSigner);
-     gaugeproxy = await factory.deploy(ZERO_ADDRESS);
+     gaugeproxy = await factory.deploy();
 
   });
 
@@ -141,6 +141,22 @@ describe('GaugeProxy', () => {
       expect(post_pickleRewards).to.be.gt(pickleRewards);
       expect(post_yvecrvRewards).to.equal(yvecrvRewards);
       expect(await gaugeproxy.deadWeight()).to.be.gt(0);
+
+
+      let weight_1 = await gaugeproxy.usedWeights(userAddr);
+
+      populatedTx = await gaugeProxyFromUser.populateTransaction.vote(
+        [pickleLP, pyveCRVETH],
+        [6000000, 4000000],
+        {
+          gasLimit: 9000000,
+        }
+      );
+      await userSigner.sendTransaction(populatedTx);
+
+      let weight_2 = await gaugeproxy.usedWeights(userAddr);
+      expect(weight_1).to.be.gt(weight_2);
+
 
     })
   })
