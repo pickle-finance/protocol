@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const hre = require("hardhat");
 const {ZERO_ADDRESS} = require("../utils/constants");
-const {increaseBlock} = require("../utils/testHelper");
+const {deployContract, increaseBlock} = require("../utils/testHelper");
 
 const governanceAddr = "0x9d074E37d408542FD38be78848e8814AFB38db17";
 const masterChefAddr = "0xbD17B1ce622d73bD438b9E658acA5996dc394b0d";
@@ -40,7 +40,7 @@ describe('GaugeProxy', () => {
        governanceSigner
      );
      masterChef.connect(governanceSigner);
-     gaugeproxy = await factory.deploy();
+     gaugeproxy = await factory.deploy(ZERO_ADDRESS);
 
   });
 
@@ -107,7 +107,6 @@ describe('GaugeProxy', () => {
       await gaugeproxy.setPID(pidDill);
       await gaugeproxy.deposit();
 
-
       expect(await gaugeproxy.deadWeight()).to.equal(0);
 
 
@@ -116,16 +115,17 @@ describe('GaugeProxy', () => {
       const pickleGaugeAddr = await gaugeproxy.getGauge(pickleLP);
       const yvecrvGaugeAddr = await gaugeproxy.getGauge(pyveCRVETH);
       const pickle = await ethers.getContractAt("src/yield-farming/pickle-token.sol:PickleToken", pickleAddr);
-
       const pre_pickleRewards = await pickle.balanceOf(pickleGaugeAddr);
       const pre_yvecrvRewards = await pickle.balanceOf(yvecrvGaugeAddr);
 
       console.log("Pre-Rewards to Pickle gauge", pre_pickleRewards);
+      console.log("Pre-Rewards to YVECRV gauge", pre_yvecrvRewards);
       await gaugeproxy.distribute();
 
       const pickleRewards = await pickle.balanceOf(pickleGaugeAddr);
       const yvecrvRewards = await pickle.balanceOf(yvecrvGaugeAddr);
-      console.log("Rewards to Pickle gauge", pre_pickleRewards);
+      console.log("Rewards to Pickle gauge", pickleRewards);
+      console.log("Rewards to YVECRV gauge", yvecrvRewards);
       expect(pickleRewards).to.be.gt(pre_pickleRewards);
       expect(yvecrvRewards).to.be.gt(pre_yvecrvRewards);
 
@@ -136,7 +136,8 @@ describe('GaugeProxy', () => {
 
       const post_pickleRewards = await pickle.balanceOf(pickleGaugeAddr);
       const post_yvecrvRewards = await pickle.balanceOf(yvecrvGaugeAddr);
-      console.log("Post-Rewards to Pickle gauge", pre_pickleRewards);
+      console.log("Post-Rewards to Pickle gauge", post_pickleRewards);
+      console.log("Post-Rewards to YVECRV gauge", post_yvecrvRewards);
       expect(post_pickleRewards).to.be.gt(pickleRewards);
       expect(post_yvecrvRewards).to.equal(yvecrvRewards);
       expect(await gaugeproxy.deadWeight()).to.be.gt(0);
