@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-joe-farm-base.sol";
+import "../strategy-joe-rush-farm-base.sol";
 
-contract StrategyJoeAvaxSpellLp is StrategyJoeFarmBase {
-    uint256 public avax_spell_poolId = 48;
+contract StrategyJoeAvaxSpellLp is StrategyJoeRushFarmBase {
+    uint256 public avax_spell_poolId = 3;
 
     address public joe_avax_spell_lp =
         0x62cf16BF2BC053E7102E2AC1DEE5029b94008d99;
@@ -17,7 +17,7 @@ contract StrategyJoeAvaxSpellLp is StrategyJoeFarmBase {
         address _timelock
     )
         public
-        StrategyJoeFarmBase(
+        StrategyJoeRushFarmBase(
             avax_spell_poolId,
             joe_avax_spell_lp,
             _governance,
@@ -37,7 +37,7 @@ contract StrategyJoeAvaxSpellLp is StrategyJoeFarmBase {
         //      if so, a new strategy will be deployed.
 
         // Collects Joe tokens
-        IMasterChefJoeV2(masterChefJoeV2).deposit(poolId, 0);
+        IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
 
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {

@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-joe-farm-base.sol";
+import "../strategy-joe-rush-farm-base.sol";
 
-contract StrategyJoeAvaxXavaLp is StrategyJoeFarmBase {
-
-    uint256 public avax_xava_poolId = 7;
+contract StrategyJoeAvaxXavaLp is StrategyJoeRushFarmBase {
+    uint256 public avax_xava_poolId = 2;
 
     address public joe_avax_xava_lp = 0x72c3438cf1c915EcF5D9F17A6eD346B273d5bF71;
     address public xava = 0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4;
@@ -17,7 +16,7 @@ contract StrategyJoeAvaxXavaLp is StrategyJoeFarmBase {
         address _timelock
     )
         public
-        StrategyJoeFarmBase(
+        StrategyJoeRushFarmBase(
             avax_xava_poolId,
             joe_avax_xava_lp,
             _governance,
@@ -37,7 +36,7 @@ contract StrategyJoeAvaxXavaLp is StrategyJoeFarmBase {
         //      if so, a new strategy will be deployed.
 
         // Collects Joe tokens
-        IMasterChefJoeV2(masterChefJoeV2).deposit(poolId, 0);
+        IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
 
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
@@ -93,7 +92,7 @@ contract StrategyJoeAvaxXavaLp is StrategyJoeFarmBase {
 
     // **** Views ****
 
-    function getName() external override pure returns (string memory) {
+    function getName() external pure override returns (string memory) {
         return "StrategyJoeAvaxXavaLp";
     }
 }
