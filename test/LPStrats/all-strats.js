@@ -13,10 +13,10 @@ const tests = [
     //   controllerAddress: "0xacc69deef119ab5bbf14e6aaf0536eafb3d6e046",
     //   snowglobeAddress: "0xB4db531076494432eaAA4C6fCD59fcc876af2734",
     // },
-    // {
-    //   name: "PngAvaxSnob",
-    //   controllerAddress: "0xacc69deef119ab5bbf14e6aaf0536eafb3d6e046",
-    //   snowglobeAddress: "0xF4072358C1E3d7841BD7AfDE31F61E17E8d99BE7",
+   //  {
+   //    name: "PngAvaxSnob",
+   //    controllerAddress: "0xacc69deef119ab5bbf14e6aaf0536eafb3d6e046",
+   //    snowglobeAddress: "0xF4072358C1E3d7841BD7AfDE31F61E17E8d99BE7",
     // },
     // {
     //   name: "PngAvaxVso",
@@ -28,16 +28,21 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "0x8309C64390F376fD778BDd701d54d1F8DFfe1F39",
     // },
-    // {
-    //   name: "PngAvaxSpore",
-    //   controllerAddress: "",
-    //   snowglobeAddress: "0x27f8FE86a513bAAF18B59D3dD15218Cc629640Fc",
-    // },
+     {
+       name: "PngAvaxSpore",
+       controllerAddress: "",
+       snowglobeAddress: "0x27f8FE86a513bAAF18B59D3dD15218Cc629640Fc",
+     },
     {
       name: "PngSporePng",
       controllerAddress: "",
       snowglobeAddress: "0xa39785a4E4CdDa7509751ed152a00f3D37FbFa9F",
     },
+    {
+        name: "PngAvaxGb",
+        controllerAddress: "",
+        snowglobeAddress: "0xc3C68a28361Fa6ba292528Fe192cD59296fB2d73",
+      },
     // {
     //   name: "PngAvaxBnb",
     //   controllerAddress: "",
@@ -528,7 +533,7 @@ const tests = [
     //   name: "JoeUsdceJoe",
     //   controllerAddress: "",
     //   snowglobeAddress: "0xDe9f979fEdf595FcfD1D09c85d194C700678cC83",
-    // },
+    // }, 
     // {
     //   name: "JoeUsdceWbtce",
     //   controllerAddress: "",
@@ -538,6 +543,6 @@ const tests = [
 
 for (const test of tests) {
     describe(test.name, async () => {
-        doLPStrategyTest(test.name, test.snowglobeAddress, test.controllerAddress, globeABI, stratABI, null);
+        doLPStrategyTest(test.name, test.snowglobeAddress, test.controllerAddress, globeABI, stratABI, 1);
     });
 }
