@@ -2,6 +2,7 @@
 pragma solidity ^0.6.7;
 
 import "../strategy-png-farm-base-v2.sol";
+import "hardhat/console.sol";
 
 contract StrategyPngAvaxSporeLp is StrategyPngFarmBaseV2 {
     // Token addresses
@@ -42,6 +43,7 @@ contract StrategyPngAvaxSporeLp is StrategyPngFarmBaseV2 {
         if (_png > 0) {
             // 10% is locked up for future gov
             uint256 _keep = _png.mul(keep).div(keepMax);
+            console.log("keep percentage %s",_keep);
             if (_keep > 0) {
                 _takeFeePngToSnob(_keep);
             }
@@ -81,14 +83,27 @@ contract StrategyPngAvaxSporeLp is StrategyPngFarmBaseV2 {
             );
 
             // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(spore).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(spore).balanceOf(address(this))
-            );
+              _wavax = IERC20(wavax).balanceOf(address(this));
+            if (_wavax > 0) {
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    IERC20(wavax).balanceOf(address(this))
+                );
+            }
+             _png = IERC20(png).balanceOf(address(this));
+            if (_png > 0) {
+                IERC20(png).transfer(
+                    IController(controller).treasury(),
+                    _png
+                );
+            }
+            _spore = IERC20(spore).balanceOf(address(this));
+            if (_spore > 0) {
+                IERC20(spore).safeTransfer(
+                    IController(controller).treasury(),
+                    _spore
+                );
+            }
         }
 
         // We want to get back PNG LP tokens
