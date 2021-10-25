@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
-import "hardhat/console.sol";
 
 import "./strategy-base.sol";
 import "../interfaces/masterchefjoev2.sol";
 import "../interfaces/joe-rewarder.sol";
 import "../interfaces/joe.sol";
+import "../interfaces/wavax.sol";
 
 abstract contract StrategyJoeRushFarmBase is StrategyBase {
     // Token addresses
@@ -37,6 +37,8 @@ abstract contract StrategyJoeRushFarmBase is StrategyBase {
         return amount;
     }
 
+     receive() external payable {}
+
     // Updated based on cryptofish's recommendation
     function getHarvestable() external view returns (uint256, uint256) {
         (uint256 pendingJoe, , , uint256 pendingBonusToken) = IMasterChefJoeV2(
@@ -52,10 +54,7 @@ abstract contract StrategyJoeRushFarmBase is StrategyBase {
         if (_want > 0) {
             IERC20(want).safeApprove(masterChefJoeV3, 0);
             IERC20(want).safeApprove(masterChefJoeV3, _want);
-            console.log("The poolId is", poolId);
-            console.log("The want is", _want);
-            console.log("The masterchef addr is", masterChefJoeV3);
-            IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, _want);
+            IMasterChefJoeV2(masterChefJoeV3).deposit(poolId,_want);
         }
     }
 
@@ -122,6 +121,22 @@ abstract contract StrategyJoeRushFarmBase is StrategyBase {
         uint256 _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
         IERC20(snob).safeTransfer(feeDistributor, _share);
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
+     function _takeFeeWavaxToSnob(uint256 _keep) internal {
+        IERC20(wavax).safeApprove(pangolinRouter, 0);
+        IERC20(wavax).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(wavax, snob, _keep);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
         IERC20(snob).safeTransfer(
             IController(controller).treasury(),
             _snob.sub(_share)

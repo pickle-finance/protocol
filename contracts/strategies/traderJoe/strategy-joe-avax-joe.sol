@@ -52,8 +52,28 @@ contract StrategyJoeAvaxJoeLp is StrategyJoeRushFarmBase {
             _swapTraderJoe(joe, wavax, _amount);
         }
 
-        // Adds in liquidity for AVAX/JOE
+        //Take Avax Rewards    
+        uint256 _avax = address(this).balance;            //get balance of native Avax
+        if (_avax > 0) {                                 //wrap avax into ERC20
+            WAVAX(wavax).deposit{value: _avax}();
+        }
+        
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        if (_wavax > 0) {
+             uint256 _keep2 = _wavax.mul(keep).div(keepMax);
+            uint256 _amount2 = _wavax.sub(_keep2).div(2);
+            if (_keep2 > 0){
+                _takeFeeWavaxToSnob(_keep2);
+            }
+
+        //convert Avax Rewards
+            IERC20(wavax).safeApprove(joeRouter, 0);
+            IERC20(wavax).safeApprove(joeRouter, _amount2);   
+            _swapTraderJoe(wavax, joe, _amount2);
+        }
+
+        // Adds in liquidity for AVAX/JOE
+        _wavax = IERC20(wavax).balanceOf(address(this));
 
         _joe = IERC20(joe).balanceOf(address(this));
 
