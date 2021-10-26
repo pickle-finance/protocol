@@ -21,6 +21,15 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
 
     describe("LP Strategy tests for: "+name, async () => {
 
+        //These reset the state after each test is executed 
+        beforeEach(async () => {
+            snapshotId = await ethers.provider.send('evm_snapshot');
+        });
+  
+        afterEach(async () => {
+            await ethers.provider.send('evm_revert', [snapshotId]);
+        });
+
         before( async () => {
             const strategyName = `Strategy${name}Lp`;
             const snowglobeName = `SnowGlobe${name}`;
