@@ -544,11 +544,11 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "0xAFB27fB1c5bd91A80d18A321D6dC09aDd6a94219",
   // },
-  {
-    name: "JoeAvaxRoco",
-    controllerAddress: "",
-    snowglobeAddress: "",
-  },
+//   {
+//     name: "JoeAvaxRoco",
+//     controllerAddress: "",
+//     snowglobeAddress: "",
+//   },
 ];
 
 for (const test of tests) {

@@ -35,7 +35,16 @@ async function main() {
     //   setGlobe: true,
     // }
     {
-      name: "JoeAvaxRoco"
+      name: "PngAvaxFrax",
+      strategy_addr: "0x4d7661fB1C16Cb12EBE12C2C1dd4EDD29D725c7a",
+      snowglobe_addr: "0x8a9d06976073715461D66d595523a06C7B5c5313",
+      setGlobe: true,
+      approveStrategy: true,
+      setStrategy: true,
+      whitelist: true
+    },
+    {
+      name: "PngAvaxRoco",
     }
   ];
 
