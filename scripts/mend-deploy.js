@@ -4,29 +4,29 @@ require('dotenv').config();
 async function main() {
   const pools = [
     // {
-    //   name: "JoeDai",
-    //   strategy_addr: "0xcD9AA4D1a0cEE1D0Ed3798DEd6fB925cBfE598A0",
-    //   snowglobe_addr: "0x7b5FfCf45193986B757986379628432d90F20AAb",
+    //   name: "JoeAvaxJoe",
+    //   snowglobe_addr: "0xcC757081C972D0326de42875E0DA2c54af523622",
+    //   strategy_addr: "0x3821Dd43dA32c22ff38A344C2b70E970FCB19239",
+    //   harvest: true,
+    //   earn: true,
+    //   addGauge: true,
+    //   setGlobe: true,
     // },
     // {
-    //   name: "JoeEth",
-    //   strategy_addr: "0x09e26431E600F22D111a6F3c8F88D9BAe2a64AD5",
-    //   snowglobe_addr: "0x49e6A1255DEfE0B194a67199e78aD5AA5D7cb092",
+    //   name: "JoeAvaxXava",
+    //   snowglobe_addr: "0x0B2C4f6C54182EDeE30DFF69Be972f9E04888321",
+    //   harvest: true,
+    //   earn: true,
+    //   addGauge: true,
+    //   setGlobe: true,
     // },
     // {
-    //   name: "JoeLink",
-    //   strategy_addr: "0xcE1A073F8df6796bd3B969f8CE1A04f569965a2B",
-    //   snowglobe_addr: "0x6C6B562100663b4179C95E5B199576f2E16b150e",
-    // },
-    // {
-    //   name: "JoeUsdc",
-    //   strategy_addr: "0xcD4a6733D1E497672290b0C4b891dFc10E03E973",
-    //   snowglobe_addr: "0x8C9fAEBD41c68B801d628902EDad43D88e4dD0a6",
-    // },
-    // {
-    //   name: "JoeUsdt",
-    //   strategy_addr: "",
-    //   snowglobe_addr: "",
+    //   name: "JoeAvaxYak",
+    //   snowglobe_addr: "0x9854F6615f73e533940F90FfE8DB1eAFB424A3c7",
+    //   harvest: true,
+    //   earn: true,
+    //   addGauge: true,
+    //   setGlobe: true,
     // },
     // {
     //   name: "JoeWbtc",
@@ -126,7 +126,10 @@ async function main() {
       console.log("Approved Strategy in the Controller for: ",pool.name);
     }
 
-    /* Harvest old strategy */
+    /* 
+      Harvest old strategy 
+      set to true if you want to run 
+    */
     if(pool.harvest) {
       const strategies = await Controller.strategies(lp);
       const oldStrategy = new ethers.Contract(strategies, strategy_ABI, deployer);
@@ -151,7 +154,10 @@ async function main() {
       console.log("Set Strategy in the Controller for: ",pool.name);
     }
 
-    /* Earn */
+    /* 
+      Earn:
+      set to true if you want to run 
+    */
     if (pool.earn){
       const earn = await SnowGlobe.earn();
       const tx_earn = await earn.wait(1);
@@ -174,7 +180,10 @@ async function main() {
       console.log('whitelisted the harvester for: ',pool.name);
     }
 
-    /* Add Keeper */
+    /* 
+      Add Keeper 
+      set to true if you want to run 
+    */
     if(pool.keeper){
       console.log('add keeper...');
       const keeper = await Strategy.addKeeper("0x096a46142C199C940FfEBf34F0fe2F2d674fDB1F");
