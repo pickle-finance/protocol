@@ -2,7 +2,6 @@
 
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
-import "./lib/Initializable.sol";
 
 import "./lib/erc20.sol";
 import "./lib/safe-math.sol";
@@ -13,7 +12,7 @@ import "./interfaces/strategyv2.sol";
 import "./interfaces/converter.sol";
 import "./interfaces/univ3/IUniswapV3Pool.sol";
 
-contract ControllerV6 is Initializable {
+contract ControllerV6 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -28,13 +27,13 @@ contract ControllerV6 is Initializable {
     mapping(address => address) public strategies;
     mapping(address => mapping(address => bool)) public approvedStrategies;
 
-    function initialize(
+    constructor(
         address _governance,
         address _strategist,
         address _timelock,
         address _devfund,
         address _treasury
-    ) public initializer {
+    ) public {
         governance = _governance;
         strategist = _strategist;
         timelock = _timelock;

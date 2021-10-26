@@ -22,12 +22,15 @@ import "./lib/reentrancy-guard.sol";
 import "./lib/safe-math.sol";
 import "./interfaces/univ3/IUniswapV3PositionsNFT.sol";
 import "./interfaces/univ3/IUniswapV3Pool.sol";
+import "./interfaces/weth.sol";
 
 contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
     using PoolVariables for IUniswapV3Pool;
+
+    address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
     address public governance;
     address public timelock;
@@ -65,7 +68,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         timelock = _timelock;
         controller = _controller;
         paused = false;
-        earnAfterDeposit = false;
+        earnAfterDeposit = true;
     }
 
     function totalLiquidity() public view returns (uint256) {
@@ -120,16 +123,30 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
     function deposit(uint256 token0Amount, uint256 token1Amount)
         external
+        payable
         nonReentrant
         whenNotPaused
         checkRatio(token0Amount, token1Amount)
     {
-        uint256 _pool = totalLiquidity();
+        uint256 _eth = address(this).balance;
+        if (_eth > 0) {
+            WETH(weth).deposit{value: _eth}();
+        }
 
+        uint256 amount0ForAmount1 = getDepositAmount(address(token1), token1Amount).mul(1e18).div(getProportion());
+        uint256 amount1ForAmount0 = getDepositAmount(address(token0), token0Amount).mul(getProportion()).div(1e18);
+
+        if (token0Amount > amount0ForAmount1) {
+            token0Amount = amount0ForAmount1;
+        } else {
+            token1Amount = amount1ForAmount0;
+        }
+
+        uint256 _pool = totalLiquidity();
         uint256 _liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, tick_lower, tick_upper));
 
-        token0.safeTransferFrom(msg.sender, address(this), token0Amount);
-        token1.safeTransferFrom(msg.sender, address(this), token1Amount);
+        if (token0Amount > 0) token0.safeTransferFrom(msg.sender, address(this), token0Amount);
+        if (token1Amount > 0) token1.safeTransferFrom(msg.sender, address(this), token1Amount);
 
         uint256 shares = 0;
         if (totalSupply() == 0) {
@@ -140,7 +157,22 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
         _mint(msg.sender, shares);
 
-        if (earnAfterDeposit) earn();
+        if (earnAfterDeposit) {
+            earn();
+        }
+    }
+
+    function getDepositAmount(address tokenAddr, uint256 amount) internal view returns (uint256 depositAmount) {
+        if (tokenAddr == weth) {
+            uint256 _weth = IERC20(weth).balanceOf(address(this));
+            if (_weth > 0) {
+                depositAmount = _weth;
+            } else {
+                depositAmount = amount;
+            }
+        } else {
+            depositAmount = amount;
+        }
     }
 
     function getProportion() public view returns (uint256) {
