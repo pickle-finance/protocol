@@ -6,7 +6,7 @@ interface IGaugeV2 {
 
     function deposit(uint256 amount) external;
 
-    function depositFrom(uint256 amount, address account) external;
+    function depositFor(uint256 amount, address account) external;
 
     function withdrawAll() external;
 

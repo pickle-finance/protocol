@@ -113,7 +113,7 @@ contract SnowglobeZapAvaxTraderJoe is ZapperBase {
         address gaugeAddress = IGaugeProxyV2(gaugeProxy).getGauge(snowglobe);
 
         //deposit for into gauge
-        IGaugeV2(gaugeAddress).depositFrom(
+        IGaugeV2(gaugeAddress).depositFor(
             vault.balanceOf(msg.sender),
             msg.sender
         );
