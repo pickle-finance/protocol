@@ -26,6 +26,15 @@ const doSingleStakeTest = (
     
     describe("Folding Strategy tests for: " + name, async () => {
 
+        //These reset the state after each test is executed 
+        beforeEach(async () => {
+            snapshotId = await ethers.provider.send('evm_snapshot');
+        });
+    
+        afterEach(async () => {
+            await ethers.provider.send('evm_revert', [snapshotId]);
+        });
+
         before(async () => {
             const strategyName = `Strategy${name}`;
             const snowglobeName = `SnowGlobe${name}`;

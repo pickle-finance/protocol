@@ -29,7 +29,8 @@ const fastForwardAWeek = async () => {
     await increaseBlock(60 * 60);
     i++;
   } while (i < 8);
-}
+};
+
 const toWei = (amount, decimal = 18) => {
   return BN.from(amount).mul(BN.from(10).pow(decimal));
 };

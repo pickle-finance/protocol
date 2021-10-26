@@ -35,18 +35,16 @@ async function main() {
     //   setGlobe: true,
     // }
     {
-      name: "PngAvaxFrax",
-      strategy_addr: "0x4d7661fB1C16Cb12EBE12C2C1dd4EDD29D725c7a",
-      snowglobe_addr: "0x8a9d06976073715461D66d595523a06C7B5c5313",
-      setGlobe: true,
-      approveStrategy: true,
-      setStrategy: true,
-      whitelist: true
-    },
-    {
-      name: "PngAvaxRoco",
+      name: "TeddyxTeddy",
+      strategy_addr: "0x058484Da4464379D40E423e2cE32a0AFa7Df85D2",
+      // snowglobe_addr: "0x593e089a899Fe398a5C9f2799Dd31F1bDA4Cb64e",
     }
   ];
+
+  // const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
+  const controller_addr = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; //Backup
+  // const controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; // bankerJoe
+  // const controller_addr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; //Aave
 
   const [deployer] = await ethers.getSigners();
   console.log("Mending deployment with the account:", deployer.address);
@@ -61,6 +59,7 @@ async function main() {
   const timelock_addr = governance_addr;
   const gaugeproxy_addr = "0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27";
   const strategist_addr = "0xc9a51fB9057380494262fd291aED74317332C0a2";
+
 
   const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
   // const controller_addr = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; //Backup
@@ -179,6 +178,7 @@ async function main() {
       }
       console.log('whitelisted the harvester for: ',pool.name);
     }
+
 
     /* 
       Add Keeper 
