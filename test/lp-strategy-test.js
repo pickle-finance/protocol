@@ -156,6 +156,12 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
         });
 
         it("Strategy loaded with initial balance", async () =>{
+            await assetContract.approve(snowglobeAddr,"2500000000000000000000000000");
+            let balBefore = await assetContract.connect(walletSigner).balanceOf(snowglobeAddr);
+            await globeContract.connect(walletSigner).depositAll();
+
+            await globeContract.connect(walletSigner).earn();
+
             strategyBalance = await strategyContract.balanceOf();
             expect(strategyBalance).to.not.be.equals(BigNumber.from("0x0"));
         });

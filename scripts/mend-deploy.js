@@ -28,17 +28,24 @@ async function main() {
     //   addGauge: true,
     //   setGlobe: true,
     // },
+    // {
+    //   name: "JoeWbtc",
+    //   strategy_addr: "0xA0a72F0b5056fba03158fc2D75CF6B4e364c6520",
+    //   snowglobe_addr: "0xfb49ea67b84F7c1bBD825de7febd2C836BC4B47E",
+    //   setGlobe: true,
+    // }
     {
-      name: "JoeAvaxSpell",
-      snowglobe_addr: "0xec54A22B53EE66a77C5F26F860c6913472199661",
-      strategy_addr: "0x7E7F4522911A537811AA7A37eAD9FbdD52B50447",
-      harvest: false,
-      earn: false,
-      addGauge: true,
+      name: "PngAvaxFrax",
+      strategy_addr: "0x4d7661fB1C16Cb12EBE12C2C1dd4EDD29D725c7a",
+      snowglobe_addr: "0x8a9d06976073715461D66d595523a06C7B5c5313",
       setGlobe: true,
       approveStrategy: true,
       setStrategy: true,
+      whitelist: true
     },
+    {
+      name: "PngAvaxRoco",
+    }
   ];
 
   const [deployer] = await ethers.getSigners();
@@ -55,9 +62,9 @@ async function main() {
   const gaugeproxy_addr = "0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27";
   const strategist_addr = "0xc9a51fB9057380494262fd291aED74317332C0a2";
 
-  // const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
+  const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
   // const controller_addr = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; //Backup
-  const controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; // bankerJoe
+  // const controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; // bankerJoe
   // const controller_addr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; //Aave
 
   const Controller = new ethers.Contract(controller_addr, controller_ABI, deployer);
