@@ -21,6 +21,15 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
 
     describe("LP Strategy tests for: "+name, async () => {
 
+        //These reset the state after each test is executed 
+        beforeEach(async () => {
+            snapshotId = await ethers.provider.send('evm_snapshot');
+        });
+  
+        afterEach(async () => {
+            await ethers.provider.send('evm_revert', [snapshotId]);
+        });
+
         before( async () => {
             const strategyName = `Strategy${name}Lp`;
             const snowglobeName = `SnowGlobe${name}`;
@@ -147,6 +156,12 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
         });
 
         it("Strategy loaded with initial balance", async () =>{
+            await assetContract.approve(snowglobeAddr,"2500000000000000000000000000");
+            let balBefore = await assetContract.connect(walletSigner).balanceOf(snowglobeAddr);
+            await globeContract.connect(walletSigner).depositAll();
+
+            await globeContract.connect(walletSigner).earn();
+
             strategyBalance = await strategyContract.balanceOf();
             expect(strategyBalance).to.not.be.equals(BigNumber.from("0x0"));
         });
