@@ -31,12 +31,12 @@ async function main() {
     {
       name: "TeddyxTeddy",
       strategy_addr: "0x058484Da4464379D40E423e2cE32a0AFa7Df85D2",
-      snowglobe_addr: "0x593e089a899Fe398a5C9f2799Dd31F1bDA4Cb64e",
+      // snowglobe_addr: "0x593e089a899Fe398a5C9f2799Dd31F1bDA4Cb64e",
     }
   ];
 
-  const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
-  // const controller_addr = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; //Backup
+  // const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
+  const controller_addr = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; //Backup
   // const controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; // bankerJoe
   // const controller_addr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; //Aave
 
