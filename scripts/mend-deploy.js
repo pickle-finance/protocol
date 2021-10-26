@@ -29,12 +29,16 @@ async function main() {
     //   snowglobe_addr: "",
     // },
     {
-      name: "JoeWbtc",
-      strategy_addr: "0xA0a72F0b5056fba03158fc2D75CF6B4e364c6520",
-      snowglobe_addr: "0xfb49ea67b84F7c1bBD825de7febd2C836BC4B47E",
-      setGlobe: true,
+      name: "TeddyxTeddy",
+      strategy_addr: "0x058484Da4464379D40E423e2cE32a0AFa7Df85D2",
+      snowglobe_addr: "0x593e089a899Fe398a5C9f2799Dd31F1bDA4Cb64e",
     }
   ];
+
+  const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
+  // const controller_addr = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; //Backup
+  // const controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; // bankerJoe
+  // const controller_addr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; //Aave
 
   const [deployer] = await ethers.getSigners();
   console.log("Mending deployment with the account:", deployer.address);
@@ -50,11 +54,6 @@ async function main() {
   const gaugeproxy_addr = "0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27";
   const strategist_addr = "0xc9a51fB9057380494262fd291aED74317332C0a2";
 
-  // const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
-  // const controller_addr = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; //Backup
-  const controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; // bankerJoe
-  // const controller_addr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; //Aave
-
   const Controller = new ethers.Contract(controller_addr, controller_ABI, deployer);
 
   const deploy = async (pool) => {
@@ -65,7 +64,7 @@ async function main() {
   
 
     /* Deploy Strategy */
-    if (pool.strategy_addr === "") {
+    if (!pool.strategy_addr) {
       strategy = await ethers.getContractFactory(strategy_name);
       Strategy = await strategy.deploy(governance_addr, strategist_addr, controller_addr, timelock_addr);
       console.log(`deployed ${strategy_name} at : ${Strategy.address}`);
@@ -77,7 +76,7 @@ async function main() {
     }
     
     /* Deploy Snowglobe */
-    if (pool.snowglobe_addr === "") {
+    if (!pool.snowglobe_addr) {
       lp = await Strategy.want();
       globe = await ethers.getContractFactory(snowglobe_name);
       SnowGlobe = await globe.deploy(lp, governance_addr, timelock_addr, controller_addr);
@@ -163,7 +162,7 @@ async function main() {
     }
 
     /* Add Keeper */
-    if(!pool.keeper){
+    if(pool.keeper){
       console.log('add keeper...');
       const keeper = await Strategy.addKeeper("0x096a46142C199C940FfEBf34F0fe2F2d674fDB1F");
       const tx_keeper = await keeper.wait(1);
