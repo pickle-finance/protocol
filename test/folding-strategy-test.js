@@ -14,7 +14,7 @@ const doFoldingStrategyTest = (
     globeABI,
     stratABI,
     txnAmt = "250000000000000000000000",
-    slot = "0",
+    slot = "2",
     fold = true,
     controller = "main",) => {
 
