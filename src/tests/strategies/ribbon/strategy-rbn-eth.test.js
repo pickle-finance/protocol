@@ -121,12 +121,22 @@ describe("StrategyRbnEthUniV3", () => {
   });
 
   it("should harvest correctly", async () => {
-    let depositA = toWei(100000);
-    let depositB = await getAmountB(depositA);
+    let depositA = toWei(10000);
+    let depositB = toWei(60);
     let aliceShare, bobShare, charlesShare;
 
     console.log("=============== Alice deposit ==============");
-    await deposit(alice, depositA, depositB);
+    console.log("Alice ETH balance before deposit: ", (await alice.getBalance()).toString())
+    console.log(
+      "Alice weth balance before => ",
+      (await weth.balanceOf(alice.address)).toString()
+    );
+    await depositWithEth(alice, depositA, depositB);
+    console.log(
+      "Alice weth balance after (should be high thanks to refunded weth) => ",
+      (await weth.balanceOf(alice.address)).toString()
+    );
+    console.log("Alice ETH balance after deposit: ", (await alice.getBalance()).toString())
     await harvest();
 
     console.log("=============== Bob deposit ==============");
@@ -276,6 +286,15 @@ describe("StrategyRbnEthUniV3", () => {
 
     await pickleJar.connect(user).deposit(depositA, depositB);
   };
+
+  const depositWithEth = async (user, depositA, depositB) => {
+    await rbn.connect(user).approve(pickleJar.address, depositA);
+    console.log("depositA => ", depositA.toString());
+    console.log("depositB => ", depositB.toString());
+
+    await pickleJar.connect(user).deposit(depositA, 0, {value: depositB});
+  };
+
 
   const harvest = async () => {
     console.log("============ Harvest Started ==============");

@@ -121,18 +121,15 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         IControllerV2(controller).earn(address(pool), balance0, balance1);
     }
 
-    function deposit(uint256 token0Amount, uint256 token1Amount)
-        external
-        payable
-        nonReentrant
-        whenNotPaused
-        checkRatio(token0Amount, token1Amount)
-    {
+    function deposit(uint256 token0Amount, uint256 token1Amount) external payable nonReentrant whenNotPaused {
+        bool isEth;
         uint256 _eth = address(this).balance;
         if (_eth > 0) {
             WETH(weth).deposit{value: _eth}();
+            isEth = true;
         }
 
+        // account for imperfect deposit ratios
         uint256 amount0ForAmount1 = getDepositAmount(address(token1), token1Amount).mul(1e18).div(getProportion());
         uint256 amount1ForAmount0 = getDepositAmount(address(token0), token0Amount).mul(getProportion()).div(1e18);
 
@@ -140,13 +137,16 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
             token0Amount = amount0ForAmount1;
         } else {
             token1Amount = amount1ForAmount0;
+
+            // refund excess ETH as WETH to user
+            if (isEth && address(token1) == weth) IERC20(token1).safeTransfer(msg.sender, _eth.sub(token1Amount));
         }
 
         uint256 _pool = totalLiquidity();
         uint256 _liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, tick_lower, tick_upper));
 
         if (token0Amount > 0) token0.safeTransferFrom(msg.sender, address(this), token0Amount);
-        if (token1Amount > 0) token1.safeTransferFrom(msg.sender, address(this), token1Amount);
+        if (token1Amount > 0 && !isEth) token1.safeTransferFrom(msg.sender, address(this), token1Amount);
 
         uint256 shares = 0;
         if (totalSupply() == 0) {
@@ -157,9 +157,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
         _mint(msg.sender, shares);
 
-        if (earnAfterDeposit) {
-            earn();
-        }
+        if (earnAfterDeposit) earn();
     }
 
     function getDepositAmount(address tokenAddr, uint256 amount) internal view returns (uint256 depositAmount) {
