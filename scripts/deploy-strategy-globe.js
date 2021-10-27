@@ -4,7 +4,7 @@ require('dotenv').config();
 
 async function main() {
   const names = [
-    "JoeAvaxRoco",
+    "TeddyxTeddy",
   ];
   
   const [deployer] = await ethers.getSigners();
@@ -19,15 +19,15 @@ async function main() {
   const strategist_addr = "0xc9a51fB9057380494262fd291aED74317332C0a2";
   const gaugeproxy_addr = "0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27";
 
-  // const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
-  const controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; // bankerJoe
+  const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
+  // const controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; // bankerJoe
   // const controller_addr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; //Aave
 
   const Controller = new ethers.Contract(controller_addr, controller_ABI, deployer);
 
   const deploy = async (name) => {
     console.log(`run deploy with ${name}`);
-    const strategy_name = `Strategy${name}Lp`;
+    const strategy_name = `Strategy${name}`;
     const snowglobe_name = `SnowGlobe${name}`;
   
     const strategy = await ethers.getContractFactory(strategy_name);

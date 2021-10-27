@@ -26,7 +26,7 @@ async function main() {
   const timelock_addr = governance_addr;
   const gaugeproxy_addr = "0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27";
   const strategist_addr = "0xc9a51fB9057380494262fd291aED74317332C0a2";
-
+  
   const Controller = new ethers.Contract(controller_addr, controller_ABI, deployer);
 
   const deploy = async (pool) => {
@@ -139,6 +139,7 @@ async function main() {
       }
       console.log('whitelisted the harvester for: ',pool.name);
     }
+
 
     /* 
       Add Keeper 
