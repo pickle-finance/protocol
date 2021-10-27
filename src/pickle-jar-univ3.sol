@@ -127,6 +127,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         if (_eth > 0) {
             WETH(weth).deposit{value: _eth}();
             isEth = true;
+            token1Amount = _eth;
         }
 
         // account for imperfect deposit ratios
