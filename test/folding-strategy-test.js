@@ -14,7 +14,7 @@ const doFoldingStrategyTest = (
     globeABI,
     stratABI,
     txnAmt = "250000000000000000000000",
-    slot = "2",
+    slot = "0",
     fold = true,
     controller = "main",) => {
 
@@ -39,7 +39,7 @@ const doFoldingStrategyTest = (
                 case "aave": controllerAddr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; break;
                 case "bankerJoe": controllerAddr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
                 default : break;
-            };
+            }
 
             controllerSigner = await returnSigner(controllerAddr);
             walletSigner = await returnSigner(walletAddr);

@@ -46,6 +46,7 @@ const tests = [
     tokenAddress: "0x130966628846BFd36ff31a822705796e8cb8C18D",
     strategyAddress: "",
     snowglobeAddress: "",
+    slot: "2",
   }
 ];
 
