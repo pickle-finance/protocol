@@ -138,8 +138,13 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         } else {
             token1Amount = amount1ForAmount0;
 
-            // refund excess ETH as WETH to user
-            if (isEth && address(token1) == weth) IERC20(token1).safeTransfer(msg.sender, _eth.sub(token1Amount));
+            // refund excess ETH to user
+            if (isEth && address(token1) == weth) {
+                uint256 _refund = _eth.sub(token1Amount);
+                WETH(weth).withdraw(_refund);
+                (bool sent, bytes memory data) = (msg.sender).call{value: _refund}("");
+                require(sent, "Failed to refund Ether");
+            }
         }
 
         uint256 _pool = totalLiquidity();
@@ -224,4 +229,6 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     ) public pure returns (bytes4) {
         return this.onERC721Received.selector;
     }
+
+    fallback () external payable {}
 }

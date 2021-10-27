@@ -132,10 +132,6 @@ describe("StrategyRbnEthUniV3", () => {
       (await weth.balanceOf(alice.address)).toString()
     );
     await depositWithEth(alice, depositA, depositB);
-    console.log(
-      "Alice weth balance after (should be high thanks to refunded weth) => ",
-      (await weth.balanceOf(alice.address)).toString()
-    );
     console.log("Alice ETH balance after deposit: ", (await alice.getBalance()).toString())
     await harvest();
 
