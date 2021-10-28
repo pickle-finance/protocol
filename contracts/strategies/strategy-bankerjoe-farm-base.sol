@@ -402,7 +402,9 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             _keep = _wavax.mul(keep).div(keepMax);
-            _takeFeeWavaxToSnob(_keep);
+            if (_keep>0){
+                _takeFeeWavaxToSnob(_keep);
+            }
             _swapTraderJoe(wavax, want, _wavax.sub(_keep));
         }
 
