@@ -5,7 +5,7 @@ const {doTestBehaviorBase} = require("../testBehaviorBase");
 describe("StrategyDodoMcbUsdcLp", () => {
   const want_addr = "0x34851ea13bde818b1efe26d31377906b47c9bbe2";
 
-  const whale_addr = "0x1001009911e3fe1d5b45ff8efea7732c33a6c012";
+  const whale_addr = "0x1825b9faf7c3ab0efbbd927cd1a8fe2c86c933fd";
 
   before("Get want token", async () => {
     [alice] = await hre.ethers.getSigners();

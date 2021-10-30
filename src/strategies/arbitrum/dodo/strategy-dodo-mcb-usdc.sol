@@ -13,7 +13,7 @@ contract StrategyDodoMcbUsdcLp is StrategyBase {
     address public constant usdc = 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8;
 
     address public constant rewards =
-        0x06633cd8E46C3048621A517D6bb5f0A84b4919c6;
+        0x98CEb851aF3d8627287885D56AEA863B848CeB6F;
     address public constant dodo_mcb_usdc_lp =
         0x34851Ea13Bde818B1EFE26D31377906b47C9BBE2;
     address public constant dodoSwap =
@@ -108,7 +108,7 @@ contract StrategyDodoMcbUsdcLp is StrategyBase {
             );
         }
         
-        uint256 _mcb = IERC20(mcb).balanceOf((address(this)));
+        uint256 _mcb = IERC20(mcb).balanceOf(address(this));
         address[] memory path = new address[](1);
         path[0] = dodo_mcb_usdc_lp;
 
