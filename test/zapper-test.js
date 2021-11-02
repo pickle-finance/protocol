@@ -186,7 +186,7 @@ const doZapperTests = (
         describe("When withdrawing..", async () => {
             it("..can zap out into TokenA", async () => {
                 const txnAmt = "1000";
-                const withdraw = "10"
+                const withdraw = "60"
                 const withdrawAmt = ethers.utils.parseEther(withdraw);
                 const amt = ethers.utils.parseEther(txnAmt);
                 let [user1, globe1] = await getBalances(TokenA, LPToken, walletAddr, globeContract);
@@ -210,7 +210,7 @@ const doZapperTests = (
 
             it("..can zap out into TokenB", async () => {
                 const txnAmt = "1000";
-                const withdraw = "60"
+                const withdraw = "5"
                 const withdrawAmt = ethers.utils.parseEther(withdraw);
                 const amt = ethers.utils.parseEther(txnAmt);
                 let [user1, globe1] = await getBalances(TokenB, LPToken, walletAddr, globeContract);
