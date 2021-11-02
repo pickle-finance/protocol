@@ -23,10 +23,6 @@ contract StrategyDodoDodoUsdcLp is StrategyBase {
     address public constant dodoUsdcPair =
         0x6a58c68FF5C4e4D90EB6561449CC74A64F818dA5;
 
-    address[] public dodoEthAdapters;
-    address[] public dodoEthPairs;
-    address[] public dodoEthSwapTo;
-
     address[] public dodoUsdcRoute = [dodo_dodo_usdc_lp];
 
     constructor(
