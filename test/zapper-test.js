@@ -3,7 +3,8 @@
 
  * **/
 
-const chai = require("chai");
+var chai = require("chai");
+chai.use(require('chai-roughly'));
 const { expect } = require('chai');
 const { ethers, network, deployments } = require('hardhat');
 const { increaseTime, overwriteTokenAmount, increaseBlock, returnSigner, fastForwardAWeek, findSlot, returnController } = require("./utils/helpers");
@@ -12,6 +13,7 @@ const { setupSigners, snowballAddr, treasuryAddr, MAX_UINT256 } = require("./uti
 const GaugeProxyAddr = "0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27";
 const gaugeABI = [{ "type": "constructor", "stateMutability": "nonpayable", "inputs": [{ "type": "address", "name": "_token", "internalType": "address" }, { "type": "address", "name": "_governance", "internalType": "address" }] }, { "type": "event", "name": "RewardAdded", "inputs": [{ "type": "uint256", "name": "reward", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "event", "name": "RewardPaid", "inputs": [{ "type": "address", "name": "user", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "reward", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "event", "name": "Staked", "inputs": [{ "type": "address", "name": "user", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "amount", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "event", "name": "Withdrawn", "inputs": [{ "type": "address", "name": "user", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "amount", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "DISTRIBUTION", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "DURATION", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "contract IERC20" }], "name": "SNOWBALL", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "contract IERC20" }], "name": "SNOWCONE", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "contract IERC20" }], "name": "TOKEN", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "TREASURY", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "acceptGovernance", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "balanceOf", "inputs": [{ "type": "address", "name": "account", "internalType": "address" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "changeDistribution", "inputs": [{ "type": "address", "name": "_distribution", "internalType": "address" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "deposit", "inputs": [{ "type": "uint256", "name": "amount", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "depositAll", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "depositFor", "inputs": [{ "type": "uint256", "name": "amount", "internalType": "uint256" }, { "type": "address", "name": "account", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "derivedBalance", "inputs": [{ "type": "address", "name": "account", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "derivedBalances", "inputs": [{ "type": "address", "name": "", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "derivedSupply", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "earned", "inputs": [{ "type": "address", "name": "account", "internalType": "address" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "exit", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "getReward", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "getRewardForDuration", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "governance", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "kick", "inputs": [{ "type": "address", "name": "account", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "lastTimeRewardApplicable", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "lastUpdateTime", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "notifyRewardAmount", "inputs": [{ "type": "uint256", "name": "reward", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "pendingGovernance", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "periodFinish", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "rewardPerToken", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "rewardPerTokenStored", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "rewardRate", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "rewards", "inputs": [{ "type": "address", "name": "", "internalType": "address" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setGovernance", "inputs": [{ "type": "address", "name": "_governance", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "totalSupply", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "userRewardPerTokenPaid", "inputs": [{ "type": "address", "name": "", "internalType": "address" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "withdraw", "inputs": [{ "type": "uint256", "name": "amount", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "withdrawAll", "inputs": [] }];
 const txnAmt = "35000000000000000000000";
+const WAVAX = "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7";
 
 const doZapperTests = (
     Name,
@@ -168,7 +170,7 @@ const doZapperTests = (
                 let [user1, globe1] = await getBalancesAvax(LPToken, walletSigner, globeContract);
                 printBals("Original", globe1, user1);
 
-                await zapperContract.zapInAVAX(SnowGlobeAddr, 0, {value: amt});
+                await zapperContract.zapInAVAX(SnowGlobeAddr, 0, { value: amt });
                 let [user2, globe2] = await getBalancesAvax(LPToken, walletSigner, globeContract);
                 printBals(`Zap ${txnAmt} AVAX`, globe2, user2);
 
@@ -186,50 +188,69 @@ const doZapperTests = (
         describe("When withdrawing..", async () => {
             it("..can zap out into TokenA", async () => {
                 const txnAmt = "1000";
-                const withdraw = "60"
-                const withdrawAmt = ethers.utils.parseEther(withdraw);
                 const amt = ethers.utils.parseEther(txnAmt);
-                let [user1, globe1] = await getBalances(TokenA, LPToken, walletAddr, globeContract);
-
-                printBals("Original", globe1, user1);
 
                 await zapperContract.zapIn(SnowGlobeAddr, 0, TokenA.address, amt);
-                let [user2, globe2] = await getBalances(TokenA, LPToken, walletAddr, globeContract);
-                printBals(`Zap in ${txnAmt}`, globe2, user2);
+                let receipt = await gaugeContract.balanceOf(walletAddr);
+                let balABefore = (TokenA.address != WAVAX) ? await returnBal(TokenA, walletAddr) : await returnWalletBal(walletAddr);
 
                 await globeContract.connect(walletSigner).earn();
-                let [user3, globe3] = await getBalances(TokenA, LPToken, walletAddr, globeContract);
-                printBals("Call earn()", globe3, user3);
-
                 await gaugeContract.connect(walletSigner).withdrawAll();
-                await zapperContract.zapOutAndSwap(SnowGlobeAddr,withdrawAmt,TokenA.address,0);
-                let [user4, globe4] = await getBalances(TokenA, LPToken, walletAddr, globeContract);
-                printBals("Zap out", globe4, user4);
+                await zapperContract.zapOutAndSwap(SnowGlobeAddr, receipt, TokenA.address, 0);
 
+                let balAAfter = (TokenA.address != WAVAX) ? await returnBal(TokenA, walletAddr) : await returnWalletBal(walletAddr);
+                let receipt2 = await gaugeContract.balanceOf(walletAddr);
+
+                expect(receipt2).to.be.equals(0);
+                (TokenA.address != WAVAX) ?
+                    expect(balAAfter - balABefore).to.roughly(0.01).deep.equal(Number(txnAmt)) :
+                    expect(balAAfter).to.be.greaterThan(balABefore);
             })
 
             it("..can zap out into TokenB", async () => {
                 const txnAmt = "1000";
-                const withdraw = "5"
-                const withdrawAmt = ethers.utils.parseEther(withdraw);
                 const amt = ethers.utils.parseEther(txnAmt);
-                let [user1, globe1] = await getBalances(TokenB, LPToken, walletAddr, globeContract);
-
-                printBals("Original", globe1, user1);
 
                 await zapperContract.zapIn(SnowGlobeAddr, 0, TokenB.address, amt);
-                let [user2, globe2] = await getBalances(TokenB, LPToken, walletAddr, globeContract);
-                printBals(`Zap in ${txnAmt}`, globe2, user2);
+                let receipt = await gaugeContract.balanceOf(walletAddr);
+                let balBBefore = (TokenB.address != WAVAX) ? await returnBal(TokenB, walletAddr) : await returnWalletBal(walletAddr);
 
                 await globeContract.connect(walletSigner).earn();
-                let [user3, globe3] = await getBalances(TokenB, LPToken, walletAddr, globeContract);
-                printBals("Call earn()", globe3, user3);
-
                 await gaugeContract.connect(walletSigner).withdrawAll();
-                await zapperContract.zapOutAndSwap(SnowGlobeAddr,withdrawAmt,TokenB.address,0);
-                let [user4, globe4] = await getBalances(TokenB, LPToken, walletAddr, globeContract);
-                printBals("Zap out", globe4, user4);
+                await zapperContract.zapOutAndSwap(SnowGlobeAddr, receipt, TokenB.address, 0);
 
+                let balBAfter = (TokenB.address != WAVAX) ? await returnBal(TokenB, walletAddr) : await returnWalletBal(walletAddr);
+                let receipt2 = await gaugeContract.balanceOf(walletAddr);
+
+                expect(receipt2).to.be.equals(0);
+                (TokenB.address != WAVAX) ?
+                    expect(balBAfter - balBBefore).to.roughly(0.01).deep.equal(Number(txnAmt)) :
+                    expect(balBAfter).to.be.greaterThan(balBBefore);
+            })
+
+            it("..can zap out equally", async () => {
+                const txnAmt = "1000";
+                const amt = ethers.utils.parseEther(txnAmt);
+
+                await zapperContract.zapIn(SnowGlobeAddr, 0, TokenA.address, amt);
+                let receipt = await gaugeContract.balanceOf(walletAddr);
+                let balABefore = (TokenA.address != WAVAX) ? await returnBal(TokenA, walletAddr) : await returnWalletBal(walletAddr);
+                let balBBefore = (TokenB.address != WAVAX) ? await returnBal(TokenB, walletAddr) : await returnWalletBal(walletAddr);
+
+                await globeContract.connect(walletSigner).earn();
+                await gaugeContract.connect(walletSigner).withdrawAll();
+                await zapperContract.zapOut(SnowGlobeAddr, receipt);
+                let receipt2 = await gaugeContract.balanceOf(walletAddr);
+                let balAAfter = (TokenA.address != WAVAX) ? await returnBal(TokenA, walletAddr) : await returnWalletBal(walletAddr);
+                let balBAfter = (TokenB.address != WAVAX) ? await returnBal(TokenB, walletAddr) : await returnWalletBal(walletAddr);
+
+                (TokenA.address != WAVAX) ?
+                    expect(balAAfter - balABefore).to.roughly(0.01).deep.equal(Number(txnAmt) / 2) :
+                    expect(balAAfter).to.be.greaterThan(balABefore);
+                (TokenB.address != WAVAX) ?
+                    expect(balBAfter - balBBefore).to.roughly(0.01).deep.equal(Number(txnAmt) / 2) :
+                    expect(balBAfter).to.be.greaterThan(balBBefore);
+                expect(receipt2).to.be.equals(0);
             })
         })
 
@@ -245,35 +266,43 @@ const doZapperTests = (
             it("..reverts on zap out avax", async () => {
             })
         })
-            //     it("..can zap out into LP Token", async () => {
-            //     })
+        //     it("..can zap out into LP Token", async () => {
+        //     })
 
-            //     it("..can zap out into TokenA", async () => {
-            //     })
+        //     it("..can zap out into TokenA", async () => {
+        //     })
 
-            //     it("..can zap out into TokenB", async () => {
-            //     })
-            // it("..can zap in with AVAX", async () => {
-            // })
+        //     it("..can zap out into TokenB", async () => {
+        //     })
+        // it("..can zap in with AVAX", async () => {
+        // })
 
-            // Asana Ticket mentions being able to deposit LP Token
-            // it("..can zap in with LP Token", async () => {
-            //     const txnAmt = "1000";
-            //     const amt = ethers.utils.parseEther(txnAmt);
+        // Asana Ticket mentions being able to deposit LP Token
+        // it("..can zap in with LP Token", async () => {
+        //     const txnAmt = "1000";
+        //     const amt = ethers.utils.parseEther(txnAmt);
 
-            //     await approveZapper(LPToken);
-            //     const balBefore = await globeContract.balanceOf(walletAddr);
-            //     console.log(balBefore);
-            //     await zapperContract.zapIn(SnowGlobeAddr, 0, LPToken.address, amt);
+        //     await approveZapper(LPToken);
+        //     const balBefore = await globeContract.balanceOf(walletAddr);
+        //     console.log(balBefore);
+        //     await zapperContract.zapIn(SnowGlobeAddr, 0, LPToken.address, amt);
 
-            //     const balAfter = await globeContract.balanceOf(walletAddr);
-            //     console.log(balAfter);
+        //     const balAfter = await globeContract.balanceOf(walletAddr);
+        //     console.log(balAfter);
 
 
-        
+
 
 
     })
+
+    async function returnWalletBal(_wall) {
+        return Number(ethers.utils.formatEther(await ethers.provider.getBalance(_wall)))
+    }
+
+    async function returnBal(_contract, _addr) {
+        return Number(ethers.utils.formatEther(await _contract.balanceOf(_addr)))
+    }
 
     function printBals(context, globe, user) {
         let numGlobe = Number(globe).toFixed(2);
