@@ -217,7 +217,7 @@ const doZapperTests = (
 
                 printBals("Original", globe1, user1);
 
-                await zapperContract.zapIn(SnowGlobeAddr, 0, TokenA.address, amt);
+                await zapperContract.zapIn(SnowGlobeAddr, 0, TokenB.address, amt);
                 let [user2, globe2] = await getBalances(TokenB, LPToken, walletAddr, globeContract);
                 printBals(`Zap in ${txnAmt}`, globe2, user2);
 
