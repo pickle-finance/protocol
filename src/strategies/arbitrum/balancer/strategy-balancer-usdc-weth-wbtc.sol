@@ -23,7 +23,6 @@ contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
     uint256 public depositFee = 0;
 
     address _lp = 0x64541216bAFFFEec8ea535BB71Fbc927831d0595;
-    address balDistributor = 0x6bd0B17713aaa29A2d7c9A39dDc120114f9fD809;
 
     constructor(
         address _governance,
@@ -60,24 +59,6 @@ contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
     }
 
     // **** State Mutations ****
-
-    function claimBal(
-        uint256 _week,
-        uint256 _claim,
-        bytes32[] memory merkleProof
-    ) public {
-        IMerkleRedeem(balDistributor).claimWeek(
-            address(this),
-            _week,
-            _claim,
-            merkleProof
-        );
-    }
-
-    function setDistributor(address _distributor) external {
-        require(msg.sender == governance, "not authorized");
-        balDistributor = _distributor;
-    }
 
     function harvest() public override onlyBenevolent {
         uint256 _rewardBalance = IERC20(bal).balanceOf(address(this));

@@ -1,8 +1,6 @@
 const {toWei} = require("../../../utils/testHelper");
 const {getWantFromWhale} = require("../../../utils/setupHelper");
-const {doTestBehaviorBase} = require("../../testBehaviorBase");
 const {doTestBalancerBehaviorBase} = require("../../polygon/balancer/testBalancerBase");
-const {POLYGON_SUSHI_ROUTER} = require("../../../utils/constants");
 
 describe("StrategyBalancerWbtcWethUsdcLp", () => {
   const want_addr = "0x64541216bAFFFEec8ea535BB71Fbc927831d0595";
@@ -12,9 +10,9 @@ describe("StrategyBalancerWbtcWethUsdcLp", () => {
 
   before("Get want token", async () => {
     const signers = await hre.ethers.getSigners();
-    const alice = signers[0]
+    const alice = signers[0];
     await getWantFromWhale(want_addr, toWei(1), alice, whale_addr);
-    await getWantFromWhale(bal_addr, toWei(1), alice, bal_whale_addr);
+    await getWantFromWhale(bal_addr, toWei(100), alice, bal_whale_addr);
   });
 
   doTestBalancerBehaviorBase("StrategyBalancerWbtcWethUsdcLp", want_addr, bal_addr, true);
