@@ -3,7 +3,6 @@ pragma solidity ^0.6.7;
 
 import "./strategy-base.sol";
 import "../../interfaces/cherry-chef.sol";
-import "hardhat/console.sol";
 
 abstract contract StrategyCherryFarmBase is StrategyBase {
     // Token addresses
@@ -16,7 +15,7 @@ abstract contract StrategyCherryFarmBase is StrategyBase {
     address public token1;
 
     uint256 public poolId;
-    mapping (address => address[]) public uniswapRoutes;
+    mapping(address => address[]) public uniswapRoutes;
 
     constructor(
         address _token0,
@@ -81,16 +80,25 @@ abstract contract StrategyCherryFarmBase is StrategyBase {
         ICherryChef(cherryChef).deposit(poolId, 0);
         uint256 _cherry = IERC20(cherry).balanceOf(address(this));
 
-        // If CHERRY is in the token pair
         if (_cherry > 0) {
-            uint256 toToken0 = _cherry.div(2);
-            uint256 toToken1 = _cherry.sub(toToken0);
+            // If CHERRY is in the token pair
+            if (token1 == cherry) {
+                address[] memory path;
+                path = new address[](2);
 
-            if (uniswapRoutes[token0].length > 1) {
-                _swapSushiswapWithPath(uniswapRoutes[token0], toToken0);
-            }
-            if (uniswapRoutes[token1].length > 1) {
-                _swapSushiswapWithPath(uniswapRoutes[token1], toToken1);
+                path[0] = cherry;
+                path[1] = token0;
+                _swapSushiswapWithPath(path, _cherry.div(2));
+            } else {
+                uint256 toToken0 = _cherry.div(2);
+                uint256 toToken1 = _cherry.sub(toToken0);
+
+                if (uniswapRoutes[token0].length > 1) {
+                    _swapSushiswapWithPath(uniswapRoutes[token0], toToken0);
+                }
+                if (uniswapRoutes[token1].length > 1) {
+                    _swapSushiswapWithPath(uniswapRoutes[token1], toToken1);
+                }
             }
         }
 
