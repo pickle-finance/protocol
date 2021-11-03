@@ -314,16 +314,16 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "0x07e7dF7F0612B7dc6789ba402b17c7108c932d05",
   // },
-  {
-    name: "PngAvaxRoco",
-    controllerAddress: "",
-    snowglobeAddress: "",
-  },
-  {
-    name: "PngAvaxFrax",
-    controllerAddress: "",
-    snowglobeAddress: "",
-  },
+  // {
+  //   name: "PngAvaxRoco",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxFrax",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
   // {
   //   name: "JoeAvaxPng",
   //   controllerAddress: "",
@@ -549,6 +549,21 @@ const tests = [
 //     controllerAddress: "",
 //     snowglobeAddress: "",
 //   },
+    {
+      name:"JoeAvaxAmpl",
+      controllerAddress: "",
+      snowglobeAddress: "",
+    },
+    {
+      name:"JoeAvaxOh",
+      controllerAddress: "",
+      snowglobeAddress: "",
+    },
+    {
+      name: "JoeAvaxIce",
+      controllerAddress: "",
+      snowglobeAddress: "",
+    }
 ];
 
 for (const test of tests) {
