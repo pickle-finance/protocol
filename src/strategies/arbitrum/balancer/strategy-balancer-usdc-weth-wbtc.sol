@@ -72,20 +72,20 @@ contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
         IERC20(bal).safeApprove(vault, _rewardBalance);
 
         // Swap BAL for WETH
-        IBVault.SingleSwap memory swapParams;
-        swapParams.poolId = balEthPool;
-        swapParams.kind = IBVault.SwapKind.GIVEN_IN;
-        swapParams.assetIn = IAsset(bal);
-        swapParams.assetOut = IAsset(weth);
-        swapParams.amount = _rewardBalance;
-        swapParams.userData = "0x";
-
-        IBVault.FundManagement memory funds;
-        funds.sender = address(this);
-        funds.fromInternalBalance = false;
-        funds.recipient = payable(address(this));
-        funds.toInternalBalance = false;
-
+        IBVault.SingleSwap memory swapParams = IBVault.SingleSwap({
+            poolId: balEthPool,
+            kind: IBVault.SwapKind.GIVEN_IN,
+            assetIn: IAsset(bal),
+            assetOut: IAsset(weth),
+            amount: _rewardBalance,
+            userData: "0x"
+        });
+        IBVault.FundManagement memory funds = IBVault.FundManagement({
+            sender: address(this),
+            recipient: payable(address(this)),
+            fromInternalBalance: false,
+            toInternalBalance: false
+        });
         IBVault(vault).swap(swapParams, funds, 1, now + 60);
 
         // approve WETH spending
@@ -99,8 +99,8 @@ contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
         assets[2] = IAsset(token2);
 
         IBVault.JoinKind joinKind = IBVault
-            .JoinKind
-            .EXACT_TOKENS_IN_FOR_BPT_OUT;
+        .JoinKind
+        .EXACT_TOKENS_IN_FOR_BPT_OUT;
         uint256[] memory amountsIn = new uint256[](3);
         amountsIn[0] = 0;
         amountsIn[1] = _weth;
@@ -109,11 +109,12 @@ contract StrategyBalancerWbtcWethUsdcLp is StrategyBase {
 
         bytes memory userData = abi.encode(joinKind, amountsIn, minAmountOut);
 
-        IBVault.JoinPoolRequest memory request;
-        request.assets = assets;
-        request.maxAmountsIn = amountsIn;
-        request.userData = userData;
-        request.fromInternalBalance = false;
+        IBVault.JoinPoolRequest memory request = IBVault.JoinPoolRequest({
+            assets: assets,
+            maxAmountsIn: amountsIn,
+            userData: userData,
+            fromInternalBalance: false
+        });
 
         uint256 _before = IERC20(want).balanceOf(address(this));
 
