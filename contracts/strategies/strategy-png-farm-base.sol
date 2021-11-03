@@ -102,16 +102,21 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
                 address(this),
                 now + 60
             );
-
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _token1 = IERC20(token1).balanceOf(address(this));
             // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(token1).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(token1).balanceOf(address(this))
-            );
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
+            if (_token1 > 0){
+                IERC20(token1).safeTransfer(
+                    IController(controller).treasury(),
+                    _token1
+                );
+            }
         }
 
         // We want to get back PNG LP tokens
