@@ -3,13 +3,14 @@ pragma solidity ^0.6.7;
 
 import "./strategy-base.sol";
 import "../../interfaces/jswap-chef.sol";
-import "hardhat/console.sol";
 
 abstract contract StrategyJswapFarmBase is StrategyBase {
     // Token addresses
     address public constant jswap = 0x5fAc926Bf1e638944BB16fb5B787B5bA4BC85b0A;
-    address public constant jswapChef = 0x83C35EA2C32293aFb24aeB62a14fFE920C2259ab;
-    address public constant jswapRouter = 0x069A306A638ac9d3a68a6BD8BE898774C073DCb3;
+    address public constant jswapChef =
+        0x83C35EA2C32293aFb24aeB62a14fFE920C2259ab;
+    address public constant jswapRouter =
+        0x069A306A638ac9d3a68a6BD8BE898774C073DCb3;
 
     // <token0>/<token1> pair
     address public token0;
@@ -27,7 +28,10 @@ abstract contract StrategyJswapFarmBase is StrategyBase {
         address _strategist,
         address _controller,
         address _timelock
-    ) public StrategyBase(_lp, _governance, _strategist, _controller, _timelock) {
+    )
+        public
+        StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
+    {
         poolId = _poolId;
         token0 = _token0;
         token1 = _token1;
@@ -35,7 +39,10 @@ abstract contract StrategyJswapFarmBase is StrategyBase {
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        (uint256 amount, , ) = IJswapChef(jswapChef).userInfo(poolId, address(this));
+        (uint256 amount, , ) = IJswapChef(jswapChef).userInfo(
+            poolId,
+            address(this)
+        );
         return amount;
     }
 
@@ -54,7 +61,11 @@ abstract contract StrategyJswapFarmBase is StrategyBase {
         }
     }
 
-    function _withdrawSome(uint256 _amount) internal override returns (uint256) {
+    function _withdrawSome(uint256 _amount)
+        internal
+        override
+        returns (uint256)
+    {
         IJswapChef(jswapChef).withdraw(poolId, _amount);
         return _amount;
     }
@@ -69,19 +80,28 @@ abstract contract StrategyJswapFarmBase is StrategyBase {
         //      if so, a new strategy will be deployed.
 
         // Collects JF tokens
-        IJswapChef(jswapChef).deposit(poolId, 0);
+        IJswapChef(jswapChef).claim(poolId);
         uint256 _jswap = IERC20(jswap).balanceOf(address(this));
 
-        // If JF is in the token pair
         if (_jswap > 0) {
-            uint256 toToken0 = _jswap.div(2);
-            uint256 toToken1 = _jswap.sub(toToken0);
+            // If JF is in the token pair
+            if (token1 == jswap) {
+                address[] memory path;
+                path = new address[](2);
 
-            if (uniswapRoutes[token0].length > 1) {
-                _swapSushiswapWithPath(uniswapRoutes[token0], toToken0);
-            }
-            if (uniswapRoutes[token1].length > 1) {
-                _swapSushiswapWithPath(uniswapRoutes[token1], toToken1);
+                path[0] = jswap;
+                path[1] = token0;
+                _swapSushiswapWithPath(path, _jswap.div(2));
+            } else {
+                uint256 toToken0 = _jswap.div(2);
+                uint256 toToken1 = _jswap.sub(toToken0);
+
+                if (uniswapRoutes[token0].length > 1) {
+                    _swapSushiswapWithPath(uniswapRoutes[token0], toToken0);
+                }
+                if (uniswapRoutes[token1].length > 1) {
+                    _swapSushiswapWithPath(uniswapRoutes[token1], toToken1);
+                }
             }
         }
 
@@ -95,11 +115,26 @@ abstract contract StrategyJswapFarmBase is StrategyBase {
             IERC20(token1).safeApprove(sushiRouter, 0);
             IERC20(token1).safeApprove(sushiRouter, _token1);
 
-            UniswapRouterV2(sushiRouter).addLiquidity(token0, token1, _token0, _token1, 0, 0, address(this), now + 60);
+            UniswapRouterV2(sushiRouter).addLiquidity(
+                token0,
+                token1,
+                _token0,
+                _token1,
+                0,
+                0,
+                address(this),
+                now + 60
+            );
 
             // Donates DUST
-            IERC20(token0).transfer(IController(controller).treasury(), IERC20(token0).balanceOf(address(this)));
-            IERC20(token1).safeTransfer(IController(controller).treasury(), IERC20(token1).balanceOf(address(this)));
+            IERC20(token0).transfer(
+                IController(controller).treasury(),
+                IERC20(token0).balanceOf(address(this))
+            );
+            IERC20(token1).safeTransfer(
+                IController(controller).treasury(),
+                IERC20(token1).balanceOf(address(this))
+            );
         }
 
         // We want to get back CHE-LP tokens
