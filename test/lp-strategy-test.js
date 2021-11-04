@@ -39,7 +39,7 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
 
             controllerContract = await ethers.getContractAt("ControllerV4", controllerAddr, governanceSigner);
             
-            //The Strategy dadress will not be supplied. We should deploy and setup a new strategy
+            //The Strategy address will not be supplied. We should deploy and setup a new strategy
             const stratFactory = await ethers.getContractFactory(strategyName);
             // Now we can deploy the new strategy
             strategyContract = await stratFactory.deploy(governanceSigner._address, strategistSigner._address,controllerAddr,timelockSigner._address);
@@ -61,22 +61,31 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
 
             await controllerContract.connect(timelockSigner).setStrategy(assetAddr,strategyAddr);
 
-            if (snowglobeAddr == "") {
-              const globeFactory = await ethers.getContractFactory(snowglobeName);
-              globeContract = await globeFactory.deploy(assetAddr, governanceSigner._address, timelockSigner._address, controllerAddr);
-              await controllerContract.setGlobe(assetAddr, globeContract.address);
-              snowglobeAddr = globeContract.address;
+            if (!snowglobeAddr) {
+                snowglobeAddr = await controllerContract.globes(assetAddr);
+                console.log("controllerAddr: ",controllerAddr);
+                console.log("snowglobeAddr: ",snowglobeAddr);
+                if (snowglobeAddr != 0) {
+                    console.log("here");
+                    globeContract = new ethers.Contract(snowglobeAddr, globeABI, governanceSigner);
+                }
+                else {
+                    const globeFactory = await ethers.getContractFactory(snowglobeName);
+                    globeContract = await globeFactory.deploy(assetAddr, governanceSigner._address, timelockSigner._address, controllerAddr);
+                    await controllerContract.setGlobe(assetAddr, globeContract.address);
+                    snowglobeAddr = globeContract.address;
+                }
             }
             else {
-              globeContract = new ethers.Contract(snowglobeAddr, globeABI, governanceSigner);
+                globeContract = new ethers.Contract(snowglobeAddr, globeABI, governanceSigner);
             }
 
             /* Earn */
             const earn = await globeContract.earn();
             const tx_earn = await earn.wait(1);
             if (!tx_earn.status) {
-            console.error("Error calling earn in the Snowglobe for: ",name);
-            return;
+                console.error("Error calling earn in the Snowglobe for: ",name);
+                return;
             }
             console.log("Called earn in the Snowglobe for: ",name);
 

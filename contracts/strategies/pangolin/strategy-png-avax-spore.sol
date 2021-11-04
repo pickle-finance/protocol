@@ -2,7 +2,6 @@
 pragma solidity ^0.6.7;
 
 import "../strategy-png-farm-base-v2.sol";
-import "hardhat/console.sol";
 
 contract StrategyPngAvaxSporeLp is StrategyPngFarmBaseV2 {
     // Token addresses
@@ -43,7 +42,6 @@ contract StrategyPngAvaxSporeLp is StrategyPngFarmBaseV2 {
         if (_png > 0) {
             // 10% is locked up for future gov
             uint256 _keep = _png.mul(keep).div(keepMax);
-            console.log("keep percentage %s",_keep);
             if (_keep > 0) {
                 _takeFeePngToSnob(_keep);
             }

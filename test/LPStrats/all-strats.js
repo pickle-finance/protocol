@@ -34,11 +34,23 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "0x27f8FE86a513bAAF18B59D3dD15218Cc629640Fc",
   // },
+  // {
+  //   name: "PngSporePng",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "", // 0xa39785a4E4CdDa7509751ed152a00f3D37FbFa9F
+  // },
   {
-    name: "PngSporePng",
-    controllerAddress: "",
-    snowglobeAddress: "0xa39785a4E4CdDa7509751ed152a00f3D37FbFa9F",
+    name: "JoeAvaxGb",
   },
+  // {
+  //   name: "PngAvaxGb",
+  // },
+  // {
+  //   name: "PngAvaxShibx",
+  // },
+  // {
+  //   name: "PngAvaxSpore",
+  // },
   // {
   //   name: "PngAvaxBnb",
   //   controllerAddress: "",

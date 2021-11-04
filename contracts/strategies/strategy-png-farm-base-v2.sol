@@ -2,7 +2,6 @@
 pragma solidity ^0.6.7;
 
 import "./strategy-staking-rewards-base.sol";
-import "hardhat/console.sol";
 
 abstract contract StrategyPngFarmBaseV2 is StrategyStakingRewardsBase {
 
@@ -38,7 +37,6 @@ abstract contract StrategyPngFarmBaseV2 is StrategyStakingRewardsBase {
         IERC20(png).safeApprove(pangolinRouter, _keep);
         _swapPangolin(png, snob, _keep);
         uint _snob = IERC20(snob).balanceOf(address(this));
-         console.log("snob balance to be sent %s",_snob);
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
         IERC20(snob).safeTransfer(
             feeDistributor,
