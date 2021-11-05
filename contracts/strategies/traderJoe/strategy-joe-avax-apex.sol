@@ -2,7 +2,6 @@
 pragma solidity ^0.6.7;
 
 import "../strategy-joe-rush-farm-base.sol";
-import "hardhat/console.sol";
 
 contract StrategyJoeAvaxApexLp is StrategyJoeRushFarmBase {
     uint256 public avax_apex_poolId = 6;
@@ -26,8 +25,6 @@ contract StrategyJoeAvaxApexLp is StrategyJoeRushFarmBase {
             _timelock
         )
     {}
-
-    // **** State Mutations ****
 
    function harvest() public override onlyBenevolent {
         // Anyone can harvest it at any given time.
@@ -130,7 +127,6 @@ contract StrategyJoeAvaxApexLp is StrategyJoeRushFarmBase {
 
         _distributePerformanceFeesAndDeposit();
     }
-
     // **** Views ****
 
     function getName() external pure override returns (string memory) {

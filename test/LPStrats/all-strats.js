@@ -314,11 +314,11 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "0x07e7dF7F0612B7dc6789ba402b17c7108c932d05",
   // },
-  {
-    name: "PngAvaxRoco",
-    controllerAddress: "",
-    snowglobeAddress: "0x026402B96A3EBDeaE03B70E4C197D70a8f33B295",
-  },
+  // {
+  //   name: "PngAvaxRoco",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "0x026402B96A3EBDeaE03B70E4C197D70a8f33B295",
+  // },
   // {
   //   name: "PngAvaxFrax",
   //   controllerAddress: "",
@@ -569,11 +569,11 @@ const tests = [
       controllerAddress: "",
       snowglobeAddress: "",
     },
-    {
-      name: "JoeAvaxTractor",
-      controllerAddress: "",
-      snowglobeAddress: "",
-    }
+    // {
+    //   name: "JoeAvaxTractor",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // }
 ];
 
 for (const test of tests) {
