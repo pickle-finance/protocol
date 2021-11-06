@@ -3,6 +3,12 @@ pragma solidity ^0.6.7;
 import "../lib/safe-math.sol";
 import "../lib/erc20.sol";
 
+
+/**
+ * @title A Raffle for Pickles
+ * @author Cipio
+ * @notice Use this contract to participate in a 50/50 Raffle. The Winner gets 50%, the other 50% gets used to burn Corn.
+ */
 contract pickleRaffle {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -52,7 +58,7 @@ contract pickleRaffle {
      */
     function buyTickets (address _player, uint256 _amount) public validSender(_amount)
     {
-      PICKLE.safeTransferFrom(_player, address(this), _amount);
+      PICKLE.safeTransferFrom(msg.sender, address(this), _amount);
       if(playerTokens[_player] == 0)
       {
         players.push(_player);
@@ -78,6 +84,7 @@ contract pickleRaffle {
     function draw() external onlyOwner
     {
         require (block.number != drawnBlock);
+        require (PICKLE.balanceOf(address(this)) > 0, "No Pickles available.");
 
         drawnBlock = block.number;
 
