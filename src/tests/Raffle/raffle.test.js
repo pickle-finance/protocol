@@ -57,20 +57,35 @@ describe(`Raffle Tests`, () => {
     expect(await pickleToken.balanceOf(user.address)).to.be.eq(0, "User has no pickles correct");
     expect(await pickleToken.balanceOf(owner.address)).to.be.eq(0, "Owner has no pickles correct");
     const _pickles = await raffle.playerTokens(owner.address);
+    const _totalTickets = await raffle.totalTickets();
+    const _playerLength = await raffle.numPlayers();
+    console.log("Player count: %s\n", _playerLength);
+    const players = await raffle.players(0);
+    console.log("Player list: %s\n", players);
     await raffle.draw();
     let theWinner = await raffle.currentWinner();
     console.log("The winner is: %s\n", (theWinner.toString()));
-    winner1 = theWinner;
+
+    const _blockNum = await ethers.provider.getBlockNumber();
+    const _block = await ethers.provider.getBlock(_blockNum);
+    const _timestamp = _block.timestamp;
+    const _payout = _totalTickets.mul(4).div(5);
+
+    winner1 = new Object();
+    winner1.address = theWinner;
+    winner1.payout = _payout;
+    winner1.timestamp = _timestamp;
+    winner1.playerLength = _playerLength;
 
     if(theWinner == user.address)
     {
-      expect(await pickleToken.balanceOf(user.address)).to.be.eq(_pickles, "deposit tokens for user is correct");
-      expect(await pickleToken.balanceOf(owner.address)).to.be.eq(_pickles, "deposit tokens for owner is correct");
+      expect(await pickleToken.balanceOf(user.address)).to.be.eq(_payout, "deposit tokens for user is correct");
+      expect(await pickleToken.balanceOf(owner.address)).to.be.eq(_totalTickets.div(5), "deposit tokens for owner is correct");
     }
     else
     {
       expect(await pickleToken.balanceOf(user.address)).to.be.eq(0, "deposit tokens for user is correct");
-      expect(await pickleToken.balanceOf(owner.address)).to.be.eq(_pickles.mul(2), "deposit tokens for owner is correct");
+      expect(await pickleToken.balanceOf(owner.address)).to.be.eq(_totalTickets, "deposit tokens for owner is correct");
     }
 
 
@@ -102,15 +117,29 @@ describe(`Raffle Tests`, () => {
   it("draw multiple times correctly ", async () => {
     startingUserBalance = await pickleToken.balanceOf(user.address);
     startingOwnerBalance = await pickleToken.balanceOf(owner.address);
+    const _totalTickets = await raffle.totalTickets();
+    const _playerLength = await raffle.numPlayers();
 
     await raffle.draw();
     let theWinner = await raffle.currentWinner();
     console.log("The winner is: %s\n", (theWinner.toString()));
-    winner2 = theWinner;
+
+    const _blockNum = await ethers.provider.getBlockNumber();
+    const _block = await ethers.provider.getBlock(_blockNum);
+    const _timestamp = _block.timestamp;
+
+    const _payout = _totalTickets.mul(4).div(5);
+
+
+    winner2 = new Object();
+    winner2.address = theWinner;
+    winner2.payout = _payout;
+    winner2.timestamp = _timestamp;
+    winner2.playerLength = _playerLength;
 
     expect(theWinner).to.be.eq(user.address, "user won correct");
-    expect(await pickleToken.balanceOf(user.address)).to.be.eq(startingUserBalance.add(toWei(1000)), "deposit tokens for user is correct");
-    expect(await pickleToken.balanceOf(owner.address)).to.be.eq(startingOwnerBalance.add(toWei(1000)), "deposit tokens for owner is correct");
+    expect(await pickleToken.balanceOf(user.address)).to.be.eq(startingUserBalance.add(_payout), "deposit tokens for user is correct");
+    expect(await pickleToken.balanceOf(owner.address)).to.be.eq(startingOwnerBalance.add(_totalTickets.div(5)), "deposit tokens for owner is correct");
 
   });
 
@@ -121,7 +150,24 @@ describe(`Raffle Tests`, () => {
   });
 
   it("Multiple Drawing Winners correctly", async () => {
-    expect(await raffle.winners(0)).to.be.eq(winner1, "winner1 list is correct");
-    expect(await raffle.winners(1)).to.be.eq(winner2, "winner2 list is correct");
+    let winnerList1 = await raffle.winners(0);
+    let winnerList2 = await raffle.winners(1);
+
+    expect(winnerList1.winner).to.be.eq(winner1.address, "winner1 list address is correct");
+    expect(winnerList1.amount).to.be.eq(winner1.payout, "winner1 list amount is correct");
+    expect(winnerList1.timestamp).to.be.eq(winner1.timestamp, "winner1 list timestamp is correct");
+    expect(winnerList1.numParticipants).to.be.eq(winner1.playerLength, "winner1 list numParticipants is correct");
+    expect(winnerList2.winner).to.be.eq(winner2.address, "winner2 list address is correct");
+    expect(winnerList2.amount).to.be.eq(winner2.payout, "winner2 list amount is correct");
+    expect(winnerList2.timestamp).to.be.eq(winner2.timestamp, "winner2 list timestamp is correct");
+    expect(winnerList2.numParticipants).to.be.eq(winner2.playerLength, "winner2 list numParticipants is correct");
   });
+
+  it("disable deposits correctly", async () => {
+    await raffle.enableDeposits(false);
+    const _pickles = await pickleToken.balanceOf(owner.address);
+    await pickleToken.approve(raffle.address, _pickles);
+    await expect(raffle["buyTickets(address,uint256)"](user.address, _pickles)).to.be.revertedWith('Deposits are currently Disabled.');
+  });
+
 });

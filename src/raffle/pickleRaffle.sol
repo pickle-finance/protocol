@@ -14,19 +14,29 @@ contract pickleRaffle {
     using SafeERC20 for IERC20;
 
     address[] public players;
+    uint256 public numPlayers;
     mapping (address => uint256) public playerTokens; //Address => Tickets
     uint256 public totalTickets;
-    address[] public winners; //List of Winners
+    WinnerInfo[] public winners; //List of Winners
     address public currentWinner;
+    bool public depositsEnabled;
 
     IERC20 public constant PICKLE = IERC20(0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5);
     address public owner;
 
     uint256 drawnBlock = 0;
 
+    struct WinnerInfo {
+      address winner;
+      uint256 amount;
+      uint256 timestamp;
+      uint256 numParticipants;
+    }
+
     constructor() public
     {
       owner = msg.sender;
+      depositsEnabled = true;
     }
 
     modifier onlyOwner {
@@ -39,6 +49,7 @@ contract pickleRaffle {
       uint256 allowance = PICKLE.allowance(msg.sender, address(this));
       require(allowance >= _amount, "Check the token allowance");
       require(PICKLE.balanceOf(msg.sender) >= _amount, "You cannot transfer more tokens than you have.");
+      require(depositsEnabled, "Deposits are currently Disabled.");
       _;
     }
 
@@ -52,6 +63,15 @@ contract pickleRaffle {
     }
 
     /**
+     * @notice Sets whether depsits are enabled or not.
+     * @param _deposits Sets if deposits are allowed.
+     */
+    function enableDeposits(bool _deposits) external onlyOwner
+    {
+      depositsEnabled = _deposits;
+    }
+
+    /**
      * @notice Purchase Raffle Tickets for address.
      * @param _player Adress purchasing Raffle Tickets.
      * @param _amount Ammount of Raffle Tickets to purchase.
@@ -62,11 +82,12 @@ contract pickleRaffle {
       if(playerTokens[_player] == 0)
       {
         players.push(_player);
+        numPlayers = numPlayers.add(1);
       }
 
-      playerTokens[_player] += _amount;
+      playerTokens[_player] = playerTokens[_player].add(_amount);
 
-      totalTickets += _amount;
+      totalTickets = totalTickets.add(_amount);
     }
 
     /**
@@ -93,18 +114,16 @@ contract pickleRaffle {
 
         for(uint i=0; i < players.length; i++)
         {
-          if((playerTokens[players[i]] + runningTally) > winningTicket)
+          if(playerTokens[players[i]].add(runningTally) > winningTicket)
           {
             //Winner Found
-            currentWinner = players[i];
-            winners.push(currentWinner);
-            payWinner(currentWinner);
+            payWinner(players[i]);
             cleanup();
           }
           else
           {
             //Not the Winner
-            runningTally += playerTokens[players[i]];
+            runningTally = runningTally.add(playerTokens[players[i]]);
           }
         }
     }
@@ -115,9 +134,15 @@ contract pickleRaffle {
      */
     function payWinner(address _winner) internal
     {
-      uint _balance = PICKLE.balanceOf(address(this));
-      PICKLE.safeTransfer(_winner, _balance / 2);
-      PICKLE.safeTransfer(owner, _balance / 2);
+      currentWinner = _winner;
+
+      uint256 _balance = PICKLE.balanceOf(address(this));
+      uint256 _payout = _balance.mul(4).div(5);
+
+      winners.push(WinnerInfo(currentWinner, _payout, now, players.length));
+
+      PICKLE.safeTransfer(_winner, _payout);
+      PICKLE.safeTransfer(owner, _balance.div(5));
     }
 
     /**
@@ -132,6 +157,7 @@ contract pickleRaffle {
 
       delete players;
       totalTickets = 0;
+      numPlayers = 0;
     }
 
     /**
