@@ -22,6 +22,7 @@ contract pickleRaffle {
     {
       owner = msg.sender;
     }
+
     modifier onlyOwner {
        require(msg.sender == owner);
        _;
@@ -35,12 +36,20 @@ contract pickleRaffle {
       _;
     }
 
+    /**
+     * @notice Changes the Owner of the contract.
+     * @param _newOwner The new address of the Owner.
+     */
     function changeOwner(address _newOwner) external onlyOwner
     {
       owner = _newOwner;
     }
 
-    //Buy Tickets for Friends
+    /**
+     * @notice Purchase Raffle Tickets for address.
+     * @param _player Adress purchasing Raffle Tickets.
+     * @param _amount Ammount of Raffle Tickets to purchase.
+     */
     function buyTickets (address _player, uint256 _amount) public validSender(_amount)
     {
       PICKLE.safeTransferFrom(_player, address(this), _amount);
@@ -54,14 +63,20 @@ contract pickleRaffle {
       totalTickets += _amount;
     }
 
-    //Buy Tickets for Self
+    /**
+     * @notice Purchase Raffle Tickets for self.
+     * @param _amount Ammount of Raffle Tickets to purchase.
+     */
     function buyTickets(uint256 _amount) external validSender(_amount)
     {
       buyTickets(msg.sender, _amount);
     }
 
-    //Draws the Winner
-    function draw() external onlyOwner{
+    /**
+     * @notice Selects the winner for the Raffle.
+     */
+    function draw() external onlyOwner
+    {
         require (block.number != drawnBlock);
 
         drawnBlock = block.number;
@@ -87,6 +102,10 @@ contract pickleRaffle {
         }
     }
 
+    /**
+     * @notice Transfers funds to the winner and the owner.
+     * @param _winner The address of the winner.
+     */
     function payWinner(address _winner) internal
     {
       uint _balance = PICKLE.balanceOf(address(this));
@@ -94,19 +113,26 @@ contract pickleRaffle {
       PICKLE.safeTransfer(owner, _balance / 2);
     }
 
+    /**
+     * @notice Removes values in preparation for the next Raffle.
+     */
     function cleanup() internal
     {
       for(uint i = 0; i < players.length; i++)
       {
         delete playerTokens[players[i]];
       }
+
       delete players;
       totalTickets = 0;
     }
-    //Random Number Generator for selecting a winner.
+
+    /**
+     * @notice Generates and returns a random number.
+     * @return randomNumber A random number between 0 and totalTickets -1.
+     */
     function randomGen() view internal returns (uint256 randomNumber) {
         uint256 seed = uint256(blockhash(block.number - 200));
         return(uint256(keccak256(abi.encodePacked(blockhash(block.number-1), seed ))) % totalTickets);
     }
-
 }
