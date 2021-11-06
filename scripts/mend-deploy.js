@@ -3,23 +3,23 @@ require('dotenv').config();
 
 async function main() {
   const pools = [
-    // {
-    //   name: "JoeAvaxApex",
-    // },
+    {
+      name: "JoeAvaxApex",
+    },
     // {
     //   name: "JoeAvaxTractor",
     // },
     // {
     //   name: "JoeAvaxAmpl",
     // },
-    {
-      name: "JoeAvaxIce",
-      strategy_addr: "0xDA59ABC89c7be9D7fb3E049EBCC42B1dE84A6272",
-      snowglobe_addr: "0x2919641D1069A9aF9675B977f96d8CCC725eA0F1",
-    },
-    {
-      name: "JoeAvaxOh",
-    },
+    // {
+    //   name: "JoeAvaxIce",
+    //   strategy_addr: "0xDA59ABC89c7be9D7fb3E049EBCC42B1dE84A6272",
+    //   snowglobe_addr: "0x2919641D1069A9aF9675B977f96d8CCC725eA0F1",
+    // },
+    // {
+    //   name: "JoeAvaxOh",
+    // },
   ];
 
   const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
