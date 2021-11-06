@@ -3,7 +3,6 @@ const {getWantFromWhale} = require("../utils/setupHelper");
 const {ZERO_ADDRESS, NULL_ADDRESS} = require("../utils/constants");
 const {ethers} = require("hardhat");
 
-
 const PICKLE = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5";
 const whaleAddr = "0x2511132954b11fbc6bd56e6ec57161406ea31631";
 
@@ -16,9 +15,7 @@ describe(`Raffle Tests`, () => {
 
     pickleToken = await getContractAt("ERC20", PICKLE);
 
-    raffle = await deployContract(
-      "pickleRaffle"
-    );
+    raffle = await deployContract("pickleRaffle");
     console.log("✅ Raffle is deployed at ", raffle.address);
   });
 
@@ -64,7 +61,7 @@ describe(`Raffle Tests`, () => {
     console.log("Player list: %s\n", players);
     await raffle.draw();
     let theWinner = await raffle.currentWinner();
-    console.log("The winner is: %s\n", (theWinner.toString()));
+    console.log("The winner is: %s\n", theWinner.toString());
 
     const _blockNum = await ethers.provider.getBlockNumber();
     const _block = await ethers.provider.getBlock(_blockNum);
@@ -77,18 +74,16 @@ describe(`Raffle Tests`, () => {
     winner1.timestamp = _timestamp;
     winner1.playerLength = _playerLength;
 
-    if(theWinner == user.address)
-    {
+    if (theWinner == user.address) {
       expect(await pickleToken.balanceOf(user.address)).to.be.eq(_payout, "deposit tokens for user is correct");
-      expect(await pickleToken.balanceOf(owner.address)).to.be.eq(_totalTickets.div(5), "deposit tokens for owner is correct");
-    }
-    else
-    {
+      expect(await pickleToken.balanceOf(owner.address)).to.be.eq(
+        _totalTickets.div(5),
+        "deposit tokens for owner is correct"
+      );
+    } else {
       expect(await pickleToken.balanceOf(user.address)).to.be.eq(0, "deposit tokens for user is correct");
       expect(await pickleToken.balanceOf(owner.address)).to.be.eq(_totalTickets, "deposit tokens for owner is correct");
     }
-
-
   });
 
   it("Clear correctly after a Draw", async () => {
@@ -122,14 +117,13 @@ describe(`Raffle Tests`, () => {
 
     await raffle.draw();
     let theWinner = await raffle.currentWinner();
-    console.log("The winner is: %s\n", (theWinner.toString()));
+    console.log("The winner is: %s\n", theWinner.toString());
 
     const _blockNum = await ethers.provider.getBlockNumber();
     const _block = await ethers.provider.getBlock(_blockNum);
     const _timestamp = _block.timestamp;
 
     const _payout = _totalTickets.mul(4).div(5);
-
 
     winner2 = new Object();
     winner2.address = theWinner;
@@ -138,9 +132,14 @@ describe(`Raffle Tests`, () => {
     winner2.playerLength = _playerLength;
 
     expect(theWinner).to.be.eq(user.address, "user won correct");
-    expect(await pickleToken.balanceOf(user.address)).to.be.eq(startingUserBalance.add(_payout), "deposit tokens for user is correct");
-    expect(await pickleToken.balanceOf(owner.address)).to.be.eq(startingOwnerBalance.add(_totalTickets.div(5)), "deposit tokens for owner is correct");
-
+    expect(await pickleToken.balanceOf(user.address)).to.be.eq(
+      startingUserBalance.add(_payout),
+      "deposit tokens for user is correct"
+    );
+    expect(await pickleToken.balanceOf(owner.address)).to.be.eq(
+      startingOwnerBalance.add(_totalTickets.div(5)),
+      "deposit tokens for owner is correct"
+    );
   });
 
   it("Clear correctly after a Draw", async () => {
@@ -167,7 +166,8 @@ describe(`Raffle Tests`, () => {
     await raffle.enableDeposits(false);
     const _pickles = await pickleToken.balanceOf(owner.address);
     await pickleToken.approve(raffle.address, _pickles);
-    await expect(raffle["buyTickets(address,uint256)"](user.address, _pickles)).to.be.revertedWith('Deposits are currently Disabled.');
+    await expect(raffle["buyTickets(address,uint256)"](user.address, _pickles)).to.be.revertedWith(
+      "Deposits are currently Disabled."
+    );
   });
-
 });
