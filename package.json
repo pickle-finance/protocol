@@ -27,7 +27,7 @@
     "dotenv": "^10.0.0",
     "eslint": "^7.10.0",
     "ethereum-waffle": "^3.4.0",
-    "hardhat": "^2.6.5",
+    "hardhat": "^2.6.8",
     "mocha": "^7.2.0"
   },
   "eslintConfig": {
