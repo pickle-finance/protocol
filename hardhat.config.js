@@ -12,7 +12,7 @@ module.exports = {
       chainId: 43114,
       forking: {
         //url: "https://node.snowapi.net/ext/bc/C/rpc",
-        url: "https://api.avax.network/ext/bc/C/rpc",
+        url: "https://api.avax.network/ext/bc/C/rpc"
       },
     },
     fuji: {
