@@ -1,4 +1,5 @@
 require("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-etherscan");
 require("dotenv").config();
 
 /**
@@ -7,10 +8,11 @@ require("dotenv").config();
 module.exports = {
   networks: {
     hardhat: {
-      accounts: [{privateKey: process.env.PRIVATE_KEY, balance: "100000000000000000000000"}],
+      accounts: [{ privateKey: process.env.PRIVATE_KEY, balance: "100000000000000000000000" }],
       chainId: 43114,
       forking: {
-        url: "https://node.snowapi.net/ext/bc/C/rpc",
+        //url: "https://node.snowapi.net/ext/bc/C/rpc",
+        url: "https://api.avax.network/ext/bc/C/rpc",
       },
     },
     fuji: {
@@ -18,9 +20,19 @@ module.exports = {
       accounts: [process.env.PRIVATE_KEY]
     },
     mainnet: {
-      url: "https://node.snowapi.net/ext/bc/C/rpc",
+      chainId: 43114,
+      url: "https://api.avax.network/ext/bc/C/rpc",
       accounts: [process.env.PRIVATE_KEY]
     },
+    AVALANCHE: {
+      chainId: 43114,
+      url: "https://api.avax.network/ext/bc/C/rpc",
+      accounts: [process.env.PRIVATE_KEY]
+    },
+  },
+  etherscan: {
+    // Your API key for Snowtrace
+    apiKey: process.env.SNOWTRACE_KEY,
   },
   solidity: {
     compilers: [
@@ -37,5 +49,8 @@ module.exports = {
   },
   mocha: {
     timeout: 120000
-  }
+  },
+  // vyper: {
+  //   version: "0.2.4",
+  // },
 };
