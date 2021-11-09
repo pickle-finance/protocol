@@ -110,7 +110,7 @@ contract StrategyJoeAvaxXavaLp is StrategyJoeRushFarmBase {
                 );
             }
             if (_xava > 0){
-                IERC20(token1).safeTransfer(
+                IERC20(xava).safeTransfer(
                     IController(controller).treasury(),
                     _xava
                 );

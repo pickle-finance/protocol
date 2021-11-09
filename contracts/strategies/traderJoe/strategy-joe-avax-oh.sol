@@ -110,7 +110,7 @@ contract StrategyJoeAvaxOhLp is StrategyJoeRushFarmBase {
                 );
             }
             if (_oh > 0){
-                IERC20(token1).safeTransfer(
+                IERC20(oh).safeTransfer(
                     IController(controller).treasury(),
                     _oh
                 );

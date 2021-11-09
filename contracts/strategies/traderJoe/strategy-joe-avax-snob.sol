@@ -110,7 +110,7 @@ contract StrategyJoeAvaxSnobLp is StrategyJoeRushFarmBase {
                 );
             }
             if (_snob > 0){
-                IERC20(token1).safeTransfer(
+                IERC20(snob).safeTransfer(
                     IController(controller).treasury(),
                     _snob
                 );

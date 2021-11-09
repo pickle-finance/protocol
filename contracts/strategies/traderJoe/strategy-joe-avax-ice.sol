@@ -110,7 +110,7 @@ contract StrategyJoeAvaxIceLp is StrategyJoeRushFarmBase {
                 );
             }
             if (_ice > 0){
-                IERC20(token1).safeTransfer(
+                IERC20(apex).safeTransfer(
                     IController(controller).treasury(),
                     _ice
                 );

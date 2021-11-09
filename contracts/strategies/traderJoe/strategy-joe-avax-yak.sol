@@ -111,7 +111,7 @@ contract StrategyJoeAvaxYakLp is StrategyJoeRushFarmBase {
                 );
             }
             if (_yak > 0){
-                IERC20(token1).safeTransfer(
+                IERC20(yak).safeTransfer(
                     IController(controller).treasury(),
                     _yak
                 );

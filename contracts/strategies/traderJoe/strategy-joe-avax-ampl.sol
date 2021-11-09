@@ -110,7 +110,7 @@ contract StrategyJoeAvaxAmplLp is StrategyJoeRushFarmBase {
                 );
             }
             if (_ampl > 0){
-                IERC20(token1).safeTransfer(
+                IERC20(ampl).safeTransfer(
                     IController(controller).treasury(),
                     _ampl
                 );

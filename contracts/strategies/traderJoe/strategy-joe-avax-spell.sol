@@ -111,7 +111,7 @@ contract StrategyJoeAvaxSpellLp is StrategyJoeRushFarmBase {
                 );
             }
             if (_spell > 0){
-                IERC20(token1).safeTransfer(
+                IERC20(spell).safeTransfer(
                     IController(controller).treasury(),
                     _spell
                 );

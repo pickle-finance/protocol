@@ -114,7 +114,7 @@ contract StrategyJoeAvaxJoeLp is StrategyJoeRushFarmBase {
                 );
             }
             if (_joe > 0){
-                IERC20(token1).safeTransfer(
+                IERC20(joe).safeTransfer(
                     IController(controller).treasury(),
                     _joe
                 );

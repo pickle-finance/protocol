@@ -111,7 +111,7 @@ contract StrategyJoeAvaxPefiLp is StrategyJoeRushFarmBase {
                 );
             }
             if (_pefi > 0){
-                IERC20(token1).safeTransfer(
+                IERC20(pefi).safeTransfer(
                     IController(controller).treasury(),
                     _pefi
                 );
