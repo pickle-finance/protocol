@@ -76,15 +76,21 @@ contract StrategyJoeAvaxSnobLp is StrategyJoeFarmBase {
                 now + 60
             );
 
-            // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(snob).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(snob).balanceOf(address(this))
-            );
+              // Donates DUST
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            if (_wavax > 0) {
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
+            _snob = IERC20(snob).balanceOf(address(this));
+            if (_snob > 0) {
+                IERC20(snob).safeTransfer(
+                    IController(controller).treasury(),
+                    _snob
+                );
+            }
         }
 
         _distributePerformanceFeesAndDeposit();
