@@ -84,12 +84,12 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
         // Adds in liquidity for WAVAX/token
         _wavax = IERC20(wavax).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
-        _png = IERC20(png).balanceOf(address(this));
+        _token1 = IERC20(token1).balanceOf(address(this));
+
         if (_wavax > 0 && _token1 > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
 
-            IERC20(token1).safeApprove(pangolinRouter, 0);
             IERC20(token1).safeApprove(pangolinRouter, _token1);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
