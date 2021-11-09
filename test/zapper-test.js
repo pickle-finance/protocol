@@ -112,6 +112,7 @@ const doZapperTests = (
                 expect(LPToken.address).to.not.be.empty;
                 expect(TokenA.address).to.not.be.empty;
                 expect(TokenB.address).to.not.be.empty;
+                console.log(`\tToken Addresses are ${TokenA.address} and ${TokenB.address}`);
             })
 
             it("..user has positive balances for tokens and LP", async () => {
@@ -127,7 +128,7 @@ const doZapperTests = (
 
         describe("When depositing..", async () => {
             it("..can zap in with TokenA", async () => {
-                const txnAmt = "1000";
+                const txnAmt = "33";
                 const amt = ethers.utils.parseEther(txnAmt);
                 let [user1, globe1] = await getBalances(TokenA, LPToken, walletAddr, globeContract);
                 let symbol = await TokenA.symbol;
@@ -146,7 +147,7 @@ const doZapperTests = (
             })
 
             it("..can zap in with TokenB", async () => {
-                const txnAmt = "1500";
+                const txnAmt = "66";
                 const amt = ethers.utils.parseEther(txnAmt);
                 let [user1, globe1] = await getBalances(TokenB, LPToken, walletAddr, globeContract);
                 printBals("Original", globe1, user1);
@@ -165,7 +166,7 @@ const doZapperTests = (
             })
 
             it("..can zap in with AVAX", async () => {
-                const txnAmt = "112";
+                const txnAmt = "55";
                 const amt = ethers.utils.parseEther(txnAmt);
                 let [user1, globe1] = await getBalancesAvax(LPToken, walletSigner, globeContract);
                 printBals("Original", globe1, user1);
@@ -187,7 +188,7 @@ const doZapperTests = (
 
         describe("When withdrawing..", async () => {
             it("..can zap out into TokenA", async () => {
-                const txnAmt = "1000";
+                const txnAmt = "24";
                 const amt = ethers.utils.parseEther(txnAmt);
 
                 await zapperContract.zapIn(SnowGlobeAddr, 0, TokenA.address, amt);
@@ -208,13 +209,13 @@ const doZapperTests = (
             })
 
             it("..can zap out into TokenB", async () => {
-                const txnAmt = "1000";
+                const txnAmt = "35";
                 const amt = ethers.utils.parseEther(txnAmt);
+                
 
                 await zapperContract.zapIn(SnowGlobeAddr, 0, TokenB.address, amt);
                 let receipt = await gaugeContract.balanceOf(walletAddr);
                 let balBBefore = (TokenB.address != WAVAX) ? await returnBal(TokenB, walletAddr) : await returnWalletBal(walletAddr);
-
                 await globeContract.connect(walletSigner).earn();
                 await gaugeContract.connect(walletSigner).withdrawAll();
                 await zapperContract.zapOutAndSwap(SnowGlobeAddr, receipt, TokenB.address, 0);
@@ -229,7 +230,7 @@ const doZapperTests = (
             })
 
             it("..can zap out equally", async () => {
-                const txnAmt = "1000";
+                const txnAmt = "45";
                 const amt = ethers.utils.parseEther(txnAmt);
 
                 await zapperContract.zapIn(SnowGlobeAddr, 0, TokenA.address, amt);
@@ -245,10 +246,10 @@ const doZapperTests = (
                 let balBAfter = (TokenB.address != WAVAX) ? await returnBal(TokenB, walletAddr) : await returnWalletBal(walletAddr);
 
                 (TokenA.address != WAVAX) ?
-                    expect(balAAfter - balABefore).to.roughly(0.01).deep.equal(Number(txnAmt) / 2) :
+                    expect(balAAfter - balABefore,"Incorrect TokenA").to.roughly(0.01).deep.equal(Number(txnAmt) / 2) :
                     expect(balAAfter).to.be.greaterThan(balABefore);
                 (TokenB.address != WAVAX) ?
-                    expect(balBAfter - balBBefore).to.roughly(0.01).deep.equal(Number(txnAmt) / 2) :
+                    expect(balBAfter - balBBefore,"Incorrect TokenB").to.roughly(0.01).deep.equal(Number(txnAmt) / 2) :
                     expect(balBAfter).to.be.greaterThan(balBBefore);
                 expect(receipt2).to.be.equals(0);
             })
@@ -256,43 +257,35 @@ const doZapperTests = (
 
         describe("When minimum amounts unmet..", async () => {
             it("..reverts on zap in token", async () => {
+                const txnAmt = "100";
+                const amt = ethers.utils.parseEther(txnAmt);
+               
+                await expect(zapperContract.zapIn(SnowGlobeAddr, amt, TokenA.address, amt)).to.be.reverted;
             })
             it("..reverts on zap in avax", async () => {
+                const txnAmt = "1";
+                const txnAmt2 = "5";
+                const amt = ethers.utils.parseEther(txnAmt);
+                const amt2 = ethers.utils.parseEther(txnAmt2);
+
+                await expect(zapperContract.zapInAVAX(SnowGlobeAddr, amt2, { value: amt })).to.be.reverted;
             })
 
             it("..reverts on zap out token", async () => {
+                const txnAmt = "35";
+                const amt = ethers.utils.parseEther(txnAmt);
+                
+                await zapperContract.zapIn(SnowGlobeAddr, 0, TokenB.address, amt);
+                let receipt = await gaugeContract.balanceOf(walletAddr);
+                await globeContract.connect(walletSigner).earn();
+                await gaugeContract.connect(walletSigner).withdrawAll();
+                await expect(zapperContract.zapOutAndSwap(SnowGlobeAddr, receipt, TokenB.address, amt)).to.be.reverted;
             })
 
+            //missing
             it("..reverts on zap out avax", async () => {
             })
         })
-        //     it("..can zap out into LP Token", async () => {
-        //     })
-
-        //     it("..can zap out into TokenA", async () => {
-        //     })
-
-        //     it("..can zap out into TokenB", async () => {
-        //     })
-        // it("..can zap in with AVAX", async () => {
-        // })
-
-        // Asana Ticket mentions being able to deposit LP Token
-        // it("..can zap in with LP Token", async () => {
-        //     const txnAmt = "1000";
-        //     const amt = ethers.utils.parseEther(txnAmt);
-
-        //     await approveZapper(LPToken);
-        //     const balBefore = await globeContract.balanceOf(walletAddr);
-        //     console.log(balBefore);
-        //     await zapperContract.zapIn(SnowGlobeAddr, 0, LPToken.address, amt);
-
-        //     const balAfter = await globeContract.balanceOf(walletAddr);
-        //     console.log(balAfter);
-
-
-
-
 
     })
 
@@ -342,7 +335,7 @@ const doZapperTests = (
 
         switch (_poolType) {
             case "Pangolin": abi = [{ "type": "constructor", "stateMutability": "nonpayable", "payable": false, "inputs": [] }, { "type": "event", "name": "Approval", "inputs": [{ "type": "address", "name": "owner", "internalType": "address", "indexed": true }, { "type": "address", "name": "spender", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "value", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "event", "name": "Burn", "inputs": [{ "type": "address", "name": "sender", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "amount0", "internalType": "uint256", "indexed": false }, { "type": "uint256", "name": "amount1", "internalType": "uint256", "indexed": false }, { "type": "address", "name": "to", "internalType": "address", "indexed": true }], "anonymous": false }, { "type": "event", "name": "Mint", "inputs": [{ "type": "address", "name": "sender", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "amount0", "internalType": "uint256", "indexed": false }, { "type": "uint256", "name": "amount1", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "event", "name": "Swap", "inputs": [{ "type": "address", "name": "sender", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "amount0In", "internalType": "uint256", "indexed": false }, { "type": "uint256", "name": "amount1In", "internalType": "uint256", "indexed": false }, { "type": "uint256", "name": "amount0Out", "internalType": "uint256", "indexed": false }, { "type": "uint256", "name": "amount1Out", "internalType": "uint256", "indexed": false }, { "type": "address", "name": "to", "internalType": "address", "indexed": true }], "anonymous": false }, { "type": "event", "name": "Sync", "inputs": [{ "type": "uint112", "name": "reserve0", "internalType": "uint112", "indexed": false }, { "type": "uint112", "name": "reserve1", "internalType": "uint112", "indexed": false }], "anonymous": false }, { "type": "event", "name": "Transfer", "inputs": [{ "type": "address", "name": "from", "internalType": "address", "indexed": true }, { "type": "address", "name": "to", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "value", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "bytes32", "name": "", "internalType": "bytes32" }], "name": "DOMAIN_SEPARATOR", "inputs": [], "constant": true }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "MINIMUM_LIQUIDITY", "inputs": [], "constant": true }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "bytes32", "name": "", "internalType": "bytes32" }], "name": "PERMIT_TYPEHASH", "inputs": [], "constant": true }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "allowance", "inputs": [{ "type": "address", "name": "", "internalType": "address" }, { "type": "address", "name": "", "internalType": "address" }], "constant": true }, { "type": "function", "stateMutability": "nonpayable", "payable": false, "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "approve", "inputs": [{ "type": "address", "name": "spender", "internalType": "address" }, { "type": "uint256", "name": "value", "internalType": "uint256" }], "constant": false }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "balanceOf", "inputs": [{ "type": "address", "name": "", "internalType": "address" }], "constant": true }, { "type": "function", "stateMutability": "nonpayable", "payable": false, "outputs": [{ "type": "uint256", "name": "amount0", "internalType": "uint256" }, { "type": "uint256", "name": "amount1", "internalType": "uint256" }], "name": "burn", "inputs": [{ "type": "address", "name": "to", "internalType": "address" }], "constant": false }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "uint8", "name": "", "internalType": "uint8" }], "name": "decimals", "inputs": [], "constant": true }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "factory", "inputs": [], "constant": true }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "uint112", "name": "_reserve0", "internalType": "uint112" }, { "type": "uint112", "name": "_reserve1", "internalType": "uint112" }, { "type": "uint32", "name": "_blockTimestampLast", "internalType": "uint32" }], "name": "getReserves", "inputs": [], "constant": true }, { "type": "function", "stateMutability": "nonpayable", "payable": false, "outputs": [], "name": "initialize", "inputs": [{ "type": "address", "name": "_token0", "internalType": "address" }, { "type": "address", "name": "_token1", "internalType": "address" }], "constant": false }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "kLast", "inputs": [], "constant": true }, { "type": "function", "stateMutability": "nonpayable", "payable": false, "outputs": [{ "type": "uint256", "name": "liquidity", "internalType": "uint256" }], "name": "mint", "inputs": [{ "type": "address", "name": "to", "internalType": "address" }], "constant": false }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "string", "name": "", "internalType": "string" }], "name": "name", "inputs": [], "constant": true }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "nonces", "inputs": [{ "type": "address", "name": "", "internalType": "address" }], "constant": true }, { "type": "function", "stateMutability": "nonpayable", "payable": false, "outputs": [], "name": "permit", "inputs": [{ "type": "address", "name": "owner", "internalType": "address" }, { "type": "address", "name": "spender", "internalType": "address" }, { "type": "uint256", "name": "value", "internalType": "uint256" }, { "type": "uint256", "name": "deadline", "internalType": "uint256" }, { "type": "uint8", "name": "v", "internalType": "uint8" }, { "type": "bytes32", "name": "r", "internalType": "bytes32" }, { "type": "bytes32", "name": "s", "internalType": "bytes32" }], "constant": false }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "price0CumulativeLast", "inputs": [], "constant": true }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "price1CumulativeLast", "inputs": [], "constant": true }, { "type": "function", "stateMutability": "nonpayable", "payable": false, "outputs": [], "name": "skim", "inputs": [{ "type": "address", "name": "to", "internalType": "address" }], "constant": false }, { "type": "function", "stateMutability": "nonpayable", "payable": false, "outputs": [], "name": "swap", "inputs": [{ "type": "uint256", "name": "amount0Out", "internalType": "uint256" }, { "type": "uint256", "name": "amount1Out", "internalType": "uint256" }, { "type": "address", "name": "to", "internalType": "address" }, { "type": "bytes", "name": "data", "internalType": "bytes" }], "constant": false }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "string", "name": "", "internalType": "string" }], "name": "symbol", "inputs": [], "constant": true }, { "type": "function", "stateMutability": "nonpayable", "payable": false, "outputs": [], "name": "sync", "inputs": [], "constant": false }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "token0", "inputs": [], "constant": true }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "token1", "inputs": [], "constant": true }, { "type": "function", "stateMutability": "view", "payable": false, "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "totalSupply", "inputs": [], "constant": true }, { "type": "function", "stateMutability": "nonpayable", "payable": false, "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "transfer", "inputs": [{ "type": "address", "name": "to", "internalType": "address" }, { "type": "uint256", "name": "value", "internalType": "uint256" }], "constant": false }, { "type": "function", "stateMutability": "nonpayable", "payable": false, "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "transferFrom", "inputs": [{ "type": "address", "name": "from", "internalType": "address" }, { "type": "address", "name": "to", "internalType": "address" }, { "type": "uint256", "name": "value", "internalType": "uint256" }], "constant": false }]; break;
-            //case "TraderJoe": abi = ; break;
+            case "TraderJoe": abi = [{"type":"constructor","stateMutability":"nonpayable","inputs":[]},{"type":"event","name":"Approval","inputs":[{"type":"address","name":"owner","internalType":"address","indexed":true},{"type":"address","name":"spender","internalType":"address","indexed":true},{"type":"uint256","name":"value","internalType":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"Burn","inputs":[{"type":"address","name":"sender","internalType":"address","indexed":true},{"type":"uint256","name":"amount0","internalType":"uint256","indexed":false},{"type":"uint256","name":"amount1","internalType":"uint256","indexed":false},{"type":"address","name":"to","internalType":"address","indexed":true}],"anonymous":false},{"type":"event","name":"Mint","inputs":[{"type":"address","name":"sender","internalType":"address","indexed":true},{"type":"uint256","name":"amount0","internalType":"uint256","indexed":false},{"type":"uint256","name":"amount1","internalType":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"Swap","inputs":[{"type":"address","name":"sender","internalType":"address","indexed":true},{"type":"uint256","name":"amount0In","internalType":"uint256","indexed":false},{"type":"uint256","name":"amount1In","internalType":"uint256","indexed":false},{"type":"uint256","name":"amount0Out","internalType":"uint256","indexed":false},{"type":"uint256","name":"amount1Out","internalType":"uint256","indexed":false},{"type":"address","name":"to","internalType":"address","indexed":true}],"anonymous":false},{"type":"event","name":"Sync","inputs":[{"type":"uint112","name":"reserve0","internalType":"uint112","indexed":false},{"type":"uint112","name":"reserve1","internalType":"uint112","indexed":false}],"anonymous":false},{"type":"event","name":"Transfer","inputs":[{"type":"address","name":"from","internalType":"address","indexed":true},{"type":"address","name":"to","internalType":"address","indexed":true},{"type":"uint256","name":"value","internalType":"uint256","indexed":false}],"anonymous":false},{"type":"function","stateMutability":"view","outputs":[{"type":"bytes32","name":"","internalType":"bytes32"}],"name":"DOMAIN_SEPARATOR","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"MINIMUM_LIQUIDITY","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"bytes32","name":"","internalType":"bytes32"}],"name":"PERMIT_TYPEHASH","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"allowance","inputs":[{"type":"address","name":"","internalType":"address"},{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[{"type":"bool","name":"","internalType":"bool"}],"name":"approve","inputs":[{"type":"address","name":"spender","internalType":"address"},{"type":"uint256","name":"value","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"balanceOf","inputs":[{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[{"type":"uint256","name":"amount0","internalType":"uint256"},{"type":"uint256","name":"amount1","internalType":"uint256"}],"name":"burn","inputs":[{"type":"address","name":"to","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint8","name":"","internalType":"uint8"}],"name":"decimals","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"factory","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint112","name":"_reserve0","internalType":"uint112"},{"type":"uint112","name":"_reserve1","internalType":"uint112"},{"type":"uint32","name":"_blockTimestampLast","internalType":"uint32"}],"name":"getReserves","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"initialize","inputs":[{"type":"address","name":"_token0","internalType":"address"},{"type":"address","name":"_token1","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"kLast","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[{"type":"uint256","name":"liquidity","internalType":"uint256"}],"name":"mint","inputs":[{"type":"address","name":"to","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"string","name":"","internalType":"string"}],"name":"name","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"nonces","inputs":[{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"permit","inputs":[{"type":"address","name":"owner","internalType":"address"},{"type":"address","name":"spender","internalType":"address"},{"type":"uint256","name":"value","internalType":"uint256"},{"type":"uint256","name":"deadline","internalType":"uint256"},{"type":"uint8","name":"v","internalType":"uint8"},{"type":"bytes32","name":"r","internalType":"bytes32"},{"type":"bytes32","name":"s","internalType":"bytes32"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"price0CumulativeLast","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"price1CumulativeLast","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"skim","inputs":[{"type":"address","name":"to","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"swap","inputs":[{"type":"uint256","name":"amount0Out","internalType":"uint256"},{"type":"uint256","name":"amount1Out","internalType":"uint256"},{"type":"address","name":"to","internalType":"address"},{"type":"bytes","name":"data","internalType":"bytes"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"string","name":"","internalType":"string"}],"name":"symbol","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"sync","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"token0","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"token1","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"totalSupply","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[{"type":"bool","name":"","internalType":"bool"}],"name":"transfer","inputs":[{"type":"address","name":"to","internalType":"address"},{"type":"uint256","name":"value","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[{"type":"bool","name":"","internalType":"bool"}],"name":"transferFrom","inputs":[{"type":"address","name":"from","internalType":"address"},{"type":"address","name":"to","internalType":"address"},{"type":"uint256","name":"value","internalType":"uint256"}]}];break;
             default: abi = "POOL TYPE UNDEFINED";
         }
         return abi
@@ -352,7 +345,7 @@ const doZapperTests = (
         let slot = "";
         switch (_poolType) {
             case "Pangolin": slot = "1"; break;
-            //case "TraderJoe": slot = ; break;
+            case "TraderJoe": slot = "1"; break;
             default: slot = "POOL TYPE UNDEFINED";
         }
         return slot
