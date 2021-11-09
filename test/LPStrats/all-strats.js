@@ -37,7 +37,19 @@ const tests = [
   // {
   //   name: "PngSporePng",
   //   controllerAddress: "",
-  //   snowglobeAddress: "0xa39785a4E4CdDa7509751ed152a00f3D37FbFa9F",
+  //   snowglobeAddress: "", // 0xa39785a4E4CdDa7509751ed152a00f3D37FbFa9F
+  // },
+  {
+    name: "JoeAvaxGb",
+  },
+  // {
+  //   name: "PngAvaxGb",
+  // },
+  // {
+  //   name: "PngAvaxShibx",
+  // },
+  // {
+  //   name: "PngAvaxSpore",
   // },
   // {
   //   name: "PngAvaxBnb",

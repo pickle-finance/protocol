@@ -81,17 +81,22 @@ contract StrategyPngAvaxGbLp is StrategyPngFarmBaseV2 {
                 now + 60
             );
 
-            // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(gb).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(gb).balanceOf(address(this))
-            );
+             // Donates DUST
+            _png = IERC20(png).balanceOf(address(this));
+            if (_png > 0) {
+                IERC20(png).transfer(
+                    IController(controller).treasury(),
+                    _png
+                );
+            }
+            _gb = IERC20(gb).balanceOf(address(this));
+            if (_gb > 0) {
+                IERC20(gb).safeTransfer(
+                    IController(controller).treasury(),
+                    _gb
+                );
+            }
         }
-
         // We want to get back PNG LP tokens
         _distributePerformanceFeesAndDeposit();
     }

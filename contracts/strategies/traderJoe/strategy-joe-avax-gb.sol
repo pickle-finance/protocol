@@ -80,15 +80,21 @@ contract StrategyJoeAvaxGbLp is StrategyJoeFarmBase {
                 now + 60
             );
 
-            // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(gb).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(gb).balanceOf(address(this))
-            );
+             // Donates DUST
+            _joe = IERC20(joe).balanceOf(address(this));
+            if (_joe > 0) {
+                IERC20(joe).transfer(
+                    IController(controller).treasury(),
+                    _joe
+                );
+            }
+            _gb = IERC20(gb).balanceOf(address(this));
+            if (_gb > 0) {
+                IERC20(gb).safeTransfer(
+                    IController(controller).treasury(),
+                    _gb
+                );
+            }
         }
 
         _distributePerformanceFeesAndDeposit();
