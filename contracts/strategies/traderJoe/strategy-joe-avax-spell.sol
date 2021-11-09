@@ -57,7 +57,7 @@ contract StrategyJoeAvaxSpellLp is StrategyJoeRushFarmBase {
             //convert Avax Rewards
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
-            _swapTraderJoe(wavax, xava, _wavax.div(2));
+            _swapTraderJoe(wavax, spell, _wavax.div(2));
         }
         
         // Take Joe Rewards
@@ -75,26 +75,26 @@ contract StrategyJoeAvaxSpellLp is StrategyJoeRushFarmBase {
             IERC20(joe).safeApprove(joeRouter, _joe);
 
             _swapTraderJoe(joe, wavax, _joe.div(2));
-            _swapTraderJoe(joe, xava, _joe.div(2));
+            _swapTraderJoe(joe, spell, _joe.div(2));
         }
 
-        // Adds in liquidity for AVAX/XAVA
+        // Adds in liquidity for AVAX/spell
         _wavax = IERC20(wavax).balanceOf(address(this));
 
-        uint256 _xava = IERC20(xava).balanceOf(address(this));
+        uint256 _spell = IERC20(spell).balanceOf(address(this));
 
-        if (_wavax > 0 && _xava > 0) {
+        if (_wavax > 0 && _spell > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
 
-            IERC20(xava).safeApprove(joeRouter, 0);
-            IERC20(xava).safeApprove(joeRouter, _xava);
+            IERC20(spell).safeApprove(joeRouter, 0);
+            IERC20(spell).safeApprove(joeRouter, _spell);
 
             IJoeRouter(joeRouter).addLiquidity(
                 wavax,
-                xava,
+                spell,
                 _wavax,
-                _xava,
+                _spell,
                 0,
                 0,
                 address(this),
