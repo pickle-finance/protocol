@@ -131,7 +131,7 @@ abstract contract StrategyJoeRushFarmBase is StrategyBase {
         IERC20(wavax).safeApprove(pangolinRouter, 0);
         IERC20(wavax).safeApprove(pangolinRouter, _keep);
         _swapPangolin(wavax, snob, _keep);
-        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
         IERC20(snob).safeTransfer(
             feeDistributor,
