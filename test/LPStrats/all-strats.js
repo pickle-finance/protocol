@@ -39,9 +39,9 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "", // 0xa39785a4E4CdDa7509751ed152a00f3D37FbFa9F
   // },
-  {
-    name: "JoeAvaxGb",
-  },
+  // {
+  //   name: "JoeAvaxGb",
+  // },
   // {
   //   name: "PngAvaxGb",
   // },
