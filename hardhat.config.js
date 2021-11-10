@@ -10,8 +10,8 @@ module.exports = {
       accounts: [{privateKey: process.env.PRIVATE_KEY, balance: "100000000000000000000000"}],
       chainId: 43114,
       forking: {
-        url: "https://node.snowapi.net/ext/bc/C/rpc",
-        // url: "https://api.avax.network/ext/bc/C/rpc"
+        // url: "https://node.snowapi.net/ext/bc/C/rpc",
+        url: "https://api.avax.network/ext/bc/C/rpc"
       },
     },
     fuji: {

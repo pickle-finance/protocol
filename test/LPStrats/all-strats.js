@@ -581,11 +581,11 @@ const tests = [
       controllerAddress: "",
       snowglobeAddress: "",
     },
-    // {
-    //   name: "JoeAvaxTractor",
-    //   controllerAddress: "",
-    //   snowglobeAddress: "",
-    // },
+    {
+      name: "JoeAvaxTractor",
+      controllerAddress: "",
+      snowglobeAddress: "",
+    },
 ];
 
 for (const test of tests) {
