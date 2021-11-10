@@ -51,7 +51,7 @@ contract StrategyJoeAvaxApexLp is StrategyJoeRushFarmBase {
                 _takeFeeWavaxToSnob(_keep2);
             }
 
-        //convert Avax Rewards
+            //convert Avax Rewards
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _amount2);   
             _swapTraderJoe(wavax, apex, _amount2);
