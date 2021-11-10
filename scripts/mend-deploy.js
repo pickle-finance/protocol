@@ -3,23 +3,11 @@ require('dotenv').config();
 
 async function main() {
   const pools = [
-    {
-      name: "JoeAvaxApex",
+    {  
+      name: "JoeAvaxMai",
+      harvest: true,
+      earn: true,
     },
-    // {
-    //   name: "JoeAvaxTractor",
-    // },
-    // {
-    //   name: "JoeAvaxAmpl",
-    // },
-    // {
-    //   name: "JoeAvaxIce",
-    //   strategy_addr: "0xDA59ABC89c7be9D7fb3E049EBCC42B1dE84A6272",
-    //   snowglobe_addr: "0x2919641D1069A9aF9675B977f96d8CCC725eA0F1",
-    // },
-    // {
-    //   name: "JoeAvaxOh",
-    // },
   ];
 
   const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
@@ -65,15 +53,26 @@ async function main() {
     /* Deploy Snowglobe */
     if (!pool.snowglobe_addr) {
       lp = await Strategy.want();
-      globe = await ethers.getContractFactory(snowglobe_name);
-      SnowGlobe = await globe.deploy(lp, governance_addr, timelock_addr, controller_addr);
-      console.log(`deployed ${snowglobe_name} at : ${SnowGlobe.address}`);
+      let snowglobe_addr = await Controller.globes(lp);
+      console.log("snowglobe_addr: ",snowglobe_addr);
+      if (snowglobe_addr != 0) {
+        SnowGlobe = new ethers.Contract(snowglobe_addr, snowglobe_ABI, deployer);
+        pool.setGlobe=true;
+        pool.addGauge=true;
+      }
+      else {
+        globe = await ethers.getContractFactory(snowglobe_name);
+        SnowGlobe = await globe.deploy(lp, governance_addr, timelock_addr, controller_addr);
+        console.log(`deployed ${snowglobe_name} at : ${SnowGlobe.address}`);
+      }
     }
     else {
       /* Connect to Snowglobe */
       lp = await Strategy.want();
       SnowGlobe = new ethers.Contract(pool.snowglobe_addr, snowglobe_ABI, deployer);
       console.log(`connected to ${snowglobe_name} at : ${SnowGlobe.address}`);
+      pool.setGlobe=true;
+      pool.addGauge=true;
     }
   
     /* Set Globe */
