@@ -8,6 +8,12 @@ async function main() {
     "Joe-Avax-Ampl",
     "Joe-Avax-Ice",
     "Joe-Avax-Oh",
+    "Joe-Avax-Pefi",
+    "Joe-Avax-Snob",
+    "Joe-Avax-Xava",
+    "Joe-Avax-Yak",
+    "Joe-Avax-Spell",
+    "Joe-Avax-Joe",
   ];
 
   const flatten = name => {
