@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-joe-farm-base.sol";
+import "../strategy-joe-rush-farm-base.sol";
 
-contract StrategyJoeAvaxMaiLp is StrategyJoeFarmBase {
-    uint256 public avax_mai_poolId = 57;
+contract StrategyJoeAvaxMaiLp is StrategyJoeRushFarmBase {
 
-    address public joe_avax_mai_lp = 0xD6d03fe131dB3dE3aF5E6326036BaC4C1Cf8C80d;
-    address public mai = 0x3B55E45fD6bd7d4724F5c47E0d1bCaEdd059263e;
+    uint256 public avax_mai_poolId = 10;
+
+    address public joe_avax_mai_lp = 0x23dDca8de11eCcd8000263f008A92e10dC1f21e8;
+    address public mai = 0x5c49b268c9841AFF1Cc3B0a418ff5c3442eE3F3b;
 
     constructor(
         address _governance,
@@ -16,7 +17,7 @@ contract StrategyJoeAvaxMaiLp is StrategyJoeFarmBase {
         address _timelock
     )
         public
-        StrategyJoeFarmBase(
+        StrategyJoeRushFarmBase(
             avax_mai_poolId,
             joe_avax_mai_lp,
             _governance,
@@ -36,7 +37,7 @@ contract StrategyJoeAvaxMaiLp is StrategyJoeFarmBase {
         //      if so, a new strategy will be deployed.
 
         // Collects Joe tokens
-        IMasterChefJoeV2(masterChefJoeV2).deposit(poolId, 0);
+        IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
 
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
@@ -92,7 +93,7 @@ contract StrategyJoeAvaxMaiLp is StrategyJoeFarmBase {
 
     // **** Views ****
 
-    function getName() external pure override returns (string memory) {
+    function getName() external override pure returns (string memory) {
         return "StrategyJoeAvaxMaiLp";
     }
 }
