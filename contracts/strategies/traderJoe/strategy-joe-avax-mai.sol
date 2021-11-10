@@ -39,6 +39,26 @@ contract StrategyJoeAvaxMaiLp is StrategyJoeRushFarmBase {
         // Collects Joe tokens
         IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
 
+         //Take Avax Rewards    
+        uint256 _avax = address(this).balance;            //get balance of native Avax
+        if (_avax > 0) {                                 //wrap avax into ERC20
+            WAVAX(wavax).deposit{value: _avax}();
+        }
+
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        if (_wavax > 0) {
+            uint256 _keep2 = _wavax.mul(keep).div(keepMax);
+            uint256 _amount2 = _wavax.sub(_keep2).div(2);
+            if (_keep2 > 0){
+                _takeFeeWavaxToSnob(_keep2);
+            }
+
+        //convert Avax Rewards
+            IERC20(wavax).safeApprove(joeRouter, 0);
+            IERC20(wavax).safeApprove(joeRouter, _amount2);   
+            _swapTraderJoe(wavax, mai, _amount2);
+        }
+
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
@@ -55,8 +75,7 @@ contract StrategyJoeAvaxMaiLp is StrategyJoeRushFarmBase {
         }
 
         // Adds in liquidity for AVAX/MAI
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-
+        _wavax = IERC20(wavax).balanceOf(address(this));
         uint256 _mai = IERC20(mai).balanceOf(address(this));
 
         if (_wavax > 0 && _mai > 0) {
@@ -78,16 +97,23 @@ contract StrategyJoeAvaxMaiLp is StrategyJoeRushFarmBase {
             );
 
             // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(mai).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(mai).balanceOf(address(this))
-            );
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
+            
+            _mai = IERC20(mai).balanceOf(address(this));
+            if (_mai > 0){
+                IERC20(mai).safeTransfer(
+                    IController(controller).treasury(),
+                    _mai
+                );
+            }
         }
-
+        
         _distributePerformanceFeesAndDeposit();
     }
 
