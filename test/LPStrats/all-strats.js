@@ -39,9 +39,9 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "", // 0xa39785a4E4CdDa7509751ed152a00f3D37FbFa9F
   // },
-  {
-    name: "JoeAvaxGb",
-  },
+  // {
+  //   name: "JoeAvaxGb",
+  // },
   // {
   //   name: "PngAvaxGb",
   // },
@@ -511,11 +511,11 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "0xf6E8432EF7d85Ae1202Dc537106D3696eBB27769",
   // },
-  // {
-  //   name: "JoeAvaxMai",
-  //   controllerAddress: "",
-  //   snowglobeAddress: "0x29BF8c19e044732b110faA1Ff0Cc59CA35c13f17",
-  // },
+  {
+    name: "JoeAvaxMai",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
   // {
   //   name: "JoeAvaxMyak",
   //   controllerAddress: "",
@@ -576,11 +576,11 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
-    {
-      name: "JoeAvaxApex",
-      controllerAddress: "",
-      snowglobeAddress: "",
-    },
+    // {
+    //   name: "JoeAvaxApex",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
     // {
     //   name: "JoeAvaxTractor",
     //   controllerAddress: "",
