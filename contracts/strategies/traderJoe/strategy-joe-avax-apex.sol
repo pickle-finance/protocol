@@ -36,7 +36,7 @@ contract StrategyJoeAvaxApexLp is StrategyJoeRushFarmBase {
         // Collects Rewards tokens (JOE & AVAX)
         IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
 
-        //Take Avax Rewards    
+        // Take Avax Rewards    
         uint256 _avax = address(this).balance;            //get balance of native Avax
         if (_avax > 0) {                                 //wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
@@ -56,6 +56,8 @@ contract StrategyJoeAvaxApexLp is StrategyJoeRushFarmBase {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax.mul(100).div(196));
             _swapTraderJoe(wavax, apex, _wavax.mul(100).div(196));
+
+            
         }
         
         // Take Joe Rewards
@@ -72,8 +74,8 @@ contract StrategyJoeAvaxApexLp is StrategyJoeRushFarmBase {
             IERC20(joe).safeApprove(joeRouter, 0);
             IERC20(joe).safeApprove(joeRouter, _joe);
             // APEX: 4% Reflective
-            _swapTraderJoe(joe, apex, _wavax.mul(96).div(196));
-            _swapTraderJoe(joe, apex, _wavax.mul(100).div(196));
+            _swapTraderJoe(joe, apex, _joe.mul(100).div(196));
+            _swapTraderJoe(joe, wavax, _joe.mul(96).div(196));
         }
 
         // Adds in liquidity for AVAX/APEX
