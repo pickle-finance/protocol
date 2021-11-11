@@ -55,6 +55,11 @@ async function main() {
       strategy = await ethers.getContractFactory(strategy_name);
       Strategy = await strategy.deploy(governance_addr, strategist_addr, controller_addr, timelock_addr);
       console.log(`deployed ${strategy_name} at : ${Strategy.address}`);
+      await hre.run("verify:verify", {
+        address: Strategy.address,
+        constructorArguments: [governance_addr, strategist_addr, controller_addr, timelock_addr],
+      });
+      console.log(`verified ${strategy_name}`);
     }
     else {
       /* Connect to Strategy */
@@ -68,6 +73,11 @@ async function main() {
       globe = await ethers.getContractFactory(snowglobe_name);
       SnowGlobe = await globe.deploy(lp, governance_addr, timelock_addr, controller_addr);
       console.log(`deployed ${snowglobe_name} at : ${SnowGlobe.address}`);
+      await hre.run("verify:verify", {
+        address: SnowGlobe.address,
+        constructorArguments: [lp, governance_addr, timelock_addr, controller_addr],
+      });
+      console.log(`verified ${snowglobe_name}`);
     }
     else {
       /* Connect to Snowglobe */
@@ -185,6 +195,7 @@ async function main() {
 
       const gauge = await GaugeProxy.getGauge(SnowGlobe.address);
       console.log(`deployed Gauge${pool.name} at: ${gauge}`);
+      //Will need to verify here when we can do generated contracts
     }
 
     return;
