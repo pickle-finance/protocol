@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-
 import "../lib/safe-math.sol";
 import "../lib/erc20.sol";
 import "../interfaces/pangolin.sol";
@@ -10,8 +9,6 @@ import "../lib/square-root.sol";
 import "../interfaces/wavax.sol";
 import "../interfaces/globe.sol";
 import "../interfaces/uniAmm.sol";
-
-import "hardhat/console.sol";
 
 abstract contract ZapperBase {
     using SafeERC20 for IERC20;
@@ -62,11 +59,8 @@ abstract contract ZapperBase {
     function zapInAVAX(address snowglobe, uint256 tokenAmountOutMin, address tokenIn) external payable{
         require(msg.value >= minimumAmount, "Insignificant input amount");
 
-        console.log("Balance of what's coming in:", address(this).balance);
         WAVAX(wavax).deposit{value: msg.value}();
 
-        
-        console.log("Post wrapping balance of what's coming in:", address(this).balance);
 
         if (tokenIn != wavax){
             uint256 _amount = IERC20(wavax).balanceOf(address(this));
@@ -128,6 +122,8 @@ abstract contract ZapperBase {
         vault = IGlobe(snowglobe);
         pair = IUniPair(vault.token());
 
+
+
         require(pair.factory() == IUniPair(router).factory(), "Incompatible liquidity pair factory");
     }
 
@@ -140,16 +136,13 @@ abstract contract ZapperBase {
     function zapOut(address snowglobe, uint256 withdrawAmount) external {
         (IGlobe vault, IUniPair pair) = _getVaultPair(snowglobe);
 
-        IERC20(snowglobe).safeTransferFrom(
-            msg.sender,
-            address(this),
-            withdrawAmount
-        );
+        IERC20(snowglobe).safeTransferFrom(msg.sender, address(this), withdrawAmount);
         vault.withdraw(withdrawAmount);
 
         if (pair.token0() != wavax && pair.token1() != wavax) {
             return _removeLiquidity(address(pair), msg.sender);
         }
+
 
         _removeLiquidity(address(pair), address(this));
 
@@ -159,5 +152,4 @@ abstract contract ZapperBase {
 
         _returnAssets(tokens);
     }
-    
 }
