@@ -106,20 +106,22 @@ describe("StrategyFraxDAI", () => {
 
     await getWantFromWhale(FraxToken, toWei(100000), alice, "0x820A9eb227BF770A9dd28829380d53B76eAf1209");
 
-    await getWantFromWhale(DAIToken, toWei(100000), alice, "0xB60C61DBb7456f024f9338c739B02Be68e3F545C");
+    await getWantFromWhale(DAIToken, toWei(100000), alice, "0x921760e71fb58dcc8de902ce81453e9e3d7fe253");
 
     await getWantFromWhale(FraxToken, toWei(100000), bob, "0x820A9eb227BF770A9dd28829380d53B76eAf1209");
 
-    await getWantFromWhale(DAIToken, toWei(100000), bob, "0xB60C61DBb7456f024f9338c739B02Be68e3F545C");
+    await getWantFromWhale(DAIToken, toWei(100000), bob, "0x921760e71fb58dcc8de902ce81453e9e3d7fe253");
 
     await getWantFromWhale(FraxToken, toWei(100000), charles, "0x820A9eb227BF770A9dd28829380d53B76eAf1209");
 
-    await getWantFromWhale(DAIToken, toWei(100000), charles, "0xB60C61DBb7456f024f9338c739B02Be68e3F545C");
+    await getWantFromWhale(DAIToken, toWei(100000), charles, "0x921760e71fb58dcc8de902ce81453e9e3d7fe253");
 
-    await getWantFromWhale(FXSToken, toWei(100000), alice, "0x1e84614543ab707089cebb022122503462ac51b3");
+    await getWantFromWhale(FXSToken, toWei(400000), alice, "0x1e84614543ab707089cebb022122503462ac51b3");
 
-    fraxDeployer = await unlockAccount("0x234D953a9404Bf9DbC3b526271d440cD2870bCd2");
-    smartChecker = await getContractAt("ISmartWalletChecker", SMARTCHECKER);
+    // transfer FXS to distributor
+    fxs.connect(alice).transfer("0x278dc748eda1d8efef1adfb518542612b49fcd34", toWei(100000))
+    // transfer FXS to gauge
+    fxs.connect(alice).transfer("0xF22471AC2156B489CC4a59092c56713F813ff53e", toWei(100000))
   });
   // it("should lock to vault correctly", async () => {
   //   await smartChecker.connect(fraxDeployer).approveWallet(locker.address);
