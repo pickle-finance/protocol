@@ -11,6 +11,8 @@ import "../interfaces/wavax.sol";
 import "../interfaces/globe.sol";
 import "../interfaces/uniAmm.sol";
 
+import "hardhat/console.sol";
+
 abstract contract ZapperBase {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -34,11 +36,7 @@ abstract contract ZapperBase {
         assert(msg.sender == wavax);
     }
 
-    function _getSwapAmount(
-        uint256 investmentA,
-        uint256 reserveA,
-        uint256 reserveB
-    ) public view virtual returns (uint256 swapAmount);
+    function _getSwapAmount(uint256 investmentA, uint256 reserveA, uint256 reserveB) public view virtual returns (uint256 swapAmount);
 
     //returns DUST
     function _returnAssets(address[] memory tokens) internal {
@@ -59,51 +57,63 @@ abstract contract ZapperBase {
         }
     }
 
-    function _swapAndStake(
-        address snowglobe,
-        uint256 tokenAmountOutMin,
-        address tokenIn
-    ) public virtual;
+    function _swapAndStake(address snowglobe, uint256 tokenAmountOutMin, address tokenIn) public virtual;
 
-    function zapInAVAX(address snowglobe, uint256 tokenAmountOutMin)
-        external
-        payable
-    {
+    function zapInAVAX(address snowglobe, uint256 tokenAmountOutMin, address tokenIn) external payable{
         require(msg.value >= minimumAmount, "Insignificant input amount");
 
+        console.log("Balance of what's coming in:", address(this).balance);
         WAVAX(wavax).deposit{value: msg.value}();
 
-        _swapAndStake(snowglobe, tokenAmountOutMin, wavax);
+        
+        console.log("Post wrapping balance of what's coming in:", address(this).balance);
+
+        if (tokenIn != wavax){
+            uint256 _amount = IERC20(wavax).balanceOf(address(this));
+
+            (, IUniPair pair) = _getVaultPair(snowglobe);
+
+            (uint256 reserveA, uint256 reserveB, ) = pair.getReserves();
+            require(reserveA > minimumAmount && reserveB > minimumAmount, "Liquidity pair reserves too low");
+
+            bool isInputA = pair.token0() == tokenIn;
+            require(isInputA || pair.token1() == tokenIn, "Input token not present in liquidity pair");
+
+            address[] memory path = new address[](2);
+            path[0] = wavax;
+            path[1] = tokenIn;
+
+            uint256 swapAmountIn;
+        
+            swapAmountIn = _getSwapAmount(_amount, reserveA, reserveB);
+       
+            _approveTokenIfNeeded(path[0], address(router));
+            IUniAmmRouter(router).swapExactTokensForTokens(
+                swapAmountIn,
+                tokenAmountOutMin,
+                path,
+                address(this),
+                block.timestamp
+            );
+            _swapAndStake(snowglobe, tokenAmountOutMin, tokenIn);
+        }else{
+            _swapAndStake(snowglobe, tokenAmountOutMin, tokenIn);
+        }
     }
 
-    function zapIn(
-        address snowglobe,
-        uint256 tokenAmountOutMin,
-        address tokenIn,
-        uint256 tokenInAmount
-    ) external {
+    function zapIn(address snowglobe, uint256 tokenAmountOutMin, address tokenIn, uint256 tokenInAmount) external {
         require(tokenInAmount >= minimumAmount, "Insignificant input amount");
-        require(
-            IERC20(tokenIn).allowance(msg.sender, address(this)) >=
-                tokenInAmount,
-            "Input token is not approved"
-        );
+        require(IERC20(tokenIn).allowance(msg.sender, address(this)) >= tokenInAmount, "Input token is not approved");
 
         IERC20(tokenIn).safeTransferFrom(
             msg.sender,
             address(this),
             tokenInAmount
         );
-
         _swapAndStake(snowglobe, tokenAmountOutMin, tokenIn);
     }
 
-    function zapOutAndSwap(
-        address snowglobe,
-        uint256 withdrawAmount,
-        address desiredToken,
-        uint256 desiredTokenOutMin
-    ) public virtual;
+    function zapOutAndSwap(address snowglobe, uint256 withdrawAmount, address desiredToken, uint256 desiredTokenOutMin) public virtual;
 
     function _removeLiquidity(address pair, address to) internal {
         IERC20(pair).safeTransfer(pair, IERC20(pair).balanceOf(address(this)));
@@ -113,19 +123,12 @@ abstract contract ZapperBase {
         require(amount1 >= minimumAmount, "Router: INSUFFICIENT_B_AMOUNT");
     }
 
-    function _getVaultPair(address snowglobe)
-        internal
-        view
-        returns (IGlobe vault, IUniPair pair)
-    {
-        vault = IGlobe(snowglobe);
+    function _getVaultPair(address snowglobe) internal view returns (IGlobe vault, IUniPair pair){
 
+        vault = IGlobe(snowglobe);
         pair = IUniPair(vault.token());
 
-        require(
-            pair.factory() == IUniPair(router).factory(),
-            "Incompatible liquidity pair factory"
-        );
+        require(pair.factory() == IUniPair(router).factory(), "Incompatible liquidity pair factory");
     }
 
     function _approveTokenIfNeeded(address token, address spender) internal {
@@ -156,4 +159,5 @@ abstract contract ZapperBase {
 
         _returnAssets(tokens);
     }
+    
 }
