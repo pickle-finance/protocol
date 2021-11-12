@@ -171,7 +171,7 @@ const doZapperTests = (
                 let [user1, globe1] = await getBalancesAvax(LPToken, walletSigner, globeContract);
                 printBals("Original", globe1, user1);
 
-                await zapperContract.zapInAVAX(SnowGlobeAddr, 0, { value: amt });
+                await zapperContract.zapInAVAX(SnowGlobeAddr, 0, TokenB.address, { value: amt });
                 let [user2, globe2] = await getBalancesAvax(LPToken, walletSigner, globeContract);
                 printBals(`Zap ${txnAmt} AVAX`, globe2, user2);
 
@@ -184,7 +184,6 @@ const doZapperTests = (
                 expect(globe2).to.be.greaterThan(globe3);
             })
         })
-
 
         describe("When withdrawing..", async () => {
             it("..can zap out into TokenA", async () => {
@@ -202,6 +201,7 @@ const doZapperTests = (
                 let balAAfter = (TokenA.address != WAVAX) ? await returnBal(TokenA, walletAddr) : await returnWalletBal(walletAddr);
                 let receipt2 = await gaugeContract.balanceOf(walletAddr);
 
+
                 expect(receipt2).to.be.equals(0);
                 (TokenA.address != WAVAX) ?
                     expect(balAAfter - balABefore).to.roughly(0.01).deep.equal(Number(txnAmt)) :
@@ -216,12 +216,15 @@ const doZapperTests = (
                 await zapperContract.zapIn(SnowGlobeAddr, 0, TokenB.address, amt);
                 let receipt = await gaugeContract.balanceOf(walletAddr);
                 let balBBefore = (TokenB.address != WAVAX) ? await returnBal(TokenB, walletAddr) : await returnWalletBal(walletAddr);
+               
+
                 await globeContract.connect(walletSigner).earn();
                 await gaugeContract.connect(walletSigner).withdrawAll();
                 await zapperContract.zapOutAndSwap(SnowGlobeAddr, receipt, TokenB.address, 0);
 
                 let balBAfter = (TokenB.address != WAVAX) ? await returnBal(TokenB, walletAddr) : await returnWalletBal(walletAddr);
                 let receipt2 = await gaugeContract.balanceOf(walletAddr);
+
 
                 expect(receipt2).to.be.equals(0);
                 (TokenB.address != WAVAX) ?
@@ -267,8 +270,9 @@ const doZapperTests = (
                 const txnAmt2 = "5";
                 const amt = ethers.utils.parseEther(txnAmt);
                 const amt2 = ethers.utils.parseEther(txnAmt2);
-
-                await expect(zapperContract.zapInAVAX(SnowGlobeAddr, amt2, { value: amt })).to.be.reverted;
+                
+                //amt was too large that it succeeds when reaching line 60 of the zapper contract. However, we want it to fail
+                await expect(zapperContract.zapInAVAX(SnowGlobeAddr, amt2, TokenB.address, { value: txnAmt })).to.be.reverted;
             })
 
             it("..reverts on zap out token", async () => {
