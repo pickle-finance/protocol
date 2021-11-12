@@ -8,23 +8,15 @@ contract SnowglobeZapAvaxTraderJoe is ZapperBase {
     address public gaugeProxy = 0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27;
 
     constructor()
-        public
-        ZapperBase(0x60aE616a2155Ee3d9A68541Ba4544862310933d4)
-    {}
+        public ZapperBase(0x60aE616a2155Ee3d9A68541Ba4544862310933d4){
 
-    function zapOutAndSwap(
-        address snowglobe,
-        uint256 withdrawAmount,
-        address desiredToken,
-        uint256 desiredTokenOutMin
-    ) public override {
+        }
+
+    function zapOutAndSwap(address snowglobe, uint256 withdrawAmount, address desiredToken, uint256 desiredTokenOutMin) public override {
         (IGlobe vault, IUniPair pair) = _getVaultPair(snowglobe);
         address token0 = pair.token0();
         address token1 = pair.token1();
-        require(
-            token0 == desiredToken || token1 == desiredToken,
-            "desired token not present in liquidity pair"
-        );
+        require(token0 == desiredToken || token1 == desiredToken, "desired token not present in liquidity pair");
 
         vault.safeTransferFrom(msg.sender, address(this), withdrawAmount);
         vault.withdraw(withdrawAmount);
@@ -47,24 +39,14 @@ contract SnowglobeZapAvaxTraderJoe is ZapperBase {
         _returnAssets(path);
     }
 
-    function _swapAndStake(
-        address snowglobe,
-        uint256 tokenAmountOutMin,
-        address tokenIn
-    ) public override {
+    function _swapAndStake(address snowglobe, uint256 tokenAmountOutMin, address tokenIn) public override {
         (IGlobe vault, IUniPair pair) = _getVaultPair(snowglobe);
 
         (uint256 reserveA, uint256 reserveB, ) = pair.getReserves();
-        require(
-            reserveA > minimumAmount && reserveB > minimumAmount,
-            "Liquidity pair reserves too low"
-        );
+        require(reserveA > minimumAmount && reserveB > minimumAmount, "Liquidity pair reserves too low");
 
         bool isInputA = pair.token0() == tokenIn;
-        require(
-            isInputA || pair.token1() == tokenIn,
-            "Input token not present in liquidity pair"
-        );
+        require(isInputA || pair.token1() == tokenIn, "Input token not present in liquidity pair");
 
         address[] memory path = new address[](2);
         path[0] = tokenIn;
@@ -113,19 +95,12 @@ contract SnowglobeZapAvaxTraderJoe is ZapperBase {
         address gaugeAddress = IGaugeProxyV2(gaugeProxy).getGauge(snowglobe);
 
         //deposit for into gauge
-        IGaugeV2(gaugeAddress).depositFor(
-            vault.balanceOf(msg.sender),
-            msg.sender
-        );
+        IGaugeV2(gaugeAddress).depositFor(vault.balanceOf(msg.sender), msg.sender);
 
         _returnAssets(path);
     }
 
-    function _getSwapAmount(
-        uint256 investmentA,
-        uint256 reserveA,
-        uint256 reserveB
-    ) public view override returns (uint256 swapAmount) {
+    function _getSwapAmount(uint256 investmentA, uint256 reserveA, uint256 reserveB) public view override returns (uint256 swapAmount) {
         uint256 halfInvestment = investmentA.div(2);
         uint256 nominator = IJoeRouter(router).getAmountOut(
             halfInvestment,
@@ -144,31 +119,14 @@ contract SnowglobeZapAvaxTraderJoe is ZapperBase {
         );
     }
 
-    function estimateSwap(
-        address snowglobe,
-        address tokenIn,
-        uint256 fullInvestmentIn
-    )
-        public
-        view
-        returns (
-            uint256 swapAmountIn,
-            uint256 swapAmountOut,
-            address swapTokenOut
-        )
-    {
+    function estimateSwap(address snowglobe, address tokenIn, uint256 fullInvestmentIn) public view returns (uint256 swapAmountIn, uint256 swapAmountOut, address swapTokenOut){
         (, IUniPair pair) = _getVaultPair(snowglobe);
 
         bool isInputA = pair.token0() == tokenIn;
-        require(
-            isInputA || pair.token1() == tokenIn,
-            "Input token not present in liquidity pair"
-        );
+        require(isInputA || pair.token1() == tokenIn, "Input token not present in liquidity pair");
 
         (uint256 reserveA, uint256 reserveB, ) = pair.getReserves();
-        (reserveA, reserveB) = isInputA
-            ? (reserveA, reserveB)
-            : (reserveB, reserveA);
+        (reserveA, reserveB) = isInputA ? (reserveA, reserveB) : (reserveB, reserveA);
 
         swapAmountIn = _getSwapAmount(fullInvestmentIn, reserveA, reserveB);
         swapAmountOut = IJoeRouter(router).getAmountOut(
