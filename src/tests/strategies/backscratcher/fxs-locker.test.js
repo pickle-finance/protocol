@@ -25,6 +25,7 @@ describe("FXSLocker test", () => {
   let smartChecker;
   let governance, strategist, devfund, treasury, timelock;
   let preTestSnapshotID;
+  let fxsBefore, fxsAfter, fxsAfterFlywheel;
 
   before("Setup Contracts", async () => {
     [alice, bob, charles, devfund, treasury] = await hre.ethers.getSigners();
@@ -99,26 +100,48 @@ describe("FXSLocker test", () => {
     await veFxsVault.setProxy(strategyProxy.address);
     await veFxsVault.setFeeDistribution(strategyProxy.address);
     await veFxsVault.setLocker(locker.address);
+    await strategy.connect(timelock).setBackscratcher(veFxsVault.address);
 
     await strategyProxy.setFXSVault(veFxsVault.address);
 
+    frax = await getContractAt("ERC20", FraxToken);
+    dai = await getContractAt("ERC20", DAIToken);
     fxs = await getContractAt("ERC20", FXSToken);
 
-    await getWantFromWhale(FXSToken, toWei(400000), alice, "0x1e84614543ab707089cebb022122503462ac51b3");
+    await getWantFromWhale(FXSToken, toWei(490000), alice, "0x1e84614543ab707089cebb022122503462ac51b3");
 
     fraxDeployer = await unlockAccount("0x234D953a9404Bf9DbC3b526271d440cD2870bCd2");
     smartChecker = await getContractAt("ISmartWalletChecker", SMARTCHECKER);
-  });
-  it("should lock to vault correctly", async () => {
+
+    // Create FXS lock
     await smartChecker.connect(fraxDeployer).approveWallet(locker.address);
-    await fxs.connect(alice).transfer(locker.address, toWei(100000));
+    await fxs.connect(alice).transfer(locker.address, toWei(1));
 
     const now = Math.round(new Date().getTime() / 1000);
     const MAXTIME = 60 * 60 * 24 * 360 * 2;
 
     // Initially lock for 2 years
-    await locker.connect(governance).createLock(toWei(100000), now + MAXTIME);
-    let locked_end = await escrow.locked__end(locker.address);
+    await locker.connect(governance).createLock(toWei(1), now + MAXTIME);
+
+    // transfer FXS to gauge distributor
+    await fxs.connect(alice).transfer("0x278dc748eda1d8efef1adfb518542612b49fcd34", toWei(100000));
+    // transfer FXS to gauge
+    await fxs.connect(alice).transfer("0xF22471AC2156B489CC4a59092c56713F813ff53e", toWei(100000));
+
+    // Make a deposit into veFXSVault
+    await fxs.connect(alice).approve(veFxsVault.address, toWei(90000));
+    await veFxsVault.connect(alice).deposit(toWei(90000));
+
+    await fxs.connect(alice).transfer(FXS_DISTRIBUTOR, toWei(190000));
+    fxsBefore = await fxs.balanceOf(alice.address);
+
+    await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+    await increaseBlock(100);
+  });
+
+  it("should claim FXS rewards", async () => {
+    // Initial lock end date
+    const locked_end = await escrow.locked__end(locker.address);
     console.log("locked_end => ", locked_end.toString());
 
     // Increase lock time by 6 months
@@ -127,25 +150,77 @@ describe("FXSLocker test", () => {
       0,
       "0xeff7a6120000000000000000000000000000000000000000000000000000000063372264"
     );
-    locked_end = await escrow.locked__end(locker.address);
-    console.log("locked_end => ", locked_end.toString());
+    const locked_end_extended = await escrow.locked__end(locker.address);
+    console.log("locked_end_extended => ", locked_end_extended.toString());
 
-    // Make a deposit into veFXSVault
-    await fxs.connect(alice).approve(veFxsVault.address, toWei(100000));
-    await veFxsVault.connect(alice).deposit(toWei(100000));
+    await veFxsVault.connect(alice).claim();
+    await veFxsVault.connect(alice).claim();
 
-    await fxs.connect(alice).transfer(FXS_DISTRIBUTOR, toWei(100000));
-    const fxsBefore = await fxs.balanceOf(alice.address);
+    fxsAfter = await fxs.balanceOf(alice.address);
+
     console.log("FXS balance before claim: ", fxsBefore.toString());
-
-    await increaseTime(60 * 60 * 24 * 30); //travel 30 days
-    await increaseBlock(1100);
-
-    await veFxsVault.connect(alice).claim();
-    await veFxsVault.connect(alice).claim();
-
-    const fxsAfter = await fxs.balanceOf(alice.address);
     console.log("FXS balance after claim: ", fxsAfter.toString());
+    console.log("FXS balance in backscratcher: ", (await fxs.balanceOf(veFxsVault.address)).toString());
+    expect(locked_end_extended.gt(locked_end));
     expect(fxsAfter.gt(fxsBefore));
+  });
+
+  it("Should have greater rewards with strategy flywheel", async () => {
+    await getWantFromWhale(FraxToken, toWei(100000), alice, "0x820A9eb227BF770A9dd28829380d53B76eAf1209");
+
+    await getWantFromWhale(DAIToken, toWei(100000), alice, "0x921760e71fb58dcc8de902ce81453e9e3d7fe253");
+
+    let depositA = toWei(20000);
+    let depositB = await getAmountB(depositA);
+
+    console.log("=============== Alice deposit ==============");
+    await deposit(alice, depositA, depositB);
+    await pickleJar.earn();
+    console.log("FXS balance in backscratcher before harvest: ", (await fxs.balanceOf(veFxsVault.address)).toString());
+    await harvest();
+    console.log("FXS balance in backscratcher after harvest: ", (await fxs.balanceOf(veFxsVault.address)).toString());
+    await veFxsVault.connect(alice).claim();
+    console.log("FXS balance for Alice intermediate: ", (await fxs.balanceOf(alice.address)).toString());
+    await veFxsVault.connect(alice).claim();
+
+    fxsAfterFlywheel = await fxs.balanceOf(alice.address);
+    console.log("FXS balance before claim: ", fxsBefore.toString());
+    console.log("FXS balance after claim: ", fxsAfterFlywheel.toString());
+    console.log("FXS balance in backscratcher after claim: ", (await fxs.balanceOf(veFxsVault.address)).toString());
+    expect(fxsAfterFlywheel.gt(fxsAfter));
+  });
+
+  const deposit = async (user, depositA, depositB) => {
+    await dai.connect(user).approve(pickleJar.address, depositA);
+    await frax.connect(user).approve(pickleJar.address, depositB);
+    console.log("depositA => ", depositA.toString());
+    console.log("depositB => ", depositB.toString());
+
+    await pickleJar.connect(user).deposit(depositA, depositB);
+  };
+
+  const harvest = async () => {
+    console.log("============ Harvest Started ==============");
+
+    console.log("Ratio before harvest => ", (await pickleJar.getRatio()).toString());
+    await increaseTime(60 * 60 * 24 * 14); //travel 14 days
+    await increaseBlock(100);
+    await strategy.harvest();
+    console.log("Ratio after harvest => ", (await pickleJar.getRatio()).toString());
+    console.log("============ Harvest Ended ==============");
+  };
+
+  const getAmountB = async (amountA) => {
+    const proportion = await pickleJar.getProportion();
+    const amountB = amountA.mul(proportion).div(hre.ethers.BigNumber.from("1000000000000000000"));
+    return amountB;
+  };
+
+  beforeEach(async () => {
+    preTestSnapshotID = await hre.network.provider.send("evm_snapshot");
+  });
+
+  afterEach(async () => {
+    await hre.network.provider.send("evm_revert", [preTestSnapshotID]);
   });
 });

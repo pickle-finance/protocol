@@ -123,29 +123,6 @@ describe("StrategyFraxDAI", () => {
     // transfer FXS to gauge
     fxs.connect(alice).transfer("0xF22471AC2156B489CC4a59092c56713F813ff53e", toWei(100000))
   });
-  // it("should lock to vault correctly", async () => {
-  //   await smartChecker.connect(fraxDeployer).approveWallet(locker.address);
-  //   await fxs.connect(alice).transfer(locker.address, toWei(100000));
-
-  //   const now = Math.round(new Date().getTime() / 1000);
-  //   const MAXTIME = 60 * 60 * 24 * 365 * 0.5;
-  //   await locker.connect(governance).createLock(toWei(100000), now + MAXTIME);
-  //   let locked_end = await escrow.locked__end(locker.address);
-  //   console.log("locked_end => ", locked_end.toString());
-
-  //   await locker.execute(
-  //     "0xc8418aF6358FFddA74e09Ca9CC3Fe03Ca6aDC5b0",
-  //     0,
-  //     "0xeff7a6120000000000000000000000000000000000000000000000000000000063372264"
-  //   );
-  //   locked_end = await escrow.locked__end(locker.address);
-  //   console.log("locked_end => ", locked_end.toString());
-  //   // await fxs.connect(alice).approve(veFxsVault.address, toWei(100000));
-  //   // await veFxsVault.connect(alice).deposit(toWei(100000));
-
-  //   // await increaseTime(60 * 60 * 24 * 18); //travel 30 days
-  //   // await increaseBlock(1100);
-  // });
 
   it("should harvest correctly", async () => {
     let depositA = toWei(20000);

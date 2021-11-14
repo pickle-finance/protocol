@@ -66,22 +66,12 @@ const deployComethWmaticMustStrategy = async () => {
 };
 
 const deployPickleJar = async () => {
-  console.log("deploying PickleJar...");
-
-  const want = "0x160532D2536175d65C03B97b0630A9802c274daD";
-  const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
-  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
+  console.log("deploying veFXSVault...");
 
   const PickleJarFactory = await ethers.getContractFactory(
-    "src/flatten/pickle-jar.sol:PickleJar"
+    "src/backscratcher/veFXSVault.sol:veFXSVault"
   );
-  const PickleJar = await PickleJarFactory.deploy(
-    want,
-    governance,
-    timelock,
-    controller
-  );
+  const PickleJar = await PickleJarFactory.deploy();
   console.log("PickleJar deployed at ", PickleJar.address);
 };
 
