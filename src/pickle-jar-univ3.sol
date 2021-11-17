@@ -118,12 +118,17 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         IControllerV2(controller).earn(address(pool), balance0, balance1);
     }
 
-    function deposit(uint256 token0Amount, uint256 token1Amount)
-        external
-        nonReentrant
-        whenNotPaused
-        checkRatio(token0Amount, token1Amount)
-    {
+    function deposit(uint256 token0Amount, uint256 token1Amount) external nonReentrant whenNotPaused {
+        // account for imperfect deposit ratios
+        uint256 amount0ForAmount1 = token1Amount.mul(1e18).div(getProportion());
+        uint256 amount1ForAmount0 = token0Amount.mul(getProportion()).div(1e18);
+
+        if (token0Amount > amount0ForAmount1) {
+            token0Amount = amount0ForAmount1;
+        } else {
+            token1Amount = amount1ForAmount0;
+        }
+
         uint256 _pool = totalLiquidity();
 
         uint256 _liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, tick_lower, tick_upper));
@@ -146,6 +151,11 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     function getProportion() public view returns (uint256) {
         (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1e18, tick_lower, tick_upper);
         return (a2 * (10**18)) / a1;
+    }
+
+    function getAmountsForLiquidity(uint128 _liquidity) public view returns (uint256, uint256) {
+        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(_liquidity, tick_lower, tick_upper);
+        return (a1, a2);
     }
 
     function withdrawAll() external {
