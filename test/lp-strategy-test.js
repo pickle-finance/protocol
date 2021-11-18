@@ -17,7 +17,7 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
     let snowglobeAddr = _snowglobeAddr ? _snowglobeAddr : "";
     let controllerAddr = _controllerAddr ? _controllerAddr : "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85";
     const txnAmt = "25000000000000000000000";
-    const slot = _slot ? _slot : 1;
+    const slot = _slot ? _slot : 51;
 
     describe("LP Strategy tests for: "+name, async () => {
 
@@ -125,7 +125,11 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
     
         it("user wallet contains asset balance", async () =>{
             let BNBal = await assetContract.balanceOf(walletAddr);
+            console.log(`The balance of BNBal is: ${BNBal}`); 
+
             const BN = ethers.BigNumber.from(txnAmt)._hex.toString();
+            console.log(`The balance of BN is: ${BN}`); 
+
             expect(BNBal).to.be.equals(BN);
         });
     
