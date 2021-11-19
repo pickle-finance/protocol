@@ -12,6 +12,7 @@ import "../../interfaces/weth.sol";
 import "../../interfaces/strategy.sol";
 import "../../interfaces/curve.sol";
 import "../../interfaces/uniswapv2.sol";
+import "../../interfaces/uniswapv3.sol";
 
 contract DSTestDefiBase is DSTestApprox {
     using SafeERC20 for IERC20;
@@ -47,24 +48,29 @@ contract DSTestDefiBase is DSTestApprox {
 
     Hevm hevm = Hevm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
-    UniswapRouterV2 univ2 = UniswapRouterV2(
-        0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
-    );
+    UniswapRouterV2 univ2 =
+        UniswapRouterV2(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
 
-    IUniswapV2Factory univ2Factory = IUniswapV2Factory(
-        0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f
-    );
+    IUniswapV2Factory univ2Factory =
+        IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
 
-    ICurveFi_4 curveSusdV2 = ICurveFi_4(
-        0xA5407eAE9Ba41422680e2e00537571bcC53efBfD
-    );
+    ICurveFi_4 curveSusdV2 =
+        ICurveFi_4(0xA5407eAE9Ba41422680e2e00537571bcC53efBfD);
+
+    address public constant nonFungiblePositionManager =
+        0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
+    address public constant univ3Factory =
+        0x1F98431c8aD98523631AE4a59f267346ea31F984;
+    address public constant univ3Router =
+        0xE592427A0AEce92De3Edee1F18E0157C05861564;
 
     uint256 startTime = block.timestamp;
 
     receive() external payable {}
-    fallback () external payable {}
 
-    function _getERC20(address token, uint256 _amount) virtual internal {
+    fallback() external payable {}
+
+    function _getERC20(address token, uint256 _amount) internal virtual {
         address[] memory path = new address[](2);
         path[0] = weth;
         path[1] = token;
@@ -80,7 +86,11 @@ contract DSTestDefiBase is DSTestApprox {
         );
     }
 
-    function _getERC20WithPath(address token, uint256 _amount, address[] memory path) virtual internal {
+    function _getERC20WithPath(
+        address token,
+        uint256 _amount,
+        address[] memory path
+    ) internal virtual {
         uint256[] memory ins = univ2.getAmountsIn(_amount, path);
         uint256 ethAmount = ins[0];
 
@@ -92,7 +102,10 @@ contract DSTestDefiBase is DSTestApprox {
         );
     }
 
-    function _getERC20WithETH(address token, uint256 _ethAmount) virtual internal {
+    function _getERC20WithETH(address token, uint256 _ethAmount)
+        internal
+        virtual
+    {
         address[] memory path = new address[](2);
         path[0] = weth;
         path[1] = token;
