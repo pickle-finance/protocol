@@ -13,7 +13,7 @@
 
 pragma solidity >=0.4.23;
 
-contract DSTest {
+abstract contract DSTest {
     event eventListener          (address target, bool exact);
     event logs                   (bytes);
     event log_bytes32            (bytes32);

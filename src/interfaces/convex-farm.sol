@@ -40,11 +40,15 @@ interface IBaseRewardPool {
 
     function getReward() external returns (bool);
 
+    function stake(uint256 _amount) external returns (bool);
+
     function earned(address) external view returns (uint256);
 
     function balanceOf(address) external view returns (uint256);
 
     function extraRewards(uint256) external view returns (address);
+
+    function withdraw(uint256, bool) external returns (bool);
 
     function withdrawAndUnwrap(uint256, bool) external returns (bool);
 

@@ -45,15 +45,11 @@ module.exports = {
     },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
+      accounts: [`0x${process.env.MNEMONIC}`],
     },
     matic: {
       url: "https://keen-bell:chaste-gulf-chunk-aloe-deuce-copied@nd-654-291-805.p2pify.com/",
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
+      accounts: [`0x${process.env.MNEMONIC}`]
     },
   },
   contractSizer: {
