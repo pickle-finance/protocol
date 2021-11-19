@@ -20,8 +20,6 @@ contract StrategySaddleD4 is StrategyBase {
 
     address public flashLoan = 0xC69DDcd4DFeF25D8a793241834d4cc4b3668EAD6;
 
-    address public constant univ3Router =
-        0xE592427A0AEce92De3Edee1F18E0157C05861564;
     uint24 public constant poolFee = 3000;
 
     // Uniswap swap paths
@@ -120,9 +118,17 @@ contract StrategySaddleD4 is StrategyBase {
 
         uint256 _lqty = IERC20(lqty).balanceOf(address(this));
         if (_lqty > 0) {
-            IERC20(lqty).safeApprove(univ2Router2, 0);
-            IERC20(lqty).safeApprove(univ2Router2, _lqty);
-            _swapUniswap(lqty, lusd, _lqty);
+            IERC20(lqty).safeApprove(univ3Router, 0);
+            IERC20(lqty).safeApprove(univ3Router, _lqty);
+            ISwapRouter(univ3Router).exactInput(
+                ISwapRouter.ExactInputParams({
+                    path: abi.encodePacked(lqty, poolFee, weth, poolFee, lusd),
+                    recipient: address(this),
+                    deadline: block.timestamp + 300,
+                    amountIn: _lqty,
+                    amountOutMinimum: 0
+                })
+            );
         }
 
         uint256 _alcx = IERC20(alcx).balanceOf(address(this));
