@@ -20,6 +20,14 @@ contract StrategySaddleD4 is StrategyBase {
 
     address public flashLoan = 0xC69DDcd4DFeF25D8a793241834d4cc4b3668EAD6;
 
+    address public constant univ3Router =
+        0xE592427A0AEce92De3Edee1F18E0157C05861564;
+    uint24 public constant poolFee = 3000;
+
+    // Uniswap swap paths
+    address[] public fxs_frax_path;
+    address[] public tribe_fei_path;
+
     constructor(
         address _governance,
         address _strategist,
@@ -34,7 +42,15 @@ contract StrategySaddleD4 is StrategyBase {
             _controller,
             _timelock
         )
-    {}
+    {
+        fxs_frax_path = new address[](2);
+        fxs_frax_path[0] = fxs;
+        fxs_frax_path[1] = frax;
+
+        tribe_fei_path = new address[](2);
+        tribe_fei_path[0] = tribe;
+        tribe_fei_path[1] = fei;
+    }
 
     function getName() external pure override returns (string memory) {
         return "StrategySaddleD4";
@@ -64,7 +80,7 @@ contract StrategySaddleD4 is StrategyBase {
         returns (uint256)
     {
         LockedStake[] memory lockedStakes = ICommunalFarm(staking)
-        .lockedStakesOf(address(this));
+            .lockedStakesOf(address(this));
         uint256 _sum = 0;
         uint256 count = 0;
         uint256 i;
@@ -92,14 +108,14 @@ contract StrategySaddleD4 is StrategyBase {
         if (_fxs > 0) {
             IERC20(fxs).safeApprove(univ2Router2, 0);
             IERC20(fxs).safeApprove(univ2Router2, _fxs);
-            _swapUniswap(fxs, frax, _fxs);
+            _swapUniswapWithPath(fxs_frax_path, _fxs);
         }
 
         uint256 _tribe = IERC20(tribe).balanceOf(address(this));
         if (_tribe > 0) {
             IERC20(tribe).safeApprove(univ2Router2, 0);
             IERC20(tribe).safeApprove(univ2Router2, _tribe);
-            _swapUniswap(tribe, fei, _tribe);
+            _swapUniswapWithPath(tribe_fei_path, _tribe);
         }
 
         uint256 _lqty = IERC20(lqty).balanceOf(address(this));
