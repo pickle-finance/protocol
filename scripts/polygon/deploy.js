@@ -73,9 +73,6 @@ const deployPickleJar = async () => {
 };
 
 const setJar = async () => {
-  const want = "0x1Edb2D8f791D2a51D56979bf3A25673D6E783232";
-  const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
-  const picklejar = "0x9eD7e3590F2fB9EEE382dfC55c71F9d3DF12556c";
 
   const ControllerV4 = await ethers.getContractAt("src/flatten/controller-v4.sol:ControllerV4", controller);
 
