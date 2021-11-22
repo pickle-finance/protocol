@@ -118,3 +118,5 @@ hardhat/
 
 # vscode
 .vscode
+
+out.sol
