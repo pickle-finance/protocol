@@ -4,7 +4,7 @@ require('dotenv').config();
 async function main() {
   const pools = [
     {  
-      name: "JoeAvaxMai",
+      name: "PngAvaxPngMini",
       harvest: true,
       earn: true,
     },
