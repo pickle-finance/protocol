@@ -24,7 +24,7 @@ describe("StrategySaddleD4 Test", () => {
     timelock = alice;
 
     controller = await deployContract(
-      "ControllerV4",
+      "src/polygon/controller-v4.sol:ControllerV4",
       governance.address,
       strategist.address,
       timelock.address,
@@ -58,12 +58,6 @@ describe("StrategySaddleD4 Test", () => {
     await controller.setStrategy(want.address, strategy.address);
     // get want token
     await getWant();
-  });
-
-  it("Should set the timelock correctly", async () => {
-    expect(await strategy.timelock()).to.be.eq(timelock.address, "timelock is incorrect");
-    await strategy.setTimelock(NULL_ADDRESS);
-    expect(await strategy.timelock()).to.be.eq(NULL_ADDRESS, "timelock is incorrect");
   });
 
   it("Should withdraw correctly", async () => {
@@ -131,7 +125,7 @@ describe("StrategySaddleD4 Test", () => {
   });
 
   const getWant = async () => {
-    const whale = await unlockAccount("0xBa718efb68ea96b32678c88019768a449cBc9548");
+    const whale = await unlockAccount("0x6912a141ad1566f5da7515f522bb756a5a9e85e9");
     await want.connect(whale).transfer(alice.address, want_amount);
     const _balance = await want.balanceOf(alice.address);
     expect(_balance).to.be.eq(want_amount, "get want failed");

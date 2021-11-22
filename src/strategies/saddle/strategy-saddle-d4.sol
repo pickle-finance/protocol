@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "../strategy-base.sol";
 import "../../interfaces/saddle-farm.sol";
+import "../../interfaces/curve.sol";
 
 contract StrategySaddleD4 is StrategyBase {
     address public staking = 0x0639076265e9f88542C91DCdEda65127974A5CA5;
@@ -12,6 +13,7 @@ contract StrategySaddleD4 is StrategyBase {
     address public frax = 0x853d955aCEf822Db058eb8505911ED77F175b99e;
     address public fei = 0x956F47F50A910163D8BF957Cf5846D573E7f87CA;
     address public lusd = 0x5f98805A4E8be255a32880FDeC7F6728C6568bA0;
+    address public usdt = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
 
     address public alcx = 0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF;
     address public fxs = 0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0;
@@ -19,6 +21,7 @@ contract StrategySaddleD4 is StrategyBase {
     address public lqty = 0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D;
 
     address public flashLoan = 0xC69DDcd4DFeF25D8a793241834d4cc4b3668EAD6;
+    address public alusd_pool = 0x43b4FdFD4Ff969587185cDB6f0BD875c5Fc83f8c;
 
     uint24 public constant poolFee = 3000;
 
@@ -135,7 +138,12 @@ contract StrategySaddleD4 is StrategyBase {
         if (_alcx > 0) {
             IERC20(alcx).safeApprove(sushiRouter, 0);
             IERC20(alcx).safeApprove(sushiRouter, _alcx);
-            _swapSushiswap(alcx, alusd, _alcx);
+            _swapSushiswap(alcx, usdt, _alcx);
+
+            uint256 _usdt = IERC20(usdt).balanceOf(address(this));
+            IERC20(usdt).safeApprove(alusd_pool, 0);
+            IERC20(usdt).safeApprove(alusd_pool, _usdt);
+            ICurveFi_4(alusd_pool).exchange_underlying(3, 0, _usdt, 0);
         }
 
         uint256[] memory amounts = new uint256[](4);
