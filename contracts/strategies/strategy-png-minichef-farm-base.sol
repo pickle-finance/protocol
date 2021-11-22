@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "./strategy-base.sol";
 import "../interfaces/minichefpangolin.sol";
-import "../interfaces/joe-rewarder.sol";
+import "../interfaces/minichef-rewarder.sol";
 import "../interfaces/wavax.sol";
 
 abstract contract StrategyPngMiniChefFarmBase is StrategyBase {
@@ -51,7 +51,7 @@ abstract contract StrategyPngMiniChefFarmBase is StrategyBase {
         if (_want > 0) {
             IERC20(want).safeApprove(miniChef, 0);
             IERC20(want).safeApprove(miniChef, _want);
-            IMiniChef(miniChef).deposit(poolId,_want);
+            IMiniChef(miniChef).deposit(poolId,_want, address(this));
         }
     }
 

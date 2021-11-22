@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-
-import "./axial-rewarder.sol";
+import "./minichef-rewarder.sol";
 
 // interface for MiniChef contract
 interface IMiniChef {
-
 
     /* Reads */
     function userInfo(uint256, address) external view returns (
         uint256 amount,
         uint256 rewardDebt
+
     );
 
     function poolInfo(uint256 pid) external view returns (
@@ -45,7 +44,7 @@ interface IMiniChef {
     function set(
         uint256 _pid,
         uint256 _allocPoint,
-        IAxialRewarder _rewarder,
+        IMiniChefRewarder _rewarder,
         bool overwrite
     ) external;
 
@@ -53,7 +52,8 @@ interface IMiniChef {
 
     function deposit(
         uint256 _pid,
-        uint256 _amount
+        uint256 _amount,
+        address to
     ) external;
 
     function withdraw(
