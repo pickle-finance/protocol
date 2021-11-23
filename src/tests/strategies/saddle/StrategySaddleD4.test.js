@@ -15,7 +15,7 @@ describe("StrategySaddleD4 Test", () => {
   let preTestSnapshotID;
   let want;
   const want_addr = "0xd48cF4D7FB0824CC8bAe055dF3092584d0a1726A";
-  const want_amount = toWei(1000);
+  const want_amount = toWei(20000);
 
   before("Deploy contracts", async () => {
     [alice, devfund, treasury] = await hre.ethers.getSigners();
@@ -58,6 +58,11 @@ describe("StrategySaddleD4 Test", () => {
     await controller.setStrategy(want.address, strategy.address);
     // get want token
     await getWant();
+
+    const ALCX = "0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF";
+    const ALCX_WHALE = "0xf7f8e8461dd7d27a2b1c439372d171e38e6d71ae";
+    const COMMUNAL_FARM = "0x0639076265e9f88542C91DCdEda65127974A5CA5";
+    await getWantFromWhale(ALCX, toWei(10000), COMMUNAL_FARM, ALCX_WHALE);
   });
 
   it("Should withdraw correctly", async () => {
@@ -129,6 +134,14 @@ describe("StrategySaddleD4 Test", () => {
     await want.connect(whale).transfer(alice.address, want_amount);
     const _balance = await want.balanceOf(alice.address);
     expect(_balance).to.be.eq(want_amount, "get want failed");
+  };
+
+  const getWantFromWhale = async (want_addr, amount, to, whaleAddr) => {
+    const whale = await unlockAccount(whaleAddr);
+    const want = await getContractAt("ERC20", want_addr);
+    await want.connect(whale).transfer(to, amount);
+    const _balance = await want.balanceOf(to);
+    expect(_balance).to.be.gte(amount, "get want from the whale failed");
   };
 
   beforeEach(async () => {

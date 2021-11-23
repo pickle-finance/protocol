@@ -5487,7 +5487,7 @@ hardhat-preprocessor@^0.1.4:
   dependencies:
     murmur-128 "^0.2.1"
 
-hardhat@^2.6.0:
+hardhat@^2.6.8:
   version "2.6.8"
   resolved "https://registry.yarnpkg.com/hardhat/-/hardhat-2.6.8.tgz#9ef6f8c16f9044acb95609d15a760b89177b8181"
   integrity sha512-iRVd5DgcIVV3rNXMlogOfwlXAhHp7Wy/OjjFiUhTey8Unvo6oq5+Is5ANiKVN+Iw07Pcb/HpkGt7jCB6a4ITgg==
