@@ -3,13 +3,13 @@ pragma solidity ^0.6.7;
 
 import "../strategy-solar-farm-base.sol";
 
-contract StrategyDaiUsdcLp is StrategySolarFarmBase {
-    uint256 public dai_usdc_poolId = 8;
+contract StrategyBusdUsdcLp is StrategySolarFarmBase {
+    uint256 public busd_usdc_poolId = 9;
 
     // Token addresses
-    address public dai_usdc_lp = 0xFE1b71BDAEE495dCA331D28F5779E87bd32FbE53;
+    address public busd_usdc_lp = 0x384704557F73fBFAE6e9297FD1E6075FC340dbe5;
     address public usdc = 0xE3F5a90F9cb311505cd691a46596599aA1A0AD7D;
-    address public dai = 0x80A16016cC4A2E6a2CACA8a4a498b1699fF0f844;
+    address public busd = 0x5D9ab5522c64E1F6ef5e3627ECCc093f56167818;
 
     constructor(
         address _governance,
@@ -19,10 +19,10 @@ contract StrategyDaiUsdcLp is StrategySolarFarmBase {
     )
         public
         StrategySolarFarmBase(
-            dai,
+            busd,
             usdc,
-            dai_usdc_poolId,
-            dai_usdc_lp,
+            busd_usdc_poolId,
+            busd_usdc_lp,
             _governance,
             _strategist,
             _controller,
@@ -30,12 +30,12 @@ contract StrategyDaiUsdcLp is StrategySolarFarmBase {
         )
     {
         uniswapRoutes[usdc] = [solar, usdc];
-        uniswapRoutes[dai] = [solar, usdc, dai];
+        uniswapRoutes[busd] = [solar, usdc, busd];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyDaiUsdcLp";
+        return "StrategyBusdUsdcLp";
     }
 }
