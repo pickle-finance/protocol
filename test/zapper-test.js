@@ -133,9 +133,14 @@ const doZapperTests = (
                 let [user1, globe1] = await getBalances(TokenA, LPToken, walletAddr, globeContract);
                 let symbol = await TokenA.symbol;
 
+                console.log(`The value of A before doing anything is: ${user1}`); 
+
                 await zapperContract.zapIn(SnowGlobeAddr, 0, TokenA.address, amt);
                 let [user2, globe2] = await getBalances(TokenA, LPToken, walletAddr, globeContract);
                 printBals(`Zap ${txnAmt}`, globe2, user2);
+
+                console.log(`The value of token A after zapping in is: ${user2}`); 
+                console.log(`the difference between both A's : ${user1-user2}`);
 
                 await globeContract.connect(walletSigner).earn();
                 let [user3, globe3] = await getBalances(TokenA, LPToken, walletAddr, globeContract);
@@ -152,9 +157,14 @@ const doZapperTests = (
                 let [user1, globe1] = await getBalances(TokenB, LPToken, walletAddr, globeContract);
                 printBals("Original", globe1, user1);
 
+                console.log(`The value of B before doing anything is: ${user1}`); 
+
                 await zapperContract.zapIn(SnowGlobeAddr, 0, TokenB.address, amt);
                 let [user2, globe2] = await getBalances(TokenB, LPToken, walletAddr, globeContract);
                 printBals(`Zap ${txnAmt}`, globe2, user2);
+
+                console.log(`The value of token B after zapping in is: ${user2}`); 
+                console.log(`the difference between both B's : ${user1-user2}`);
 
                 await globeContract.connect(walletSigner).earn();
                 let [user3, globe3] = await getBalances(TokenB, LPToken, walletAddr, globeContract);
@@ -171,9 +181,14 @@ const doZapperTests = (
                 let [user1, globe1] = await getBalancesAvax(LPToken, walletSigner, globeContract);
                 printBals("Original", globe1, user1);
 
+                console.log(`The value of A before zapping in with AVAX is: ${user1}`);
+
                 await zapperContract.zapInAVAX(SnowGlobeAddr, 0, TokenB.address, { value: amt });
                 let [user2, globe2] = await getBalancesAvax(LPToken, walletSigner, globeContract);
                 printBals(`Zap ${txnAmt} AVAX`, globe2, user2);
+
+                console.log(`The value of token A after zapping in with Avax is: ${user2}`); 
+                console.log(`the difference between both A's : ${user1-user2}`);
 
                 await globeContract.connect(walletSigner).earn();
                 let [user3, globe3] = await getBalancesAvax(LPToken, walletSigner, globeContract);
@@ -190,9 +205,18 @@ const doZapperTests = (
                 const txnAmt = "24";
                 const amt = ethers.utils.parseEther(txnAmt);
 
+                console.log(`The amount we are zapping in with is: ${amt}`);
+                //let receipt = await gaugeContract.balanceOf(walletAddr);
+                let balA = (TokenA.address != WAVAX) ? await returnBal(TokenA, walletAddr) : await returnWalletBal(walletAddr);
+
+                console.log(`The balance of A before anything is done to it: ${balA}`);
+
+
                 await zapperContract.zapIn(SnowGlobeAddr, 0, TokenA.address, amt);
                 let receipt = await gaugeContract.balanceOf(walletAddr);
                 let balABefore = (TokenA.address != WAVAX) ? await returnBal(TokenA, walletAddr) : await returnWalletBal(walletAddr);
+
+                console.log(`The balance of A before we zap out is: ${balABefore}`);
 
                 await globeContract.connect(walletSigner).earn();
                 await gaugeContract.connect(walletSigner).withdrawAll();
@@ -200,6 +224,9 @@ const doZapperTests = (
 
                 let balAAfter = (TokenA.address != WAVAX) ? await returnBal(TokenA, walletAddr) : await returnWalletBal(walletAddr);
                 let receipt2 = await gaugeContract.balanceOf(walletAddr);
+
+                console.log(`The balance of A after we zap out is: ${balAAfter}`);
+                console.log(`The difference of A before and after is: ${balAAfter-balABefore}`);
 
 
                 expect(receipt2).to.be.equals(0);
@@ -211,11 +238,16 @@ const doZapperTests = (
             it("..can zap out into TokenB", async () => {
                 const txnAmt = "35";
                 const amt = ethers.utils.parseEther(txnAmt);
-                
+
+                console.log(`The amount we are zapping in with is: ${amt}`);
+                let balB = (TokenB.address != WAVAX) ? await returnBal(TokenB, walletAddr) : await returnWalletBal(walletAddr);
+                console.log(`The balance of B before we do anything is: ${balB}`);
 
                 await zapperContract.zapIn(SnowGlobeAddr, 0, TokenB.address, amt);
                 let receipt = await gaugeContract.balanceOf(walletAddr);
                 let balBBefore = (TokenB.address != WAVAX) ? await returnBal(TokenB, walletAddr) : await returnWalletBal(walletAddr);
+
+                console.log(`The balance of B before we zap out is: ${balBBefore}`);
                
 
                 await globeContract.connect(walletSigner).earn();
@@ -224,6 +256,10 @@ const doZapperTests = (
 
                 let balBAfter = (TokenB.address != WAVAX) ? await returnBal(TokenB, walletAddr) : await returnWalletBal(walletAddr);
                 let receipt2 = await gaugeContract.balanceOf(walletAddr);
+
+                console.log(`The balance of B after we zap out is: ${balBAfter}`);
+                console.log(`The difference of B before and after is: ${balBAfter-balBBefore}`);
+
 
 
                 expect(receipt2).to.be.equals(0);
@@ -236,10 +272,18 @@ const doZapperTests = (
                 const txnAmt = "45";
                 const amt = ethers.utils.parseEther(txnAmt);
 
+                console.log(`The amount we are zapping in with is: ${amt}`);
+                let balA = (TokenA.address != WAVAX) ? await returnBal(TokenA, walletAddr) : await returnWalletBal(walletAddr);
+                let balB = (TokenB.address != WAVAX) ? await returnBal(TokenB, walletAddr) : await returnWalletBal(walletAddr);
+                console.log(`The balance of A and B before we do anything is ${balA} and ${balB}`);
+
                 await zapperContract.zapIn(SnowGlobeAddr, 0, TokenA.address, amt);
                 let receipt = await gaugeContract.balanceOf(walletAddr);
                 let balABefore = (TokenA.address != WAVAX) ? await returnBal(TokenA, walletAddr) : await returnWalletBal(walletAddr);
                 let balBBefore = (TokenB.address != WAVAX) ? await returnBal(TokenB, walletAddr) : await returnWalletBal(walletAddr);
+
+                console.log(`The balance of A before we zap out is: ${balABefore}`);
+                console.log(`The balance of B before we zap out is: ${balBBefore}`);
 
                 await globeContract.connect(walletSigner).earn();
                 await gaugeContract.connect(walletSigner).withdrawAll();
@@ -248,6 +292,18 @@ const doZapperTests = (
                 let balAAfter = (TokenA.address != WAVAX) ? await returnBal(TokenA, walletAddr) : await returnWalletBal(walletAddr);
                 let balBAfter = (TokenB.address != WAVAX) ? await returnBal(TokenB, walletAddr) : await returnWalletBal(walletAddr);
 
+
+                console.log(`The balance of A after we zap out is: ${balAAfter}`);
+                console.log(`The balance of B after we zap out is: ${balBAfter}`);
+
+
+
+                console.log(`The difference of A before and after is: ${balAAfter-balABefore}`);
+                console.log(`The difference of B before and after is: ${balBAfter-balBBefore}`);
+
+                
+                console.log(`The thing we want our balance to be equal to is: ${Number(txnAmt) / 2}`);
+                
                 (TokenA.address != WAVAX) ?
                     expect(balAAfter - balABefore,"Incorrect TokenA").to.roughly(0.01).deep.equal(Number(txnAmt) / 2) :
                     expect(balAAfter).to.be.greaterThan(balABefore);
@@ -272,6 +328,8 @@ const doZapperTests = (
                 const amt2 = ethers.utils.parseEther(txnAmt2);
                 
                 //amt was too large that it succeeds when reaching line 60 of the zapper contract. However, we want it to fail
+                console.log(`the token A address is ${tokenA.address}`);
+                console.log(`the token B address is ${tokenB.address}`);
                 await expect(zapperContract.zapInAVAX(SnowGlobeAddr, amt2, TokenB.address, { value: txnAmt })).to.be.reverted;
             })
 

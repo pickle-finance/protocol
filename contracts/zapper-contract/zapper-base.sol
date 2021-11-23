@@ -61,7 +61,7 @@ abstract contract ZapperBase {
 
         WAVAX(wavax).deposit{value: msg.value}();
 
-
+        // allows us to zapIn if avax isn't part of the original pair
         if (tokenIn != wavax){
             uint256 _amount = IERC20(wavax).balanceOf(address(this));
 
@@ -95,10 +95,12 @@ abstract contract ZapperBase {
         }
     }
 
+    // transfers tokens from msg.sender to this contract 
     function zapIn(address snowglobe, uint256 tokenAmountOutMin, address tokenIn, uint256 tokenInAmount) external {
         require(tokenInAmount >= minimumAmount, "Insignificant input amount");
         require(IERC20(tokenIn).allowance(msg.sender, address(this)) >= tokenInAmount, "Input token is not approved");
 
+        // transfer token 
         IERC20(tokenIn).safeTransferFrom(
             msg.sender,
             address(this),
