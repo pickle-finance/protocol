@@ -3,9 +3,6 @@ pragma solidity ^0.6.7;
 import "../lib/erc20.sol";
 import "../lib/safe-math.sol";
 
-import "../interfaces/jar.sol";
-import "../interfaces/staking-rewards.sol";
-import "../interfaces/masterchef.sol";
 import "../interfaces/uniswapv2.sol";
 import "../interfaces/uniswapv3.sol";
 import "../interfaces/controller.sol";
