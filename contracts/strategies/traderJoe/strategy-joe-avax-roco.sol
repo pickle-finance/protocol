@@ -29,12 +29,6 @@ contract StrategyJoeAvaxRocoLp is StrategyJoeFarmBase {
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But AVAX is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
         // Collects Joe tokens
         IMasterChefJoeV2(masterChefJoeV2).deposit(poolId, 0);
 
@@ -42,15 +36,17 @@ contract StrategyJoeAvaxRocoLp is StrategyJoeFarmBase {
         if (_joe > 0) {
             // 10% is sent to treasury
             uint256 _keep = _joe.mul(keep).div(keepMax);
-            uint256 _amount = _joe.sub(_keep).div(2);
             if (_keep > 0) {
                 _takeFeeJoeToSnob(_keep);
             }
-            IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keep));
+            
+            _joe = IERC20(joe).balanceOf(address(this)); 
 
-            _swapTraderJoe(joe, wavax, _amount);
-            _swapTraderJoe(joe, roco, _amount);
+            IERC20(joe).safeApprove(joeRouter, 0);
+            IERC20(joe).safeApprove(joeRouter, _joe);
+
+            _swapTraderJoe(joe, wavax, _joe.div(2));
+            _swapTraderJoe(joe, roco, _joe.div(2));
         }
 
         // Adds in liquidity for AVAX/ROCO
