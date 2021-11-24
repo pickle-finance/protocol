@@ -4,7 +4,7 @@ pragma solidity ^0.6.7;
 import "../strategy-solar-farm-base.sol";
 
 contract StrategyWbtcUsdcLp is StrategySolarFarmBase {
-    uint256 public wbtc_usdc_poolId = 10;
+    uint256 public wbtc_usdc_poolId = 12;
 
     // Token addresses
     address public wbtc_usdc_lp = 0x83d7a3fc841038E8c8F46e6192BBcCA8b19Ee4e7;
