@@ -586,21 +586,12 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
-    {
-      name: "AxialAS4D",
+      {
+      name: "JoeAvaxCrax",
       controllerAddress: "",
       snowglobeAddress: "",
     },
-    {
-      name: "AxialAC4D",
-      controllerAddress: "",
-      snowglobeAddress: "",
-    },
-    {
-      name: "AxialAM3D",
-      controllerAddress: "",
-      snowglobeAddress: "",
-    },
+    
 ];
 
 for (const test of tests) {
