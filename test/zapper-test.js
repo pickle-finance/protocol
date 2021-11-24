@@ -330,7 +330,9 @@ const doZapperTests = (
                 //amt was too large that it succeeds when reaching line 60 of the zapper contract. However, we want it to fail
                 console.log(`the token A address is ${tokenA.address}`);
                 console.log(`the token B address is ${tokenB.address}`);
-                await expect(zapperContract.zapInAVAX(SnowGlobeAddr, amt2, TokenB.address, { value: txnAmt })).to.be.reverted;
+
+                
+                await expect(zapperContract.zapInAVAX(SnowGlobeAddr, amt2, TokenA.address, { value: txnAmt })).to.be.reverted;
             })
 
             it("..reverts on zap out token", async () => {
