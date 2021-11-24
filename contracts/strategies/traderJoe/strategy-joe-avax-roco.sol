@@ -6,8 +6,7 @@ import "../strategy-joe-farm-base.sol";
 contract StrategyJoeAvaxRocoLp is StrategyJoeFarmBase {
     uint256 public avax_roco_poolId = 65;
 
-    address public joe_avax_roco_lp =
-        0x8C28394Ed230cD6cAF0DAA0E51680fD57826DEE3;
+    address public joe_avax_roco_lp = 0x8C28394Ed230cD6cAF0DAA0E51680fD57826DEE3;
     address public roco = 0xb2a85C5ECea99187A977aC34303b80AcbDdFa208;
 
     constructor(
@@ -56,9 +55,7 @@ contract StrategyJoeAvaxRocoLp is StrategyJoeFarmBase {
 
         // Adds in liquidity for AVAX/ROCO
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _roco = IERC20(roco).balanceOf(address(this));
-
         if (_wavax > 0 && _roco > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
@@ -78,14 +75,20 @@ contract StrategyJoeAvaxRocoLp is StrategyJoeFarmBase {
             );
 
             // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(roco).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(roco).balanceOf(address(this))
-            );
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _roco = IERC20(roco).balanceOf(address(this));
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
+            if (_roco > 0){
+                IERC20(roco).safeTransfer(
+                    IController(controller).treasury(),
+                    _roco
+                );
+            }
         }
 
         _distributePerformanceFeesAndDeposit();
