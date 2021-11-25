@@ -2,59 +2,61 @@
 pragma solidity ^0.6.7;
 
 import "./strategy-base.sol";
-import "../interfaces/masterchefjoev2.sol";
-import "../interfaces/joe-rewarder.sol";
+import "../interfaces/masterchefaxialv2.sol";
 import "../interfaces/joe.sol";
-import "../interfaces/wavax.sol";
 
-abstract contract StrategyJoeRushFarmBase is StrategyBase {
-    // Token addresses
-    address public constant joe = 0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd;
+// Base contract for Axial based staking contract interfaces
+
+abstract contract StrategyAxialBase is StrategyBase {
+    // Token address 
+    address public constant axial = 0xcF8419A615c57511807236751c0AF38Db4ba3351;
+    address public constant masterChefAxialV3 = 0x958C0d0baA8F220846d3966742D4Fb5edc5493D3;
     address public constant joeRouter = 0x60aE616a2155Ee3d9A68541Ba4544862310933d4;
-    address public constant masterChefJoeV3 = 0x188bED1968b795d5c9022F6a0bb5931Ac4c18F00;
 
     uint256 public poolId;
 
     constructor(
         uint256 _poolId,
-        address _lp,
+        address _want,
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
     )
         public
-        StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
+        StrategyBase(_want, _governance, _strategist, _controller, _timelock)
     {
         poolId = _poolId;
     }
 
-    function balanceOfPool() public view override returns (uint256) {
-        (uint256 amount, ) = IMasterChefJoeV2(masterChefJoeV3).userInfo(
+    // **** Getters ****
+
+    function balanceOfPool() public override view returns (uint256) {
+        (uint256 amount, ) = IMasterChefAxialV2(masterChefAxialV3).userInfo(
             poolId,
             address(this)
         );
         return amount;
     }
 
-     receive() external payable {}
-
-    // Updated based on cryptofish's recommendation
     function getHarvestable() external view returns (uint256, uint256) {
-        (uint256 pendingJoe, , , uint256 pendingBonusToken) = IMasterChefJoeV2(
-            masterChefJoeV3
+        (uint256 pendingJoe, , , uint256 pendingBonusToken) = IMasterChefAxialV2(
+            masterChefAxialV3
         ).pendingTokens(poolId, address(this));
         return (pendingJoe, pendingBonusToken);
     }
 
-    // **** Setters ****
+    function getMostPremium() public virtual view returns (address);
+
+
+    // **** State Mutation functions ****
 
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(masterChefJoeV3, 0);
-            IERC20(want).safeApprove(masterChefJoeV3, _want);
-            IMasterChefJoeV2(masterChefJoeV3).deposit(poolId,_want);
+            IERC20(want).safeApprove(masterChefAxialV3, 0);
+            IERC20(want).safeApprove(masterChefAxialV3, _want);
+            IMasterChefAxialV2(masterChefAxialV3).deposit(poolId,_want);
         }
     }
 
@@ -63,9 +65,11 @@ abstract contract StrategyJoeRushFarmBase is StrategyBase {
         override
         returns (uint256)
     {
-        IMasterChefJoeV2(masterChefJoeV3).withdraw(poolId, _amount);
+        IMasterChefAxialV2(masterChefAxialV3).withdraw(poolId, _amount);
         return _amount;
     }
+
+
 
     function _swapTraderJoe(
         address _from,
@@ -110,13 +114,13 @@ abstract contract StrategyJoeRushFarmBase is StrategyBase {
         );
     }
 
-    function _takeFeeJoeToSnob(uint256 _keep) internal {
+    function _takeFeeAxialToSnob(uint256 _keep) internal {
         address[] memory path = new address[](3);
-        path[0] = joe;
+        path[0] = axial;
         path[1] = wavax;
         path[2] = snob;
-        IERC20(joe).safeApprove(joeRouter, 0);
-        IERC20(joe).safeApprove(joeRouter, _keep);
+        IERC20(axial).safeApprove(joeRouter, 0);
+        IERC20(axial).safeApprove(joeRouter, _keep);
         _swapTraderJoeWithPath(path, _keep);
         uint256 _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
@@ -131,7 +135,7 @@ abstract contract StrategyJoeRushFarmBase is StrategyBase {
         IERC20(wavax).safeApprove(pangolinRouter, 0);
         IERC20(wavax).safeApprove(pangolinRouter, _keep);
         _swapPangolin(wavax, snob, _keep);
-        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
         IERC20(snob).safeTransfer(
             feeDistributor,

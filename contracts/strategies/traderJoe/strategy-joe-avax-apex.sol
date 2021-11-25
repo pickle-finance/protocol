@@ -33,58 +33,56 @@ contract StrategyJoeAvaxApexLp is StrategyJoeRushFarmBase {
         // i.e. will be be heavily frontrunned?
         //      if so, a new strategy will be deployed.
 
-        // Collects Joe tokens
+        // Collects Rewards tokens (JOE & AVAX)
         IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
 
-        
-        //Take Avax Rewards    
+        // Take Avax Rewards    
         uint256 _avax = address(this).balance;            //get balance of native Avax
         if (_avax > 0) {                                 //wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
         }
-
+        
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             uint256 _keep2 = _wavax.mul(keep).div(keepMax);
-            uint256 _amount2 = _wavax.sub(_keep2).div(2);
             if (_keep2 > 0){
                 _takeFeeWavaxToSnob(_keep2);
             }
 
-            //convert Avax Rewards
+            _wavax = IERC20(wavax).balanceOf(address(this));
+
+            // convert Avax Rewards
+            // APEX: 4% Reflective
             IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _amount2);   
-            _swapTraderJoe(wavax, apex, _amount2);
+            IERC20(wavax).safeApprove(joeRouter, _wavax.mul(100).div(196));
+            _swapTraderJoe(wavax, apex, _wavax.mul(100).div(196));
+
+            
         }
-
-
+        
+        // Take Joe Rewards
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
             uint256 _keep = _joe.mul(keep).div(keepMax);
-            uint256 _amount = _joe.sub(_keep).div(2);
             if (_keep > 0) {
                 _takeFeeJoeToSnob(_keep);
             }
+
+            _joe = IERC20(joe).balanceOf(address(this));
+
             IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keep));
-
-            _swapTraderJoe(joe, wavax, _amount);
-            _swapTraderJoe(joe, apex, _amount);
+            IERC20(joe).safeApprove(joeRouter, _joe);
+            // APEX: 4% Reflective
+            _swapTraderJoe(joe, apex, _joe.mul(100).div(196));
+            _swapTraderJoe(joe, wavax, _joe.mul(96).div(196));
         }
 
-        // Swap half WAVAX for GB: 1% Reflective
+        // Adds in liquidity for AVAX/APEX
         _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0) {
-            IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax.mul(100).div(196));
-            _swapTraderJoe(wavax, apex, _wavax.mul(100).div(196));
-        }
 
-
-        // Adds in liquidity for AVAX/apex
-        _wavax = IERC20(wavax).balanceOf(address(this));
         uint256 _apex = IERC20(apex).balanceOf(address(this));
+
         if (_wavax > 0 && _apex > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
@@ -92,7 +90,6 @@ contract StrategyJoeAvaxApexLp is StrategyJoeRushFarmBase {
             IERC20(apex).safeApprove(joeRouter, 0);
             IERC20(apex).safeApprove(joeRouter, _apex);
 
-        
             IJoeRouter(joeRouter).addLiquidity(
                 wavax,
                 apex,
@@ -104,25 +101,21 @@ contract StrategyJoeAvaxApexLp is StrategyJoeRushFarmBase {
                 now + 60
             );
 
-
-
-             // Donates DUST
+            // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            if (_wavax > 0) {
+            _apex = IERC20(apex).balanceOf(address(this));
+            if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
                     _wavax
                 );
             }
-            _apex = IERC20(apex).balanceOf(address(this));
-            if (_apex > 0) {
+            if (_apex > 0){
                 IERC20(apex).safeTransfer(
                     IController(controller).treasury(),
                     _apex
                 );
-
             }
-
         }
 
         _distributePerformanceFeesAndDeposit();
