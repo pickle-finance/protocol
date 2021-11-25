@@ -2090,17 +2090,17 @@ abstract contract StrategyJoeRushFarmBase is StrategyBase {
 }
 
 
-// File contracts/strategies/traderJoe/strategy-joe-avax-yak.sol
+// File contracts/strategies/traderJoe/strategy-joe-avax-pefi.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-contract StrategyJoeAvaxYakLp is StrategyJoeRushFarmBase {
+contract StrategyJoeAvaxPefiLp is StrategyJoeRushFarmBase {
 
-    uint256 public avax_yak_poolId = 1;
+    uint256 public avax_pefi_poolId = 12;
 
-    address public joe_avax_yak_lp = 0xb5c9e891AF3063004a441BA4FaB4cA3D6DEb5626;
-    address public yak = 0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7;
+    address public joe_avax_pefi_lp = 0xb78c8238bD907c42BE45AeBdB4A8C8a5D7B49755;
+    address public pefi = 0xe896CDeaAC9615145c0cA09C8Cd5C25bced6384c;
 
     constructor(
         address _governance,
@@ -2110,8 +2110,8 @@ contract StrategyJoeAvaxYakLp is StrategyJoeRushFarmBase {
     )
         public
         StrategyJoeRushFarmBase(
-            avax_yak_poolId,
-            joe_avax_yak_lp,
+            avax_pefi_poolId,
+            joe_avax_pefi_lp,
             _governance,
             _strategist,
             _controller,
@@ -2149,7 +2149,7 @@ contract StrategyJoeAvaxYakLp is StrategyJoeRushFarmBase {
             //convert Avax Rewards
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
-            _swapTraderJoe(wavax, yak, _wavax.div(2));
+            _swapTraderJoe(wavax, pefi, _wavax.div(2));
         }
         
         // Take Joe Rewards
@@ -2167,26 +2167,26 @@ contract StrategyJoeAvaxYakLp is StrategyJoeRushFarmBase {
             IERC20(joe).safeApprove(joeRouter, _joe);
 
             _swapTraderJoe(joe, wavax, _joe.div(2));
-            _swapTraderJoe(joe, yak, _joe.div(2));
+            _swapTraderJoe(joe, pefi, _joe.div(2));
         }
 
-        // Adds in liquidity for AVAX/YAK
+        // Adds in liquidity for AVAX/PEFI
         _wavax = IERC20(wavax).balanceOf(address(this));
 
-        uint256 _yak = IERC20(yak).balanceOf(address(this));
+        uint256 _pefi = IERC20(pefi).balanceOf(address(this));
 
-        if (_wavax > 0 && _yak > 0) {
+        if (_wavax > 0 && _pefi > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
 
-            IERC20(yak).safeApprove(joeRouter, 0);
-            IERC20(yak).safeApprove(joeRouter, _yak);
+            IERC20(pefi).safeApprove(joeRouter, 0);
+            IERC20(pefi).safeApprove(joeRouter, _pefi);
 
             IJoeRouter(joeRouter).addLiquidity(
                 wavax,
-                yak,
+                pefi,
                 _wavax,
-                _yak,
+                _pefi,
                 0,
                 0,
                 address(this),
@@ -2195,17 +2195,17 @@ contract StrategyJoeAvaxYakLp is StrategyJoeRushFarmBase {
 
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _yak = IERC20(yak).balanceOf(address(this));
+            _pefi = IERC20(pefi).balanceOf(address(this));
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
                     _wavax
                 );
             }
-            if (_yak > 0){
-                IERC20(yak).safeTransfer(
+            if (_pefi > 0){
+                IERC20(pefi).safeTransfer(
                     IController(controller).treasury(),
-                    _yak
+                    _pefi
                 );
             }
         }
@@ -2216,6 +2216,6 @@ contract StrategyJoeAvaxYakLp is StrategyJoeRushFarmBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyJoeAvaxYakLp";
+        return "StrategyJoeAvaxPefiLp";
     }
 }

@@ -3,11 +3,13 @@ pragma solidity ^0.6.7;
 
 import "../strategy-joe-rush-farm-base.sol";
 
-contract StrategyJoeAvaxTractorLp is StrategyJoeRushFarmBase {
-    uint256 public avax_tractor_poolId = 7;
+contract StrategyJoeAvaxGroLp is StrategyJoeRushFarmBase {
 
-    address public joe_avax_tractor_lp = 0x601e0f63bE88A52b79DbaC667d6b4A167CE39113;
-    address public tractor = 0x542fA0B261503333B90fE60c78F2BeeD16b7b7fD;
+    uint256 public avax_gro_poolId = 18;
+
+    address public joe_avax_gro_lp = 0xB7a4Ca0c9B58a33B244C44a8Bf9833b0E7918429;
+    address public gro = 0x72699ba15CC734F8db874fa9652c8DE12093F187;
+
 
     constructor(
         address _governance,
@@ -17,8 +19,8 @@ contract StrategyJoeAvaxTractorLp is StrategyJoeRushFarmBase {
     )
         public
         StrategyJoeRushFarmBase(
-            avax_tractor_poolId,
-            joe_avax_tractor_lp,
+            avax_gro_poolId,
+            joe_avax_gro_lp,
             _governance,
             _strategist,
             _controller,
@@ -26,19 +28,15 @@ contract StrategyJoeAvaxTractorLp is StrategyJoeRushFarmBase {
         )
     {}
 
-    function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But AVAX is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
+    // **** State Mutations ****
 
-        // Collects Rewards tokens (JOE & AVAX)
+    function harvest() public override onlyBenevolent {
+        // Collects Joe tokens
         IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
 
-        //Take Avax Rewards    
-        uint256 _avax = address(this).balance;            //get balance of native Avax
-        if (_avax > 0) {                                 //wrap avax into ERC20
+        // Take Avax Rewards    
+        uint256 _avax = address(this).balance;              // get balance of native Avax
+        if (_avax > 0) {                                    // wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
         }
         
@@ -48,18 +46,15 @@ contract StrategyJoeAvaxTractorLp is StrategyJoeRushFarmBase {
             if (_keep2 > 0){
                 _takeFeeWavaxToSnob(_keep2);
             }
-
+            
             _wavax = IERC20(wavax).balanceOf(address(this));
 
-            // convert Avax Rewards
-            // TRACTOR: 3% Reflective 1% Burn
+            // Convert Avax Rewards
             IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax.mul(100).div(196));   
-            _swapTraderJoe(wavax, tractor, _wavax.mul(100).div(196));
-
+            IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
+            _swapTraderJoe(wavax, gro, _wavax.div(2));
         }
-        
-        // Take Joe Rewards
+
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
@@ -72,28 +67,27 @@ contract StrategyJoeAvaxTractorLp is StrategyJoeRushFarmBase {
 
             IERC20(joe).safeApprove(joeRouter, 0);
             IERC20(joe).safeApprove(joeRouter, _joe);
-            // TRACTOR: 3% Reflective 1% Burn
-            _swapTraderJoe(joe, wavax, _joe.mul(96).div(196));
-            _swapTraderJoe(joe, tractor, _joe.mul(100).div(196));
+
+            _swapTraderJoe(joe, wavax, _joe.div(2));
+            _swapTraderJoe(joe, gro, _joe.div(2));
         }
 
-        // Adds in liquidity for AVAX/TRACTOR
+        // Adds in liquidity for AVAX/GRO
         _wavax = IERC20(wavax).balanceOf(address(this));
+        uint256 _gro = IERC20(gro).balanceOf(address(this));
 
-        uint256 _tractor = IERC20(tractor).balanceOf(address(this));
-
-        if (_wavax > 0 && _tractor > 0) {
+        if (_wavax > 0 && _gro > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
 
-            IERC20(tractor).safeApprove(joeRouter, 0);
-            IERC20(tractor).safeApprove(joeRouter, _tractor);
+            IERC20(gro).safeApprove(joeRouter, 0);
+            IERC20(gro).safeApprove(joeRouter, _gro);
 
             IJoeRouter(joeRouter).addLiquidity(
                 wavax,
-                tractor,
+                gro,
                 _wavax,
-                _tractor,
+                _gro,
                 0,
                 0,
                 address(this),
@@ -102,26 +96,28 @@ contract StrategyJoeAvaxTractorLp is StrategyJoeRushFarmBase {
 
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _tractor = IERC20(tractor).balanceOf(address(this));
+            _gro = IERC20(gro).balanceOf(address(this));
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
                     _wavax
                 );
             }
-            if (_tractor > 0){
-                IERC20(tractor).safeTransfer(
+            
+            if (_gro > 0){
+                IERC20(gro).safeTransfer(
                     IController(controller).treasury(),
-                    _tractor
+                    _gro
                 );
-            }
+            }  
         }
 
         _distributePerformanceFeesAndDeposit();
     }
 
     // **** Views ****
-    function getName() external pure override returns (string memory) {
-        return "StrategyJoeAvaxTractorLp";
+
+    function getName() external override pure returns (string memory) {
+        return "StrategyJoeAvaxGroLp";
     }
 }

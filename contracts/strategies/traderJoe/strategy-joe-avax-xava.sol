@@ -35,25 +35,8 @@ contract StrategyJoeAvaxXavaLp is StrategyJoeRushFarmBase {
         // i.e. will be be heavily frontrunned?
         //      if so, a new strategy will be deployed.
 
-        // Collects Joe tokens
+        // Collects Rewards tokens (JOE & AVAX)
         IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
-
-        uint256 _joe = IERC20(joe).balanceOf(address(this));
-        if (_joe > 0) {
-            // 10% is sent to treasury
-            uint256 _keep = _joe.mul(keep).div(keepMax);
-            uint256 _amount = _joe.sub(_keep).div(2);
-            if (_keep > 0) {
-                _takeFeeJoeToSnob(_keep);
-            }
-
-        //convert Joe Rewards
-            IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keep));
-
-            _swapTraderJoe(joe, wavax, _amount);
-            _swapTraderJoe(joe, xava, _amount);
-        }
 
         //Take Avax Rewards    
         uint256 _avax = address(this).balance;            //get balance of native Avax
@@ -63,18 +46,36 @@ contract StrategyJoeAvaxXavaLp is StrategyJoeRushFarmBase {
         
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
-             uint256 _keep2 = _wavax.mul(keep).div(keepMax);
-            uint256 _amount2 = _wavax.sub(_keep2).div(2);
+            uint256 _keep2 = _wavax.mul(keep).div(keepMax);
             if (_keep2 > 0){
                 _takeFeeWavaxToSnob(_keep2);
             }
 
-        //convert Avax Rewards
+            _wavax = IERC20(wavax).balanceOf(address(this));
+
+            //convert Avax Rewards
             IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _amount2);   
-            _swapTraderJoe(wavax, xava, _amount2);
+            IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
+            _swapTraderJoe(wavax, xava, _wavax.div(2));
         }
-             
+        
+        // Take Joe Rewards
+        uint256 _joe = IERC20(joe).balanceOf(address(this));
+        if (_joe > 0) {
+            // 10% is sent to treasury
+            uint256 _keep = _joe.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeeJoeToSnob(_keep);
+            }
+
+            _joe = IERC20(joe).balanceOf(address(this));
+
+            IERC20(joe).safeApprove(joeRouter, 0);
+            IERC20(joe).safeApprove(joeRouter, _joe);
+
+            _swapTraderJoe(joe, wavax, _joe.div(2));
+            _swapTraderJoe(joe, xava, _joe.div(2));
+        }
 
         // Adds in liquidity for AVAX/XAVA
         _wavax = IERC20(wavax).balanceOf(address(this));
@@ -100,14 +101,20 @@ contract StrategyJoeAvaxXavaLp is StrategyJoeRushFarmBase {
             );
 
             // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(xava).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(xava).balanceOf(address(this))
-            );
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _xava = IERC20(xava).balanceOf(address(this));
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
+            if (_xava > 0){
+                IERC20(xava).safeTransfer(
+                    IController(controller).treasury(),
+                    _xava
+                );
+            }
         }
 
         _distributePerformanceFeesAndDeposit();
