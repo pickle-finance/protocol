@@ -39,7 +39,7 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
 
             controllerContract = await ethers.getContractAt("ControllerV4", controllerAddr, governanceSigner);
             
-            //The Strategy dadress will not be supplied. We should deploy and setup a new strategy
+            //The Strategy address will not be supplied. We should deploy and setup a new strategy
             const stratFactory = await ethers.getContractFactory(strategyName);
             // Now we can deploy the new strategy
             strategyContract = await stratFactory.deploy(governanceSigner._address, strategistSigner._address,controllerAddr,timelockSigner._address);
@@ -125,7 +125,11 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
     
         it("user wallet contains asset balance", async () =>{
             let BNBal = await assetContract.balanceOf(walletAddr);
+            console.log(`The balance of BNBal is: ${BNBal}`); 
+
             const BN = ethers.BigNumber.from(txnAmt)._hex.toString();
+            console.log(`The balance of BN is: ${BN}`); 
+
             expect(BNBal).to.be.equals(BN);
         });
     

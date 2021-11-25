@@ -37,7 +37,19 @@ const tests = [
   // {
   //   name: "PngSporePng",
   //   controllerAddress: "",
-  //   snowglobeAddress: "0xa39785a4E4CdDa7509751ed152a00f3D37FbFa9F",
+  //   snowglobeAddress: "", // 0xa39785a4E4CdDa7509751ed152a00f3D37FbFa9F
+  // },
+  // {
+  //   name: "JoeAvaxGb",
+  // },
+  // {
+  //   name: "PngAvaxGb",
+  // },
+  // {
+  //   name: "PngAvaxShibx",
+  // },
+  // {
+  //   name: "PngAvaxSpore",
   // },
   // {
   //   name: "PngAvaxBnb",
@@ -502,7 +514,7 @@ const tests = [
   // {
   //   name: "JoeAvaxMai",
   //   controllerAddress: "",
-  //   snowglobeAddress: "0x29BF8c19e044732b110faA1Ff0Cc59CA35c13f17",
+  //   snowglobeAddress: "",
   // },
   // {
   //   name: "JoeAvaxMyak",
@@ -544,11 +556,11 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "0xAFB27fB1c5bd91A80d18A321D6dC09aDd6a94219",
   // },
-  //   {
-  //     name: "JoeAvaxRoco",
-  //     controllerAddress: "",
-  //     snowglobeAddress: "",
-  //   },
+    {
+      name: "JoeAvaxRoco",
+      controllerAddress: "",
+      snowglobeAddress: "",
+    },
     // {
     //   name:"JoeAvaxAmpl",
     //   controllerAddress: "",
@@ -574,6 +586,28 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
+    // {
+    //   name: "AxialAS4D",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
+    // {
+    //   name: "AxialAC4D",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
+    // {
+    //   name: "AxialAM3D",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
+
+      {
+      name: "JoeAvaxCrax",
+      controllerAddress: "",
+      snowglobeAddress: "",
+    },
+    
 ];
 
 for (const test of tests) {

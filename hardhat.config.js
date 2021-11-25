@@ -19,7 +19,7 @@ module.exports = {
       accounts: [process.env.PRIVATE_KEY]
     },
     mainnet: {
-      url: "https://node.snowapi.net/ext/bc/C/rpc",
+      url: "https://api.avax.network/ext/bc/C/rpc",
       accounts: [process.env.PRIVATE_KEY]
     },
   },

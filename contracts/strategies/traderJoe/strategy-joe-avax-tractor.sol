@@ -46,15 +46,16 @@ contract StrategyJoeAvaxTractorLp is StrategyJoeRushFarmBase {
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             uint256 _keep2 = _wavax.mul(keep).div(keepMax);
-            uint256 _amount2 = _wavax.sub(_keep2).div(2);
             if (_keep2 > 0){
                 _takeFeeWavaxToSnob(_keep2);
             }
 
-        //convert Avax Rewards
+            _wavax = IERC20(wavax).balanceOf(address(this));
+
+            //convert Avax Rewards
             IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _amount2);   
-            _swapTraderJoe(wavax, tractor, _amount2);
+            IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
+            _swapTraderJoe(wavax, tractor, _wavax.div(2));
         }
 
 
