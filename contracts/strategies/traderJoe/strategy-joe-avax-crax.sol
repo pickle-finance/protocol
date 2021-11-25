@@ -3,12 +3,13 @@ pragma solidity ^0.6.7;
 
 import "../strategy-joe-rush-farm-base.sol";
 
-contract StrategyJoeAvaxMaiLp is StrategyJoeRushFarmBase {
+contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
 
-    uint256 public avax_mai_poolId = 10;
+    uint256 public avax_crax_poolId = 13;
 
-    address public joe_avax_mai_lp = 0x23dDca8de11eCcd8000263f008A92e10dC1f21e8;
-    address public mai = 0x5c49b268c9841AFF1Cc3B0a418ff5c3442eE3F3b;
+    address public joe_avax_crax_lp = 0x140CAc5f0e05cBEc857e65353839FddD0D8482C1;
+    address public crax = 0xA32608e873F9DdEF944B24798db69d80Bbb4d1ed;
+
 
     constructor(
         address _governance,
@@ -18,8 +19,8 @@ contract StrategyJoeAvaxMaiLp is StrategyJoeRushFarmBase {
     )
         public
         StrategyJoeRushFarmBase(
-            avax_mai_poolId,
-            joe_avax_mai_lp,
+            avax_crax_poolId,
+            joe_avax_crax_lp,
             _governance,
             _strategist,
             _controller,
@@ -30,37 +31,30 @@ contract StrategyJoeAvaxMaiLp is StrategyJoeRushFarmBase {
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But AVAX is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
         // Collects Joe tokens
         IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
 
         // Take Avax Rewards    
-        uint256 _avax = address(this).balance;            //get balance of native Avax
-        if (_avax > 0) {                                 //wrap avax into ERC20
+        uint256 _avax = address(this).balance;              // get balance of native Avax
+        if (_avax > 0) {                                    // wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
         }
-
+        
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             uint256 _keep2 = _wavax.mul(keep).div(keepMax);
             if (_keep2 > 0){
                 _takeFeeWavaxToSnob(_keep2);
             }
-
+            
             _wavax = IERC20(wavax).balanceOf(address(this));
 
-            // convert Avax Rewards
+            // Convert Avax Rewards
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
-            _swapTraderJoe(wavax, mai, _wavax.div(2));
+            _swapTraderJoe(wavax, crax, _wavax.div(2));
         }
 
-        // Take Joe Rewards
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
@@ -75,25 +69,25 @@ contract StrategyJoeAvaxMaiLp is StrategyJoeRushFarmBase {
             IERC20(joe).safeApprove(joeRouter, _joe);
 
             _swapTraderJoe(joe, wavax, _joe.div(2));
-            _swapTraderJoe(joe, mai, _joe.div(2));
+            _swapTraderJoe(joe, crax, _joe.div(2));
         }
 
-        // Adds in liquidity for AVAX/MAI
+        // Adds in liquidity for AVAX/CRAX
         _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _mai = IERC20(mai).balanceOf(address(this));
+        uint256 _crax = IERC20(crax).balanceOf(address(this));
 
-        if (_wavax > 0 && _mai > 0) {
+        if (_wavax > 0 && _crax > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
 
-            IERC20(mai).safeApprove(joeRouter, 0);
-            IERC20(mai).safeApprove(joeRouter, _mai);
+            IERC20(crax).safeApprove(joeRouter, 0);
+            IERC20(crax).safeApprove(joeRouter, _crax);
 
             IJoeRouter(joeRouter).addLiquidity(
                 wavax,
-                mai,
+                crax,
                 _wavax,
-                _mai,
+                _crax,
                 0,
                 0,
                 address(this),
@@ -102,6 +96,7 @@ contract StrategyJoeAvaxMaiLp is StrategyJoeRushFarmBase {
 
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
+            _crax = IERC20(crax).balanceOf(address(this));
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
@@ -109,21 +104,20 @@ contract StrategyJoeAvaxMaiLp is StrategyJoeRushFarmBase {
                 );
             }
             
-            _mai = IERC20(mai).balanceOf(address(this));
-            if (_mai > 0){
-                IERC20(mai).safeTransfer(
+            if (_crax > 0){
+                IERC20(crax).safeTransfer(
                     IController(controller).treasury(),
-                    _mai
+                    _crax
                 );
-            }
+            }  
         }
-        
+
         _distributePerformanceFeesAndDeposit();
     }
 
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyJoeAvaxMaiLp";
+        return "StrategyJoeAvaxCraxLp";
     }
 }

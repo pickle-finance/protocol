@@ -56,6 +56,7 @@ contract StrategyJoeAvaxTractorLp is StrategyJoeRushFarmBase {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax.mul(100).div(196));   
             _swapTraderJoe(wavax, tractor, _wavax.mul(100).div(196));
+
         }
         
         // Take Joe Rewards

@@ -14,6 +14,7 @@ async function main() {
     "Joe-Avax-Yak",
     "Joe-Avax-Spell",
     "Joe-Avax-Joe",
+
   ];
 
   const flatten = name => {

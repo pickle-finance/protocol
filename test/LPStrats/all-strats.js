@@ -514,7 +514,7 @@ const tests = [
   // {
   //   name: "JoeAvaxMai",
   //   controllerAddress: "",
-  //   snowglobeAddress: "0x29BF8c19e044732b110faA1Ff0Cc59CA35c13f17",
+  //   snowglobeAddress: "",
   // },
   // {
   //   name: "JoeAvaxMyak",
