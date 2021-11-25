@@ -601,6 +601,13 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
+
+      {
+      name: "JoeAvaxCrax",
+      controllerAddress: "",
+      snowglobeAddress: "",
+    },
+    
 ];
 
 for (const test of tests) {
