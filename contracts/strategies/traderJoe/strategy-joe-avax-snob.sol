@@ -95,6 +95,7 @@ contract StrategyJoeAvaxSnobLp is StrategyJoeRushFarmBase {
 
 
              // Donates DUST
+
             _wavax = IERC20(wavax).balanceOf(address(this));
             if (_wavax > 0) {
                 IERC20(wavax).transfer(
