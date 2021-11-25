@@ -28,12 +28,6 @@ contract StrategyPngAVAXSPOREMiniLp is StrategyPngMiniChefFarmBase {
     // **** State Mutations ****
 
   function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But AVAX is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
         // Collects Png tokens
         IMiniChef(miniChef).harvest(poolId, address(this));
 
@@ -41,14 +35,16 @@ contract StrategyPngAVAXSPOREMiniLp is StrategyPngMiniChefFarmBase {
         if (_png > 0) {
             // 10% is sent to treasury
             uint256 _keep = _png.mul(keep).div(keepMax);
-            uint256 _amount = _png.sub(_keep).div(2);
             if (_keep > 0) {
                 _takeFeePngToSnob(_keep);
             }
-            IERC20(png).safeApprove(pangolinRouter, 0);
-            IERC20(png).safeApprove(pangolinRouter, _png.sub(_keep));
 
-            _swapPangolin(png, wavax, _amount);    
+            _png = IERC20(png).balanceOf(address(this));
+
+            IERC20(png).safeApprove(pangolinRouter, 0);
+            IERC20(png).safeApprove(pangolinRouter, _png);
+
+            _swapPangolin(png, wavax, _png.div(2));    
         }
 
          // Swap half WAVAX for token
@@ -59,9 +55,7 @@ contract StrategyPngAVAXSPOREMiniLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/Axial
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
-
         if (_wavax > 0 && _token1 > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
@@ -95,7 +89,6 @@ contract StrategyPngAVAXSPOREMiniLp is StrategyPngMiniChefFarmBase {
                     _token1
                 );
             }
-
         }
 
         _distributePerformanceFeesAndDeposit();

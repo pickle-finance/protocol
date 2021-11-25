@@ -640,26 +640,26 @@ const tests = [
 //   controllerAddress: "",
 //   snowglobeAddress: "",
 // },
-{
-  name: "PngUsdcEPngMini",
-  controllerAddress: "",
-  snowglobeAddress: "",
-},
+// {
+//   name: "PngUsdcEPngMini",
+//   controllerAddress: "",
+//   snowglobeAddress: "",
+// },
 {
   name: "PngAVAXSPOREMini",
   controllerAddress: "",
   snowglobeAddress: "",
 },
-{
-  name: "PngUsdcEUsdtEMini",
-  controllerAddress: "",
-  snowglobeAddress: "",
-},
-{
-  name: "PngUsdcEDaiEMini",
-  controllerAddress: "",
-  snowglobeAddress: "",
-},
+// {
+//   name: "PngUsdcEUsdtEMini",
+//   controllerAddress: "",
+//   snowglobeAddress: "",
+// },
+// {
+//   name: "PngUsdcEDaiEMini",
+//   controllerAddress: "",
+//   snowglobeAddress: "",
+// },
 
 ];
 
