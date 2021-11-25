@@ -6,8 +6,7 @@ import "../strategy-joe-farm-base.sol";
 contract StrategyJoeAvaxRocoLp is StrategyJoeFarmBase {
     uint256 public avax_roco_poolId = 65;
 
-    address public joe_avax_roco_lp =
-        0x8C28394Ed230cD6cAF0DAA0E51680fD57826DEE3;
+    address public joe_avax_roco_lp = 0x8C28394Ed230cD6cAF0DAA0E51680fD57826DEE3;
     address public roco = 0xb2a85C5ECea99187A977aC34303b80AcbDdFa208;
 
     constructor(
@@ -30,12 +29,6 @@ contract StrategyJoeAvaxRocoLp is StrategyJoeFarmBase {
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But AVAX is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
         // Collects Joe tokens
         IMasterChefJoeV2(masterChefJoeV2).deposit(poolId, 0);
 
@@ -43,22 +36,22 @@ contract StrategyJoeAvaxRocoLp is StrategyJoeFarmBase {
         if (_joe > 0) {
             // 10% is sent to treasury
             uint256 _keep = _joe.mul(keep).div(keepMax);
-            uint256 _amount = _joe.sub(_keep).div(2);
             if (_keep > 0) {
                 _takeFeeJoeToSnob(_keep);
             }
-            IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keep));
+            
+            _joe = IERC20(joe).balanceOf(address(this)); 
 
-            _swapTraderJoe(joe, wavax, _amount);
-            _swapTraderJoe(joe, roco, _amount);
+            IERC20(joe).safeApprove(joeRouter, 0);
+            IERC20(joe).safeApprove(joeRouter, _joe);
+
+            _swapTraderJoe(joe, wavax, _joe.div(2));
+            _swapTraderJoe(joe, roco, _joe.div(2));
         }
 
         // Adds in liquidity for AVAX/ROCO
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _roco = IERC20(roco).balanceOf(address(this));
-
         if (_wavax > 0 && _roco > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
@@ -78,14 +71,20 @@ contract StrategyJoeAvaxRocoLp is StrategyJoeFarmBase {
             );
 
             // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(roco).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(roco).balanceOf(address(this))
-            );
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _roco = IERC20(roco).balanceOf(address(this));
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
+            if (_roco > 0){
+                IERC20(roco).safeTransfer(
+                    IController(controller).treasury(),
+                    _roco
+                );
+            }
         }
 
         _distributePerformanceFeesAndDeposit();
