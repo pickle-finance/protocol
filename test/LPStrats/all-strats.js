@@ -341,11 +341,16 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "0x962ECf51A169090002CC88B4Bf16e447d2E13100",
   // },
-  {
-    name: "JoeAvaxJoe",
-    controllerAddress: "",
-    snowglobeAddress: "0xcC757081C972D0326de42875E0DA2c54af523622",
-  },
+  // {
+  //   name: "JoeAvaxJoe",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "0xcC757081C972D0326de42875E0DA2c54af523622",
+  // },
+  // {
+  //   name: "JoeAvaxSnob",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "0x8b2E1802A7E0E0c7e1EaE8A7c636058964e21047",
+  // },
   // {
   //   name: "JoeAvaxSnob",
   //   controllerAddress: "",
@@ -561,28 +566,38 @@ const tests = [
   //     controllerAddress: "",
   //     snowglobeAddress: "",
   //   },
+    // {
+    //   name:"JoeAvaxAmpl",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
+    // {
+    //   name:"JoeAvaxOh",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
+    // {
+    //   name: "JoeAvaxIce",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
+    // {
+    //   name: "JoeAvaxApex",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
+    // {
+    //   name: "JoeAvaxTractor",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
+    // {
+    //   name: "JoeAvaxCrax",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
     {
-      name:"JoeAvaxAmpl",
-      controllerAddress: "",
-      snowglobeAddress: "",
-    },
-    {
-      name:"JoeAvaxOh",
-      controllerAddress: "",
-      snowglobeAddress: "",
-    },
-    {
-      name: "JoeAvaxIce",
-      controllerAddress: "",
-      snowglobeAddress: "",
-    },
-    {
-      name: "JoeAvaxApex",
-      controllerAddress: "",
-      snowglobeAddress: "",
-    },
-    {
-      name: "JoeAvaxTractor",
+      name: "JoeAvaxGro",
       controllerAddress: "",
       snowglobeAddress: "",
     },
