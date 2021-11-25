@@ -54,12 +54,7 @@ async function main() {
     //   earn: true,
     // },
     {  
-      name: "JoeAvaxXava",
-      harvest: true,
-      earn: true,
-    },
-    {  
-      name: "JoeAvaxYak",
+      name: "PngAvaxPngMini",
       harvest: true,
       earn: true,
     },
