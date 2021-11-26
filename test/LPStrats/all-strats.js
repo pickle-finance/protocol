@@ -351,11 +351,11 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "0x8b2E1802A7E0E0c7e1EaE8A7c636058964e21047",
   // },
-  // {
-  //   name: "JoeAvaxSnob",
-  //   controllerAddress: "",
-  //   snowglobeAddress: "0x8b2E1802A7E0E0c7e1EaE8A7c636058964e21047",
-  // },
+  {
+    name: "JoeAvaxSnob",
+    controllerAddress: "",
+    snowglobeAddress: "0x8b2E1802A7E0E0c7e1EaE8A7c636058964e21047",
+  },
   // {
   //   name: "JoeAvaxXava",
   //   controllerAddress: "",
