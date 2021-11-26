@@ -28,6 +28,7 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
         )
     {}
 
+
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
@@ -40,21 +41,21 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
             WAVAX(wavax).deposit{value: _avax}();
         }
         
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this)); //get balance of Wavax
         if (_wavax > 0) {
-            uint256 _keep2 = _wavax.mul(keep).div(keepMax);
-            if (_keep2 > 0){
-                _takeFeeWavaxToSnob(_keep2);
+            uint256 _keep1 = _wavax.mul(keep).div(keepMax);
+            if (_keep1 > 0){
+                _takeFeeWavaxToSnob(_keep1);
             }
             
             _wavax = IERC20(wavax).balanceOf(address(this));
 
-            // Convert Avax Rewards
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
             _swapTraderJoe(wavax, crax, _wavax.div(2));
-        }
 
+        }
+        
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
