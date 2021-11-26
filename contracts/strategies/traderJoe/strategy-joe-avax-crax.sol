@@ -34,8 +34,8 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
         path[0] = crax;
         path[1] = wavax;
         path[2] = snob;
-        IERC20(crax).safeApprove(pangolinRouter, 0);
-        IERC20(crax).safeApprove(pangolinRouter, _keep);
+        IERC20(crax).safeApprove(joeRouter, 0);
+        IERC20(crax).safeApprove(joeRouter, _keep);
         _swapTraderJoeWithPath(path, _keep);
         uint256 _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
