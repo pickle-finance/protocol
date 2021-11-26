@@ -28,6 +28,23 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
         )
     {}
 
+
+     function _takeFeeCraxToSnob(uint256 _keep) internal {
+        IERC20(wavax).safeApprove(pangolinRouter, 0);
+        IERC20(wavax).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(crax, snob, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
@@ -40,21 +57,54 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
             WAVAX(wavax).deposit{value: _avax}();
         }
         
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        uint256 _crax = IERC20(crax).balanceOf(address(this));   //get balance of CRA Tokens
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this)); //get balance of Wavax
         if (_wavax > 0) {
-            uint256 _keep2 = _wavax.mul(keep).div(keepMax);
-            if (_keep2 > 0){
-                _takeFeeWavaxToSnob(_keep2);
+            uint256 _keep1 = _wavax.mul(keep).div(keepMax);
+            if (_keep1 > 0){
+                _takeFeeWavaxToSnob(_keep1);
             }
             
             _wavax = IERC20(wavax).balanceOf(address(this));
 
-            // Convert Avax Rewards
-            IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
-            _swapTraderJoe(wavax, crax, _wavax.div(2));
         }
 
+         if (_crax > 0) {
+            uint256 _keep2 = _wavax.mul(keep).div(keepMax);
+            if (_keep2 > 0){
+                _takeFeeCraxToSnob(_keep2);
+            }
+            
+            _crax = IERC20(wavax).balanceOf(address(this));
+          
+        }
+
+        //in the case that there are crax and Avax Rewards swap half crax for wavax and  1/2 wavax for crax using prior balances
+        if (_crax > 0 && _wavax > 0){
+            IERC20(crax).safeApprove(joeRouter, 0);
+            IERC20(crax).safeApprove(joeRouter, _crax.div(2));   
+            _swapTraderJoe(crax, wavax, _crax.div(2));
+
+            IERC20(wavax).safeApprove(joeRouter, 0);
+            IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
+            _swapTraderJoe(wavax, crax, _wavax.div(2)); 
+        }
+
+        //In the case of Crax Rewards and no Avax rewards, swap crax for wavax
+        if(_crax > 0 && _wavax ==0){
+            IERC20(crax).safeApprove(joeRouter, 0);
+            IERC20(crax).safeApprove(joeRouter, _crax.div(2));   
+            _swapTraderJoe(crax, wavax, _crax.div(2));
+        }
+
+        //in the case of Avax Rewards and no crax rewards, swap wavax for crax
+        if(_wavax > 0 && _crax ==0){
+            IERC20(wavax).safeApprove(joeRouter, 0);
+            IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
+            _swapTraderJoe(wavax, crax, _wavax.div(2)); 
+        }
+
+        
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
@@ -74,7 +124,7 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
 
         // Adds in liquidity for AVAX/CRAX
         _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _crax = IERC20(crax).balanceOf(address(this));
+        _crax = IERC20(crax).balanceOf(address(this));
 
         if (_wavax > 0 && _crax > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
