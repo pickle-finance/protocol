@@ -3,12 +3,12 @@ pragma solidity ^0.6.7;
 
 import "../strategy-joe-rush-farm-base.sol";
 
-contract StrategyJoeAvaxCraftLp is StrategyJoeRushFarmBase {
+contract StrategyJoeAvaxMeltLp is StrategyJoeRushFarmBase {
 
-    uint256 public avax_craft_poolId = 20;
+    uint256 public avax_melt_poolId = 19;
 
-    address public joe_avax_craft_lp = 0x86D1b1Ab4812a104BC1Ea1FbD07809DE636E6C6b;
-    address public craft = 0x8aE8be25C23833e0A01Aa200403e826F611f9CD2;
+    address public joe_avax_melt_lp = 0x2923a62b2531EC744ca0C1e61dfFab1Ad9369FeB;
+    address public melt = 0x47EB6F7525C1aA999FBC9ee92715F5231eB1241D;
 
 
     constructor(
@@ -19,8 +19,8 @@ contract StrategyJoeAvaxCraftLp is StrategyJoeRushFarmBase {
     )
         public
         StrategyJoeRushFarmBase(
-            avax_craft_poolId,
-            joe_avax_craft_lp,
+            avax_melt_poolId,
+            joe_avax_melt_lp,
             _governance,
             _strategist,
             _controller,
@@ -29,13 +29,13 @@ contract StrategyJoeAvaxCraftLp is StrategyJoeRushFarmBase {
     {}
 
 
-     function _takeFeeCraftToSnob(uint256 _keep) internal {
+     function _takeFeeMeltToSnob(uint256 _keep) internal {
         address[] memory path = new address[](3);
-        path[0] = craft;
+        path[0] = melt;
         path[1] = wavax;
         path[2] = snob;
-        IERC20(craft).safeApprove(joeRouter, 0);
-        IERC20(craft).safeApprove(joeRouter, _keep);
+        IERC20(melt).safeApprove(joeRouter, 0);
+        IERC20(melt).safeApprove(joeRouter, _keep);
         _swapTraderJoeWithPath(path, _keep);
         uint256 _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
@@ -61,7 +61,7 @@ contract StrategyJoeAvaxCraftLp is StrategyJoeRushFarmBase {
             WAVAX(wavax).deposit{value: _avax}();
         }
         
-        uint256 _craft = IERC20(craft).balanceOf(address(this));   //get balance of CRA Tokens
+        uint256 _melt = IERC20(melt).balanceOf(address(this));   //get balance of MELT Tokens
         uint256 _wavax = IERC20(wavax).balanceOf(address(this)); //get balance of Wavax
         if (_wavax > 0) {
             uint256 _keep1 = _wavax.mul(keep).div(keepMax);
@@ -73,39 +73,39 @@ contract StrategyJoeAvaxCraftLp is StrategyJoeRushFarmBase {
 
         }
 
-         if (_craft > 0) {
-            uint256 _keep2 = _craft.mul(keep).div(keepMax);
+         if (_melt > 0) {
+            uint256 _keep2 = _melt.mul(keep).div(keepMax);
             if (_keep2 > 0){
-                _takeFeeCraftToSnob(_keep2);
+                _takeFeeMeltToSnob(_keep2);
             }
             
-            _craft = IERC20(craft).balanceOf(address(this));
+            _melt = IERC20(melt).balanceOf(address(this));
           
         }
 
-        //in the case that there are craft and Avax Rewards swap half craft for wavax and  1/2 wavax for craft using prior balances
-        if (_craft > 0 && _wavax > 0){
-            IERC20(craft).safeApprove(joeRouter, 0);
-            IERC20(craft).safeApprove(joeRouter, _craft.div(2));   
-            _swapTraderJoe(craft, wavax, _craft.div(2));
+        // In the case that there are melt and Avax Rewards swap half melt for wavax and  1/2 wavax for melt using prior balances
+        if (_melt > 0 && _wavax > 0){
+            IERC20(melt).safeApprove(joeRouter, 0);
+            IERC20(melt).safeApprove(joeRouter, _melt.div(2));   
+            _swapTraderJoe(melt, wavax, _melt.div(2));
 
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
-            _swapTraderJoe(wavax, craft, _wavax.div(2)); 
+            _swapTraderJoe(wavax, melt, _wavax.div(2)); 
         }
 
-        //In the case of Craft Rewards and no Avax rewards, swap craft for wavax
-        if(_craft > 0 && _wavax ==0){
-            IERC20(craft).safeApprove(joeRouter, 0);
-            IERC20(craft).safeApprove(joeRouter, _craft.div(2));   
-            _swapTraderJoe(craft, wavax, _craft.div(2));
+        // In the case of Melt Rewards and no Avax rewards, swap melt for wavax
+        if(_melt > 0 && _wavax ==0){
+            IERC20(melt).safeApprove(joeRouter, 0);
+            IERC20(melt).safeApprove(joeRouter, _melt.div(2));   
+            _swapTraderJoe(melt, wavax, _melt.div(2));
         }
 
-        //in the case of Avax Rewards and no craft rewards, swap wavax for craft
-        if(_wavax > 0 && _craft ==0){
+        // In the case of Avax Rewards and no melt rewards, swap wavax for melt
+        if(_wavax > 0 && _melt ==0){
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
-            _swapTraderJoe(wavax, craft, _wavax.div(2)); 
+            _swapTraderJoe(wavax, melt, _wavax.div(2)); 
         }
 
         
@@ -123,25 +123,25 @@ contract StrategyJoeAvaxCraftLp is StrategyJoeRushFarmBase {
             IERC20(joe).safeApprove(joeRouter, _joe);
 
             _swapTraderJoe(joe, wavax, _joe.div(2));
-            _swapTraderJoe(joe, craft, _joe.div(2));
+            _swapTraderJoe(joe, melt, _joe.div(2));
         }
 
-        // Adds in liquidity for AVAX/CRAFT
+        // Adds in liquidity for AVAX/MELT
         _wavax = IERC20(wavax).balanceOf(address(this));
-        _craft = IERC20(craft).balanceOf(address(this));
+        _melt = IERC20(melt).balanceOf(address(this));
 
-        if (_wavax > 0 && _craft > 0) {
+        if (_wavax > 0 && _melt > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
 
-            IERC20(craft).safeApprove(joeRouter, 0);
-            IERC20(craft).safeApprove(joeRouter, _craft);
+            IERC20(melt).safeApprove(joeRouter, 0);
+            IERC20(melt).safeApprove(joeRouter, _melt);
 
             IJoeRouter(joeRouter).addLiquidity(
                 wavax,
-                craft,
+                melt,
                 _wavax,
-                _craft,
+                _melt,
                 0,
                 0,
                 address(this),
@@ -150,7 +150,7 @@ contract StrategyJoeAvaxCraftLp is StrategyJoeRushFarmBase {
 
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _craft = IERC20(craft).balanceOf(address(this));
+            _melt = IERC20(melt).balanceOf(address(this));
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
@@ -158,10 +158,10 @@ contract StrategyJoeAvaxCraftLp is StrategyJoeRushFarmBase {
                 );
             }
             
-            if (_craft > 0){
-                IERC20(craft).safeTransfer(
+            if (_melt > 0){
+                IERC20(melt).safeTransfer(
                     IController(controller).treasury(),
-                    _craft
+                    _melt
                 );
             }  
         }
@@ -172,6 +172,6 @@ contract StrategyJoeAvaxCraftLp is StrategyJoeRushFarmBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyJoeAvaxCraftLp";
+        return "StrategyJoeAvaxMeltLp";
     }
 }

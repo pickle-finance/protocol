@@ -665,10 +665,20 @@ const tests = [
 //   controllerAddress: "",
 //   snowglobeAddress: "",
 // },
+// {
+//   name: "JoeAvaxCrax",
+//   controllerAddress: "",
+//   snowglobeAddress: "0xE61E5291ba241027b10064ac0c99411aa51DAC52",
+// },
 {
-  name: "JoeAvaxCrax",
+  name: "JoeAvaxCraft",
   controllerAddress: "",
-  snowglobeAddress: "0xE61E5291ba241027b10064ac0c99411aa51DAC52",
+  snowglobeAddress: "",
+},
+{
+  name: "JoeAvaxMelt",
+  controllerAddress: "",
+  snowglobeAddress: "",
 },
 
 ];
