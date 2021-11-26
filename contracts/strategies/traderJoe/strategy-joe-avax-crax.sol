@@ -30,9 +30,13 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
 
 
      function _takeFeeCraxToSnob(uint256 _keep) internal {
-        IERC20(wavax).safeApprove(pangolinRouter, 0);
-        IERC20(wavax).safeApprove(pangolinRouter, _keep);
-        _swapPangolin(crax, snob, _keep);
+        address[] memory path = new address[](3);
+        path[0] = crax;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(crax).safeApprove(pangolinRouter, 0);
+        IERC20(crax).safeApprove(pangolinRouter, _keep);
+        _swapTraderJoeWithPath(path, _keep);
         uint256 _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
         IERC20(snob).safeTransfer(
@@ -70,12 +74,12 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
         }
 
          if (_crax > 0) {
-            uint256 _keep2 = _wavax.mul(keep).div(keepMax);
+            uint256 _keep2 = _crax.mul(keep).div(keepMax);
             if (_keep2 > 0){
                 _takeFeeCraxToSnob(_keep2);
             }
             
-            _crax = IERC20(wavax).balanceOf(address(this));
+            _crax = IERC20(crax).balanceOf(address(this));
           
         }
 
