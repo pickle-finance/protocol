@@ -13,6 +13,10 @@ abstract contract StrategySolarFarmBase is StrategyBase {
     address public token0;
     address public token1;
 
+    // How much SOLAR tokens to keep?
+    uint256 public keepSOLAR = 1000;
+    uint256 public constant keepSOLARMax = 10000;
+
     uint256 public poolId;
     mapping(address => address[]) public uniswapRoutes;
 
@@ -66,6 +70,11 @@ abstract contract StrategySolarFarmBase is StrategyBase {
         return _amount;
     }
 
+    function setKeepSOLAR(uint256 _keepSOLAR) external {
+        require(msg.sender == timelock, "!timelock");
+        keepSOLAR = _keepSOLAR;
+    }
+
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
@@ -74,6 +83,12 @@ abstract contract StrategySolarFarmBase is StrategyBase {
         uint256 _solar = IERC20(solar).balanceOf(address(this));
 
         if (_solar > 0) {
+            uint256 _keepSOLAR = _solar.mul(keepSOLAR).div(keepSOLARMax);
+            IERC20(solar).safeTransfer(
+                IController(controller).treasury(),
+                _keepSOLAR
+            );
+            _solar = _solar.sub(_keepSOLAR);
             uint256 toToken0 = _solar.div(2);
             uint256 toToken1 = _solar.sub(toToken0);
 
