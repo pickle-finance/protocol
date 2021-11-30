@@ -83,26 +83,15 @@ contract StrategyJoeAvaxgOhmLp is StrategyJoeRushFarmBase {
           
         }
 
-        //in the case that there are gohm and Avax Rewards swap half gohm for wavax and  1/2 wavax for gohm using prior balances
-        if (_gohm > 0 && _wavax > 0){
-            IERC20(gohm).safeApprove(joeRouter, 0);
-            IERC20(gohm).safeApprove(joeRouter, _gohm.div(2));   
-            _swapTraderJoe(gohm, wavax, _gohm.div(2));
-
-            IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
-            _swapTraderJoe(wavax, gohm, _wavax.div(2)); 
-        }
-
-        //In the case of Gohm Rewards and no Avax rewards, swap gohm for wavax
-        if(_gohm > 0 && _wavax ==0){
+        //In the case of Gohm Rewards, swap gohm for wavax
+        if(_gohm > 0){
             IERC20(gohm).safeApprove(joeRouter, 0);
             IERC20(gohm).safeApprove(joeRouter, _gohm.div(2));   
             _swapTraderJoe(gohm, wavax, _gohm.div(2));
         }
 
-        //in the case of Avax Rewards and no gohm rewards, swap wavax for gohm
-        if(_wavax > 0 && _gohm ==0){
+        //in the case of Avax Rewards, swap wavax for gohm
+        if(_wavax > 0){
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
             _swapTraderJoe(wavax, gohm, _wavax.div(2)); 
