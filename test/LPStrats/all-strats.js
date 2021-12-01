@@ -341,21 +341,26 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "0x962ECf51A169090002CC88B4Bf16e447d2E13100",
   // },
-  {
-    name: "JoeAvaxJoe",
-    controllerAddress: "",
-    snowglobeAddress: "0xcC757081C972D0326de42875E0DA2c54af523622",
-  },
+  // {
+  //   name: "JoeAvaxJoe",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "0xcC757081C972D0326de42875E0DA2c54af523622",
+  // },
   // {
   //   name: "JoeAvaxSnob",
   //   controllerAddress: "",
   //   snowglobeAddress: "0x8b2E1802A7E0E0c7e1EaE8A7c636058964e21047",
   // },
-  {
-    name: "JoeAvaxXava",
-    controllerAddress: "",
-    snowglobeAddress: "0x0B2C4f6C54182EDeE30DFF69Be972f9E04888321",
-  },
+  // {
+  //   name: "JoeAvaxSnob",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "0x8b2E1802A7E0E0c7e1EaE8A7c636058964e21047",
+  // },
+  // {
+  //   name: "JoeAvaxXava",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "0x0B2C4f6C54182EDeE30DFF69Be972f9E04888321",
+  // },
   // {
   //   name: "JoeAvaxPefi",
   //   controllerAddress: "",
@@ -376,11 +381,11 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "0x75312b14Ce830EC078D93Ac8FA667b14BEAC18E6",
   // },
-  {
-    name: "JoeAvaxYak",
-    controllerAddress: "",
-    snowglobeAddress: "0x9854F6615f73e533940F90FfE8DB1eAFB424A3c7",
-  },
+  // {
+  //   name: "JoeAvaxYak",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "0x9854F6615f73e533940F90FfE8DB1eAFB424A3c7",
+  // },
   // {
   //   name: "JoeUsdteJoe",
   //   controllerAddress: "",
@@ -476,11 +481,11 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "0xd596136ee746BaeE7ac159B3c21E71b3aeb81A68",
   // },
-  {
-    name: "JoeAvaxSpell",
-    controllerAddress: "",
-    snowglobeAddress: "0xec54A22B53EE66a77C5F26F860c6913472199661",
-  },
+  // {
+  //   name: "JoeAvaxSpell",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "0xec54A22B53EE66a77C5F26F860c6913472199661",
+  // },
   // {
   //   name: "JoeUsdcEMai",
   //   controllerAddress: "",

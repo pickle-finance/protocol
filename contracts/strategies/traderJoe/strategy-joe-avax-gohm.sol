@@ -3,12 +3,12 @@ pragma solidity ^0.6.7;
 
 import "../strategy-joe-rush-farm-base.sol";
 
-contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
+contract StrategyJoeAvaxgOhmLp is StrategyJoeRushFarmBase {
 
-    uint256 public avax_crax_poolId = 13;
+    uint256 public avax_gohm_poolId = 21;
 
-    address public joe_avax_crax_lp = 0x140CAc5f0e05cBEc857e65353839FddD0D8482C1;
-    address public crax = 0xA32608e873F9DdEF944B24798db69d80Bbb4d1ed;
+    address public joe_avax_gohm_lp = 0xB674f93952F02F2538214D4572Aa47F262e990Ff;
+    address public gohm = 0x321E7092a180BB43555132ec53AaA65a5bF84251;
 
 
     constructor(
@@ -19,8 +19,8 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
     )
         public
         StrategyJoeRushFarmBase(
-            avax_crax_poolId,
-            joe_avax_crax_lp,
+            avax_gohm_poolId,
+            joe_avax_gohm_lp,
             _governance,
             _strategist,
             _controller,
@@ -28,6 +28,26 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
         )
     {}
 
+
+     function _takeFeegOhmToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = gohm;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(gohm).safeApprove(joeRouter, 0);
+        IERC20(gohm).safeApprove(joeRouter, _keep);
+        _swapTraderJoeWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
 
     // **** State Mutations ****
 
@@ -41,6 +61,7 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
             WAVAX(wavax).deposit{value: _avax}();
         }
         
+        uint256 _gohm = IERC20(gohm).balanceOf(address(this));   //get balance of Gohm Tokens
         uint256 _wavax = IERC20(wavax).balanceOf(address(this)); //get balance of Wavax
         if (_wavax > 0) {
             uint256 _keep1 = _wavax.mul(keep).div(keepMax);
@@ -50,11 +71,32 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
             
             _wavax = IERC20(wavax).balanceOf(address(this));
 
+        }
+
+         if (_gohm > 0) {
+            uint256 _keep2 = _gohm.mul(keep).div(keepMax);
+            if (_keep2 > 0){
+                _takeFeegOhmToSnob(_keep2);
+            }
+            
+            _gohm = IERC20(gohm).balanceOf(address(this));
+          
+        }
+
+        //In the case of Gohm Rewards, swap gohm for wavax
+        if(_gohm > 0){
+            IERC20(gohm).safeApprove(joeRouter, 0);
+            IERC20(gohm).safeApprove(joeRouter, _gohm.div(2));   
+            _swapTraderJoe(gohm, wavax, _gohm.div(2));
+        }
+
+        //in the case of Avax Rewards, swap wavax for gohm
+        if(_wavax > 0){
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
-            _swapTraderJoe(wavax, crax, _wavax.div(2));
-
+            _swapTraderJoe(wavax, gohm, _wavax.div(2)); 
         }
+
         
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
@@ -70,25 +112,25 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
             IERC20(joe).safeApprove(joeRouter, _joe);
 
             _swapTraderJoe(joe, wavax, _joe.div(2));
-            _swapTraderJoe(joe, crax, _joe.div(2));
+            _swapTraderJoe(joe, gohm, _joe.div(2));
         }
 
-        // Adds in liquidity for AVAX/CRAX
+        // Adds in liquidity for AVAX/GOHM
         _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _crax = IERC20(crax).balanceOf(address(this));
+        _gohm = IERC20(gohm).balanceOf(address(this));
 
-        if (_wavax > 0 && _crax > 0) {
+        if (_wavax > 0 && _gohm > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
 
-            IERC20(crax).safeApprove(joeRouter, 0);
-            IERC20(crax).safeApprove(joeRouter, _crax);
+            IERC20(gohm).safeApprove(joeRouter, 0);
+            IERC20(gohm).safeApprove(joeRouter, _gohm);
 
             IJoeRouter(joeRouter).addLiquidity(
                 wavax,
-                crax,
+                gohm,
                 _wavax,
-                _crax,
+                _gohm,
                 0,
                 0,
                 address(this),
@@ -97,7 +139,7 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
 
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _crax = IERC20(crax).balanceOf(address(this));
+            _gohm = IERC20(gohm).balanceOf(address(this));
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
@@ -105,10 +147,10 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
                 );
             }
             
-            if (_crax > 0){
-                IERC20(crax).safeTransfer(
+            if (_gohm > 0){
+                IERC20(gohm).safeTransfer(
                     IController(controller).treasury(),
-                    _crax
+                    _gohm
                 );
             }  
         }
@@ -119,6 +161,6 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyJoeAvaxCraxLp";
+        return "StrategyJoeAvaxgOhmLp";
     }
 }

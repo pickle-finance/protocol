@@ -3,12 +3,12 @@ pragma solidity ^0.6.7;
 
 import "../strategy-joe-rush-farm-base.sol";
 
-contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
+contract StrategyJoeAvaxGroLp is StrategyJoeRushFarmBase {
 
-    uint256 public avax_crax_poolId = 13;
+    uint256 public avax_gro_poolId = 18;
 
-    address public joe_avax_crax_lp = 0x140CAc5f0e05cBEc857e65353839FddD0D8482C1;
-    address public crax = 0xA32608e873F9DdEF944B24798db69d80Bbb4d1ed;
+    address public joe_avax_gro_lp = 0xB7a4Ca0c9B58a33B244C44a8Bf9833b0E7918429;
+    address public gro = 0x72699ba15CC734F8db874fa9652c8DE12093F187;
 
 
     constructor(
@@ -19,15 +19,14 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
     )
         public
         StrategyJoeRushFarmBase(
-            avax_crax_poolId,
-            joe_avax_crax_lp,
+            avax_gro_poolId,
+            joe_avax_gro_lp,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {}
-
 
     // **** State Mutations ****
 
@@ -41,21 +40,21 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
             WAVAX(wavax).deposit{value: _avax}();
         }
         
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this)); //get balance of Wavax
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
-            uint256 _keep1 = _wavax.mul(keep).div(keepMax);
-            if (_keep1 > 0){
-                _takeFeeWavaxToSnob(_keep1);
+            uint256 _keep2 = _wavax.mul(keep).div(keepMax);
+            if (_keep2 > 0){
+                _takeFeeWavaxToSnob(_keep2);
             }
             
             _wavax = IERC20(wavax).balanceOf(address(this));
 
+            // Convert Avax Rewards
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
-            _swapTraderJoe(wavax, crax, _wavax.div(2));
-
+            _swapTraderJoe(wavax, gro, _wavax.div(2));
         }
-        
+
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
@@ -70,25 +69,25 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
             IERC20(joe).safeApprove(joeRouter, _joe);
 
             _swapTraderJoe(joe, wavax, _joe.div(2));
-            _swapTraderJoe(joe, crax, _joe.div(2));
+            _swapTraderJoe(joe, gro, _joe.div(2));
         }
 
-        // Adds in liquidity for AVAX/CRAX
+        // Adds in liquidity for AVAX/GRO
         _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _crax = IERC20(crax).balanceOf(address(this));
+        uint256 _gro = IERC20(gro).balanceOf(address(this));
 
-        if (_wavax > 0 && _crax > 0) {
+        if (_wavax > 0 && _gro > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
 
-            IERC20(crax).safeApprove(joeRouter, 0);
-            IERC20(crax).safeApprove(joeRouter, _crax);
+            IERC20(gro).safeApprove(joeRouter, 0);
+            IERC20(gro).safeApprove(joeRouter, _gro);
 
             IJoeRouter(joeRouter).addLiquidity(
                 wavax,
-                crax,
+                gro,
                 _wavax,
-                _crax,
+                _gro,
                 0,
                 0,
                 address(this),
@@ -97,7 +96,7 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
 
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _crax = IERC20(crax).balanceOf(address(this));
+            _gro = IERC20(gro).balanceOf(address(this));
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
@@ -105,10 +104,10 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
                 );
             }
             
-            if (_crax > 0){
-                IERC20(crax).safeTransfer(
+            if (_gro > 0){
+                IERC20(gro).safeTransfer(
                     IController(controller).treasury(),
-                    _crax
+                    _gro
                 );
             }  
         }
@@ -119,6 +118,6 @@ contract StrategyJoeAvaxCraxLp is StrategyJoeRushFarmBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyJoeAvaxCraxLp";
+        return "StrategyJoeAvaxGroLp";
     }
 }

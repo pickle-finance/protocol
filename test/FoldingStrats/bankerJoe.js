@@ -52,7 +52,7 @@ const tests = [
     name: "JoeXJoe",
     tokenAddress: "0x57319d41F71E81F3c65F2a47CA4e001EbAFd4F33",
     strategyAddress: "",
-    snowglobeAddress: "",
+    snowglobeAddress: "0x6a52e6b23700A63eA4a0Db313eBD386Fb510eE3C",
   }
 ];
 

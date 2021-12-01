@@ -3,56 +3,6 @@ require('dotenv').config();
 
 async function main() {
   const pools = [
-      // {  
-      //   name: "JoeAvaxAmpl",
-      //   harvest: true,
-      //   earn: true,
-      // },
-      // {  
-      //   name: "JoeAvaxApex",
-      //   harvest: true,
-      //   earn: true,
-      // },
-      // {  
-      //   name: "JoeAvaxIce",
-      //   harvest: true,
-      //   earn: true,
-      // },
-      // {  
-      //   name: "JoeAvaxJoe",
-      //   harvest: true,
-      //   earn: true,
-      // },
-    // {  
-    //   name: "JoeAvaxOh",
-    //   strategy_addr: "0x4B99b3D1f6F00fFef08a81148b980deE748a05A9",
-    //   // harvest: true,
-    //   earn: true,
-    //   approveStrategy: true,
-    // },
-    // {  
-    //   name: "JoeAvaxPefi",
-    //   harvest: true,
-    //   earn: true,
-    // },
-    // {  
-    //   name: "JoeAvaxSnob",
-    //   strategy_addr: "0x933609DA60B6112Fc9cA5E55a0aB5EC56b91f2Ad",
-    //   // harvest: true,
-    //   // earn: true,
-    //   approveStrategy: true,
-    //   setStrategy: true,
-    // },
-    // {  
-    //   name: "JoeAvaxSpell",
-    //   harvest: true,
-    //   earn: true,
-    // },
-    // {  
-    //   name: "JoeAvaxTractor",
-    //   harvest: true,
-    //   earn: true,
-    // },
     {  
       name: "AxialAvaxAxial",
     },
