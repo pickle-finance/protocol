@@ -29,11 +29,6 @@ contract StrategyAxialAvaxAxialLp is StrategyAxialFarmBase {
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But AVAX is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
 
         // Collects Axial  tokens 
         IMasterChefAxialV2(masterChefAxialV3).deposit(poolId, 0);
@@ -42,14 +37,16 @@ contract StrategyAxialAvaxAxialLp is StrategyAxialFarmBase {
         if (_axial > 0) {
             // 10% is sent to treasury
             uint256 _keep = _axial.mul(keep).div(keepMax);
-            uint256 _amount = _axial.sub(_keep).div(2);
             if (_keep > 0) {
                 _takeFeeAxialToSnob(_keep);
             }
-            IERC20(axial).safeApprove(joeRouter, 0);
-            IERC20(axial).safeApprove(joeRouter, _axial.sub(_keep));
 
-            _swapTraderJoe(axial, wavax, _amount);    
+            _axial = IERC20(axial).balanceOf(address(this));
+
+            IERC20(axial).safeApprove(joeRouter, 0);
+            IERC20(axial).safeApprove(joeRouter, _axial);
+
+            _swapTraderJoe(axial, wavax, _axial.div(2));    
         }
 
         // Adds in liquidity for AVAX/Axial
@@ -77,7 +74,7 @@ contract StrategyAxialAvaxAxialLp is StrategyAxialFarmBase {
 
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            
+
             if(_wavax>0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
