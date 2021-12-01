@@ -27,16 +27,38 @@ contract StrategyJoeAvaxSnobLp is StrategyJoeRushFarmBase {
     {}
 
    function harvest() public override onlyBenevolent {
+
         // Collects Rewards tokens (JOE & AVAX)
         IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
         
-        //Take Avax Rewards    
+        // Take Avax Rewards    
         uint256 _avax = address(this).balance;            //get balance of native Avax
         if (_avax > 0) {                                  //wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
         }
 
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        if (_wavax > 0) {
+            uint256 _keep2 = _wavax.mul(keep).div(keepMax);
+            if (_keep2 > 0){
+                _takeFeeWavaxToSnob(_keep2);
+            }
+
+            _wavax = IERC20(wavax).balanceOf(address(this));
+
+            // convert Avax Rewards
+            IERC20(wavax).safeApprove(joeRouter, 0);
+            IERC20(wavax).safeApprove(joeRouter, _wavax);   
+            _swapTraderJoe(wavax, snob, _wavax.div(2));
+        }
+
+        //Take Avax Rewards    
+        _avax = address(this).balance;                    //get balance of native Avax
+        if (_avax > 0) {                                  //wrap avax into ERC20
+            WAVAX(wavax).deposit{value: _avax}();
+        }
+        
+        _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             uint256 _keep2 = _wavax.mul(keep).div(keepMax);
             if (_keep2 > 0){

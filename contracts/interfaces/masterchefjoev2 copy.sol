@@ -2,10 +2,10 @@
 pragma solidity ^0.6.7;
 
 
-import "./axial-rewarder.sol";
+import "./joe-rewarder.sol";
 
-// interface for MasterChefAxialV2 contract
-interface IMasterChefAxialV2 {
+// interface for MasterChefJoeV2 contract
+interface IMasterChefJoeV2 {
 
 
     /* Reads */
@@ -48,7 +48,7 @@ interface IMasterChefAxialV2 {
     function set(
         uint256 _pid,
         uint256 _allocPoint,
-        IAxialRewarder _rewarder,
+        IJoeRewarder _rewarder,
         bool overwrite
     ) external;
 

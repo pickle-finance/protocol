@@ -352,11 +352,6 @@ const tests = [
   //   snowglobeAddress: "0x8b2E1802A7E0E0c7e1EaE8A7c636058964e21047",
   // },
   // {
-  //   name: "JoeAvaxSnob",
-  //   controllerAddress: "",
-  //   snowglobeAddress: "0x8b2E1802A7E0E0c7e1EaE8A7c636058964e21047",
-  // },
-  // {
   //   name: "JoeAvaxXava",
   //   controllerAddress: "",
   //   snowglobeAddress: "0x0B2C4f6C54182EDeE30DFF69Be972f9E04888321",
@@ -591,101 +586,11 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
-    // {
-    //   name: "AxialAS4D",
-    //   controllerAddress: "",
-    //   snowglobeAddress: "",
-    // },
-    // {
-    //   name: "AxialAC4D",
-    //   controllerAddress: "",
-    //   snowglobeAddress: "",
-    // },
-    // {
-    //   name: "AxialAM3D",
-    //   controllerAddress: "",
-    //   snowglobeAddress: "",
-    // },
-    // {
-    //   name: "PngAvaxPngMini",
-    //   controllerAddress: "",
-    //   snowglobeAddress: "0x621207093D2e65Bf3aC55dD8Bf0351B980A63815",
-    // },
-  //   {
-  //   name: "PngAvaxFraxMini",
-  //   controllerAddress: "",
-  //   snowglobeAddress: "0xD0686AC7d0CfFd00A29567D37774058452210D57",
-  // },
-// { name: "PngAVAXAPEINMini", snowglobeAddress: "0x192ae260676Ba79ccc57A6f4Ed692Bfe371658b9",},
-// { name: "PngAVAXDAIeMini", snowglobeAddress: "0x56A6e103D860FBb991eF1Afd24250562a292b2a5",},
-// { name: "PngAVAXDYPMini", snowglobeAddress: "0xf4a591BeaC3A4D864C3293477bBD3f86880ADa16",},
-// { name: "PngAVAXFRAXMini", snowglobeAddress: "",},
-// { name: "PngAVAXHUSKYMini", snowglobeAddress: "0x150Bc67072c2dB7c55D83302B7dA7D930Eed1c3E",},
-// { name: "PngAVAXINSURMini", snowglobeAddress: "0x433de3528fe278a6B16072dd5389df8af3DcdD8c",},
-// { name: "PngAVAXLINKeMini", snowglobeAddress: "0x08D5Cfaf58a10D306937aAa8B0d2eb40466f7461",},
-// { name: "PngAVAXOOEMini", snowglobeAddress: "0xFe128e46E6C450662d4Dcf361e740e787cDBce50",},
-// { name: "PngAVAXPEFIMini", snowglobeAddress: "0x5fb4d08bCBD444fDD5a0545fdB0C86783D186382",},
-// { name: "PngAVAXQIMini", snowglobeAddress: "0xeEc21abC6daD38A8515a7C3388E5ef962Cd960e6",},
-// { name: "PngAVAXSNOBMini", snowglobeAddress: "0x8b2E1802A7E0E0c7e1EaE8A7c636058964e21047",},
-// { name: "PngAVAXTEDDYMini", snowglobeAddress: "0x42E1CDd48884C9027E965600B4A725a91D27255b",},
-// { name: "PngAVAXTIMEMini", snowglobeAddress: "0x2b48ff2cA4374562CDEea82534519076105663F2",},
-// { name: "PngAVAXTUSDMini", snowglobeAddress: "0xfe1A87Cc4a2144f7eBb7d731bE80bF0e4CC6E909",},
-// { name: "PngAVAXUSDCeMini", snowglobeAddress: "0xd63359ff51BF1217730ae2C37979242B1a3f7c53",},
-// { name: "PngAVAXUSDTeMini", snowglobeAddress: "0x7CC8068AB5FC2D8c843C4b1A6572a1d1E742D7c8",},
-// { name: "PngAVAXVEEMini", snowglobeAddress: "0xc8AA857291B6622A212D4C32eecCcFBd6D06E685",},
-// { name: "PngAVAXWALBTMini", snowglobeAddress: "0x322094FDB02677E7a993E735826c9E183fc605a6",},
-// { name: "PngAVAXWBTCeMini", snowglobeAddress: "0x04A3B139fcD004b2A4f957135a3f387124982133",},
-// { name: "PngAVAXWETHeMini", snowglobeAddress: "0xfEC005280ec0870A5dB1924588aE532743CEb90F",},
-// { name: "PngAVAXWOWMini", snowglobeAddress: "0xca26bF455974B85df3Ed9cfdbf0B620D616738BF",},
-// { name: "PngAVAXXAVAMini", snowglobeAddress: "",},
-// { name: "PngAVAXYAKMini", snowglobeAddress: "0x1BF90bdeb965a76Af56024EF3e70439DEa89bF3f",},
-// { name: "PngAVAXYAYMini", snowglobeAddress: "0xD7601D15ce8D207Ef01f2e45c6e24Fc5A34c393f",},
-// {
-//   name: "PngAVAXJOEMini",
-//   controllerAddress: "",
-//   snowglobeAddress: "",
-// },
-// {
-//   name: "PngUsdcEPngMini",
-//   controllerAddress: "",
-//   snowglobeAddress: "",
-// },
-// {
-//   name: "PngAVAXSPOREMini",
-//   controllerAddress: "",
-//   snowglobeAddress: "",
-// },
-// {
-//   name: "PngUsdcEUsdtEMini",
-//   controllerAddress: "",
-//   snowglobeAddress: "",
-// },
-// {
-//   name: "PngUsdcEDaiEMini",
-//   controllerAddress: "",
-//   snowglobeAddress: "",
-// },
-// {
-//   name: "JoeAvaxCrax",
-//   controllerAddress: "",
-//   snowglobeAddress: "0xE61E5291ba241027b10064ac0c99411aa51DAC52",
-// },
-// {
-//   name: "JoeAvaxCraft",
-//   controllerAddress: "",
-//   snowglobeAddress: "",
-// },
-// {
-//   name: "JoeAvaxMelt",
-//   controllerAddress: "",
-//   snowglobeAddress: "",
-// },
-{
-  name: "JoeAvaxgOhm",
-  controllerAddress: "",
-  snowglobeAddress: "",
-},
-
+      {
+        name: "AxialAvaxAxial",
+        controllerAddress: "",
+        snowglobeAddress: "",
+      },
 ];
 
 for (const test of tests) {
