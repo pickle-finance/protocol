@@ -586,8 +586,13 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
+    // {
+    //   name: "AxialAvaxAxial",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
       {
-        name: "AxialAvaxAxial",
+        name: "AxialAA3D",
         controllerAddress: "",
         snowglobeAddress: "",
       },
