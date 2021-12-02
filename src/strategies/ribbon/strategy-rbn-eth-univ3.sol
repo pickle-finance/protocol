@@ -31,7 +31,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
     event harvested(uint256 tokenId);
     event deposited(uint256 tokenId, uint256 rbnBalance, uint256 wethBalance);
     event withdrawn(uint256 tokenId, uint256 _liquidity);
-    event rebalanced(uint256 tokenId, uint24 _tickLower, uint24 _tickUpper);
+    event rebalanced(uint256 tokenId, int24 _tickLower, int24 _tickUpper);
 
     constructor(
         address _governance,
@@ -212,7 +212,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         emit withdrawn(tokenId, _liquidity);
     }
 
-    function rebalance(uint24 _tickLower, uint24 _tickUpper)
+    function rebalance(int24 _tickLower, int24 _tickUpper)
         external
         returns (uint256 _tokenId)
     {
