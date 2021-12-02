@@ -5,6 +5,8 @@ pragma experimental ABIEncoderV2;
 import "../strategy-univ3-base.sol";
 import "../../interfaces//univ3/IUniswapV3Staker.sol";
 import "../../interfaces/weth.sol";
+import "../../lib/univ3/PoolActions.sol";
+import "../../lib/univ3/PoolVariables.sol";
 import "hardhat/console.sol";
 
 contract StrategyRbnEthUniV3 is StrategyUniV3Base {
@@ -24,6 +26,12 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         });
 
     address[] public rewardTokens = [weth, rbn];
+
+    event InitialDeposited(uint256 tokenId);
+    event harvested(uint256 tokenId);
+    event deposited(uint256 tokenId, uint256 rbnBalance, uint256 wethBalance);
+    event withdrawn(uint256 tokenId, uint256 _liquidity);
+    event rebalanced(uint256 tokenId, uint24 _tickLower, uint24 _tickUpper);
 
     constructor(
         address _governance,
@@ -72,6 +80,8 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         // Deposit + stake in Uni v3 staker
         nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
         IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
+
+        emit InitialDeposited(tokenId);
     }
 
     function harvest() public override onlyBenevolent {
@@ -111,6 +121,8 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         nftManager.sweepToken(rbn, 0, address(this));
 
         _distributePerformanceFeesAndDeposit();
+
+        emit harvested(tokenId);
     }
 
     function liquidityOfPool() public view override returns (uint256) {
@@ -143,6 +155,8 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             })
         );
         redeposit();
+
+        emit deposited(tokenId, _token0, _token1);
     }
 
     // Deposit + stake in Uni v3 staker
@@ -194,5 +208,75 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         token1.safeTransfer(_jar, a1);
 
         redeposit();
+
+        emit withdrawn(tokenId, _liquidity);
+    }
+
+    function rebalance(uint24 _tickLower, uint24 _tickUpper)
+        external
+        returns (uint256 _tokenId)
+    {
+        require(msg.sender == governance, "!governance");
+        // If NFT is held by staker, then withdraw
+        IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
+        // claim entire rewards
+        IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rbn), address(this), 0);
+        IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
+
+        PoolActions.burnAllLiquidity(pool, tick_lower, tick_upper);
+
+        nftManager.collect(
+            IUniswapV3PositionsNFT.CollectParams({
+                tokenId: tokenId,
+                recipient: address(this),
+                amount0Max: type(uint128).max,
+                amount1Max: type(uint128).max
+            })
+        );
+
+        uint256 _rbn = IERC20(rbn).balanceOf(address(this));
+        uint256 _weth = IERC20(weth).balanceOf(address(this));
+
+        IERC20(rbn).safeApprove(univ3Router, 0);
+        IERC20(rbn).safeApprove(univ3Router, _rbn.div(2));
+
+        // TODO: REBALANCE TOKENS TO ACHIEVE PROPER PROPORTION IN NEW LIQUIDITY RANGE
+        (uint256 _token0, uint256 _token1) = PoolVariables.positionAmounts(pool, _tickLower, _tickUpper);
+
+        ISwapRouter(univ3Router).exactInputSingle(
+            ISwapRouter.ExactInputSingleParams({
+                tokenIn: rbn,
+                tokenOut: weth,
+                fee: pool.fee(),
+                recipient: address(this),
+                deadline: block.timestamp + 300,
+                amountIn: _rbn.div(2),
+                amountOutMinimum: 0,
+                sqrtPriceLimitX96: 0
+            })
+        );
+
+        nftManager.sweepToken(weth, 0, address(this));
+        nftManager.sweepToken(rbn, 0, address(this));
+
+        (_tokenId, , , ) = nftManager.mint(
+            IUniswapV3PositionsNFT.MintParams({
+                token0: address(token0),
+                token1: address(token1),
+                fee: pool.fee(),
+                tickLower: _tickLower,
+                tickUpper: _tickUpper,
+                amount0Desired: _token0,
+                amount1Desired: _token1,
+                amount0Min: 0,
+                amount1Min: 0,
+                recipient: address(this),
+                deadline: block.timestamp + 300
+            })
+        );
+
+        // Record tokenId
+        tokenId = _tokenId;
+        emit rebalanced(tokenId, _tickLower, _tickUpper);
     }
 }
