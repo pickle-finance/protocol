@@ -10,6 +10,8 @@ import "../interfaces/joe.sol";
 abstract contract StrategyAxialBase is StrategyBase {
     // Token address 
     address public constant axial = 0xcF8419A615c57511807236751c0AF38Db4ba3351;
+    address public constant teddy = 0x094bd7b2d99711a1486fb94d4395801c6d0fddcc;
+    address public constant fxs = 0x214db107654ff987ad859f34125307783fc8e387;
     address public constant masterChefAxialV3 = 0x958C0d0baA8F220846d3966742D4Fb5edc5493D3;
     address public constant joeRouter = 0x60aE616a2155Ee3d9A68541Ba4544862310933d4;
 
@@ -69,8 +71,6 @@ abstract contract StrategyAxialBase is StrategyBase {
         return _amount;
     }
 
-
-
     function _swapTraderJoe(
         address _from,
         address _to,
@@ -121,6 +121,40 @@ abstract contract StrategyAxialBase is StrategyBase {
         path[2] = snob;
         IERC20(axial).safeApprove(joeRouter, 0);
         IERC20(axial).safeApprove(joeRouter, _keep);
+        _swapTraderJoeWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(feeDistributor, _share);
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
+    function _takeFeeTeddyToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = teddy;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(teddy).safeApprove(joeRouter, 0);
+        IERC20(teddy).safeApprove(joeRouter, _keep);
+        _swapTraderJoeWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(feeDistributor, _share);
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
+    function _takeFeeFxsToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = fxs;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(fxs).safeApprove(joeRouter, 0);
+        IERC20(fxs).safeApprove(joeRouter, _keep);
         _swapTraderJoeWithPath(path, _keep);
         uint256 _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
