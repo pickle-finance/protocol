@@ -100,6 +100,6 @@ contract StrategyPngAvaxOrcaLp is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAvaxOrcaMiniLp";
+        return "StrategyPngAvaxOrcaLp";
     }
 }
