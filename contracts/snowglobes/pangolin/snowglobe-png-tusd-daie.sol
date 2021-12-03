@@ -1,5 +1,3 @@
-
-   
 // https://github.com/iearn-finance/vaults/blob/master/contracts/vaults/yVault.sol
 
 pragma solidity ^0.6.7;
