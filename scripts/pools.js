@@ -1,53 +1,56 @@
-const stakingStrategies = [
-  // {
-  //   name: "PngXPng",
-  //   snowglobe_addr: "0xA22D8FD15FB36aA9e1Db795A78db8b688F6284F6",
-  // },
-  {
-    name: "JoexJoe",
-    snowglobe_addr: "0x8c06828A1707b0322baaa46e3B0f4D1D55f6c3E6",
-  },
-];
-
-const benqi = [
-  {
-    name: "BenqiDai",
-    snowglobe_addr: "0x7b2525A502800E496D2e656e5b1188723e547012",
-  },
-  {
-    name: "Benqieth",
-    snowglobe_addr: "0x37d4b7B04ccfC14d3D660EDca1637417f5cA37f3",
-  },
-  {
-    name: "BenqiWbtc",
-    snowglobe_addr: "0x8FA104f65BDfddEcA211867b77e83949Fc9d8b44",
-  },
-  {
-    name: "BenqiLink",
-    snowglobe_addr: "0x32d9D114A2F5aC4ce777463e661BFA28C8fE9Eb7",
-  },
-  {
-    name: "BenqiUsdcE",
-    snowglobe_addr: "0xa8981Eab82d0a471b37F7d87A221C92aE60c0E00",
-  },
-  {
-    name: "BenqiQi",
-    snowglobe_addr: "0x68b8037876385BBd6bBe80bAbB2511b95DA372C4",
-  },
-];
-
-const pangolin = [
+const deployed = [
   {
     name: "PngAvaxPng",
     snowglobe_addr: "0x621207093D2e65Bf3aC55dD8Bf0351B980A63815",
   },
   {
-    name: "PngSnobPng",
-    snowglobe_addr: "0xB4db531076494432eaAA4C6fCD59fcc876af2734",
+    name: "JoeAvaxEthE",
+    snowglobe_addr: "0xe13E1a491eDc640b0591D70390897620f31bbF6E",
+  },
+  {
+    name: "JoexJoe",
+    snowglobe_addr: "0x8c06828A1707b0322baaa46e3B0f4D1D55f6c3E6",
+  },
+  {
+    name: "JoeAvaxXava",
+    snowglobe_addr: "0x0B2C4f6C54182EDeE30DFF69Be972f9E04888321",
+  },
+  {
+    name: "JoeAvaxJoe",
+    snowglobe_addr: "0xcC757081C972D0326de42875E0DA2c54af523622",
+  },
+  {
+    name: "JoeAvaxSnob",
+    snowglobe_addr: "0x8b2E1802A7E0E0c7e1EaE8A7c636058964e21047",
+  },
+  {
+    name: "JoeAvaxYak",
+    snowglobe_addr: "0x9854F6615f73e533940F90FfE8DB1eAFB424A3c7",
+  },
+  {
+    name: "JoeUsdteJoe",
+    snowglobe_addr: "0xB26A7f2bCA1De2E6BFf411D2ce04ca6C3285e0E8",
+  },
+  {
+    name: "JoeAvaxSherpa",
+    snowglobe_addr: "0x75312b14Ce830EC078D93Ac8FA667b14BEAC18E6",
+  },
+  {
+    name: "JoeUsdceJoe",
+    snowglobe_addr: "0xDe9f979fEdf595FcfD1D09c85d194C700678cC83",
+  },
+  {
+    name: "JoeAvaxElk",
+    snowglobe_addr: "0x6440365E1c9282F50477b1F00289b3A7218E47Ef",
+  },
+  {
+    name: "PngAvaxAaveE",
+    snowglobe_addr: "0x7F8E7a8Bd63A113B202AE905877918Fb9cA13091",
   },
   {
     name: "PngAvaxSnob",
     snowglobe_addr: "0xF4072358C1E3d7841BD7AfDE31F61E17E8d99BE7",
+    controller_addr: "0xacc69deef119ab5bbf14e6aaf0536eafb3d6e046",
   },
   {
     name: "PngAvaxVso",
@@ -58,16 +61,10 @@ const pangolin = [
     snowglobe_addr: "0x8309C64390F376fD778BDd701d54d1F8DFfe1F39",
   },
   {
-    name: "PngAvaxSpore",
-    snowglobe_addr: "0x27f8FE86a513bAAF18B59D3dD15218Cc629640Fc",
-  },
-  {
-    name: "PngSporePng",
-    snowglobe_addr: "0xa39785a4E4CdDa7509751ed152a00f3D37FbFa9F",
-  },
-  {
     name: "PngAvaxBnb",
     snowglobe_addr: "0x39BF214A93EC72e42bC0B9b8C07BE1af6Fe169dA",
+    strategy_addr: "0x8Ab22Febc8E71fC400C228948403F847433A8c88",
+    approved: true,
   },
   {
     name: "PngXavaPng",
@@ -76,10 +73,7 @@ const pangolin = [
   {
     name: "PngAvaxXava",
     snowglobe_addr: "0x6AB8DAC517c244f53D86a155a14064E86c2dE653",
-  },
-  {
-    name: "PngAvaxPefi",
-    snowglobe_addr: "0x5fb4d08bCBD444fDD5a0545fdB0C86783D186382",
+    controller_addr: "0xacc69deef119ab5bbf14e6aaf0536eafb3d6e046",
   },
   {
     name: "PngPefiPng",
@@ -109,7 +103,6 @@ const pangolin = [
     name: "PngAvaxLinkE",
     snowglobe_addr: "0x08D5Cfaf58a10D306937aAa8B0d2eb40466f7461",
   },
-
   {
     name: "PngAvaxWbtcE",
     snowglobe_addr: "0x04A3B139fcD004b2A4f957135a3f387124982133",
@@ -127,12 +120,12 @@ const pangolin = [
     snowglobe_addr: "0xf2596c84aCf1c7350dCF6941604DEd359dD506DB",
   },
   {
-    name: "PngAvaxAaveE",
-    snowglobe_addr: "0x7F8E7a8Bd63A113B202AE905877918Fb9cA13091",
-  },
-  {
     name: "PngUsdtEPng",
     snowglobe_addr: "0xb3DbF3ff266a604A66dbc1783257377239792828",
+    strategy_addr: "0x6d7A3364bCDbe3341dB19088fFD5D720AA8Dd228",
+    approved: true,
+    harvested: true,
+    set_strategy: true,
   },
   {
     name: "PngDaiEPng",
@@ -153,6 +146,7 @@ const pangolin = [
   {
     name: "PngAvaxYak",
     snowglobe_addr: "0x1BF90bdeb965a76Af56024EF3e70439DEa89bF3f",
+    strategy_addr: "0xa0d64682D6E9416A2D1C3e32A3B121207A62c329",
   },
   {
     name: "PngYakPng",
@@ -189,10 +183,16 @@ const pangolin = [
   {
     name: "PngAvaxLyd",
     snowglobe_addr: "0x3F2b777d055dbD4D0812f3750Ee71190431D3Fc8",
+    strategy_addr: "0x7A6351fdCcc60D3a059d2210486672a49b56B4dB",
+    approved: true,
+    harvested: true,
+    set_strategy: true
   },
   {
     name: "PngAvaxHusky",
     snowglobe_addr: "0x150Bc67072c2dB7c55D83302B7dA7D930Eed1c3E",
+    strategy_addr: "0x016c5d89fEfCaEb3F56c4ca1B59516f2107FFbef",
+    approved: true,
   },
   {
     name: "PngAvaxGaj",
@@ -201,10 +201,14 @@ const pangolin = [
   {
     name: "PngAvaxAve",
     snowglobe_addr: "0xD579719d3a58492D803c7d60E3565733a4ba3DEa",
+    strategy_addr: "0x0750b2C5DB83fbc3cd3a441193566AB88e9b61B8",
+    approved: true
   },
   {
     name: "PngAvePng",
     snowglobe_addr: "0x2B30b282405C3ee946843901dDbEc1a82562a1fC",
+    strategy_addr: "0xE234532d0d2c119a8bF11F7fD77f792887a46a10",
+    approved: true
   },
   {
     name: "PngAvaxEle",
@@ -213,22 +217,18 @@ const pangolin = [
   {
     name: "PngAvaxGdl",
     snowglobe_addr: "0x342476c1F9436277acBC088788D0De53b8b34106",
+    strategy_addr: "0xD9Eb45274edEA6780D0608E8406706F7e072A1e5",
+    approved: true,
+    harvested: true,
+    set_strategy: true,
   },
   {
     name: "PngAvaxMfi",
     snowglobe_addr: "0x2F2Ba207f86b46b05a1c79e50b9f980e267719B8",
-  },
-  {
-    name: "PngMfiPng",
-    snowglobe_addr: "0x51B03A4A57da8ea9FC4549d1C54f6ccd678e2892",
-  },
-  {
-    name: "PngAvaxFrax",
-    snowglobe_addr: "0xD0686AC7d0CfFd00A29567D37774058452210D57",
-  },
-  {
-    name: "PngAvaxFxs",
-    snowglobe_addr: "0x07E837D2ae3F2fB565ABdAa80797d47412FC3a94",
+    strategy_addr: "0xe38FBfD228a6aFc9335E7FCA067c7BFB38477778",
+    approved: true,
+    harvested: true,
+    set_strategy: true,
   },
   {
     name: "PngAvaxStart",
@@ -245,14 +245,6 @@ const pangolin = [
   {
     name: "PngAvaxYts",
     snowglobe_addr: "0xee4F816ac2333A346B7B3a76579F0b5342511822",
-  },
-  {
-    name: "PngAvaxYay",
-    snowglobe_addr: "0xD7601D15ce8D207Ef01f2e45c6e24Fc5A34c393f",
-  },
-  {
-    name: "PngAvaxStorm",
-    snowglobe_addr: "0x86C70CE247Cd76b776748687634382a1830b3aC4",
   },
   {
     name: "PngAvaxIce",
@@ -273,6 +265,8 @@ const pangolin = [
   {
     name: "PngAvaxApein",
     snowglobe_addr: "0x192ae260676Ba79ccc57A6f4Ed692Bfe371658b9",
+    strategy_addr: "0xa5545A713348d1B7114d30F341006731D439b059",
+    approved: true,
   },
   {
     name: "PngAvaxCnr",
@@ -281,57 +275,39 @@ const pangolin = [
   {
     name: "PngAvaxCycle",
     snowglobe_addr: "0x4c885E844283D9FAf10607106963768113342543",
+    controller_addr: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
   },
   {
     name: "PngAvaxBifi",
     snowglobe_addr: "0x07e7dF7F0612B7dc6789ba402b17c7108c932d05",
+    controller_addr: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
   },
-];
-
-const traderjoe = [
+  {
+    name: "JoeAvaxBifi",
+    snowglobe_addr: "0xb58fA0e89b5a32E3bEeCf6B16704cabF8471F0E1",
+  },
+  {
+    name: "JoeAvaxBnb",
+    snowglobe_addr: "0xc33b19c3d166CcD844aeDC475A989F5C0FC79E43",
+  },
+  {
+    name: "JoeAvaxChart",
+    snowglobe_addr: "0x916aEbEE43E2bE7ed126A21208db4092392d80AD",
+  },
   {
     name: "JoeAvaxPng",
     snowglobe_addr: "0x962ECf51A169090002CC88B4Bf16e447d2E13100",
-  },
-  {
-    name: "JoeAvaxJoe",
-    snowglobe_addr: "0xcC757081C972D0326de42875E0DA2c54af523622",
-  },
-  {
-    name: "JoeAvaxSnob",
-    snowglobe_addr: "0x8b2E1802A7E0E0c7e1EaE8A7c636058964e21047",
-  },
-  {
-    name: "JoeAvaxXava",
-    snowglobe_addr: "0x0B2C4f6C54182EDeE30DFF69Be972f9E04888321",
+    strategy_addr: "0x07309850E6d0a925dA0B1a57Cfa1Ed8CA68aAC36",
+    approved: true,
+    harvested: true,
   },
   {
     name: "JoeAvaxPefi",
     snowglobe_addr: "0x68691a1e8eAAE3dFDcC300BbC0d6D3902bA06E8d",
   },
   {
-    name: "JoeAvaxElk",
-    snowglobe_addr: "0x6440365E1c9282F50477b1F00289b3A7218E47Ef",
-  },
-  {
     name: "JoeAvaxVso",
     snowglobe_addr: "0xFB3ba5884aD5eBD93C7CB095e4cE08B1C365c2ea",
-  },
-  {
-    name: "JoeAvaxSherpa",
-    snowglobe_addr: "0x75312b14Ce830EC078D93Ac8FA667b14BEAC18E6",
-  },
-  {
-    name: "JoeAvaxYak",
-    snowglobe_addr: "0x9854F6615f73e533940F90FfE8DB1eAFB424A3c7",
-  },
-  {
-    name: "JoeUsdteJoe",
-    snowglobe_addr: "0xB26A7f2bCA1De2E6BFf411D2ce04ca6C3285e0E8",
-  },
-  {
-    name: "JoeAvaxEthE",
-    snowglobe_addr: "0xe13E1a491eDc640b0591D70390897620f31bbF6E",
   },
   {
     name: "JoeAvaxWbtcE",
@@ -350,7 +326,7 @@ const traderjoe = [
     snowglobe_addr: "0xfe19f34873fC2C7ddcB8e392791b97526B4d22e0",
   },
   {
-    name: "JoeWbtcEUsdtE",
+    name: "JoeUsdtEWbtcE",
     snowglobe_addr: "0x6941618661205d5AAd2C880A0B123d19615916b0",
   },
   {
@@ -372,58 +348,6 @@ const traderjoe = [
   {
     name: "JoeAvaxQi",
     snowglobe_addr: "0x9937dD4aaaCfD77BD34a88f9282fAe36fAE364f9",
-  },
-  {
-    name: "JoeAvaxMim",
-    snowglobe_addr: "0xf561EAE92039ab1540a75FDFD50ce8C6800bC078",
-  },
-  {
-    name: "JoeAvaxTime",
-    snowglobe_addr: "0x3AF37B647a08D443ef08Aff8cDdeAE33bBa56779",
-  },
-  {
-    name: "JoeAvaxFrax",
-    snowglobe_addr: "0x8ba8d732109A4eE78b0F8976B21FC88009280bd7",
-  },
-  {
-    name: "JoeAvaxSyn",
-    snowglobe_addr: "0x810CF29576E61695BA7Fe1e4D493663185691854",
-  },
-  {
-    name: "JoeAvaxEle",
-    snowglobe_addr: "0xD865B861365c777b3942122933Ff6F8aD1cD28E3",
-  },
-  {
-    name: "JoeAvaxWet",
-    snowglobe_addr: "0x34B5f24Ab10A36Cf1e82ea95c9C611162D6e3f60",
-  },
-  {
-    name: "JoeUsdtEUsdcE",
-    snowglobe_addr: "0xd596136ee746BaeE7ac159B3c21E71b3aeb81A68",
-  },
-  {
-    name: "JoeAvaxSpell",
-    snowglobe_addr: "0xec54A22B53EE66a77C5F26F860c6913472199661",
-  },
-  {
-    name: "JoeMaiUsdcE",
-    snowglobe_addr: "0x81Be7fBF66cF52A5cC6AD77f32361C5F3BBDAAd8",
-  },
-  {
-    name: "JoeAvaxAavee",
-    snowglobe_addr: "0xE7FfFc0D15fc238F8F1AcC40Db5B5A0240Fb116a",
-  },
-  {
-    name: "JoeAvaxBifi",
-    snowglobe_addr: "0xb58fA0e89b5a32E3bEeCf6B16704cabF8471F0E1",
-  },
-  {
-    name: "JoeAvaxBnb",
-    snowglobe_addr: "0xc33b19c3d166CcD844aeDC475A989F5C0FC79E43",
-  },
-  {
-    name: "JoeAvaxChart",
-    snowglobe_addr: "0x916aEbEE43E2bE7ed126A21208db4092392d80AD",
   },
   {
     name: "JoeAvaxKlo",
@@ -448,28 +372,156 @@ const traderjoe = [
   {
     name: "JoeAvaxTsd",
     snowglobe_addr: "0xcEBFFa4C80291e80EA0684E4C8884124d6a81197",
+    strategy_addr: "0x00d75d30dEf04Df020462DaCb0ed2b5F653aD0A3",
+    approved: true,
+    harvested: true,
   },
   {
     name: "JoeUsdceLinke",
     snowglobe_addr: "0xc28F8a82018c0b92C903Fc2D3013381b7e6ae3d5",
+    strategy_addr: "0x5Ce0C1C84499AbEACbf1d63aAAc5CC6B5EA25C67",
+    approved: true,
+    harvested: true,
+    set_strategy: true,
+    earn: true,
   },
   {
     name: "JoeUsdceEthe",
     snowglobe_addr: "0x5586630339C015dF34EAB3Ae0343D37BE89671f9",
   },
   {
-    name: "JoeUsdceJoe",
-    snowglobe_addr: "0xDe9f979fEdf595FcfD1D09c85d194C700678cC83",
-  },
-  {
     name: "JoeUsdceWbtce",
     snowglobe_addr: "0xAFB27fB1c5bd91A80d18A321D6dC09aDd6a94219",
   },
+  {
+    name: "PngXPng",
+    snowglobe_addr: "0xA22D8FD15FB36aA9e1Db795A78db8b688F6284F6",
+    controller_addr: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"
+  },
+];
+
+const benqi = [
+  {
+    name: "BenqiDai",
+    snowglobe_addr: "0x7b2525A502800E496D2e656e5b1188723e547012",
+  },
+  {
+    name: "Benqieth",
+    snowglobe_addr: "0x37d4b7B04ccfC14d3D660EDca1637417f5cA37f3",
+  },
+  {
+    name: "BenqiWbtc",
+    snowglobe_addr: "0x8FA104f65BDfddEcA211867b77e83949Fc9d8b44",
+  },
+  {
+    name: "BenqiLink",
+    snowglobe_addr: "0x32d9D114A2F5aC4ce777463e661BFA28C8fE9Eb7",
+  },
+  {
+    name: "BenqiUsdcE",
+    snowglobe_addr: "0xa8981Eab82d0a471b37F7d87A221C92aE60c0E00",
+  },
+  {
+    name: "BenqiQi",
+    snowglobe_addr: "0x68b8037876385BBd6bBe80bAbB2511b95DA372C4",
+  },
+
+];
+
+const single = [
+  
+];
+
+const pangolin = [
+  // {
+  //   name: "PngSnobPng",
+  //   snowglobe_addr: "0xB4db531076494432eaAA4C6fCD59fcc876af2734",
+  //   controller_addr: "0xacc69deef119ab5bbf14e6aaf0536eafb3d6e046",
+  // },
+  // {
+  //   name: "PngSporePng",
+  //   snowglobe_addr: "0xa39785a4E4CdDa7509751ed152a00f3D37FbFa9F",
+  // },
+  // {
+  //   name: "PngAvaxSpore",
+  //   snowglobe_addr: "0x27f8FE86a513bAAF18B59D3dD15218Cc629640Fc",
+  // },
+  // {
+  //   name: "PngAvaxPefi",
+  //   snowglobe_addr: "0x5fb4d08bCBD444fDD5a0545fdB0C86783D186382",
+  //   strategy_addr: "0x259fdFE5603BB97Dd279A1557Ba73D32dba490D3",
+  // },
+  // {
+  //   name: "PngMfiPng",
+  //   snowglobe_addr: "0x51B03A4A57da8ea9FC4549d1C54f6ccd678e2892",
+  //   strategy_addr: "0xA87B8cA33cC97CeeB28086edDDEa75D6b3EA4E8A",
+  //   approved: true,
+  // },
+  // {
+  //   name: "PngAvaxFrax",
+  //   snowglobe_addr: "0xD0686AC7d0CfFd00A29567D37774058452210D57",
+  // },
+  // {
+  //   name: "PngAvaxFxs",
+  //   snowglobe_addr: "0x07E837D2ae3F2fB565ABdAa80797d47412FC3a94",
+  // },
+  // {
+  //   name: "PngAvaxYay",
+  //   snowglobe_addr: "0xD7601D15ce8D207Ef01f2e45c6e24Fc5A34c393f",
+  // },
+  // {
+  //   name: "PngAvaxStorm",
+  //   snowglobe_addr: "0x86C70CE247Cd76b776748687634382a1830b3aC4",
+  // },
+];
+
+const traderjoe = [
+  
+  // {
+  //   name: "JoeAvaxMim",
+  //   snowglobe_addr: "0xf561EAE92039ab1540a75FDFD50ce8C6800bC078",
+  // },
+  // {
+  //   name: "JoeAvaxTime",
+  //   snowglobe_addr: "0x3AF37B647a08D443ef08Aff8cDdeAE33bBa56779",
+  // },
+  // {
+  //   name: "JoeAvaxFrax",
+  //   snowglobe_addr: "0x8ba8d732109A4eE78b0F8976B21FC88009280bd7",
+  // },
+  // {
+  //   name: "JoeAvaxSyn",
+  //   snowglobe_addr: "0x810CF29576E61695BA7Fe1e4D493663185691854",
+  // },
+  // {
+  //   name: "JoeAvaxEle",
+  //   snowglobe_addr: "0xD865B861365c777b3942122933Ff6F8aD1cD28E3",
+  // },
+  // {
+  //   name: "JoeAvaxWet",
+  //   snowglobe_addr: "0x34B5f24Ab10A36Cf1e82ea95c9C611162D6e3f60",
+  // },
+  // {
+  //   name: "JoeUsdtEUsdcE",
+  //   snowglobe_addr: "0xd596136ee746BaeE7ac159B3c21E71b3aeb81A68",
+  // },
+  // {
+  //   name: "JoeAvaxSpell",
+  //   snowglobe_addr: "0xec54A22B53EE66a77C5F26F860c6913472199661",
+  // },
+  // {
+  //   name: "JoeMaiUsdcE",
+  //   snowglobe_addr: "0x81Be7fBF66cF52A5cC6AD77f32361C5F3BBDAAd8",
+  // },
+  // {
+  //   name: "JoeAvaxAavee",
+  //   snowglobe_addr: "0xE7FfFc0D15fc238F8F1AcC40Db5B5A0240Fb116a",
+  // },
 ];
 
 module.exports = {
-  stakingStrategies,
   benqi,
   pangolin,
   traderjoe,
+  single
 };

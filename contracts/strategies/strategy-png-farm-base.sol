@@ -61,31 +61,35 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
         if (_png > 0) {
             // 10% is locked up for future gov
             uint256 _keep = _png.mul(keep).div(keepMax);
-            _takeFeePngToSnob(_keep);
+            if (_keep > 0) {
+                _takeFeePngToSnob(_keep);
+            }
+            IERC20(png).safeApprove(pangolinRouter, 0);
+            IERC20(png).safeApprove(pangolinRouter, _png.sub(_keep));
             
             if (token1 == png) {
                 _swapPangolin(png, wavax, _png.sub(_keep).div(2));
             } else {            
-             _swapPangolin(png, wavax, _png.sub(_keep));
+                _swapPangolin(png, wavax, _png.sub(_keep));
             }
              
         }
 
         // Swap half WAVAX for token
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0) {
+        if (_wavax > 0 && token1 != png) {
             _swapPangolin(wavax, token1, _wavax.div(2));
         }
 
         // Adds in liquidity for WAVAX/token
         _wavax = IERC20(wavax).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
-        _png = IERC20(png).balanceOf(address(this));
+        _token1 = IERC20(token1).balanceOf(address(this));
+
         if (_wavax > 0 && _token1 > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
 
-            IERC20(token1).safeApprove(pangolinRouter, 0);
             IERC20(token1).safeApprove(pangolinRouter, _token1);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
@@ -98,16 +102,21 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
                 address(this),
                 now + 60
             );
-
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _token1 = IERC20(token1).balanceOf(address(this));
             // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(token1).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(token1).balanceOf(address(this))
-            );
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
+            if (_token1 > 0){
+                IERC20(token1).safeTransfer(
+                    IController(controller).treasury(),
+                    _token1
+                );
+            }
         }
 
         // We want to get back PNG LP tokens

@@ -4,7 +4,7 @@ require('dotenv').config();
 
 async function main() {
 
-  const platform = "BankerJoe";
+  const platform = "Axial";
   const controller_name = platform+"ControllerV4";
   
   const [deployer] = await ethers.getSigners();
