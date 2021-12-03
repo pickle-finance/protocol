@@ -378,7 +378,7 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
         address[] memory jTokens = new address[](1);
         jTokens[0] = jToken;
         uint256 _keep;
-        IRewardDistributor(rewardDistributor).claimReward(0, address(this)); //Claim
+        IRewardDistributor(rewardDistributor).claimReward(0, address(this));    // Claim
         if (want != joe) {
             uint256 _joe = IERC20(joe).balanceOf(address(this));
             if (_joe > 0) {
@@ -390,26 +390,41 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
                 path[0] = joe;
                 path[1] = wavax;
                 path[2] = want;
-                _swapTraderJoeWithPath(path, _joe.sub(_keep));
+
+                _joe = IERC20(joe).balanceOf(address(this));
+
+                IERC20(joe).safeApprove(joeRouter, 0);
+                IERC20(joe).safeApprove(joeRouter, _joe);
+
+                _swapTraderJoeWithPath(path, _joe);
             }
         }
-        IRewardDistributor(rewardDistributor).claimReward(1, address(this)); //ClaimAvax
-        uint256 _avax = address(this).balance;            //get balance of native Avax
-        if (_avax > 0) {                                 //wrap avax into ERC20
+        IRewardDistributor(rewardDistributor).claimReward(1, address(this));    // Claim Avax
+        uint256 _avax = address(this).balance;                                  // get balance of native Avax
+        if (_avax > 0) {                                                        // wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
         }
         
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             _keep = _wavax.mul(keep).div(keepMax);
-            _takeFeeWavaxToSnob(_keep);
-            _swapTraderJoe(wavax, want, _wavax.sub(_keep));
+            if (_keep > 0){
+                _takeFeeWavaxToSnob(_keep);
+            }
+
+            _wavax = IERC20(wavax).balanceOf(address(this));
+
+            IERC20(wavax).safeApprove(joeRouter, 0);
+            IERC20(wavax).safeApprove(joeRouter, _wavax);
+
+            _swapTraderJoe(wavax, want, _wavax);
+
         }
 
         _distributePerformanceFeesAndDeposit();
     }
     
-    //Calculate the Accrued Rewards
+    // Calculate the Accrued Rewards
     function getHarvestable() external view returns (uint256, uint256) {
         uint rewardsJoe = _calculateHarvestable(0, address(this));
         uint rewardsAvax = _calculateHarvestable(1, address(this));

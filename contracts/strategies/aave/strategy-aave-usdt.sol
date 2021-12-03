@@ -367,12 +367,17 @@ contract StrategyAaveUsdt is StrategyBase, Exponential {
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             uint256 _keep = _wavax.mul(keep).div(keepMax);
-            IERC20(wavax).safeApprove(pangolinRouter, 0);
-            IERC20(wavax).safeApprove(pangolinRouter, _wavax);
             if (_keep > 0) {
                 _takeFeeWavaxToSnob(_keep);
             }
-            _swapPangolin(wavax, want, _wavax.sub(_keep));
+
+            _wavax = IERC20(wavax).balanceOf(address(this));
+
+            IERC20(wavax).safeApprove(pangolinRouter, 0);
+            IERC20(wavax).safeApprove(pangolinRouter, _wavax);
+
+            _swapPangolin(wavax, want, _wavax);
+
         }
 
         _distributePerformanceFeesAndDeposit();

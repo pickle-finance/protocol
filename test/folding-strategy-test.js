@@ -16,7 +16,7 @@ const doFoldingStrategyTest = (
     txnAmt = "250000000000000000000000",
     slot = "0",
     fold = true,
-    controller = "main",) => {
+    controller = "bankerJoe",) => {
 
     const walletAddr = process.env.WALLET_ADDR;
     let assetContract, controllerContract;

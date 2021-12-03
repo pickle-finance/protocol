@@ -367,12 +367,17 @@ contract StrategyAaveWeth is StrategyBase, Exponential {
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             uint256 _keep = _wavax.mul(keep).div(keepMax);
-            IERC20(wavax).safeApprove(pangolinRouter, 0);
-            IERC20(wavax).safeApprove(pangolinRouter, _wavax);
             if (_keep > 0) {
                 _takeFeeWavaxToSnob(_keep);
             }
-            _swapPangolin(wavax, want, _wavax.sub(_keep));
+
+            _wavax = IERC20(wavax).balanceOf(address(this));
+
+            IERC20(wavax).safeApprove(pangolinRouter, 0);
+            IERC20(wavax).safeApprove(pangolinRouter, _wavax);
+
+            _swapPangolin(wavax, want, _wavax);
+
         }
 
         _distributePerformanceFeesAndDeposit();
@@ -409,12 +414,14 @@ contract StrategyAaveWeth is StrategyBase, Exponential {
 
             // If the amount we need to free is > borrowed
             // Just free up all the borrowed amount
-            if (borrowedToBeFree > borrowed) {
-                this.deleverageToMin();
-            } else {
-                // Otherwise just keep freeing up borrowed amounts until
-                // we hit a safe number to redeem our underlying
-                this.deleverageUntil(supplied.sub(borrowedToBeFree));
+            if (borrowed > 0) {
+                if (borrowedToBeFree > borrowed) {
+                    this.deleverageToMin();
+                } else {
+                    // Otherwise just keep freeing up borrowed amounts until
+                    // we hit a safe number to redeem our underlying
+                    this.deleverageUntil(supplied.sub(borrowedToBeFree));
+                }
             }
 
             // withdraw

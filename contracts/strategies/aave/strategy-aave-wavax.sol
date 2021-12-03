@@ -406,14 +406,16 @@ contract StrategyAaveWavax is StrategyBase, Exponential {
 
             // If the amount we need to free is > borrowed
             // Just free up all the borrowed amount
-            if (borrowedToBeFree > borrowed) {
-                this.deleverageToMin();
-            } else {
-                // Otherwise just keep freeing up borrowed amounts until
-                // we hit a safe number to redeem our underlying
-                this.deleverageUntil(supplied.sub(borrowedToBeFree));
+            if (borrowed > 0){
+                if (borrowedToBeFree > borrowed) {
+                    this.deleverageToMin();
+                } else {
+                    // Otherwise just keep freeing up borrowed amounts until
+                    // we hit a safe number to redeem our underlying
+                    this.deleverageUntil(supplied.sub(borrowedToBeFree));
+                }
             }
-
+            
             // withdraw
             require(
                 ILendingPool(lendingPool).withdraw(

@@ -372,8 +372,16 @@ contract StrategyAaveUsdc is StrategyBase, Exponential {
             if (_keep > 0) {
                 _takeFeeWavaxToSnob(_keep);
             }
-            _swapPangolin(wavax, want, _wavax.sub(_keep));
+
+            _wavax = IERC20(wavax).balanceOf(address(this)); 
+
+            IERC20(wavax).safeApprove(pangolinRouter, 0);
+            IERC20(wavax).safeApprove(pangolinRouter, _wavax);
+
+            _swapPangolin(wavax, want, _wavax);
+
         }
+
         _distributePerformanceFeesAndDeposit();
     }
 
@@ -408,13 +416,16 @@ contract StrategyAaveUsdc is StrategyBase, Exponential {
 
             // If the amount we need to free is > borrowed
             // Just free up all the borrowed amount
-            if (borrowedToBeFree > borrowed) {
-                this.deleverageToMin();
-            } else {
-                // Otherwise just keep freeing up borrowed amounts until
-                // we hit a safe number to redeem our underlying
-                this.deleverageUntil(supplied.sub(borrowedToBeFree));
+            if (borrowed > 0) {
+                if (borrowedToBeFree > borrowed) {
+                    this.deleverageToMin();
+                } else {
+                    // Otherwise just keep freeing up borrowed amounts until
+                    // we hit a safe number to redeem our underlying
+                    this.deleverageUntil(supplied.sub(borrowedToBeFree));
+                }
             }
+            
 
             // withdraw
             require(

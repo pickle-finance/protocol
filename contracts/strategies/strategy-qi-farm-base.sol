@@ -386,39 +386,39 @@ abstract contract StrategyQiFarmBase is StrategyBase, Exponential {
         qitokens[0] = qiToken;
         uint256 _keep;
 
-        IComptroller(comptroller).claimReward(0, address(this)); //ClaimQi
+        IComptroller(comptroller).claimReward(1, address(this));        // ClaimAvax
+        uint256 _avax = address(this).balance;                          // get balance of native Avax
+
+        if (_avax > 0) {                                                // wrap avax into ERC20
+            WAVAX(wavax).deposit{value: _avax}();
+        }
+
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        if (_wavax > 0) {
+            _keep = _wavax.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeeWavaxToSnob(_keep);
+            }
+        }
+
+        IComptroller(comptroller).claimReward(0, address(this));        //Claim Qi
         if (want != benqi) {
             uint256 _benqi = IERC20(benqi).balanceOf(address(this));
             if (_benqi > 0) {
                 _keep = _benqi.mul(keep).div(keepMax);
-
                 if (_keep > 0) {
                     _takeFeeQiToSnob(_keep);
                 }
-                _swapPangolin(benqi, want, _benqi.sub(_keep));
-            }
-        }
-        IComptroller(comptroller).claimReward(1, address(this)); //ClaimAvax
-        uint256 _avax = address(this).balance;            //get balance of native Avax
-        if (_avax > 0) {                                 //wrap avax into ERC20
-            WAVAX(wavax).deposit{value: _avax}();
-        }
-        
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0) {
-            _keep = _wavax.mul(keep).div(keepMax);
 
-            if(_keep>0){
-                _takeFeeWavaxToSnob(_keep);
+                _benqi = IERC20(benqi).balanceOf(address(this));
+                _swapPangolin(benqi, want, _benqi);
             }
-
-            _swapPangolin(wavax, want, _wavax.sub(_keep));
         }
 
         _distributePerformanceFeesAndDeposit();
     }
     
-    //Calculate the Accrued Rewards
+    // Calculate the Accrued Rewards
     function getHarvestable() external view returns (uint256, uint256) {
         uint rewardsQi = _calculateHarvestable(0, address(this));
         uint rewardsAvax = _calculateHarvestable(1, address(this));
