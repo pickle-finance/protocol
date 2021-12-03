@@ -7,7 +7,7 @@ import "../../interfaces/solar-chefv2.sol";
 abstract contract StrategySolarFarmBaseV2 is StrategyBase {
     // Token addresses
     address public constant solar = 0x6bD193Ee6D2104F14F94E2cA6efefae561A4334B;
-    address public constant solarChef =
+    address public solarChef =
         0xA3Dce528195b8D15ea166C623DB197B2C3f8D127;
 
     address public token0;
@@ -42,13 +42,13 @@ abstract contract StrategySolarFarmBaseV2 is StrategyBase {
         return amount;
     }
 
-    function getHarvestable() external view returns (uint256) {
+    function getHarvestable() external view returns (uint256[] memory) {
         (, , , uint256[] memory amounts) = ISolarChef(solarChef).pendingTokens(
             poolId,
             address(this)
         );
 
-        return amounts[0];
+        return amounts;
     }
 
     // **** Setters ****
@@ -73,7 +73,7 @@ abstract contract StrategySolarFarmBaseV2 is StrategyBase {
 
     // **** State Mutations ****
 
-    function harvest() public override onlyBenevolent {
+    function harvest() public override virtual onlyBenevolent {
         // Collects SOLAR tokens
         ISolarChef(solarChef).deposit(poolId, 0);
         uint256 _solar = IERC20(solar).balanceOf(address(this));
