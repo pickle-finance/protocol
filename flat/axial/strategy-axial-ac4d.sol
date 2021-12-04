@@ -1,4 +1,4 @@
-// Sources flattened with hardhat v2.6.5 https://hardhat.org
+// Sources flattened with hardhat v2.6.8 https://hardhat.org
 
 // File contracts/lib/safe-math.sol
 
@@ -813,6 +813,8 @@ interface IAllowlist {
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.7;
+
+
 interface ISwap {
     // pool data view functions
     function getA() external view returns (uint256);
@@ -1762,6 +1764,7 @@ abstract contract StrategyBase {
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+
 // interface for Axial Rewarder contract
 interface IAxialRewarder {
     using SafeERC20 for IERC20;
@@ -1781,6 +1784,7 @@ interface IAxialRewarder {
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+
 // interface for MasterChefAxialV2 contract
 interface IMasterChefAxialV2 {
 
@@ -2064,11 +2068,15 @@ interface IJoeFactory {
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+
+
+
 // Base contract for Axial based staking contract interfaces
 
 abstract contract StrategyAxialBase is StrategyBase {
     // Token address 
     address public constant axial = 0xcF8419A615c57511807236751c0AF38Db4ba3351;
+    address public constant orca = 0x8B1d98A91F853218ddbb066F20b8c63E782e2430;
     address public constant masterChefAxialV3 = 0x958C0d0baA8F220846d3966742D4Fb5edc5493D3;
     address public constant joeRouter = 0x60aE616a2155Ee3d9A68541Ba4544862310933d4;
 
@@ -2190,6 +2198,23 @@ abstract contract StrategyAxialBase is StrategyBase {
         );
     }
 
+    function _takeFeeOrcaToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = orca;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(orca).safeApprove(joeRouter, 0);
+        IERC20(orca).safeApprove(joeRouter, _keep);
+        _swapTraderJoeWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(feeDistributor, _share);
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
      function _takeFeeWavaxToSnob(uint256 _keep) internal {
         IERC20(wavax).safeApprove(pangolinRouter, 0);
         IERC20(wavax).safeApprove(pangolinRouter, _keep);
@@ -2208,7 +2233,7 @@ abstract contract StrategyAxialBase is StrategyBase {
 }
 
 
-// File hardhat/console.sol@v2.6.5
+// File hardhat/console.sol@v2.6.8
 
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.4.22 <0.9.0;
@@ -3744,23 +3769,30 @@ library console {
 }
 
 
-// File contracts/strategies/strategy-axial-3pool-base.sol
+// File contracts/strategies/strategy-axial-4pool-base.sol
 
 // SPDX-License-Identifier: MIT	
 pragma solidity ^0.6.7;
-abstract contract StrategyAxial3PoolBase is StrategyAxialBase {
+
+
+
+
+
+abstract contract StrategyAxial4PoolBase is StrategyAxialBase {
     address public flashLoan;
 
     // stablecoins
     address public pair1;
     address public pair2;
     address public pair3;
+    address public pair4;
 
     constructor(
         address _flashLoan,
         address _pair1, 
         address _pair2,
         address _pair3,
+        address _pair4, 
         uint256 _poolId,
         address _lp,
         address _governance,
@@ -3782,36 +3814,56 @@ abstract contract StrategyAxial3PoolBase is StrategyAxialBase {
         pair1 = _pair1;
         pair2 = _pair2;
         pair3 = _pair3;
+        pair4 = _pair4; 
     }
 
 
-    // // // **** Views ****
+    // **** Views ****
 
     function getMostPremium() public override view returns (address){
         uint256[] memory balances = new uint256[](4);
         balances[0] = ISwap(flashLoan).getTokenBalance(0); 
         balances[1] = ISwap(flashLoan).getTokenBalance(1); 
         balances[2] = ISwap(flashLoan).getTokenBalance(2); 
+        balances[3] = ISwap(flashLoan).getTokenBalance(3);  
 
+      
         if (
             balances[0] < balances[1] &&
-            balances[0] < balances[2] 
+            balances[0] < balances[2] &&
+            balances[0] < balances[3] && pair1 != 0x1C20E891Bab6b1727d14Da358FAe2984Ed9B59EB
         ) {
             return (pair1);
+        }else if (
+            balances[0] < balances[1] &&
+            balances[0] < balances[2] &&
+            balances[0] < balances[3] && pair1 == 0x1C20E891Bab6b1727d14Da358FAe2984Ed9B59EB
+        ){
+            return (pair2);
         }
 
         if (
             balances[1] < balances[0] &&
-            balances[1] < balances[2] 
+            balances[1] < balances[2] &&
+            balances[1] < balances[3] 
         ) {
             return (pair2);
         }
 
         if (
             balances[2] < balances[0] &&
-            balances[2] < balances[1] 
+            balances[2] < balances[1] &&
+            balances[2] < balances[3] 
         ) {
             return (pair3);
+        } 
+
+        if (
+            balances[3] < balances[0] &&
+            balances[3] < balances[1] &&
+            balances[3] < balances[2] 
+        ) {
+            return (pair4);
         } 
 
         // If they're somehow equal, we just want one 
@@ -3835,8 +3887,7 @@ abstract contract StrategyAxial3PoolBase is StrategyAxialBase {
         IMasterChefAxialV2(masterChefAxialV3).deposit(poolId, 0);
         uint256 _axial = IERC20(axial).balanceOf(address(this));
         if (_axial > 0) {
-            // x% is sent back to the rewards holder
-            // to be used to lock up in as veCRV in a future date
+            // 10% is sent back to the rewards holder
             uint256 _keep = _axial.mul(keep).div(keepMax);
             uint256 _amount = _axial.sub(_keep);
             if (_keep > 0) {
@@ -3882,11 +3933,12 @@ abstract contract StrategyAxial3PoolBase is StrategyAxialBase {
         if (_to > 0) {
             IERC20(to).safeApprove(flashLoan, 0);
             IERC20(to).safeApprove(flashLoan, _to);
-            uint256[] memory liquidity = new uint256[](3);
+            uint256[] memory liquidity = new uint256[](4);
 
             liquidity[0] = IERC20(pair1).balanceOf(address(this));
             liquidity[1] = IERC20(pair2).balanceOf(address(this));
             liquidity[2] = IERC20(pair3).balanceOf(address(this));
+            liquidity[3] = IERC20(pair4).balanceOf(address(this));
 
             ISwap(flashLoan).addLiquidity(liquidity, 0, now + 60);
         }
@@ -3897,19 +3949,21 @@ abstract contract StrategyAxial3PoolBase is StrategyAxialBase {
 }
 
 
-// File contracts/strategies/axial/strategy-am3d.sol
+// File contracts/strategies/axial/strategy-axial-ac4d.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
-contract StrategyAxialAM3DLp is StrategyAxial3PoolBase {
+
+contract StrategyAxialAC4DLp is StrategyAxial4PoolBase {
     // stablecoins
+    address public tsd = 0x4fbf0429599460D327BD5F55625E30E4fC066095;
     address public mim = 0x130966628846BFd36ff31a822705796e8cb8C18D;
-    address public usdcE = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
+    address public frax = 0xD24C2Ad096400B6FBcd2ad8B24E7acBc21A1da64; 
     address public daiE = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
 
-    uint256 public am3d_poolId = 3; 
-    address public lp = 0xc161E4B11FaF62584EFCD2100cCB461A2DdE64D1;
-    address public swapLoan = 0x90c7b96AD2142166D001B27b5fbc128494CDfBc8;
+    uint256 public ac4d_poolId = 1; 
+    address public lp = 0x4da067E13974A4d32D342d86fBBbE4fb0f95f382;
+    address public swapLoan = 0x8c3c1C6F971C01481150CA7942bD2bbB9Bc27bC7;
     
     constructor(
         address _governance,
@@ -3918,12 +3972,13 @@ contract StrategyAxialAM3DLp is StrategyAxial3PoolBase {
         address _timelock
     )
     public 
-    StrategyAxial3PoolBase(
-        swapLoan,
+    StrategyAxial4PoolBase(
+        swapLoan, 
+        tsd,
         mim,
-        usdcE,
+        frax,
         daiE, 
-        am3d_poolId,
+        ac4d_poolId,
         lp,
         _governance,
         _strategist,
@@ -3935,6 +3990,6 @@ contract StrategyAxialAM3DLp is StrategyAxial3PoolBase {
      // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyAxialAM3DLp";
+        return "StrategyAxialAC4DLp";
     }
 }
