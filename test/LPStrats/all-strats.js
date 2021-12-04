@@ -586,11 +586,16 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
-      {
-        name: "AxialAvaxAxial",
-        controllerAddress: "",
-        snowglobeAddress: "",
-      },
+    // {
+    //   name: "AxialAvaxAxial",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
+    {
+      name: "AxialAC4D",
+      controllerAddress: "0xc7D536a04ECC43269B6B95aC1ce0a06E0000D095",
+      slot: 3,
+    },
 ];
 
 for (const test of tests) {
@@ -601,7 +606,7 @@ for (const test of tests) {
       test.controllerAddress,
       globeABI,
       stratABI,
-      null
+      test.slot
     );
   });
 }

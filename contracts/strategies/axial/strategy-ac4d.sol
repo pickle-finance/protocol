@@ -120,7 +120,7 @@ contract StrategyAxialAC4DLp is StrategyAxial4PoolBase {
         if (_wavax > 0) {
             uint256 _keep = _wavax.mul(keep).div(keepMax);
             if (_keep > 0){
-                _takeFeeWavaxToSnob(_keep2);
+                _takeFeeWavaxToSnob(_keep);
             }
 
             _wavax = IERC20(wavax).balanceOf(address(this));
@@ -157,21 +157,21 @@ contract StrategyAxialAC4DLp is StrategyAxial4PoolBase {
         }
         _axial = IERC20(axial).balanceOf(address(this));
         if (_axial > 0){
-            IERC20(craft).safeTransfer(
+            IERC20(axial).safeTransfer(
                 IController(controller).treasury(),
                 _axial
             );
         }
         _teddy = IERC20(teddy).balanceOf(address(this));
         if (_teddy > 0){
-            IERC20(craft).safeTransfer(
+            IERC20(teddy).safeTransfer(
                 IController(controller).treasury(),
                 _teddy
             );
         }  
         _fxs = IERC20(fxs).balanceOf(address(this));
         if (_fxs > 0){
-            IERC20(craft).safeTransfer(
+            IERC20(fxs).safeTransfer(
                 IController(controller).treasury(),
                 _fxs
             );

@@ -4,7 +4,9 @@ require('dotenv').config();
 async function main() {
   const pools = [
     {  
-      name: "AxialAvaxAxial",
+      name: "AxialAC4D",
+      harvest: true,
+      earn: true
     },
   ];
 

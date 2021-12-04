@@ -10,8 +10,8 @@ import "../interfaces/joe.sol";
 abstract contract StrategyAxialBase is StrategyBase {
     // Token address 
     address public constant axial = 0xcF8419A615c57511807236751c0AF38Db4ba3351;
-    address public constant teddy = 0x094bd7b2d99711a1486fb94d4395801c6d0fddcc;
-    address public constant fxs = 0x214db107654ff987ad859f34125307783fc8e387;
+    address public constant teddy = 0x094bd7B2D99711A1486FB94d4395801C6d0fdDcC;
+    address public constant fxs = 0x214DB107654fF987AD859F34125307783fC8e387;
     address public constant masterChefAxialV3 = 0x958C0d0baA8F220846d3966742D4Fb5edc5493D3;
     address public constant joeRouter = 0x60aE616a2155Ee3d9A68541Ba4544862310933d4;
 
