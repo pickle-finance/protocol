@@ -1,4 +1,4 @@
-// Sources flattened with hardhat v2.6.5 https://hardhat.org
+// Sources flattened with hardhat v2.6.8 https://hardhat.org
 
 // File contracts/lib/safe-math.sol
 
@@ -813,6 +813,8 @@ interface IAllowlist {
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.7;
+
+
 interface ISwap {
     // pool data view functions
     function getA() external view returns (uint256);
@@ -1762,6 +1764,7 @@ abstract contract StrategyBase {
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+
 // interface for Axial Rewarder contract
 interface IAxialRewarder {
     using SafeERC20 for IERC20;
@@ -1781,6 +1784,7 @@ interface IAxialRewarder {
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+
 // interface for MasterChefAxialV2 contract
 interface IMasterChefAxialV2 {
 
@@ -2064,11 +2068,15 @@ interface IJoeFactory {
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+
+
+
 // Base contract for Axial based staking contract interfaces
 
 abstract contract StrategyAxialBase is StrategyBase {
     // Token address 
     address public constant axial = 0xcF8419A615c57511807236751c0AF38Db4ba3351;
+    address public constant orca = 0x8B1d98A91F853218ddbb066F20b8c63E782e2430;
     address public constant masterChefAxialV3 = 0x958C0d0baA8F220846d3966742D4Fb5edc5493D3;
     address public constant joeRouter = 0x60aE616a2155Ee3d9A68541Ba4544862310933d4;
 
@@ -2190,6 +2198,23 @@ abstract contract StrategyAxialBase is StrategyBase {
         );
     }
 
+    function _takeFeeOrcaToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = orca;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(orca).safeApprove(joeRouter, 0);
+        IERC20(orca).safeApprove(joeRouter, _keep);
+        _swapTraderJoeWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(feeDistributor, _share);
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
      function _takeFeeWavaxToSnob(uint256 _keep) internal {
         IERC20(wavax).safeApprove(pangolinRouter, 0);
         IERC20(wavax).safeApprove(pangolinRouter, _keep);
@@ -2208,7 +2233,7 @@ abstract contract StrategyAxialBase is StrategyBase {
 }
 
 
-// File hardhat/console.sol@v2.6.5
+// File hardhat/console.sol@v2.6.8
 
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.4.22 <0.9.0;
@@ -3748,6 +3773,11 @@ library console {
 
 // SPDX-License-Identifier: MIT	
 pragma solidity ^0.6.7;
+
+
+
+
+
 abstract contract StrategyAxial4PoolBase is StrategyAxialBase {
     address public flashLoan;
 
@@ -3919,10 +3949,11 @@ abstract contract StrategyAxial4PoolBase is StrategyAxialBase {
 }
 
 
-// File contracts/strategies/axial/strategy-as4d.sol
+// File contracts/strategies/axial/strategy-axial-as4d.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+
 contract StrategyAxialAS4DLp is StrategyAxial4PoolBase {
     // stablecoins
     address public tusd = 0x1C20E891Bab6b1727d14Da358FAe2984Ed9B59EB;

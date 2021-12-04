@@ -4,7 +4,13 @@ require('dotenv').config();
 async function main() {
   const pools = [
     {  
-      name: "AxialAvaxAxial",
+      name: "AxialAA3D",
+      strategy_addr: "0x8325C0bAe797fE52E5e5f8a13ab93f86a7D880aC",
+      snowglobe_addr: "0xb4281C75bab70734CDe886A9f6624385e88429CC",
+      setStrategy: true,
+      approveStrategy: true,
+      whitelist: true,
+      setGlobe: true,
     },
   ];
 
@@ -70,8 +76,8 @@ async function main() {
       lp = await Strategy.want();
       SnowGlobe = new ethers.Contract(pool.snowglobe_addr, snowglobe_ABI, deployer);
       console.log(`connected to ${snowglobe_name} at : ${SnowGlobe.address}`);
-      pool.setGlobe=true;
-      pool.addGauge=true;
+      // pool.setGlobe=true;
+      // pool.addGauge=true;
     }
   
     /* Set Globe */
