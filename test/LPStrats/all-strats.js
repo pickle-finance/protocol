@@ -336,6 +336,51 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "",
   // },
+  {
+    name: "PngAvaxOrca",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
+  {
+    name: "PngAvaxAvai",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
+  {
+    name: "PngTusdDaiEMini",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
+  {
+    name: "PngAvaxMaxi",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
+  {
+    name: "PngAvaxCraft",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
+  {
+    name: "PngAvaxCra",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
+  {
+    name: "PngAvaxJewel",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
+  {
+    name: "PngAvaxgOhm",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
+  {
+    name: "PngUsdcEMim",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
   // {
   //   name: "JoeAvaxPng",
   //   controllerAddress: "",
@@ -586,11 +631,17 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
+    // {
+    //   name: "AxialAvaxAxial",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
       {
-        name: "AxialAvaxAxial",
+        name: "AxialAA3D",
         controllerAddress: "",
         snowglobeAddress: "",
       },
+
 ];
 
 for (const test of tests) {

@@ -1,4 +1,4 @@
-// Sources flattened with hardhat v2.6.5 https://hardhat.org
+// Sources flattened with hardhat v2.6.8 https://hardhat.org
 
 // File contracts/lib/safe-math.sol
 
@@ -813,6 +813,8 @@ interface IAllowlist {
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.7;
+
+
 interface ISwap {
     // pool data view functions
     function getA() external view returns (uint256);
@@ -1762,6 +1764,7 @@ abstract contract StrategyBase {
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+
 // interface for Axial Rewarder contract
 interface IAxialRewarder {
     using SafeERC20 for IERC20;
@@ -1781,6 +1784,7 @@ interface IAxialRewarder {
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+
 // interface for MasterChefAxialV2 contract
 interface IMasterChefAxialV2 {
 
@@ -2064,11 +2068,15 @@ interface IJoeFactory {
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+
+
+
 // Base contract for Axial based staking contract interfaces
 
 abstract contract StrategyAxialBase is StrategyBase {
     // Token address 
     address public constant axial = 0xcF8419A615c57511807236751c0AF38Db4ba3351;
+    address public constant orca = 0x8B1d98A91F853218ddbb066F20b8c63E782e2430;
     address public constant masterChefAxialV3 = 0x958C0d0baA8F220846d3966742D4Fb5edc5493D3;
     address public constant joeRouter = 0x60aE616a2155Ee3d9A68541Ba4544862310933d4;
 
@@ -2190,6 +2198,23 @@ abstract contract StrategyAxialBase is StrategyBase {
         );
     }
 
+    function _takeFeeOrcaToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = orca;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(orca).safeApprove(joeRouter, 0);
+        IERC20(orca).safeApprove(joeRouter, _keep);
+        _swapTraderJoeWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(feeDistributor, _share);
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
      function _takeFeeWavaxToSnob(uint256 _keep) internal {
         IERC20(wavax).safeApprove(pangolinRouter, 0);
         IERC20(wavax).safeApprove(pangolinRouter, _keep);
@@ -2208,7 +2233,7 @@ abstract contract StrategyAxialBase is StrategyBase {
 }
 
 
-// File hardhat/console.sol@v2.6.5
+// File hardhat/console.sol@v2.6.8
 
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.4.22 <0.9.0;
@@ -3748,6 +3773,11 @@ library console {
 
 // SPDX-License-Identifier: MIT	
 pragma solidity ^0.6.7;
+
+
+
+
+
 abstract contract StrategyAxial3PoolBase is StrategyAxialBase {
     address public flashLoan;
 
@@ -3818,15 +3848,48 @@ abstract contract StrategyAxial3PoolBase is StrategyAxialBase {
         return (pair3);
     }
 
+}
+
+
+// File contracts/strategies/axial/strategy-axial-aa3d.sol
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.7;
+
+contract StrategyAxialAA3DLp is StrategyAxial3PoolBase {
+    // stablecoins
+    address public avai = 0x346A59146b9b4a77100D369a3d18E8007A9F46a6;
+    address public mim = 0x130966628846BFd36ff31a822705796e8cb8C18D;
+    address public usdcE = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
+
+    uint256 public am3d_poolId = 4; 
+    address public lp = 0xaD556e7dc377d9089C6564f9E8d275f5EE4da22d;
+    address public swapLoan = 0x6EfbC734D91b229BE29137cf9fE531C1D3bf4Da6;
+    
+    constructor(
+        address _governance,
+        address _strategist,
+        address _controller,
+        address _timelock
+    )
+    public 
+    StrategyAxial3PoolBase(
+        swapLoan,
+        mim,
+        usdcE,
+        avai, 
+        am3d_poolId,
+        lp,
+        _governance,
+        _strategist,
+        _controller,
+        _timelock
+
+    ){}
 
     // **** State Mutations ****
 
     function harvest() public onlyBenevolent override {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But ETH is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
 
         // stablecoin we want to convert to
         (address to) = getMostPremium();
@@ -3838,42 +3901,53 @@ abstract contract StrategyAxial3PoolBase is StrategyAxialBase {
             // x% is sent back to the rewards holder
             // to be used to lock up in as veCRV in a future date
             uint256 _keep = _axial.mul(keep).div(keepMax);
-            uint256 _amount = _axial.sub(_keep);
             if (_keep > 0) {
                 _takeFeeAxialToSnob(_keep);
             }
 
-            // if the stablecoin we need is frax, then swap with pangolin
-            if( to == 0xD24C2Ad096400B6FBcd2ad8B24E7acBc21A1da64){
-                IERC20(axial).safeApprove(pangolinRouter, 0);
-                IERC20(axial).safeApprove(pangolinRouter, _amount);
+            _axial = IERC20(axial).balanceOf(address(this));
 
-                _swapPangolin(axial, to, _amount);
-
-            }else{
-                IERC20(axial).safeApprove(joeRouter, 0);
-                IERC20(axial).safeApprove(joeRouter, _amount);
-                
-                _swapTraderJoe(axial, to, _amount); 
-            }
+            IERC20(axial).safeApprove(joeRouter, 0);
+            IERC20(axial).safeApprove(joeRouter, _axial);
+            _swapTraderJoe(axial, to, _axial);
         }
 
         // Take Avax Rewards    
-        uint256 _avax = address(this).balance;            //get balance of native Avax
+        uint256 _avax = address(this).balance;           //get balance of native Avax
         if (_avax > 0) {                                 //wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
         }
 
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
-            uint256 _keep2 = _wavax.mul(keep).div(keepMax);
-            if (_keep2 > 0){
-                _takeFeeWavaxToSnob(_keep2);
+            uint256 _keep = _wavax.mul(keep).div(keepMax);
+            if (_keep > 0){
+                _takeFeeWavaxToSnob(_keep);
             }
+
+            _wavax = IERC20(wavax).balanceOf(address(this));
+
             //convert Avax Rewards
             IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax.sub(_keep2));   
-            _swapTraderJoe(wavax, to, _wavax.sub(_keep2));
+            IERC20(wavax).safeApprove(joeRouter, _wavax);   
+            _swapTraderJoe(wavax, to, _wavax);
+        }
+
+        uint256 _orca = IERC20(orca).balanceOf(address(this));
+        if (_orca > 0) {
+            // x% is sent back to the rewards holder
+            // to be used to lock up in as veCRV in a future date
+            uint256 _keep = _orca.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeeOrcaToSnob(_keep);
+            }
+
+            _orca = IERC20(orca).balanceOf(address(this));
+
+            IERC20(orca).safeApprove(joeRouter, 0);
+            IERC20(orca).safeApprove(joeRouter, _orca);
+
+            _swapTraderJoe(orca, to, _orca);
         }
 
 
@@ -3891,50 +3965,34 @@ abstract contract StrategyAxial3PoolBase is StrategyAxialBase {
             ISwap(flashLoan).addLiquidity(liquidity, 0, now + 60);
         }
 
+        // Donates DUST
+        _wavax = IERC20(wavax).balanceOf(address(this));
+        if (_wavax > 0){
+            IERC20(wavax).transfer(
+                IController(controller).treasury(),
+                _wavax
+            );
+        }
+        _axial = IERC20(axial).balanceOf(address(this));
+        if (_axial > 0){
+            IERC20(axial).safeTransfer(
+                IController(controller).treasury(),
+                _axial
+            );
+        }
+        _orca = IERC20(orca).balanceOf(address(this));
+        if (_orca > 0){
+            IERC20(orca).safeTransfer(
+                IController(controller).treasury(),
+                _orca
+            );
+        }
+
         // We want to get back sCRV
         _distributePerformanceFeesAndDeposit();
     }
-}
-
-
-// File contracts/strategies/axial/strategy-am3d.sol
-
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
-contract StrategyAxialAM3DLp is StrategyAxial3PoolBase {
-    // stablecoins
-    address public mim = 0x130966628846BFd36ff31a822705796e8cb8C18D;
-    address public usdcE = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
-    address public daiE = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
-
-    uint256 public am3d_poolId = 3; 
-    address public lp = 0xc161E4B11FaF62584EFCD2100cCB461A2DdE64D1;
-    address public swapLoan = 0x90c7b96AD2142166D001B27b5fbc128494CDfBc8;
-    
-    constructor(
-        address _governance,
-        address _strategist,
-        address _controller,
-        address _timelock
-    )
-    public 
-    StrategyAxial3PoolBase(
-        swapLoan,
-        mim,
-        usdcE,
-        daiE, 
-        am3d_poolId,
-        lp,
-        _governance,
-        _strategist,
-        _controller,
-        _timelock
-
-    ){}
-
-     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyAxialAM3DLp";
+        return "StrategyAxialAA3DLp";
     }
 }
