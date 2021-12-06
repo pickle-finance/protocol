@@ -73,23 +73,26 @@ const deployPickleJar = async () => {
 };
 
 const setJar = async () => {
-  const want = "0x1Edb2D8f791D2a51D56979bf3A25673D6E783232";
-  const controller = "0x254825F93e003D6e575636eD2531BAA948d162dd";
-  const picklejar = "0x9eD7e3590F2fB9EEE382dfC55c71F9d3DF12556c";
+  const governance = "0x9d074E37d408542FD38be78848e8814AFB38db17";
+  const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+  const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
+  const timelock = "0xD92c7fAa0Ca0e6AE4918f3a83d9832d9CAEAA0d3";
 
-  const ControllerV4 = await ethers.getContractAt("src/flatten/controller-v4.sol:ControllerV4", controller);
+  const want = "0xEd4064f376cB8d68F770FB1Ff088a3d0F3FF5c4d";
 
-  const strategy = "0x51cF19A126E642948B5c5747471fd722B2EdCa25";
+  // const StrategyFactory = await ethers.getContractFactory("src/strategies/convex/strategy-convex-crv-eth-lp.sol:StrategyCrvEth");
 
-  const deployer = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY, ethers.provider);
+  // const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
+  // await strategy.deployed()
+  // console.log("strategy deployed at: ", strategy.address)
 
-  console.log("setJar");
-  await ControllerV4.connect(deployer).setJar(want, picklejar);
-  // this should be done on governance,
-  // console.log("approveStrategy");
-  // await ControllerV4.connect(deployer).approveStrategy(want, strategy);
-  // console.log("setStrategy");
-  // await ControllerV4.connect(deployer).setStrategy(want, strategy);
+  console.log("deplying")
+  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
+  const PickleJar = await PickleJarFactory.deploy(want, governance, timelock, controller);
+
+  await PickleJar.deployed();
+  console.log("Jar deployed at: ", PickleJar.address)
+  
 };
 
 const approveBal = async () => {
@@ -111,8 +114,8 @@ const main = async () => {
   // await deployControllerV4();
   // await deployComethWmaticMustStrategy();
   // await deployPickleJar();
-  // await setJar();
-  await approveBal();
+  await setJar();
+  // await approveBal();
 };
 
 main()
