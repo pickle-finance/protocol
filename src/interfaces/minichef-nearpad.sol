@@ -16,6 +16,11 @@ interface IMiniChefNearPad {
         uint64 allocPoint;
     }
 
+    function userInfo(uint256 _pid, address _user)
+        external
+        view
+        returns (uint256, uint256);
+
     function deposit(uint256 pid, uint256 amount) external;
 
     function withdraw(uint256 pid, uint256 amount) external;

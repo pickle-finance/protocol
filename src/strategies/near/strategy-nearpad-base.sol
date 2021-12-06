@@ -7,10 +7,15 @@ import "../../interfaces/IRewarder.sol";
 
 abstract contract StrategyNearPadFarmBase is StrategyBase {
     // Token addresses
-    address public constant nearPad =
-        0x885f8CF6E45bdd3fdcDc644efdcd0AC93880c781;
+    address public constant pad = 0x885f8CF6E45bdd3fdcDc644efdcd0AC93880c781;
     address public constant miniChef =
         0x2aeF68F92cfBAFA4b542F60044c7596e65612D20;
+    address public constant padRouter =
+        0xBaE0d7DFcd03C90EBCe003C58332c1346A72836A;
+
+    // How much PAD tokens to keep?
+    uint256 public keepPAD = 1000;
+    uint256 public constant keepPADMax = 10000;
 
     // WETH/<token1> pair
     address public token0;
@@ -36,34 +41,24 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         poolId = _poolId;
         token0 = _token0;
         token1 = _token1;
+        sushiRouter = padRouter;
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        (uint256 amount, ) = IMiniChefTri(miniChef).userInfo(
+        (uint256 amount, ) = IMiniChefNearPad(miniChef).userInfo(
             poolId,
             address(this)
         );
         return amount;
     }
 
-    function getHarvestable() external view returns (uint256, uint256) {
-        uint256 _pendingTri = IMiniChefTri(miniChef).pendingTri(
+    function getHarvestable() external view returns (uint256) {
+        uint256 _pendingPad = IMiniChefNearPad(miniChef).pendingPad(
             poolId,
             address(this)
         );
-        IRewarder rewarder = IMiniChefTri(miniChef).rewarder(poolId);
-        (, uint256[] memory _rewardAmounts) = rewarder.pendingTokens(
-            poolId,
-            address(this),
-            0
-        );
 
-        uint256 _pendingReward;
-        if (_rewardAmounts.length > 0) {
-            _pendingReward = _rewardAmounts[0];
-        }
-
-        return (_pendingTri, _pendingReward);
+        return _pendingPad;
     }
 
     // **** Setters ****
@@ -73,7 +68,7 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         if (_want > 0) {
             IERC20(want).safeApprove(miniChef, 0);
             IERC20(want).safeApprove(miniChef, _want);
-            IMiniChefTri(miniChef).deposit(poolId, _want);
+            IMiniChefNearPad(miniChef).deposit(poolId, _want);
         }
     }
 
@@ -82,18 +77,16 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         override
         returns (uint256)
     {
-        IMiniChefTri(miniChef).withdraw(poolId, _amount);
+        IMiniChefNearPad(miniChef).withdraw(poolId, _amount);
         return _amount;
     }
 
-    // **** Setters ****
-
-    function setRewardToken(address _rewardToken) external {
-        require(msg.sender == timelock, "!timelock");
-        rewardToken = _rewardToken;
-    }
-
     // **** State Mutations ****
+
+    function setKeepPAD(uint256 _keepPAD) external {
+        require(msg.sender == timelock, "!timelock");
+        keepPAD = _keepPAD;
+    }
 
     function harvest() public override onlyBenevolent {
         // Anyone can harvest it at any given time.
@@ -103,11 +96,19 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         //      if so, a new strategy will be deployed.
 
         // Collects TRI tokens
-        IMiniChefTri(miniChef).deposit(poolId, 0);
-        uint256 _nearPad = IERC20(nearPad).balanceOf(address(this));
-        if (_nearPad > 0) {
-            uint256 toToken0 = _nearPad.div(2);
-            uint256 toToken1 = _nearPad.sub(toToken0);
+        IMiniChefNearPad(miniChef).deposit(poolId, 0);
+        uint256 _pad = IERC20(pad).balanceOf(address(this));
+        if (_pad > 0) {
+            uint256 _keepPAD = _pad.mul(keepPAD).div(keepPADMax);
+
+            IERC20(pad).safeTransfer(
+                IController(controller).treasury(),
+                _keepPAD
+            );
+
+            _pad = _pad.sub(_keepPAD);
+            uint256 toToken0 = _pad.div(2);
+            uint256 toToken1 = _pad.sub(toToken0);
 
             if (swapRoutes[token0].length > 1) {
                 _swapSushiswapWithPath(swapRoutes[token0], toToken0);
