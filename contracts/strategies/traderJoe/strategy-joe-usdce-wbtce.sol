@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-joe-farm-base.sol";
 
-contract StrategyJoeUsdceWBtceLp is StrategyJoeFarmBase {
+contract StrategyJoeUsdceWbtceLp is StrategyJoeFarmBase {
     uint256 public usdc_wbtc_poolId = 54;
 
     address public joe_usdc_wbtc_lp =

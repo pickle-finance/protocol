@@ -82,15 +82,22 @@ contract StrategyPngAvaxShibxLp is StrategyPngFarmBaseV2 {
                 now + 60
             );
 
-            // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(shibx).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(shibx).balanceOf(address(this))
-            );
+           // Donates DUST
+            _png = IERC20(png).balanceOf(address(this));
+            if (_png > 0) {
+                IERC20(png).transfer(
+                    IController(controller).treasury(),
+                    _png
+                );
+            }
+            
+            _shibx = IERC20(shibx).balanceOf(address(this));
+            if (_shibx > 0) {
+                IERC20(shibx).safeTransfer(
+                    IController(controller).treasury(),
+                    _shibx
+                );
+            }
         }
 
         // We want to get back PNG LP tokens

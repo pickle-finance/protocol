@@ -5,9 +5,11 @@ import "../strategy-png-farm-base.sol";
 
 contract StrategyPngAvaxFraxLp is StrategyPngFarmBase {
     // Token addresses
-    address public png_avax_frax_lp_rewards = 0xfd0824dF1E598D34C3495e1C2a339E2FA23Af40D;
-    address public png_avax_frax_lp = 0xf0252ffAF3D3c7b3283E0afF56B66Db7105c318C;
-    address public frax = 0xDC42728B0eA910349ed3c6e1c9Dc06b5FB591f98;
+    address public png_avax_frax_lp_rewards =
+        0x55152E05202AE58fDab26b20c6Fd762F5BCA797c;
+    address public png_avax_frax_lp =
+        0x0CE543c0f81ac9AAa665cCaAe5EeC70861a6b559;
+    address public frax = 0xD24C2Ad096400B6FBcd2ad8B24E7acBc21A1da64;
 
     constructor(
         address _governance,
@@ -29,7 +31,7 @@ contract StrategyPngAvaxFraxLp is StrategyPngFarmBase {
 
     // **** Views ****
 
-    function getName() external override pure returns (string memory) {
+    function getName() external pure override returns (string memory) {
         return "StrategyPngAvaxFraxLp";
     }
 }

@@ -43,7 +43,9 @@ contract StrategyPngAvaxGbLp is StrategyPngFarmBaseV2 {
         if (_png > 0) {
             // 10% is locked up for future gov
             uint256 _keep = _png.mul(keep).div(keepMax);
-            _takeFeePngToSnob(_keep);
+            if (_keep > 0) {
+                _takeFeePngToSnob(_keep);
+            }
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png.sub(_keep));
 
@@ -79,17 +81,22 @@ contract StrategyPngAvaxGbLp is StrategyPngFarmBaseV2 {
                 now + 60
             );
 
-            // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(gb).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(gb).balanceOf(address(this))
-            );
+             // Donates DUST
+            _png = IERC20(png).balanceOf(address(this));
+            if (_png > 0) {
+                IERC20(png).transfer(
+                    IController(controller).treasury(),
+                    _png
+                );
+            }
+            _gb = IERC20(gb).balanceOf(address(this));
+            if (_gb > 0) {
+                IERC20(gb).safeTransfer(
+                    IController(controller).treasury(),
+                    _gb
+                );
+            }
         }
-
         // We want to get back PNG LP tokens
         _distributePerformanceFeesAndDeposit();
     }
