@@ -3094,15 +3094,14 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
 }
 
 
-// File contracts/strategies/bankerJoe/strategy-joe-wbtc.sol
+// File contracts/strategies/bankerJoe/strategy-joe-xjoe.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.2;
 
-contract StrategyJoeWbtc is StrategyBankerJoeFarmBase {
-    
-    address public constant wbtc = 0x50b7545627a5162F82A992c33b87aDc75187B218; //banker joe deposit token
-    address public constant jWBTC = 0x3fE38b7b610C0ACD10296fEf69d9b18eB7a9eB1F; //lending receipt token
+contract StrategyJoeXJoe is StrategyBankerJoeFarmBase {
+    address public constant xJoe = 0x57319d41F71E81F3c65F2a47CA4e001EbAFd4F33; //banker joe deposit token
+    address public constant jXJOE = 0xC146783a59807154F92084f9243eb139D58Da696; //lending receipt token
 
     constructor(
         address _governance,
@@ -3112,8 +3111,8 @@ contract StrategyJoeWbtc is StrategyBankerJoeFarmBase {
     )
         public
         StrategyBankerJoeFarmBase(
-            wbtc, 
-            jWBTC, 
+            xJoe, 
+            jXJOE, 
             _governance, 
             _strategist, 
             _controller, 
@@ -3136,6 +3135,7 @@ contract StrategyJoeWbtc is StrategyBankerJoeFarmBase {
         returns (uint256)
     {
         uint256 _want = balanceOfWant();
+        
         if (_want < _amount) {
             uint256 _redeem = _amount.sub(_want);
             // Make sure market can cover liquidity
@@ -3165,6 +3165,6 @@ contract StrategyJoeWbtc is StrategyBankerJoeFarmBase {
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {
-        return "StrategyJoeWbtc";
+        return "StrategyJoeXJoe";
     }
 }

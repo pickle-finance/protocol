@@ -4,53 +4,60 @@ require('dotenv').config();
 async function main() {
   const pools = [
     // {  
-    //   name: "JoeDai",
-    //   // harvest: true,
-    //   earn: true,
-    //   deleverage: true,
-    //   keeper: true,
-    // },
-    // {  
     //   name: "JoeEth", //fail to redeem
+    //   strategy_addr: "0x7322fd7b3B4F213F003355cdFef62fdac1d0D58a",
     //   // harvest: true,
-    //   earn: true,
-    //   deleverage: true,
+    //   // earn: true,
+    //   // deleverage: true,
+    //   // leverage: true,
     //   keeper: true,
-    //   // strategy_addr: "0x7c57937dD753B47fcb17c3DC49E05888e07425FE",
-    //   // approveStrategy: true,
-    //   leverage: true
+    //   setStrategy: true,
+    //   setGlobe: true,
+    //   approveStrategy: true,
+    //   earn: true,
     // },
     // {  
     //   name: "JoeLink",  //fail to redeem
     //   // harvest: true,
+    //   // deleverage: true,
+    //   // leverage: true,
     //   earn: true,
-    //   deleverage: true,
     //   keeper: true,
-    //   leverage: true,
     // },
     // {  
     //   name: "JoeUsdc", //fail to redeem
+    //   strategy_addr: "0xbACa6772f7313f5852eAeF64119b606629329186",
     //   // harvest: true,
+    //   // deleverage: true,
+    //   // leverage: true,
+    //   setGlobe: true,
     //   earn: true,
-    //   deleverage: true,
     //   keeper: true,
-    //   leverage: true,
     // },
     // {  
     //   name: "JoeUsdt", // fail to redeem
     //   // harvest: true,
+    //   // deleverage: true,
+    //   // leverage: true,
     //   earn: true,
-    //   deleverage: true,
     //   keeper: true,
-    //   leverage: true,
     // },
     // {  
     //   name: "JoeWbtc", // fail to redeem
     //   // harvest: true,
+    //   // deleverage: true,
+    //   // leverage: true,
     //   earn: true,
-    //   deleverage: true,
     //   keeper: true,
-    //   leverage: true,
+    // },
+    // {  
+    //   name: "JoeMim",
+    //   strategy_addr: "0xd3829B16a2A7338a15078c541BA331E49D635E29",
+    //   // harvest: true,
+    //   // deleverage: true,
+    //   // leverage: true,
+    //   // earn: true,
+    //   keeper: true,
     // },
     {  
       name: "JoeXJoe",
@@ -58,17 +65,17 @@ async function main() {
       strategy_addr: "0x4078b1F0192d9b8b14299F8047CE6526F63BfbCa",
       // earn: true,
       // deleverage: true,
-      keeper: true,
-      setStrategy: true,
-      approveStrategy: true,
+      // keeper: true,
       // leverage: true,
+      setGlobe: true,
+      approveStrategy: true,
     },
   ];
 
   // const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
   // const controller_addr = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; //Backup
-  // const controller_addr = "0xF2FA11Fc9247C23b3B622C41992d8555f6D01D8f"; // bankerJoe
-  const controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; // Old bankerJoe
+  const controller_addr = "0xF2FA11Fc9247C23b3B622C41992d8555f6D01D8f"; // bankerJoe
+  const old_controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; // Old bankerJoe
   // const controller_addr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; //Aave
   // const controller_addr = "0xc7D536a04ECC43269B6B95aC1ce0a06E0000D095"; //Axial
 
@@ -87,6 +94,8 @@ async function main() {
   const strategist_addr = "0xc9a51fB9057380494262fd291aED74317332C0a2";
   
   const Controller = new ethers.Contract(controller_addr, controller_ABI, deployer);
+  const OldController = new ethers.Contract(old_controller_addr, controller_ABI, deployer);
+  let old_strategy_addr;
 
   const deploy = async (pool) => {
     console.log(`mending deploy for ${pool.name}`);
@@ -103,20 +112,8 @@ async function main() {
 
       /* Handle Old strategy */
       lp = await Strategy.want();
-      let old_strategy_addr = await Controller.strategies(lp);
+      old_strategy_addr = await OldController.strategies(lp);
       console.log("old_strategy_addr: ",old_strategy_addr);
-      if (old_strategy_addr != 0) {
-        // pool.harvest = true;
-        pool.earn = true;
-        pool.deleverage = true;
-        // pool.leverage = true;
-      }
-      else {
-        pool.harvest = false;
-        pool.earn = false;
-        pool.deleverage = false;
-        pool.leverage = false;
-      }
     }
     else {
       /* Connect to Strategy */
@@ -127,11 +124,11 @@ async function main() {
     /* Deploy Snowglobe */
     if (!pool.snowglobe_addr) {
       lp = await Strategy.want();
-      let snowglobe_addr = await Controller.globes(lp);
+      let snowglobe_addr = await OldController.globes(lp);
       console.log("snowglobe_addr: ",snowglobe_addr);
       if (snowglobe_addr != 0) {
         SnowGlobe = new ethers.Contract(snowglobe_addr, snowglobe_ABI, deployer);
-        pool.setGlobe=true;
+        // pool.setGlobe=true;
         pool.addGauge=true;
       }
       else {
