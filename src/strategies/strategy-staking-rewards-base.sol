@@ -1,6 +1,7 @@
 pragma solidity ^0.6.7;
 
 import "./strategy-base.sol";
+import "../interfaces/staking-rewards.sol";
 
 // Base contract for SNX Staking rewards contract interfaces
 

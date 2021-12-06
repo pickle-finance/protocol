@@ -60,16 +60,17 @@ const deployComethWmaticMustStrategy = async () => {
 };
 
 const deployPickleJar = async () => {
-  console.log("deploying PickleJar...");
+  console.log("deploying Strategy...");
 
-  const want = "0x160532D2536175d65C03B97b0630A9802c274daD";
-  const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
-  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
+  const governance = "0x9d074E37d408542FD38be78848e8814AFB38db17";
+  const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+  const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
+  const timelock = "0xD92c7fAa0Ca0e6AE4918f3a83d9832d9CAEAA0d3";
 
-  const PickleJarFactory = await ethers.getContractFactory("src/flatten/pickle-jar.sol:PickleJar");
-  const PickleJar = await PickleJarFactory.deploy(want, governance, timelock, controller);
-  console.log("PickleJar deployed at ", PickleJar.address);
+  const StrategyFactory = await ethers.getContractFactory("src/strategies/saddle/strategy-saddle-d4.sol:StrategySaddleD4");
+  const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
+
+  console.log("Strategy deployed at ", strategy.address);
 };
 
 const setJar = async () => {
