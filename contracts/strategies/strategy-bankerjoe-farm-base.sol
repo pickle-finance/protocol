@@ -13,7 +13,7 @@ import "../interfaces/wavax.sol";
 
 abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
     address public constant joetroller = 0xdc13687554205E5b89Ac783db14bb5bba4A1eDaC; // Through UniTroller Address
-    address public constant rewardDistributor = 0x2274491950B2D6d79b7e69b683b482282ba14885; //separate function handling rewards
+    address public constant rewardDistributor = 0x45B2C4139d96F44667577C0D7F7a7D170B420324; //separate function handling rewards
     address public constant joeLens = 0x997fbA28c75747417571c5F3fe50015AaC2BB073; 
        
     address public jToken;
