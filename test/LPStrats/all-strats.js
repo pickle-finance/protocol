@@ -636,6 +636,11 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
+      // {
+      //   name: "AxialAA3D",
+      //   controllerAddress: "",
+      //   snowglobeAddress: "",
+      // },
       {
         name: "AxialAA3D",
         controllerAddress: "",
