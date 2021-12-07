@@ -48,8 +48,9 @@ module.exports = {
     },
     hardhat: {
       forking: {
-        url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+        url: `https://eth-mainnet.alchemyapi.io/v2/hryDcEe1YR3iSfKm1pZWyi5RwiUUznMX`,
       },
+      block: 	13629908,
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },

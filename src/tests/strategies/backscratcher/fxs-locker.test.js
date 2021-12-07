@@ -18,8 +18,9 @@ describe("FXSLocker test", () => {
   const FXSToken = "0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0";
   const SMARTCHECKER = "0x53c13BA8834a1567474b19822aAD85c6F90D9f9F";
   const FXS_DISTRIBUTOR = "0xed2647Bbf875b2936AAF95a3F5bbc82819e3d3FE";
+  const FXS_WHALE = "0x1e84614543ab707089cebb022122503462ac51b3"
 
-  let alice;
+  let alice, bob;
   let frax, dai, fxs, fraxDeployer, escrow;
   let strategy, pickleJar, controller, proxyAdmin, strategyProxy, locker, veFxsVault;
   let smartChecker;
@@ -108,9 +109,10 @@ describe("FXSLocker test", () => {
     dai = await getContractAt("ERC20", DAIToken);
     fxs = await getContractAt("ERC20", FXSToken);
 
-    await getWantFromWhale(FXSToken, toWei(490000), alice, "0x1e84614543ab707089cebb022122503462ac51b3");
+    await getWantFromWhale(FXSToken, toWei(490000), alice, FXS_WHALE);
+    await getWantFromWhale(FXSToken, toWei(5000), bob, FXS_WHALE);
 
-    fraxDeployer = await unlockAccount("0x234D953a9404Bf9DbC3b526271d440cD2870bCd2");
+    fraxDeployer = await unlockAccount("0xB1748C79709f4Ba2Dd82834B8c82D4a505003f27");
     smartChecker = await getContractAt("ISmartWalletChecker", SMARTCHECKER);
 
     // Create FXS lock
@@ -135,11 +137,11 @@ describe("FXSLocker test", () => {
     await fxs.connect(alice).transfer(FXS_DISTRIBUTOR, toWei(190000));
     fxsBefore = await fxs.balanceOf(alice.address);
 
-    await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+    await increaseTime(60 * 60 * 24 * 30); //travel 15 days
     await increaseBlock(100);
   });
 
-  it("should claim FXS rewards", async () => {
+  it("Should extend lock time and claim FXS", async () => {
     // Initial lock end date
     const locked_end = await escrow.locked__end(locker.address);
     console.log("locked_end => ", locked_end.toString());
@@ -153,7 +155,6 @@ describe("FXSLocker test", () => {
     const locked_end_extended = await escrow.locked__end(locker.address);
     console.log("locked_end_extended => ", locked_end_extended.toString());
 
-    await veFxsVault.connect(alice).claim();
     await veFxsVault.connect(alice).claim();
 
     fxsAfter = await fxs.balanceOf(alice.address);
@@ -198,6 +199,45 @@ describe("FXSLocker test", () => {
 
     await pickleJar.connect(user).deposit(depositA, depositB);
   };
+
+  it("Should facilitate multiple users locking", async () => {
+
+    const lockedBefore = await escrow.balanceOf(locker.address);
+
+    console.log("FXS locked BEFORE additional lock: ", lockedBefore.toString())
+    console.log("FXS balance of locker before lock (should be ZERO): ", (await fxs.balanceOf(veFxsVault.address)).toString())
+    
+    console.log("Bob deposits additional 5000 FXS into locker...")
+    
+    // Make a deposit into veFXSVault
+    await fxs.connect(bob).approve(veFxsVault.address, toWei(5000));
+    await veFxsVault.connect(bob).deposit(toWei(5000));
+
+    const lockedAfter = await escrow.balanceOf(locker.address);
+
+    console.log("FXS balance of locker after lock (should be ZERO): ", (await fxs.balanceOf(veFxsVault.address)).toString())
+    console.log("FXS locked AFTER additional lock: ", (lockedAfter.toString()))
+    console.log("Alice pToken balance: ", (await veFxsVault.balanceOf(alice.address)).toString())
+    console.log("Bob pToken balance: ", (await veFxsVault.balanceOf(bob.address)).toString())
+
+    await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+    await increaseBlock(100);
+
+    const aliceFXSBefore = (await fxs.balanceOf(alice.address)).toString()
+    const bobFXSBefore = (await fxs.balanceOf(bob.address)).toString()
+    console.log("Alice FXS balance before claim: ", aliceFXSBefore)
+    console.log("Bob FXS balance before claim: ", bobFXSBefore)
+    await veFxsVault.connect(alice).claim();
+    await veFxsVault.connect(alice).claim();
+    await veFxsVault.connect(bob).claim();
+    await veFxsVault.connect(bob).claim();
+    const aliceFXSAfter = (await fxs.balanceOf(alice.address)).toString()
+    const bobFXSAfter = (await fxs.balanceOf(bob.address)).toString()
+    console.log("Alice FXS balance after claim: ", aliceFXSAfter)
+    console.log("Bob FXS balance after claim: ", bobFXSAfter)
+
+    expect(lockedAfter.gt(lockedBefore));
+  });
 
   const harvest = async () => {
     console.log("============ Harvest Started ==============");

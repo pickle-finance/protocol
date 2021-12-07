@@ -313,8 +313,8 @@ contract veFXSVault {
 
     function _deposit(uint256 _amount) internal {
         FXS.transferFrom(msg.sender, locker, _amount);
-        _mint(msg.sender, _amount);
         IStrategyProxy(proxy).lock();
+        _mint(msg.sender, _amount);
     }
 
     function setProxy(address _proxy) external {
