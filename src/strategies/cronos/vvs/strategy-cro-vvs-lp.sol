@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-cronos-farm-base.sol";
+import "../strategy-vvs-farm-base.sol";
 
 contract StrategyCroVVSLp is StrategyVVSFarmBase {
     uint256 public cro_vvs_poolId = 4;
 
     // Token addresses
     address public cro_vvs_lp = 0xbf62c67eA509E86F07c8c69d0286C0636C50270b;
-    address public vvs = 0x2D03bECE6747ADC00E1a131BBA1469C15fD11e03;
 
     constructor(
         address _governance,
@@ -17,7 +16,7 @@ contract StrategyCroVVSLp is StrategyVVSFarmBase {
         address _timelock
     )
         public
-        StrategySolarFarmBase(
+        StrategyVVSFarmBase(
             cro,
             vvs,
             cro_vvs_poolId,

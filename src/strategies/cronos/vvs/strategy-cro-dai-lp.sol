@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-cronos-farm-base.sol";
+import "../strategy-vvs-farm-base.sol";
 
 contract StrategyCroDaiLp is StrategyVVSFarmBase {
     uint256 public cro_dai_poolId = 10;
@@ -17,7 +17,7 @@ contract StrategyCroDaiLp is StrategyVVSFarmBase {
         address _timelock
     )
         public
-        StrategySolarFarmBase(
+        StrategyVVSFarmBase(
             cro,
             dai,
             cro_dai_poolId,
