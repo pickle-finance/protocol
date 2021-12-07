@@ -9,44 +9,96 @@ async function main() {
   
 
   const [signer] = await ethers.getSigners();
-  console.log("Deploying contracts with the account:", signer.address);
 
-  const withdrawalFactory = await ethers.getContractFactory("WithdrawRewards");
-
-  const Withdrawal = await withdrawalFactory.deploy();
-  console.log(`deployed WithdrawRewards at : ${Withdrawal.address}`);
+  const withdrawRewards_addr = "0xC24C2fd14bafc9BFFB01888523e17323786ab82A";
+  const WithdrawRewards = new ethers.Contract(withdrawRewards_addr, withdrawRewards_ABI, signer);
 
   //Testing Below
 
   // SNOB addresses
   const treasury_addr = "0x294aB3200ef36200db84C4128b7f1b4eec71E38a";
   const council_addr = "0x028933a66DD0cCC239a3d5c2243b2d96672f11F5";
-  const strategy_addr = "0x8325C0bAe797fE52E5e5f8a13ab93f86a7D880aC"; //AA3D
 
-  const orca = "0x8B1d98A91F853218ddbb066F20b8c63E782e2430";
-  const axial = "0xcF8419A615c57511807236751c0AF38Db4ba3351";
-  const target = "0x4f1f43B54a1d88024d26Ad88914e6FCFe0024cB6"; //NewStrategy
+  const pools = [
+    {
+      name: "JoeLink",
+      old_strategy: "0xcE1A073F8df6796bd3B969f8CE1A04f569965a2B",
+      new_strategy: "0x997FbBbb0957Ace0512f38a23f5cfFafFc2172f9",
+      tokens: [
+        "0x585E7bC75089eD111b656faA7aeb1104F5b96c15"
+      ]
+    },
+    {
+      name: "JoeUsdc",
+      old_strategy: "0xcD4a6733D1E497672290b0C4b891dFc10E03E973",
+      new_strategy: "0xbACa6772f7313f5852eAeF64119b606629329186",
+      tokens: [
+        "0xEd6AaF91a2B084bd594DBd1245be3691F9f637aC"
+      ]
+    },
+    {
+      name: "JoeUsdt",
+      old_strategy: "0x3Ef4dC17b344cd234fa264d8D0bE424207f07532",
+      new_strategy: "0x9f8eeAe99578882fF045D65441B75a85bA11c8c2",
+      tokens: [
+        "0x8b650e26404AC6837539ca96812f0123601E4448"
+      ]
+    },
+    {
+      name: "JoeWbtc",
+      old_strategy: "0xA0a72F0b5056fba03158fc2D75CF6B4e364c6520",
+      new_strategy: "0x794792E97c23cd95524A955C79292bdD14245EA3",
+      tokens: [
+        "0x3fE38b7b610C0ACD10296fEf69d9b18eB7a9eB1F"
+      ]
+    },
+    {
+      name: "JoeEth",
+      old_strategy: "0x09e26431E600F22D111a6F3c8F88D9BAe2a64AD5",
+      new_strategy: "0x7322fd7b3B4F213F003355cdFef62fdac1d0D58a",
+      tokens: [
+        "0x929f5caB61DFEc79a5431a7734a68D714C4633fa"
+      ]
+    },
+    // {
+    //   name: "JoeMim",
+    //   old_strategy: "0xA96030a8527966c0e23033f1248906866a99D9D7",
+    //   new_strategy: "0xd3829B16a2A7338a15078c541BA331E49D635E29",
+    // },
+    // {
+    //   name: "JoeXJoe",
+    //   old_strategy: "0x7f716a918503611b7949F8C76324A8422d5567ab",
+    //   new_strategy: "0x4078b1F0192d9b8b14299F8047CE6526F63BfbCa",
+    // },
+  ];
 
   const Council = new ethers.Contract(council_addr, multisig_ABI, signer);
-  
   const iMultiSig = new ethers.utils.Interface(multisig_ABI);
-  const iStrategy = new ethers.utils.Interface(strategy_ABI);
   const iWithdrawRewards = new ethers.utils.Interface(withdrawRewards_ABI);
+  const iStrategy = new ethers.utils.Interface(strategy_ABI);
 
-  const first_encoding = iWithdrawRewards.encodeFunctionData("withdraw", [[orca, axial], target]);
+  const withdrawFromPool = async pool => {
+    const first_encoding = iWithdrawRewards.encodeFunctionData("withdraw", [pool.tokens, pool.new_strategy]);
 
-  const second_encoding = iStrategy.encodeFunctionData("execute", [Withdrawal.address, first_encoding]);
+    const second_encoding = iStrategy.encodeFunctionData("execute", [WithdrawRewards.address, first_encoding]);
 
-  const third_encoding = iMultiSig.encodeFunctionData("submitTransaction", [strategy_addr, 0, second_encoding]);
-  
-  // var options = { gasPrice: 25000000000, gasLimit: 8000000 };
-  const submission = await Council.submitTransaction(treasury_addr, 0, third_encoding);
-  const tx_submission = await submission.wait(1);
-  if (!tx_submission.status) {
-    console.error(`Error submitting transaction executing withdrawal`);
+    const third_encoding = iMultiSig.encodeFunctionData("submitTransaction", [pool.old_strategy, 0, second_encoding]);
+    
+    // var options = { gasPrice: 25000000000, gasLimit: 8000000 };
+    const submission = await Council.submitTransaction(treasury_addr, 0, third_encoding);
+    const tx_submission = await submission.wait(1);
+    if (!tx_submission.status) {
+      console.error(`Error submitting transaction executing withdrawal for ${pool.name}`);
+      return;
+    }
+    console.log(`transaction submitted for executing withdrawal for ${pool.name}`);
+
     return;
+  };  
+
+  for (const pool of pools) {
+    await withdrawFromPool(pool);
   }
-  console.log(`transaction submitted for executing withdrawal`);
 
   return;
 }
