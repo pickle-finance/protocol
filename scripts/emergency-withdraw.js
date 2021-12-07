@@ -13,8 +13,6 @@ async function main() {
   const withdrawRewards_addr = "0xC24C2fd14bafc9BFFB01888523e17323786ab82A";
   const WithdrawRewards = new ethers.Contract(withdrawRewards_addr, withdrawRewards_ABI, signer);
 
-  //Testing Below
-
   // SNOB addresses
   const treasury_addr = "0x294aB3200ef36200db84C4128b7f1b4eec71E38a";
   const council_addr = "0x028933a66DD0cCC239a3d5c2243b2d96672f11F5";
