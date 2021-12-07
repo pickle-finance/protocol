@@ -7,7 +7,7 @@ require("dotenv").config();
 module.exports = {
   networks: {
     hardhat: {
-      accounts: [{privateKey: process.env.PRIVATE_KEY, balance: "100000000000000000000000"}],
+      accounts: [{ privateKey: process.env.PRIVATE_KEY, balance: "100000000000000000000000" }],
       chainId: 43114,
       forking: {
         // url: "https://node.snowapi.net/ext/bc/C/rpc",

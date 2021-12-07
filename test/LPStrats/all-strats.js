@@ -642,9 +642,17 @@ const tests = [
       //   snowglobeAddress: "",
       // },
       {
-        name: "PngXPng",
-        controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
-      }
+        name: "AxialAA3D",
+        controllerAddress: "",
+        snowglobeAddress: "",
+        slot: 51
+      },
+      // {
+      //     name: "AxialAM3D",
+      //     controllerAddress: "",
+      //     snowglobeAddress: "",
+      //     slot: 51
+      //   },
 
 ];
 
@@ -656,7 +664,7 @@ for (const test of tests) {
       test.controllerAddress,
       globeABI,
       stratABI,
-      null
+      test.slot
     );
   });
 }
