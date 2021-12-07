@@ -336,51 +336,51 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "",
   // },
-  {
-    name: "PngAvaxOrca",
-    controllerAddress: "",
-    snowglobeAddress: "",
-  },
-  {
-    name: "PngAvaxAvai",
-    controllerAddress: "",
-    snowglobeAddress: "",
-  },
-  {
-    name: "PngTusdDaiEMini",
-    controllerAddress: "",
-    snowglobeAddress: "",
-  },
-  {
-    name: "PngAvaxMaxi",
-    controllerAddress: "",
-    snowglobeAddress: "",
-  },
-  {
-    name: "PngAvaxCraft",
-    controllerAddress: "",
-    snowglobeAddress: "",
-  },
-  {
-    name: "PngAvaxCra",
-    controllerAddress: "",
-    snowglobeAddress: "",
-  },
-  {
-    name: "PngAvaxJewel",
-    controllerAddress: "",
-    snowglobeAddress: "",
-  },
-  {
-    name: "PngAvaxgOhm",
-    controllerAddress: "",
-    snowglobeAddress: "",
-  },
-  {
-    name: "PngUsdcEMim",
-    controllerAddress: "",
-    snowglobeAddress: "",
-  },
+  // {
+  //   name: "PngAvaxOrca",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxAvai",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngTusdDaiEMini",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxMaxi",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxCraft",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxCra",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxJewel",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxgOhm",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngUsdcEMim",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
   // {
   //   name: "JoeAvaxPng",
   //   controllerAddress: "",
@@ -636,11 +636,15 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
+      // {
+      //   name: "AxialAA3D",
+      //   controllerAddress: "",
+      //   snowglobeAddress: "",
+      // },
       {
-        name: "AxialAA3D",
-        controllerAddress: "",
-        snowglobeAddress: "",
-      },
+        name: "PngXPng",
+        controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
+      }
 
 ];
 
