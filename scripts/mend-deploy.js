@@ -3,11 +3,16 @@ require('dotenv').config();
 
 async function main() {
   const pools = [
-    {
-      name: "PngXPng",
-      harvest: true,
-      earn: true,
-    }
+    {  
+      name: "AxialAA3D",
+      // strategy_addr: "0x8325C0bAe797fE52E5e5f8a13ab93f86a7D880aC",
+      snowglobe_addr: "0xb4281C75bab70734CDe886A9f6624385e88429CC",
+      // setStrategy: true,
+      // approveStrategy: true,
+      // whitelist: true,
+      setGlobe: true,
+      earn: true
+    },
   ];
 
   // const controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; //Base
@@ -72,8 +77,8 @@ async function main() {
       lp = await Strategy.want();
       SnowGlobe = new ethers.Contract(pool.snowglobe_addr, snowglobe_ABI, deployer);
       console.log(`connected to ${snowglobe_name} at : ${SnowGlobe.address}`);
-      // pool.setGlobe=true;
-      // pool.addGauge=true;
+      pool.setGlobe=true;
+      pool.addGauge=true;
     }
   
     /* Set Globe */
