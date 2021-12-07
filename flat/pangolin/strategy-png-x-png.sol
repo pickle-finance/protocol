@@ -1,4 +1,4 @@
-// Sources flattened with hardhat v2.6.5 https://hardhat.org
+// Sources flattened with hardhat v2.6.8 https://hardhat.org
 
 // File contracts/lib/safe-math.sol
 
@@ -1224,6 +1224,22 @@ interface IController {
     function withdraw(address, uint256) external;
 
     function earn(address, uint256) external;
+
+    // For Big Green Button:
+
+    function setGlobe(address _token, address _globe) external;
+
+    function approveStrategy(address _token, address _strategy) external;
+
+    function revokeStrategy(address _token, address _strategy) external;
+
+    function setStrategy(address _token, address _strategy) external;
+
+    function setStrategist(address _strategist) external;
+
+    function setGovernance(address _governance) external;
+
+    function setTimelock(address _timelock) external;
 }
 
 
@@ -1642,19 +1658,16 @@ abstract contract StrategyStakingRewardsBase is StrategyBase {
 }
 
 
-// File contracts/strategies/strategy-stake-png-farm-base.sol
+// File contracts/strategies/pangolin/strategy-png-x-png.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
-
-    // WAVAX/<token1> pair
-    address public token1;
-
+contract StrategyPngXPngLp is StrategyStakingRewardsBase {
+    // Token addresses
+    address public stake_png_rewards = 0x88afdaE1a9F58Da3E68584421937E5F564A0135b;
+    
     constructor(
-        address _rewards,
-        address _lp,
         address _governance,
         address _strategist,
         address _controller,
@@ -1662,23 +1675,21 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
     )
         public
         StrategyStakingRewardsBase(
-            _rewards,
-            _lp,
+            stake_png_rewards,
+            png,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
-    {
-        token1 = png;
-    }
+    {}
 
     // **** State Mutations ****
 
-    function _takeFeeWavaxToSnob(uint256 _keep) internal {
-        IERC20(wavax).safeApprove(pangolinRouter, 0);
-        IERC20(wavax).safeApprove(pangolinRouter, _keep);
-        _swapPangolin(wavax, snob, _keep);
+    function _takeFeePngToSnob(uint256 _keep) internal {
+        IERC20(png).safeApprove(pangolinRouter, 0);
+        IERC20(png).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(png, snob, _keep);
         uint _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
         IERC20(snob).safeTransfer(
@@ -1692,77 +1703,26 @@ abstract contract StrategyStakePngFarmBase is StrategyStakingRewardsBase {
     }
 
     function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But ETH is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
         // Collects PNG tokens
         IStakingRewards(rewards).getReward();
         
-        // Swap WAVAX for token
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0) {
+        // Swap PNG for token
+        uint256 _png = IERC20(png).balanceOf(address(this));
+        if (_png > 0) {
             // 10% is locked up for future gov
-            uint256 _keep = _wavax.mul(keep).div(keepMax);
+            uint256 _keep = _png.mul(keep).div(keepMax);
             if (_keep > 0) {
-                _takeFeeWavaxToSnob(_keep);
+                _takeFeePngToSnob(_keep);
             }
-
-            //swap WAVAX for token1
-            _swapPangolin(wavax, token1, _wavax.sub(_keep).div(2));
-        }
-
-        // Donate Dust
-        _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0) {
-            IERC20(wavax).safeApprove(pangolinRouter, 0);
-            IERC20(wavax).safeApprove(pangolinRouter, _wavax);
-           
-            // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-       
         }
 
         // We want to get back PNG LP tokens
         _distributePerformanceFeesAndDeposit();
     }
-}
-
-
-// File contracts/strategies/pangolin/strategy-png-x-png.sol
-
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
-
-contract StrategyPngXPng is StrategyStakePngFarmBase {
-    // Token addresses
-    address public stake_png_rewards = 0xD49B406A7A29D64e081164F6C3353C599A2EeAE9;
-    
-    constructor(
-        address _governance,
-        address _strategist,
-        address _controller,
-        address _timelock
-    )
-        public
-        StrategyStakePngFarmBase(
-            stake_png_rewards,
-            png,
-            _governance,
-            _strategist,
-            _controller,
-            _timelock
-        )
-    {}
 
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyPngXPng";
+        return "StrategyPngXPngLp";
     }
 }
