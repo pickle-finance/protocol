@@ -1,4 +1,5 @@
 require("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-etherscan");
 require("dotenv").config();
 
 /**
@@ -19,9 +20,19 @@ module.exports = {
       accounts: [process.env.PRIVATE_KEY]
     },
     mainnet: {
+      chainId: 43114,
       url: "https://api.avax.network/ext/bc/C/rpc",
       accounts: [process.env.PRIVATE_KEY]
     },
+    AVALANCHE: {
+      chainId: 43114,
+      url: "https://api.avax.network/ext/bc/C/rpc",
+      accounts: [process.env.PRIVATE_KEY]
+    },
+  },
+  etherscan: {
+    // Your API key for Snowtrace
+    apiKey: process.env.SNOWTRACE_KEY,
   },
   solidity: {
     compilers: [
@@ -38,5 +49,8 @@ module.exports = {
   },
   mocha: {
     timeout: 120000
-  }
+  },
+  // vyper: {
+  //   version: "0.2.4",
+  // },
 };
