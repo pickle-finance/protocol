@@ -7,7 +7,7 @@ contract StrategyJoeAvaxMeadLp is StrategyJoeRushFarmBase {
 
     uint256 public avax_mead_poolId = ;
 
-    address public joe_avax_mead_lp = ;
+    address public joe_avax_mead_lp = 0xb97F23A9e289B5F5e8732b6e20df087977AcC434;
     address public mead = 0x245C2591403e182e41d7A851eab53B01854844CE;
 
 
@@ -52,52 +52,39 @@ contract StrategyJoeAvaxMeadLp is StrategyJoeRushFarmBase {
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
-        // Collects Joe tokens
+        // Anyone can harvest it at any given time.
+        // I understand the possibility of being frontrun
+        // But AVAX is a dark forest, and I wanna see how this plays out
+        // i.e. will be be heavily frontrunned?
+        //      if so, a new strategy will be deployed.
+
+        // Collects Rewards tokens (JOE & AVAX)
         IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
 
-        // Take Avax Rewards    
-        uint256 _avax = address(this).balance;              // get balance of native Avax
-        if (_avax > 0) {                                    // wrap avax into ERC20
+        //Take Avax Rewards    
+        uint256 _avax = address(this).balance;            //get balance of native Avax
+        if (_avax > 0) {                                 //wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
         }
         
-        uint256 _mead = IERC20(mead).balanceOf(address(this));   //get balance of Mead Tokens
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this)); //get balance of Wavax
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
-            uint256 _keep1 = _wavax.mul(keep).div(keepMax);
-            if (_keep1 > 0){
-                _takeFeeWavaxToSnob(_keep1);
+            uint256 _keep2 = _wavax.mul(keep).div(keepMax);
+            if (_keep2 > 0){
+                _takeFeeWavaxToSnob(_keep2);
             }
-            
+
             _wavax = IERC20(wavax).balanceOf(address(this));
 
-        }
-
-         if (_mead > 0) {
-            uint256 _keep2 = _mead.mul(keep).div(keepMax);
-            if (_keep2 > 0){
-                _takeFeeMeadToSnob(_keep2);
-            }
-            
-            _mead = IERC20(mead).balanceOf(address(this));
-          
-        }
-
-        //In the case of Mead Rewards, swap mead for wavax
-        if(_mead > 0){
-            IERC20(mead).safeApprove(joeRouter, 0);
-            IERC20(mead).safeApprove(joeRouter, _mead.div(2));   
-            _swapTraderJoe(mead, wavax, _mead.div(2));
-        }
-
-        //in the case of Avax Rewards, swap wavax for mead
-        if(_wavax > 0){
+            // convert Avax Rewards
+            // MEAD: 3% Reflective 1% Burn
             IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
-            _swapTraderJoe(wavax, mead, _wavax.div(2)); 
-        }
+            IERC20(wavax).safeApprove(joeRouter, _wavax.mul(100).div(196));   
+            _swapTraderJoe(wavax, mead, _wavax.mul(100).div(196));
 
+        }
         
+        // Take Joe Rewards
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
@@ -110,14 +97,15 @@ contract StrategyJoeAvaxMeadLp is StrategyJoeRushFarmBase {
 
             IERC20(joe).safeApprove(joeRouter, 0);
             IERC20(joe).safeApprove(joeRouter, _joe);
-
-            _swapTraderJoe(joe, wavax, _joe.div(2));
-            _swapTraderJoe(joe, mead, _joe.div(2));
+            // MEAD: 3% Reflective 1% Burn
+            _swapTraderJoe(joe, wavax, _joe.mul(96).div(196));
+            _swapTraderJoe(joe, mead, _joe.mul(100).div(196));
         }
 
-        // Adds in liquidity for AVAX/mead
+        // Adds in liquidity for AVAX/MEAD
         _wavax = IERC20(wavax).balanceOf(address(this));
-        _mead = IERC20(mead).balanceOf(address(this));
+
+        uint256 _mead = IERC20(mead).balanceOf(address(this));
 
         if (_wavax > 0 && _mead > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
@@ -146,13 +134,12 @@ contract StrategyJoeAvaxMeadLp is StrategyJoeRushFarmBase {
                     _wavax
                 );
             }
-            
             if (_mead > 0){
                 IERC20(mead).safeTransfer(
                     IController(controller).treasury(),
                     _mead
                 );
-            }  
+            }
         }
 
         _distributePerformanceFeesAndDeposit();
