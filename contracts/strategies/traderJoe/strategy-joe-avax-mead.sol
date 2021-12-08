@@ -5,7 +5,7 @@ import "../strategy-joe-rush-farm-base.sol";
 
 contract StrategyJoeAvaxMeadLp is StrategyJoeRushFarmBase {
 
-    uint256 public avax_mead_poolId = ;
+    uint256 public avax_mead_poolId = 23;
 
     address public joe_avax_mead_lp = 0xb97F23A9e289B5F5e8732b6e20df087977AcC434;
     address public mead = 0x245C2591403e182e41d7A851eab53B01854844CE;
@@ -27,7 +27,6 @@ contract StrategyJoeAvaxMeadLp is StrategyJoeRushFarmBase {
             _timelock
         )
     {}
-
 
      function _takeFeeMeadToSnob(uint256 _keep) internal {
         address[] memory path = new address[](3);
