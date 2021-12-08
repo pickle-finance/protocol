@@ -64,16 +64,6 @@ async function main() {
     /* Deploy Snowglobe */
     if (!pool.snowglobe_addr) {
       lp = await Strategy.want();
-<<<<<<< HEAD
-      globe = await ethers.getContractFactory(snowglobe_name);
-      SnowGlobe = await globe.deploy(lp, governance_addr, timelock_addr, controller_addr);
-      console.log(`deployed ${snowglobe_name} at : ${SnowGlobe.address}`);
-      await hre.run("verify:verify", {
-        address: SnowGlobe.address,
-        constructorArguments: [lp, governance_addr, timelock_addr, controller_addr],
-      });
-      console.log(`verified ${snowglobe_name}`);
-=======
       let snowglobe_addr = await Controller.globes(lp);
       console.log("snowglobe_addr: ",snowglobe_addr);
       if (snowglobe_addr != 0) {
@@ -85,8 +75,11 @@ async function main() {
         globe = await ethers.getContractFactory(snowglobe_name);
         SnowGlobe = await globe.deploy(lp, governance_addr, timelock_addr, controller_addr);
         console.log(`deployed ${snowglobe_name} at : ${SnowGlobe.address}`);
+        await hre.run("verify:verify", {
+          address: SnowGlobe.address,
+          constructorArguments: [lp, governance_addr, timelock_addr, controller_addr],
+        });
       }
->>>>>>> master
     }
     else {
       /* Connect to Snowglobe */
