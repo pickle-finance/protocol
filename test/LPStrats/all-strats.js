@@ -636,23 +636,23 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
-      // {
-      //   name: "AxialAA3D",
-      //   controllerAddress: "",
-      //   snowglobeAddress: "",
-      // },
-      {
-        name: "AxialAA3D",
+    // {
+    //   name: "AxialAA3D",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    //   slot: 51
+    // },
+    // {
+    //     name: "AxialAM3D",
+    //     controllerAddress: "",
+    //     snowglobeAddress: "",
+    //     slot: 51
+    //   },
+    {
+        name: "JoeAvaxMead",
         controllerAddress: "",
         snowglobeAddress: "",
-        slot: 51
-      },
-      // {
-      //     name: "AxialAM3D",
-      //     controllerAddress: "",
-      //     snowglobeAddress: "",
-      //     slot: 51
-      //   },
+      },      
 
 ];
 
