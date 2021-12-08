@@ -2,6 +2,7 @@
 pragma solidity ^0.6.7;
 
 import "../strategy-joe-rush-farm-base.sol";
+import "hardhat/console.sol";
 
 contract StrategyJoeAvaxMeadLp is StrategyJoeRushFarmBase {
 
@@ -75,11 +76,10 @@ contract StrategyJoeAvaxMeadLp is StrategyJoeRushFarmBase {
 
             _wavax = IERC20(wavax).balanceOf(address(this));
 
-            // convert Avax Rewards
-            // MEAD: 3% Reflective 1% Burn
+            // convert Avax Rewards to Joe first to better account for reflection
             IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax.mul(100).div(196));   
-            _swapTraderJoe(wavax, mead, _wavax.mul(100).div(196));
+            IERC20(wavax).safeApprove(joeRouter, _wavax);   
+            _swapTraderJoe(wavax, joe, _wavax);
 
         }
         
@@ -96,9 +96,9 @@ contract StrategyJoeAvaxMeadLp is StrategyJoeRushFarmBase {
 
             IERC20(joe).safeApprove(joeRouter, 0);
             IERC20(joe).safeApprove(joeRouter, _joe);
-            // MEAD: 3% Reflective 1% Burn
-            _swapTraderJoe(joe, wavax, _joe.mul(96).div(196));
-            _swapTraderJoe(joe, mead, _joe.mul(100).div(196));
+            // MEAD: 2% reflection? They are changing this all the time... 
+            _swapTraderJoe(joe, wavax, _joe.mul(98).div(198));
+            _swapTraderJoe(joe, mead, _joe.mul(100).div(198));
         }
 
         // Adds in liquidity for AVAX/MEAD
@@ -127,6 +127,8 @@ contract StrategyJoeAvaxMeadLp is StrategyJoeRushFarmBase {
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
             _mead = IERC20(mead).balanceOf(address(this));
+            console.log("wavax dust: ",_wavax);
+            console.log("mead dust: ",_mead);
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
