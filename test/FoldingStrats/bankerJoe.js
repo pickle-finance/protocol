@@ -41,12 +41,18 @@ const tests = [
   //   strategyAddress: "0x09e26431e600f22d111a6f3c8f88d9bae2a64ad5",
   //   snowglobeAddress: "0x49e6A1255DEfE0B194a67199e78aD5AA5D7cb092",
   // },
+  // {
+  //   name: "JoeMim",
+  //   tokenAddress: "0x130966628846BFd36ff31a822705796e8cb8C18D",
+  //   strategyAddress: "",
+  //   snowglobeAddress: "",
+  //   slot: "2",
+  // },
   {
-    name: "JoeMim",
-    tokenAddress: "0x130966628846BFd36ff31a822705796e8cb8C18D",
+    name: "JoeXJoe",
+    tokenAddress: "0x57319d41F71E81F3c65F2a47CA4e001EbAFd4F33",
     strategyAddress: "",
-    snowglobeAddress: "",
-    slot: "2",
+    snowglobeAddress: "0x6a52e6b23700A63eA4a0Db313eBD386Fb510eE3C",
   }
 ];
 

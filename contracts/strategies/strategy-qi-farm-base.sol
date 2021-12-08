@@ -391,7 +391,10 @@ abstract contract StrategyQiFarmBase is StrategyBase, Exponential {
             uint256 _benqi = IERC20(benqi).balanceOf(address(this));
             if (_benqi > 0) {
                 _keep = _benqi.mul(keep).div(keepMax);
-                _takeFeeQiToSnob(_keep);
+
+                if (_keep > 0) {
+                    _takeFeeQiToSnob(_keep);
+                }
                 _swapPangolin(benqi, want, _benqi.sub(_keep));
             }
         }
@@ -404,7 +407,11 @@ abstract contract StrategyQiFarmBase is StrategyBase, Exponential {
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             _keep = _wavax.mul(keep).div(keepMax);
-            _takeFeeWavaxToSnob(_keep);
+
+            if(_keep>0){
+                _takeFeeWavaxToSnob(_keep);
+            }
+
             _swapPangolin(wavax, want, _wavax.sub(_keep));
         }
 

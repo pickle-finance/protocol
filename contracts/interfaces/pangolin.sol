@@ -55,6 +55,18 @@ interface IPangolinRouter {
         uint256 deadline
     ) external returns (uint256 amountA, uint256 amountB);
 
+    function quote(
+        uint256 amountA,
+        uint256 reserveA,
+        uint256 reserveB
+    ) external pure returns (uint256 amountB);
+
+    function getAmountOut(
+        uint256 amountIn,
+        uint256 reserveIn,
+        uint256 reserveOut
+    ) external pure returns (uint256 amountOut);
+
     function getAmountsOut(uint256 amountIn, address[] calldata path)
         external
         view

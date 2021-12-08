@@ -39,9 +39,9 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "", // 0xa39785a4E4CdDa7509751ed152a00f3D37FbFa9F
   // },
-  {
-    name: "JoeAvaxGb",
-  },
+  // {
+  //   name: "JoeAvaxGb",
+  // },
   // {
   //   name: "PngAvaxGb",
   // },
@@ -337,6 +337,51 @@ const tests = [
   //   snowglobeAddress: "",
   // },
   // {
+  //   name: "PngAvaxOrca",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxAvai",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngTusdDaiEMini",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxMaxi",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxCraft",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxCra",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxJewel",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxgOhm",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngUsdcEMim",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
   //   name: "JoeAvaxPng",
   //   controllerAddress: "",
   //   snowglobeAddress: "0x962ECf51A169090002CC88B4Bf16e447d2E13100",
@@ -514,7 +559,7 @@ const tests = [
   // {
   //   name: "JoeAvaxMai",
   //   controllerAddress: "",
-  //   snowglobeAddress: "0x29BF8c19e044732b110faA1Ff0Cc59CA35c13f17",
+  //   snowglobeAddress: "",
   // },
   // {
   //   name: "JoeAvaxMyak",
@@ -576,16 +621,39 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
-    {
-      name: "JoeAvaxApex",
-      controllerAddress: "",
-      snowglobeAddress: "",
-    },
+    // {
+    //   name: "JoeAvaxApex",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
     // {
     //   name: "JoeAvaxTractor",
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
+    // {
+    //   name: "AxialAvaxAxial",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
+      // {
+      //   name: "AxialAA3D",
+      //   controllerAddress: "",
+      //   snowglobeAddress: "",
+      // },
+      {
+        name: "AxialAA3D",
+        controllerAddress: "",
+        snowglobeAddress: "",
+        slot: 51
+      },
+      // {
+      //     name: "AxialAM3D",
+      //     controllerAddress: "",
+      //     snowglobeAddress: "",
+      //     slot: 51
+      //   },
+
 ];
 
 for (const test of tests) {
@@ -596,7 +664,7 @@ for (const test of tests) {
       test.controllerAddress,
       globeABI,
       stratABI,
-      null
+      test.slot
     );
   });
 }

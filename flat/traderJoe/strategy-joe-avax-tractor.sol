@@ -2076,7 +2076,7 @@ abstract contract StrategyJoeRushFarmBase is StrategyBase {
         IERC20(wavax).safeApprove(pangolinRouter, 0);
         IERC20(wavax).safeApprove(pangolinRouter, _keep);
         _swapPangolin(wavax, snob, _keep);
-        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
         IERC20(snob).safeTransfer(
             feeDistributor,
@@ -2125,58 +2125,53 @@ contract StrategyJoeAvaxTractorLp is StrategyJoeRushFarmBase {
         // i.e. will be be heavily frontrunned?
         //      if so, a new strategy will be deployed.
 
-        // Collects Joe tokens
+        // Collects Rewards tokens (JOE & AVAX)
         IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
 
-        
         //Take Avax Rewards    
         uint256 _avax = address(this).balance;            //get balance of native Avax
         if (_avax > 0) {                                 //wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
         }
-
+        
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             uint256 _keep2 = _wavax.mul(keep).div(keepMax);
-            uint256 _amount2 = _wavax.sub(_keep2).div(2);
             if (_keep2 > 0){
                 _takeFeeWavaxToSnob(_keep2);
             }
 
-        //convert Avax Rewards
+            _wavax = IERC20(wavax).balanceOf(address(this));
+
+            //convert Avax Rewards
             IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _amount2);   
-            _swapTraderJoe(wavax, tractor, _amount2);
+            IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
+            _swapTraderJoe(wavax, tractor, _wavax.div(2));
         }
-
-
+        
+        // Take Joe Rewards
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
             uint256 _keep = _joe.mul(keep).div(keepMax);
-            uint256 _amount = _joe.sub(_keep).div(2);
             if (_keep > 0) {
                 _takeFeeJoeToSnob(_keep);
             }
+
+            _joe = IERC20(joe).balanceOf(address(this));
+
             IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keep));
+            IERC20(joe).safeApprove(joeRouter, _joe);
 
-            _swapTraderJoe(joe, wavax, _amount);
-            _swapTraderJoe(joe, tractor, _amount);
+            _swapTraderJoe(joe, wavax, _joe.div(2));
+            _swapTraderJoe(joe, tractor, _joe.div(2));
         }
 
-        // Swap half WAVAX for GB: 1% Reflective
+        // Adds in liquidity for AVAX/TRACTOR
         _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0) {
-            IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax.mul(100).div(197));
-            _swapTraderJoe(wavax, tractor, _wavax.mul(100).div(197));
-        }
 
-
-        // Adds in liquidity for AVAX/tractor
-        _wavax = IERC20(wavax).balanceOf(address(this));
         uint256 _tractor = IERC20(tractor).balanceOf(address(this));
+
         if (_wavax > 0 && _tractor > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
@@ -2184,7 +2179,6 @@ contract StrategyJoeAvaxTractorLp is StrategyJoeRushFarmBase {
             IERC20(tractor).safeApprove(joeRouter, 0);
             IERC20(tractor).safeApprove(joeRouter, _tractor);
 
-        
             IJoeRouter(joeRouter).addLiquidity(
                 wavax,
                 tractor,
@@ -2196,31 +2190,27 @@ contract StrategyJoeAvaxTractorLp is StrategyJoeRushFarmBase {
                 now + 60
             );
 
-
-
-             // Donates DUST
+            // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            if (_wavax > 0) {
+            _tractor = IERC20(tractor).balanceOf(address(this));
+            if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
                     _wavax
                 );
             }
-            _tractor = IERC20(tractor).balanceOf(address(this));
-            if (_tractor > 0) {
+            if (_tractor > 0){
                 IERC20(tractor).safeTransfer(
                     IController(controller).treasury(),
                     _tractor
                 );
-
             }
-
         }
 
         _distributePerformanceFeesAndDeposit();
     }
-    // **** Views ****
 
+    // **** Views ****
     function getName() external pure override returns (string memory) {
         return "StrategyJoeAvaxTractorLp";
     }

@@ -59,5 +59,6 @@ After the above is installed, complete the following
 e.g. ![alt text](slotExample.png "Logo Title Text 1")
 3) Add slot number to helpers::findSlot() function 
 
-N.B. If you are finding it hard to find an account with active balance of said token, you can always use a few dollars worth of real money to acquire token and restart the hardhat node.
+N.B If you are getting errors make sure you are pointing to a full archive node in the RPC address. Last checked, node.snowapi.net wasn't compatible.
+N.N.B. If you are finding it hard to find an account with active balance of said token, you can always use a few dollars worth of real money to acquire token and restart the hardhat node.
 

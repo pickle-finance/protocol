@@ -20,19 +20,19 @@ const tests = [
   // strategyAddress: "0x040D72568303927c8eEf626ec8AB8271162dA120",
   // snowglobeAddress: "0x8c06828A1707b0322baaa46e3B0f4D1D55f6c3E6",
   //},
-  //{
-  // name: "PngXPng",
-  // tokenAddress: "0x60781C2586D68229fde47564546784ab3fACA982",
-  // strategyAddress: "0xA1EdFF60A604BB9dFEf25fc00b6D82a07cEAAf91",
-  // snowglobeAddress: "0xA22D8FD15FB36aA9e1Db795A78db8b688F6284F6",
-  // controller: "backup",
-  //},
   {
-    name: "TeddyxTeddy",
-    tokenAddress: "0x094bd7B2D99711A1486FB94d4395801C6d0fdDcC",
-    strategyAddress: "",
-    snowglobeAddress: "",
+    name: "PngXPngLp",
+    tokenAddress: "0x60781C2586D68229fde47564546784ab3fACA982",
+    // strategyAddress: "0xA1EdFF60A604BB9dFEf25fc00b6D82a07cEAAf91",
+    snowglobeAddress: "0xA22D8FD15FB36aA9e1Db795A78db8b688F6284F6",
+    controller: "backup",
   },
+  // {
+  //   name: "TeddyxTeddy",
+  //   tokenAddress: "0x094bd7B2D99711A1486FB94d4395801C6d0fdDcC",
+  //   strategyAddress: "",
+  //   snowglobeAddress: "",
+  // },
 ];
 
 for (const test of tests) {
