@@ -145,8 +145,8 @@ async function main() {
       lp = await Strategy.want();
       SnowGlobe = new ethers.Contract(pool.snowglobe_addr, snowglobe_ABI, deployer);
       console.log(`connected to ${snowglobe_name} at : ${SnowGlobe.address}`);
-      // pool.setGlobe=true;
-      // pool.addGauge=true;
+      pool.setGlobe=true;
+      pool.addGauge=true;
     }
   
     /* Set Globe */
@@ -252,7 +252,6 @@ async function main() {
       }
       console.log('whitelisted the harvester for: ',pool.name);
     }
-
 
     /* 
       Add Keeper 

@@ -16,8 +16,4 @@ contract WithdrawRewards {
     }
   }
 
-  // function withdraw(address _token, address _target) external {
-  //   IERC20(_token).safeTransfer(_target, IERC20(_token).balanceOf(address(this)));
-  // }
-
 }

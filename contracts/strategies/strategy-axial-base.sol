@@ -132,22 +132,6 @@ abstract contract StrategyAxialBase is StrategyBase {
         );
     }
 
-    function _takeFeeOrcaToSnob(uint256 _keep) internal {
-        address[] memory path = new address[](3);
-        path[0] = orca;
-        path[1] = wavax;
-        path[2] = snob;
-        IERC20(orca).safeApprove(joeRouter, 0);
-        IERC20(orca).safeApprove(joeRouter, _keep);
-        _swapTraderJoeWithPath(path, _keep);
-        uint256 _snob = IERC20(snob).balanceOf(address(this));
-        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
-        IERC20(snob).safeTransfer(feeDistributor, _share);
-        IERC20(snob).safeTransfer(
-            IController(controller).treasury(),
-            _snob.sub(_share)
-        );
-    }
 
      function _takeFeeWavaxToSnob(uint256 _keep) internal {
         IERC20(wavax).safeApprove(pangolinRouter, 0);
