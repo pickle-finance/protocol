@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-nearpad-base.sol";
 
-contract StrategyPadUsdcLp is StrategyNearPadFarmBase {
+contract StrategyPadPadUsdcLp is StrategyNearPadFarmBase {
     uint256 public pad_usdc_poolid = 1;
     // Token addresses
     address public pad_usdc_lp = 0x73155e476D6b857fE7722AEfeBAD50F9F8bd0b38;
@@ -33,6 +33,6 @@ contract StrategyPadUsdcLp is StrategyNearPadFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPadUsdcLp";
+        return "StrategyPadPadUsdcLp";
     }
 }

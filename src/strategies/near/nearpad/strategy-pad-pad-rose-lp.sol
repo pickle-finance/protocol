@@ -3,11 +3,11 @@ pragma solidity ^0.6.7;
 
 import "../strategy-nearpad-base.sol";
 
-contract StrategyBtcNearLp is StrategyNearPadFarmBase {
-    uint256 public near_btc_poolid = 13;
+contract StrategyPadPadRoseLp is StrategyNearPadFarmBase {
+    uint256 public pad_rose_poolid = 17;
     // Token addresses
-    address public near_btc_lp = 0xA188D79D6bdbc1120a662DE9eB72384E238AF104;
-    address public btc = 0xF4eB217Ba2454613b15dBdea6e5f22276410e89e;
+    address public pad_rose_lp = 0xC6C3cc84EabD4643C382C988fA2830657fc70a6B;
+    address public rose = 0xdcD6D4e2B3e1D1E1E6Fa8C21C8A323DcbecfF970;
 
     constructor(
         address _governance,
@@ -17,23 +17,22 @@ contract StrategyBtcNearLp is StrategyNearPadFarmBase {
     )
         public
         StrategyNearPadFarmBase(
-            near,
-            btc,
-            near_btc_poolid,
-            near_btc_lp,
+            pad,
+            rose,
+            pad_rose_poolid,
+            pad_rose_lp,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {
-        swapRoutes[btc] = [pad, near, btc];
-        swapRoutes[near] = [pad, near];
+        swapRoutes[rose] = [pad, rose];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyBtcNearLp";
+        return "StrategyPadPadRoseLp";
     }
 }

@@ -3,10 +3,11 @@ pragma solidity ^0.6.7;
 
 import "../strategy-nearpad-base.sol";
 
-contract StrategyUsdtPadLp is StrategyNearPadFarmBase {
-    uint256 public usdt_pad_poolid = 0;
+contract StrategyPadUsdtUsdcLp is StrategyNearPadFarmBase {
+    uint256 public usdt_usdc_poolid = 6;
     // Token addresses
-    address public usdt_pad_lp = 0x1FD6CBBFC0363AA394bd77FC74F64009BF54A7e9;
+    address public usdt_usdc_lp = 0x9f31f2cFd64cEbFe021f0102E17c7Ae1c76CCb6b;
+    address public usdc = 0xB12BFcA5A55806AaF64E99521918A4bf0fC40802;
     address public usdt = 0x4988a896b1227218e4A686fdE5EabdcAbd91571f;
 
     constructor(
@@ -18,21 +19,22 @@ contract StrategyUsdtPadLp is StrategyNearPadFarmBase {
         public
         StrategyNearPadFarmBase(
             usdt,
-            pad,
-            usdt_pad_poolid,
-            usdt_pad_lp,
+            usdc,
+            usdt_usdc_poolid,
+            usdt_usdc_lp,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {
+        swapRoutes[usdc] = [pad, usdc];
         swapRoutes[usdt] = [pad, usdt];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyUsdtPadLp";
+        return "StrategyPadUsdtUsdcLp";
     }
 }
