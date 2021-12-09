@@ -5,7 +5,7 @@ import "../strategy-tri-base.sol";
 
 contract StrategyTriTriNearLp is StrategyTriFarmBase {
     // Token/ETH pool id in MasterChef contract
-    uint256 public tri_tri_near_poolid = 1;
+    uint256 public tri_tri_near_poolid = 5;
     // Token addresses
     address public tri_tri_near_lp = 0x84b123875F0F36B966d0B6Ca14b31121bd9676AD;
 

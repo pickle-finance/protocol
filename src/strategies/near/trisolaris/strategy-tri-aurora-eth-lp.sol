@@ -5,7 +5,7 @@ import "../strategy-tri-base.sol";
 
 contract StrategyTriAuroraEthLp is StrategyTriFarmBase {
     // Token/ETH pool id in MasterChef contract
-    uint256 public tri_aurora_eth_poolid = 1;
+    uint256 public tri_aurora_eth_poolid = 6;
     // Token addresses
     address public tri_aurora_eth_lp =
         0x5eeC60F348cB1D661E4A5122CF4638c7DB7A886e;
