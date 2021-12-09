@@ -12,7 +12,7 @@ contract StrategyCroBtcLp is StrategyVVSFarmBase {
 
     constructor(
         address _governance,
-        address _strategist,
+        address _strategist,V
         address _controller,
         address _timelock
     )
