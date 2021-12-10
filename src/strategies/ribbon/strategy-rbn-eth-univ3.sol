@@ -282,6 +282,11 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         tokenId = _tokenId;
         tick_lower = _tickLower;
         tick_upper = _tickUpper;
+        
+        if (isStakingActive()) {
+            nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
+            IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
+        }
 
         emit rebalanced(tokenId, _tickLower, _tickUpper);
     }
