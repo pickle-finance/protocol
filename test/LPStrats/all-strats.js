@@ -381,6 +381,21 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "",
   // },
+  {
+      name: "PngAvaxCly",
+      controllerAddress: "",
+      snowglobeAddress: "",
+    },      
+  {
+    name: "PngUsdteSkill",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
+  {
+    name: "PngAvaxCook",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
   // {
   //   name: "JoeAvaxPng",
   //   controllerAddress: "",
@@ -648,21 +663,7 @@ const tests = [
     //     snowglobeAddress: "",
     //     slot: 51
     //   },
-    // {
-    //     name: "PngAvaxCly",
-    //     controllerAddress: "",
-    //     snowglobeAddress: "",
-    //   },      
-    // {
-    //   name: "PngSkillUsdte",
-    //   controllerAddress: "",
-    //   snowglobeAddress: "",
-    // },
-      {
-        name: "PngCookAvax",
-        controllerAddress: "",
-        snowglobeAddress: "",
-      },
+
 ];
 
 for (const test of tests) {
