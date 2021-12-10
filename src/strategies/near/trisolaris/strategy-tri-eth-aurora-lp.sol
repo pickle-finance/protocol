@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-tri-base.sol";
 
-contract StrategyTriAuroraEthLp is StrategyTriFarmBase {
+contract StrategyTriEthAuroraLp is StrategyTriFarmBase {
     // Token/ETH pool id in MasterChef contract
     uint256 public tri_eth_aurora_poolid = 6;
     // Token addresses
@@ -37,6 +37,6 @@ contract StrategyTriAuroraEthLp is StrategyTriFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyTriAuroraEthLp";
+        return "StrategyTriEthAuroraLp";
     }
 }
