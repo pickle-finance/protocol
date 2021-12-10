@@ -18,7 +18,7 @@ contract StrategyCronaBtcUsdcLp is StrategyCronaFarmBase {
         address _timelock
     )
         public
-        StrategyVVSFarmBase(
+        StrategyCronaFarmBase(
             btc,
             usdc,
             btc_usdc_poolId,

@@ -17,7 +17,7 @@ contract StrategyCronaCronaUsdcLp is StrategyCronaFarmBase {
         address _timelock
     )
         public
-        StrategyVVSFarmBase(
+        StrategyCronaFarmBase(
             crona,
             usdc,
             crona_usdc_poolId,
