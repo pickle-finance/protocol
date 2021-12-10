@@ -7,7 +7,7 @@ contract StrategyPngAvaxCookLp is StrategyPngMiniChefFarmBase {
 
     // Token addresses
     address public png_avax_cook_lp = 0xf7FF4fb01c3c1Ab0128A79953CD8B47526292FB2;
-    address public token1 = 0x637afeff75ca669fF92e4570B14D6399A658902f;
+    address public cook = 0x637afeff75ca669fF92e4570B14D6399A658902f;
 
     constructor(
         address _governance,
@@ -45,32 +45,32 @@ contract StrategyPngAvaxCookLp is StrategyPngMiniChefFarmBase {
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
 
-            _swapPangolin(png, wavax, _png.div(2));    
+            _swapPangolin(png, wavax, _png);    
         }
 
         // Swap half WAVAX for token
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0 && token1 != png) {
-            _swapPangolin(wavax, token1, _wavax.div(2));
+        if (_wavax > 0 && cook != png) {
+            _swapPangolin(wavax, cook, _wavax.div(2));
         }
 
         // Adds in liquidity for COOK/AVAX
         _wavax = IERC20(wavax).balanceOf(address(this));
 
-        uint256 _token1 = IERC20(token1).balanceOf(address(this));
+        uint256 _cook = IERC20(cook).balanceOf(address(this));
 
-        if (_wavax > 0 && _token1 > 0) {
+        if (_wavax > 0 && _cook > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
 
-            IERC20(token1).safeApprove(pangolinRouter, 0);
-            IERC20(token1).safeApprove(pangolinRouter, _token1);
+            IERC20(cook).safeApprove(pangolinRouter, 0);
+            IERC20(cook).safeApprove(pangolinRouter, _cook);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
                 wavax,
-                token1,
+                cook,
                 _wavax,
-                _token1,
+                _cook,
                 0,
                 0,
                 address(this),
@@ -79,17 +79,17 @@ contract StrategyPngAvaxCookLp is StrategyPngMiniChefFarmBase {
 
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _token1 = IERC20(token1).balanceOf(address(this));
+            _cook = IERC20(cook).balanceOf(address(this));
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
                     _wavax
                 );
             }
-            if (_token1 > 0){
-                IERC20(token1).safeTransfer(
+            if (_cook > 0){
+                IERC20(cook).safeTransfer(
                     IController(controller).treasury(),
-                    _token1
+                    _cook
                 );
             }
         }

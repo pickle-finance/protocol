@@ -6,8 +6,8 @@ contract StrategyPngAvaxClyLp is StrategyPngMiniChefFarmBase {
     uint256 public _poolId = 49;
 
     // Token addresses
-    address public Png_AVAX_CLY_lp = 0x997B92C4c9d3023C11A937eC322063D952337236;
-    address public token1 = 0xec3492a2508DDf4FDc0cD76F31f340b30d1793e6;
+    address public png_avax_cly_lp = 0x997B92C4c9d3023C11A937eC322063D952337236;
+    address public cly = 0xec3492a2508DDf4FDc0cD76F31f340b30d1793e6;
 
     constructor(
         address _governance,
@@ -18,7 +18,7 @@ contract StrategyPngAvaxClyLp is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            Png_AVAX_CLY_lp,
+            png_avax_cly_lp,
             _governance,
             _strategist,
             _controller,
@@ -50,27 +50,27 @@ contract StrategyPngAvaxClyLp is StrategyPngMiniChefFarmBase {
 
         // Swap half WAVAX for token
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0 && token1 != png) {
-            _swapPangolin(wavax, token1, _wavax.div(2));
+        if (_wavax > 0 && cly != png) {
+            _swapPangolin(wavax, cly, _wavax.div(2));
         }
 
         // Adds in liquidity for AVAX/CLY
         _wavax = IERC20(wavax).balanceOf(address(this));
 
-        uint256 _token1 = IERC20(token1).balanceOf(address(this));
+        uint256 _cly = IERC20(cly).balanceOf(address(this));
 
-        if (_wavax > 0 && _token1 > 0) {
+        if (_wavax > 0 && _cly > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
 
-            IERC20(token1).safeApprove(pangolinRouter, 0);
-            IERC20(token1).safeApprove(pangolinRouter, _token1);
+            IERC20(cly).safeApprove(pangolinRouter, 0);
+            IERC20(cly).safeApprove(pangolinRouter, _cly);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
                 wavax,
-                token1,
+                cly,
                 _wavax,
-                _token1,
+                _cly,
                 0,
                 0,
                 address(this),
@@ -79,17 +79,17 @@ contract StrategyPngAvaxClyLp is StrategyPngMiniChefFarmBase {
 
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _token1 = IERC20(token1).balanceOf(address(this));
+            _cly = IERC20(cly).balanceOf(address(this));
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
                     _wavax
                 );
             }
-            if (_token1 > 0){
-                IERC20(token1).safeTransfer(
+            if (_cly > 0){
+                IERC20(cly).safeTransfer(
                     IController(controller).treasury(),
-                    _token1
+                    _cly
                 );
             }
         }
