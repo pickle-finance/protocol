@@ -261,7 +261,6 @@ abstract contract StrategyUniV3Base {
     }
 
     // **** Internal functions ****
-    
 
     function _swapUniswapV3(
         address _from,
@@ -285,7 +284,6 @@ abstract contract StrategyUniV3Base {
 
         UniswapRouterV2(univ2Router2).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
     }
-
 
     function _swapUniswap(
         address _from,
@@ -345,24 +343,26 @@ abstract contract StrategyUniV3Base {
         UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
     }
 
+    function _distributePerformanceFees(uint256 _amount0, uint256 _amount1) internal {
+        if (_amount0 > 0) {
+            token0.safeTransfer(
+                IControllerV2(controller).treasury(),
+                _amount0.mul(performanceTreasuryFee).div(performanceTreasuryMax)
+            );
+        }
+        if (_amount1 > 0) {
+            token1.safeTransfer(
+                IControllerV2(controller).treasury(),
+                _amount1.mul(performanceTreasuryFee).div(performanceTreasuryMax)
+            );
+        }
+    }
+
     function _distributePerformanceFeesAndDeposit() internal {
         uint256 _balance0 = token0.balanceOf(address(this));
         uint256 _balance1 = token1.balanceOf(address(this));
-        if (_balance0 > 0) {
-            // Treasury fees
-            token0.safeTransfer(
-                IControllerV2(controller).treasury(),
-                _balance0.mul(performanceTreasuryFee).div(performanceTreasuryMax)
-            );
-        }
 
-        if (_balance1 > 0) {
-            // Treasury fees
-            token1.transfer(
-                IControllerV2(controller).treasury(),
-                _balance1.mul(performanceTreasuryFee).div(performanceTreasuryMax)
-            );
-        }
+        _distributePerformanceFees(_balance0, _balance1);
         deposit();
     }
 

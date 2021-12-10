@@ -73,42 +73,42 @@ describe("StrategyRbnEthUniV3", () => {
       RBN_TOKEN,
       toWei(110000),
       alice,
-      "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098"
+      "0x65B1B96bD01926d3d60DD3c8bc452F22819443A9"
     );
 
     await getWantFromWhale(
       WETH_TOKEN,
       toWei(80),
       alice,
-      "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098"
+      "0x57757E3D981446D585Af0D9Ae4d7DF6D64647806"
     );
 
     await getWantFromWhale(
       RBN_TOKEN,
       toWei(100000),
       bob,
-      "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098"
+      "0x65B1B96bD01926d3d60DD3c8bc452F22819443A9"
     );
 
     await getWantFromWhale(
       WETH_TOKEN,
       toWei(80),
       bob,
-      "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098"
+      "0x57757E3D981446D585Af0D9Ae4d7DF6D64647806"
     );
 
     await getWantFromWhale(
       RBN_TOKEN,
       toWei(100000),
       charles,
-      "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098"
+      "0x65B1B96bD01926d3d60DD3c8bc452F22819443A9"
     );
 
     await getWantFromWhale(
       WETH_TOKEN,
       toWei(30),
       charles,
-      "0x58f5F0684C381fCFC203D77B2BbA468eBb29B098"
+      "0x57757E3D981446D585Af0D9Ae4d7DF6D64647806"
     );
 
     // Initial deposit to create NFT
@@ -133,6 +133,7 @@ describe("StrategyRbnEthUniV3", () => {
     );
     await depositWithEth(alice, depositA, depositB);
     console.log("Alice ETH balance after deposit: ", (await alice.getBalance()).toString())
+    await rebalance();
     await harvest();
 
     console.log("=============== Bob deposit ==============");
@@ -200,7 +201,7 @@ describe("StrategyRbnEthUniV3", () => {
     );
 
     await harvest();
-
+    await rebalance2();
     console.log("=============== Controller withdraw ===============");
     console.log(
       "PickleJar rbn balance before withdrawal => ",
@@ -301,6 +302,30 @@ describe("StrategyRbnEthUniV3", () => {
     await strategy.harvest();
     console.log("Ratio after harvest => ", (await pickleJar.getRatio()).toString());
     console.log("============ Harvest Ended ==============");
+  };
+
+  const rebalance = async () => {
+    console.log("============ Rebalance Started ==============");
+
+    console.log("Ratio before rebalance => ", (await pickleJar.getRatio()).toString());
+    let tickSpacing = 200;
+    let tickRangeMultiplier = 2;
+    let baseThreshold = tickSpacing * tickRangeMultiplier;
+    let currentTick = -78453;
+    let compressed = currentTick / tickSpacing;
+    let floor = Math.floor(currentTick/tickSpacing) * tickSpacing;
+    await strategy.rebalance(floor-baseThreshold, floor + baseThreshold);
+    console.log("Ratio after rebalance => ", (await pickleJar.getRatio()).toString());
+    console.log("============ Rebalance Ended ==============");
+  };
+
+  const rebalance2 = async () => {
+    console.log("============ Rebalance Started ==============");
+
+    console.log("Ratio before rebalance => ", (await pickleJar.getRatio()).toString());
+    await strategy.rebalance(-887200, 887200);
+    console.log("Ratio after rebalance => ", (await pickleJar.getRatio()).toString());
+    console.log("============ Rebalance Ended ==============");
   };
 
   const getAmountB = async (amountA) => {
