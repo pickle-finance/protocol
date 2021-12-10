@@ -89,44 +89,59 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
     }
 
     function harvest() public override onlyBenevolent {
+        harvestOne();
+        harvestTwo();
+        harvestThree();
+        harvestFour();
+    }
+
+    function harvestOne() public onlyBenevolent {
+        // Collects TRI tokens
+        IMiniChefNearPad(miniChef).harvest(poolId);
+        uint256 _pad = IERC20(pad).balanceOf(address(this));
+        uint256 _keepPAD = _pad.mul(keepPAD).div(keepPADMax);
+
+        IERC20(pad).safeTransfer(IController(controller).treasury(), _keepPAD);
+    }
+
+    function harvestTwo() public onlyBenevolent {
         // Anyone can harvest it at any given time.
         // I understand the possibility of being frontrun
         // But ETH is a dark forest, and I wanna see how this plays out
         // i.e. will be be heavily frontrunned?
         //      if so, a new strategy will be deployed.
 
-        // Collects TRI tokens
-        IMiniChefNearPad(miniChef).deposit(poolId, 0);
         uint256 _pad = IERC20(pad).balanceOf(address(this));
         if (_pad > 0) {
-            uint256 _keepPAD = _pad.mul(keepPAD).div(keepPADMax);
-
-            IERC20(pad).safeTransfer(
-                IController(controller).treasury(),
-                _keepPAD
-            );
-
-            _pad = _pad.sub(_keepPAD);
             uint256 toToken0 = _pad.div(2);
             uint256 toToken1 = _pad.sub(toToken0);
 
             if (swapRoutes[token0].length > 1) {
-                _swapSushiswapWithPath(swapRoutes[token0], toToken0);
+                UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
+                    toToken0,
+                    0,
+                    swapRoutes[token0],
+                    address(this),
+                    now + 60
+                );
             }
             if (swapRoutes[token1].length > 1) {
-                _swapSushiswapWithPath(swapRoutes[token1], toToken1);
+                UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
+                    toToken1,
+                    0,
+                    swapRoutes[token1],
+                    address(this),
+                    now + 60
+                );
             }
         }
+    }
 
+    function harvestThree() public onlyBenevolent {
         // Adds in liquidity for token0/token1
         uint256 _token0 = IERC20(token0).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
         if (_token0 > 0 && _token1 > 0) {
-            IERC20(token0).safeApprove(sushiRouter, 0);
-            IERC20(token0).safeApprove(sushiRouter, _token0);
-            IERC20(token1).safeApprove(sushiRouter, 0);
-            IERC20(token1).safeApprove(sushiRouter, _token1);
-
             UniswapRouterV2(sushiRouter).addLiquidity(
                 token0,
                 token1,
@@ -148,8 +163,10 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
                 IERC20(token1).balanceOf(address(this))
             );
         }
+    }
 
-        // We want to get back Tri LP tokens
+    function harvestFour() public onlyBenevolent {
+        // We want to get back PAD LP tokens
         _distributePerformanceFeesAndDeposit();
     }
 }
