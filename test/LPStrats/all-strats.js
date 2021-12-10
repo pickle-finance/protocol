@@ -653,8 +653,13 @@ const tests = [
     //     controllerAddress: "",
     //     snowglobeAddress: "",
     //   },      
+    // {
+    //   name: "PngSkillUsdte",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
       {
-        name: "PngSkillUsdte",
+        name: "PngCookAvax",
         controllerAddress: "",
         snowglobeAddress: "",
       },
