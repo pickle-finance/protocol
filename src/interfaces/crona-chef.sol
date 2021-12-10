@@ -2,10 +2,10 @@
 pragma solidity ^0.6.7;
 
 // interface for Solarchef contract
-interface IVvsChef {
+interface ICronaChef {
     function deposit(uint256 _pid, uint256 _amount) external;
 
-    function pendingVvs(uint256 _pid, address _user)
+    function pendingCrona(uint256 _pid, address _user)
         external
         view
         returns (uint256);
