@@ -6,9 +6,9 @@ import "../../interfaces/crona-chef.sol";
 
 abstract contract StrategyCronaFarmBase is StrategyBase {
     // Token addresses
-    address public constant crona = 0x2D03bECE6747ADC00E1a131BBA1469C15fD11e03;
+    address public constant crona = 0xadbd1231fb360047525BEdF962581F3eee7b49fe;
     address public constant cronaChef =
-        0xDccd6455AE04b03d785F12196B492b18129564bc;
+        0x77ea4a4cF9F77A034E4291E8f457Af7772c2B254;
 
     address public token0;
     address public token1;
