@@ -648,12 +648,16 @@ const tests = [
     //     snowglobeAddress: "",
     //     slot: 51
     //   },
-    {
-        name: "PngAvaxCly",
+    // {
+    //     name: "PngAvaxCly",
+    //     controllerAddress: "",
+    //     snowglobeAddress: "",
+    //   },      
+      {
+        name: "PngSkillUsdte",
         controllerAddress: "",
         snowglobeAddress: "",
-      },      
-
+      },
 ];
 
 for (const test of tests) {
