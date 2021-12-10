@@ -4,7 +4,7 @@ pragma solidity ^0.6.7;
 import "../strategy-crona-farm-base.sol";
 
 contract StrategyCronaBnbBusdLp is StrategyCronaFarmBase {
-    uint256 public bnb_busd_poolId = 6;
+    uint256 public bnb_busd_poolId = 12;
 
     // Token addresses
     address public bnb_busd_lp = 0xe8B18116040acf83D6e1f873375adF61103AB45c;

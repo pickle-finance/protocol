@@ -4,7 +4,7 @@ pragma solidity ^0.6.7;
 import "../strategy-crona-farm-base.sol";
 
 contract StrategyCronaCronaCroLp is StrategyCronaFarmBase {
-    uint256 public usdc_cro_poolId = 6;
+    uint256 public usdc_cro_poolId = 2;
 
     // Token addresses
     address public usdc_cro_lp = 0x0625A68D25d304aed698c806267a4e369e8Eb12a;
