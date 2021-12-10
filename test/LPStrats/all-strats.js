@@ -649,7 +649,7 @@ const tests = [
     //     slot: 51
     //   },
     {
-        name: "JoeAvaxMead",
+        name: "PngAvaxCly",
         controllerAddress: "",
         snowglobeAddress: "",
       },      
