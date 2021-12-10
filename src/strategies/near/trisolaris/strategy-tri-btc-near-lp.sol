@@ -3,14 +3,12 @@ pragma solidity ^0.6.7;
 
 import "../strategy-tri-base.sol";
 
-contract StrategyTriUsdtUsdcLp is StrategyTriFarmBase {
+contract StrategyTriBtcNearLp is StrategyTriFarmBase {
     // Token/ETH pool id in MasterChef contract
-    uint256 public tri_usdt_usdc_poolid = 3;
+    uint256 public tri_btc_near_poolid = 4;
     // Token addresses
-    address public tri_usdt_usdc_lp =
-        0x2fe064B6c7D274082aa5d2624709bC9AE7D16C77;
-    address public usdc = 0xB12BFcA5A55806AaF64E99521918A4bf0fC40802;
-    address public usdt = 0x4988a896b1227218e4A686fdE5EabdcAbd91571f;
+    address public tri_btc_near_lp = 0xbc8A244e8fb683ec1Fd6f88F3cc6E565082174Eb;
+    address public btc = 0xF4eB217Ba2454613b15dBdea6e5f22276410e89e;
 
     constructor(
         address _governance,
@@ -20,23 +18,23 @@ contract StrategyTriUsdtUsdcLp is StrategyTriFarmBase {
     )
         public
         StrategyTriFarmBase(
-            usdt,
-            usdc,
-            tri_usdt_usdc_poolid,
-            tri_usdt_usdc_lp,
+            btc,
+            near,
+            tri_btc_near_poolid,
+            tri_btc_near_lp,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {
-        swapRoutes[usdt] = [tri, near, usdt];
-        swapRoutes[usdc] = [tri, near, usdc];
+        swapRoutes[near] = [tri, near];
+        swapRoutes[btc] = [tri, near, btc];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyTriUsdtUsdcLp";
+        return "StrategyTriBtcNearLp";
     }
 }
