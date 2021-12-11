@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-crona-farm-base.sol";
 
-contract StrategyCronaCronaCroLp is StrategyCronaFarmBase {
+contract StrategyCronaUsdcCroLp is StrategyCronaFarmBase {
     uint256 public usdc_cro_poolId = 2;
 
     // Token addresses
@@ -35,6 +35,6 @@ contract StrategyCronaCronaCroLp is StrategyCronaFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyCronaCronaCroLp";
+        return "StrategyCronaUsdcCroLp";
     }
 }
