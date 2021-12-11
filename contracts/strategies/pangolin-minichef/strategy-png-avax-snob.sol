@@ -7,7 +7,9 @@ contract StrategyPngAvaxSnobLp is StrategyPngMiniChefFarmBase {
 
     // Token addresses
     address public png_avax_snob_lp = 0xa1C2c3B6b120cBd4Cec7D2371FFd4a931A134A32;
-    address public snob = 0xC38f41A296A4493Ff429F1238e030924A1542e50;
+    // snob already defined in strategy-base.sol:24
+    // should we add "override" specifier, or remove declaration from this contract?
+    // address public snob = 0xC38f41A296A4493Ff429F1238e030924A1542e50;
 
     constructor(
         address _governance,
