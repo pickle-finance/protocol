@@ -68,6 +68,7 @@ describe("StrategyRbnEthUniV3", () => {
 
     rbn = await getContractAt("ERC20", RBN_TOKEN);
     weth = await getContractAt("ERC20", WETH_TOKEN);
+    pool = await getContractAt("IUniswapV3Pool", RBN_ETH_POOL);
 
     await getWantFromWhale(
       RBN_TOKEN,
@@ -308,10 +309,11 @@ describe("StrategyRbnEthUniV3", () => {
     console.log("============ Rebalance Started ==============");
 
     console.log("Ratio before rebalance => ", (await pickleJar.getRatio()).toString());
-    let tickSpacing = 200;
-    let tickRangeMultiplier = 2;
+    let tickSpacing = await pool.tickSpacing();
+    let tickRangeMultiplier = 100;
     let baseThreshold = tickSpacing * tickRangeMultiplier;
-    let currentTick = -78453;
+    let currentTick;
+    [,currentTick,,,,,] = await pool.slot0();
     let compressed = currentTick / tickSpacing;
     let floor = Math.floor(currentTick/tickSpacing) * tickSpacing;
     await strategy.rebalance(floor-baseThreshold, floor + baseThreshold);
