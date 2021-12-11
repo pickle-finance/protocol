@@ -43,7 +43,7 @@ contract StrategyPngAvaxAmplLp is StrategyPngMiniChefFarmBase {
             _png = IERC20(png).balanceOf(address(this));
 
             IERC20(png).safeApprove(pangolinRouter, 0);
-            IERC20(png).safeApprove(pangolinRouter, _png.sub(_keep));
+            IERC20(png).safeApprove(pangolinRouter, _png);
 
             _swapPangolin(png, wavax, _png);    
         }
