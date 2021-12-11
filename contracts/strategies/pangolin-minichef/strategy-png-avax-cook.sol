@@ -48,13 +48,13 @@ contract StrategyPngAvaxCookLp is StrategyPngMiniChefFarmBase {
             _swapPangolin(png, wavax, _png);    
         }
 
-        // Swap half WAVAX for token
+        // Swap half WAVAX for COOK
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0 && cook != png) {
+        if (_wavax > 0) {
             _swapPangolin(wavax, cook, _wavax.div(2));
         }
 
-        // Adds in liquidity for COOK/AVAX
+        // Adds in liquidity for AVAX/COOK
         _wavax = IERC20(wavax).balanceOf(address(this));
 
         uint256 _cook = IERC20(cook).balanceOf(address(this));
@@ -77,9 +77,10 @@ contract StrategyPngAvaxCookLp is StrategyPngMiniChefFarmBase {
                 now + 60
             );
 
-            // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
             _cook = IERC20(cook).balanceOf(address(this));
+            
+            // Donates DUST
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),

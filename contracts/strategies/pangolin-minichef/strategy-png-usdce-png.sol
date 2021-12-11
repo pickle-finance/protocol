@@ -2,11 +2,11 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-minichef-farm-base.sol";
 
-contract StrategyPngUsdcEPngMiniLp is StrategyPngMiniChefFarmBase {
+contract StrategyPngUsdcEPngLp is StrategyPngMiniChefFarmBase {
     uint256 public _poolId = 1;
 
     // Token addresses
-    address public Png_USDCe_Png_lp = 0xC33Ac18900b2f63DFb60B554B1F53Cd5b474d4cd;
+    address public png_usdce_png_lp = 0xC33Ac18900b2f63DFb60B554B1F53Cd5b474d4cd;
     address public usdce = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
 
 
@@ -19,7 +19,7 @@ contract StrategyPngUsdcEPngMiniLp is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            Png_USDCe_Png_lp,
+            png_usdce_png_lp,
             _governance,
             _strategist,
             _controller,
@@ -48,8 +48,6 @@ contract StrategyPngUsdcEPngMiniLp is StrategyPngMiniChefFarmBase {
             _swapPangolin(png, usdce, _png.div(2));       
         }
 
-       
-
         // Adds in liquidity for USDCe/PNG
         _png = IERC20(png).balanceOf(address(this));
         uint256 _usdce = IERC20(usdce).balanceOf(address(this));
@@ -74,6 +72,7 @@ contract StrategyPngUsdcEPngMiniLp is StrategyPngMiniChefFarmBase {
 
             _png = IERC20(png).balanceOf(address(this));
             _usdce = IERC20(usdce).balanceOf(address(this));
+           
             // Donates DUST
             if (_png > 0){
                 IERC20(png).transfer(
@@ -96,6 +95,6 @@ contract StrategyPngUsdcEPngMiniLp is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngUsdcEPngMiniLp";
+        return "StrategyPngUsdcEPngLp";
     }
 }

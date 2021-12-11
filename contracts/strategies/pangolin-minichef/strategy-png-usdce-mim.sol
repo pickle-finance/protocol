@@ -6,7 +6,7 @@ contract StrategyPngUsdcEMimLp is StrategyPngMiniChefFarmBase {
     uint256 public _poolId = 38;
 
     // Token addresses
-    address public Png_USDCE_MIM_lp = 0xE75eD6E50e3e2dc6b06FAf38b943560BD22e343B;
+    address public png_usdce_mim_lp = 0xE75eD6E50e3e2dc6b06FAf38b943560BD22e343B;
     address public usdce = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
     address public mim = 0x130966628846BFd36ff31a822705796e8cb8C18D;
 
@@ -19,7 +19,7 @@ contract StrategyPngUsdcEMimLp is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            Png_USDCE_MIM_lp,
+            png_usdce_mim_lp,
             _governance,
             _strategist,
             _controller,
@@ -50,11 +50,10 @@ contract StrategyPngUsdcEMimLp is StrategyPngMiniChefFarmBase {
             _swapPangolin(png, usdce, _png.div(2));  
 
             // swap the other half for mim, but this needs a special path
-            address [] memory path = new address[](4);
+            address [] memory path = new address[](3);
             path[0] = png; 
             path[1] = usdce; 
-            path[2] = wavax;
-            path[3] = mim; 
+            path[2] = mim;
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
             _swapPangolinWithPath(path, _png.div(2)); 
@@ -86,6 +85,7 @@ contract StrategyPngUsdcEMimLp is StrategyPngMiniChefFarmBase {
 
             _usdce = IERC20(usdce).balanceOf(address(this));
             _mim = IERC20(mim).balanceOf(address(this));
+            
             // Donates DUST
             if (_usdce > 0){
                 IERC20(usdce).transfer(

@@ -2,11 +2,11 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-minichef-farm-base.sol";
 
-contract StrategyPngUsdcEDaiEMiniLp is StrategyPngMiniChefFarmBase {
+contract StrategyPngUsdcEDaiELp is StrategyPngMiniChefFarmBase {
     uint256 public _poolId = 11;
 
     // Token addresses
-    address public Png_USDCE_DAIE_lp = 0x221Caccd55F16B5176e14C0e9DBaF9C6807c83c9;
+    address public png_usdce_daie_lp = 0x221Caccd55F16B5176e14C0e9DBaF9C6807c83c9;
     address public usdce = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
     address public daie = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
 
@@ -19,7 +19,7 @@ contract StrategyPngUsdcEDaiEMiniLp is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            Png_USDCE_DAIE_lp,
+            png_usdce_daie_lp,
             _governance,
             _strategist,
             _controller,
@@ -28,13 +28,8 @@ contract StrategyPngUsdcEDaiEMiniLp is StrategyPngMiniChefFarmBase {
     {}
     // **** State Mutations ****
 
-  function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But AVAX is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
+ function harvest() public override onlyBenevolent {
+   
         // Collects Png tokens
         IMiniChef(miniChef).harvest(poolId, address(this));
 
@@ -42,15 +37,17 @@ contract StrategyPngUsdcEDaiEMiniLp is StrategyPngMiniChefFarmBase {
         if (_png > 0) {
             // 10% is sent to treasury
             uint256 _keep = _png.mul(keep).div(keepMax);
-            uint256 _amount = _png.sub(_keep).div(2);
             if (_keep > 0) {
                 _takeFeePngToSnob(_keep);
             }
-            IERC20(png).safeApprove(pangolinRouter, 0);
-            IERC20(png).safeApprove(pangolinRouter, _png.sub(_keep));
 
-            _swapPangolin(png, usdce, _amount);    
-            _swapPangolin(png, daie, _amount); 
+            _png = IERC20(png).balanceOf(address(this));
+
+            IERC20(png).safeApprove(pangolinRouter, 0);
+            IERC20(png).safeApprove(pangolinRouter, _png);
+
+            _swapPangolin(png, usdce, _png.div(2));    
+            _swapPangolin(png, daie, _png.div(2)); 
         }
 
 
@@ -101,6 +98,6 @@ contract StrategyPngUsdcEDaiEMiniLp is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngUsdcEDaiEMiniLp";
+        return "StrategyPngUsdcEDaiELp";
     }
 }

@@ -45,12 +45,12 @@ contract StrategyPngAvaxClyLp is StrategyPngMiniChefFarmBase {
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
 
-            _swapPangolin(png, wavax, _png.div(2));    
+            _swapPangolin(png, wavax, _png);    
         }
 
-        // Swap half WAVAX for token
+        // Swap half WAVAX for CLY
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0 && cly != png) {
+        if (_wavax > 0) {
             _swapPangolin(wavax, cly, _wavax.div(2));
         }
 
@@ -77,9 +77,10 @@ contract StrategyPngAvaxClyLp is StrategyPngMiniChefFarmBase {
                 now + 60
             );
 
-            // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
             _cly = IERC20(cly).balanceOf(address(this));
+            
+            // Donates DUST
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),

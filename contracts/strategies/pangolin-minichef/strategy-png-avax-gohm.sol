@@ -6,8 +6,8 @@ contract StrategyPngAvaxgOhmLp is StrategyPngMiniChefFarmBase {
     uint256 public _poolId = 39;
 
     // Token addresses
-    address public Png_AVAX_GOHM_lp = 0xb68F4e8261A4276336698f5b11DC46396cf07A22;
-    address public token1 = 0x321E7092a180BB43555132ec53AaA65a5bF84251;
+    address public png_avax_gohm_lp = 0xb68F4e8261A4276336698f5b11DC46396cf07A22;
+    address public gohm = 0x321E7092a180BB43555132ec53AaA65a5bF84251;
 
     constructor(
         address _governance,
@@ -18,7 +18,7 @@ contract StrategyPngAvaxgOhmLp is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            Png_AVAX_GOHM_lp,
+            png_avax_gohm_lp,
             _governance,
             _strategist,
             _controller,
@@ -45,51 +45,52 @@ contract StrategyPngAvaxgOhmLp is StrategyPngMiniChefFarmBase {
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
 
-            _swapPangolin(png, wavax, _png.div(2));    
+            _swapPangolin(png, wavax, _png);    
         }
 
-        // Swap half WAVAX for token
+        // Swap half WAVAX for GOHM
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0 && token1 != png) {
-            _swapPangolin(wavax, token1, _wavax.div(2));
+        if (_wavax > 0) {
+            _swapPangolin(wavax, gohm, _wavax.div(2));
         }
 
         // Adds in liquidity for AVAX/GOHM
         _wavax = IERC20(wavax).balanceOf(address(this));
 
-        uint256 _token1 = IERC20(token1).balanceOf(address(this));
+        uint256 _gohm = IERC20(gohm).balanceOf(address(this));
 
-        if (_wavax > 0 && _token1 > 0) {
+        if (_wavax > 0 && _gohm > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
 
-            IERC20(token1).safeApprove(pangolinRouter, 0);
-            IERC20(token1).safeApprove(pangolinRouter, _token1);
+            IERC20(gohm).safeApprove(pangolinRouter, 0);
+            IERC20(gohm).safeApprove(pangolinRouter, _gohm);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
                 wavax,
-                token1,
+                gohm,
                 _wavax,
-                _token1,
+                _gohm,
                 0,
                 0,
                 address(this),
                 now + 60
             );
 
-            // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _token1 = IERC20(token1).balanceOf(address(this));
+            _gohm = IERC20(gohm).balanceOf(address(this));
+            
+            // Donates DUST
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
                     _wavax
                 );
             }
-            if (_token1 > 0){
-                IERC20(token1).safeTransfer(
+            if (_gohm > 0){
+                IERC20(gohm).safeTransfer(
                     IController(controller).treasury(),
-                    _token1
+                    _gohm
                 );
             }
         }

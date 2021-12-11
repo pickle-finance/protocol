@@ -2,11 +2,11 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-minichef-farm-base.sol";
 
-contract StrategyPngTusdDaiEMiniLp is StrategyPngMiniChefFarmBase {
+contract StrategyPngTusdDaiELp is StrategyPngMiniChefFarmBase {
     uint256 public _poolId = 43;
 
     // Token addresses
-    address public Png_TUSD_DAIE_lp = 0x11cb8967c9CEBC2bC8349ad612301DaC843669ea;
+    address public png_tusd_daie_lp = 0x11cb8967c9CEBC2bC8349ad612301DaC843669ea;
     address public tusd = 0x1C20E891Bab6b1727d14Da358FAe2984Ed9B59EB;
     address public daie = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
 
@@ -19,7 +19,7 @@ contract StrategyPngTusdDaiEMiniLp is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            Png_TUSD_DAIE_lp,
+            png_tusd_daie_lp,
             _governance,
             _strategist,
             _controller,
@@ -29,7 +29,6 @@ contract StrategyPngTusdDaiEMiniLp is StrategyPngMiniChefFarmBase {
     // **** State Mutations ****
 
   function harvest() public override onlyBenevolent {
-   
         // Collects Png tokens
         IMiniChef(miniChef).harvest(poolId, address(this));
 
@@ -49,7 +48,6 @@ contract StrategyPngTusdDaiEMiniLp is StrategyPngMiniChefFarmBase {
             _swapPangolin(png, tusd, _png.div(2));    
             _swapPangolin(png, daie, _png.div(2)); 
         }
-
 
         // Adds in liquidity for TUSD/DAIE
         uint256 _tusd = IERC20(tusd).balanceOf(address(this));
@@ -76,6 +74,7 @@ contract StrategyPngTusdDaiEMiniLp is StrategyPngMiniChefFarmBase {
 
             _tusd = IERC20(tusd).balanceOf(address(this));
             _daie = IERC20(daie).balanceOf(address(this));
+            
             // Donates DUST
             if (_tusd > 0){
                 IERC20(tusd).transfer(
@@ -98,6 +97,6 @@ contract StrategyPngTusdDaiEMiniLp is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngTusdDaiEMiniLp";
+        return "StrategyPngTusdDaiELp";
     }
 }

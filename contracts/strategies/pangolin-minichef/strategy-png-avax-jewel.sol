@@ -6,8 +6,8 @@ contract StrategyPngAvaxJewelLp is StrategyPngMiniChefFarmBase {
     uint256 public _poolId = 46;
 
     // Token addresses
-    address public Png_AVAX_JEWEL_lp = 0x9AA76aE9f804E7a70bA3Fb8395D0042079238E9C;
-    address public token1 = 0x4f60a160D8C2DDdaAfe16FCC57566dB84D674BD6;
+    address public png_avax_jewel_lp = 0x9AA76aE9f804E7a70bA3Fb8395D0042079238E9C;
+    address public jewel = 0x4f60a160D8C2DDdaAfe16FCC57566dB84D674BD6;
 
     constructor(
         address _governance,
@@ -18,7 +18,7 @@ contract StrategyPngAvaxJewelLp is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            Png_AVAX_JEWEL_lp,
+            png_avax_jewel_lp,
             _governance,
             _strategist,
             _controller,
@@ -45,51 +45,52 @@ contract StrategyPngAvaxJewelLp is StrategyPngMiniChefFarmBase {
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
 
-            _swapPangolin(png, wavax, _png.div(2));    
+            _swapPangolin(png, wavax, _png);    
         }
 
-        // Swap half WAVAX for token
+        // Swap half WAVAX for JEWEL
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0 && token1 != png) {
-            _swapPangolin(wavax, token1, _wavax.div(2));
+        if (_wavax > 0) {
+            _swapPangolin(wavax, jewel, _wavax.div(2));
         }
 
         // Adds in liquidity for AVAX/JEWEL
         _wavax = IERC20(wavax).balanceOf(address(this));
 
-        uint256 _token1 = IERC20(token1).balanceOf(address(this));
+        uint256 _jewel = IERC20(jewel).balanceOf(address(this));
 
-        if (_wavax > 0 && _token1 > 0) {
+        if (_wavax > 0 && _jewel > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
 
-            IERC20(token1).safeApprove(pangolinRouter, 0);
-            IERC20(token1).safeApprove(pangolinRouter, _token1);
+            IERC20(jewel).safeApprove(pangolinRouter, 0);
+            IERC20(jewel).safeApprove(pangolinRouter, _jewel);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
                 wavax,
-                token1,
+                jewel,
                 _wavax,
-                _token1,
+                _jewel,
                 0,
                 0,
                 address(this),
                 now + 60
             );
 
-            // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _token1 = IERC20(token1).balanceOf(address(this));
+            _jewel = IERC20(jewel).balanceOf(address(this));
+            
+            // Donates DUST
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
                     _wavax
                 );
             }
-            if (_token1 > 0){
-                IERC20(token1).safeTransfer(
+            if (_jewel > 0){
+                IERC20(jewel).safeTransfer(
                     IController(controller).treasury(),
-                    _token1
+                    _jewel
                 );
             }
         }

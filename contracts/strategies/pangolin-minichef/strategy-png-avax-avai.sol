@@ -48,9 +48,9 @@ contract StrategyPngAvaxAvaiLp is StrategyPngMiniChefFarmBase {
             _swapPangolin(png, wavax, _png);    
         }
 
-        // Swap half WAVAX for token
+        // Swap half WAVAX for AVAI
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0 && avai != png) {
+        if (_wavax > 0) {
             _swapPangolin(wavax, avai, _wavax.div(2));
         }
 
@@ -77,9 +77,10 @@ contract StrategyPngAvaxAvaiLp is StrategyPngMiniChefFarmBase {
                 now + 60
             );
 
-            // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
             _avai = IERC20(avai).balanceOf(address(this));
+            
+            // Donates DUST
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
