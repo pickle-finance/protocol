@@ -56,7 +56,6 @@ contract StrategyPngAvaxPefiLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/PEFI
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _pefi = IERC20(pefi).balanceOf(address(this));
 
         if (_wavax > 0 && _pefi > 0) {

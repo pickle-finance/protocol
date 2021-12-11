@@ -56,7 +56,6 @@ contract StrategyPngAvaxHuskyLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/HUSKY
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _husky = IERC20(husky).balanceOf(address(this));
 
         if (_wavax > 0 && _husky > 0) {

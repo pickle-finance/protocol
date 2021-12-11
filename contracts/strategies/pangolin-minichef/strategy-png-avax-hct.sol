@@ -56,7 +56,6 @@ contract StrategyPngAvaxHctLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/HCT
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _hct = IERC20(hct).balanceOf(address(this));
 
         if (_wavax > 0 && _hct > 0) {

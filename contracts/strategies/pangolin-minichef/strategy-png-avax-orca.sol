@@ -56,7 +56,6 @@ contract StrategyPngAvaxOrcaLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/ORCA
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _orca = IERC20(orca).balanceOf(address(this));
 
         if (_wavax > 0 && _orca > 0) {

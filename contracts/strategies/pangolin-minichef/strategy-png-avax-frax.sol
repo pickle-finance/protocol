@@ -56,7 +56,6 @@ contract StrategyPngAvaxFraxLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/FRAX
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _frax = IERC20(frax).balanceOf(address(this));
 
         if (_wavax > 0 && _frax > 0) {

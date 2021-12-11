@@ -56,7 +56,6 @@ contract StrategyPngAvaxDaiELp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/DAIe
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _daie = IERC20(daie).balanceOf(address(this));
 
         if (_wavax > 0 && _daie > 0) {

@@ -26,6 +26,7 @@ contract StrategyPngUsdcEUsdtELp is StrategyPngMiniChefFarmBase {
             _timelock
         )
     {}
+
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
@@ -50,9 +51,8 @@ contract StrategyPngUsdcEUsdtELp is StrategyPngMiniChefFarmBase {
         }
 
 
-        // Adds in liquidity for USDCE/USDTE
+        // Adds in liquidity for USDCe/USDTe
         uint256 _usdce = IERC20(usdce).balanceOf(address(this));
-
         uint256 _usdte = IERC20(usdte).balanceOf(address(this));
 
         if (_usdce > 0 && _usdte > 0) {
@@ -75,6 +75,7 @@ contract StrategyPngUsdcEUsdtELp is StrategyPngMiniChefFarmBase {
 
             _usdce = IERC20(usdce).balanceOf(address(this));
             _usdte = IERC20(usdte).balanceOf(address(this));
+            
             // Donates DUST
             if (_usdce > 0){
                 IERC20(usdce).transfer(
@@ -88,7 +89,6 @@ contract StrategyPngUsdcEUsdtELp is StrategyPngMiniChefFarmBase {
                     _usdte
                 );
             }
-
         }
 
         _distributePerformanceFeesAndDeposit();
@@ -97,6 +97,6 @@ contract StrategyPngUsdcEUsdtELp is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngUsdcEUsdtEMiniLp";
+        return "StrategyPngUsdcEUsdtELp";
     }
 }

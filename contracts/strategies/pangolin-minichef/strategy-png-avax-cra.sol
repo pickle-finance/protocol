@@ -56,7 +56,6 @@ contract StrategyPngAvaxCraLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/CRA
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _cra = IERC20(cra).balanceOf(address(this));
 
         if (_wavax > 0 && _cra > 0) {

@@ -45,7 +45,7 @@ contract StrategyPngAvaxUsdtELp is StrategyPngMiniChefFarmBase {
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
 
-            _swapPangolin(png, wavax, _png.div(2));    
+            _swapPangolin(png, wavax, _png);    
         }
 
         // Swap half WAVAX for USDTe
@@ -56,7 +56,6 @@ contract StrategyPngAvaxUsdtELp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/USDTe
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _usdte = IERC20(usdte).balanceOf(address(this));
 
         if (_wavax > 0 && _usdte > 0) {

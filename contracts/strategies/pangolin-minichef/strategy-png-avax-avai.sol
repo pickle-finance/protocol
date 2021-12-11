@@ -56,7 +56,6 @@ contract StrategyPngAvaxAvaiLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/AVAI
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _avai = IERC20(avai).balanceOf(address(this));
 
         if (_wavax > 0 && _avai > 0) {
@@ -94,7 +93,7 @@ contract StrategyPngAvaxAvaiLp is StrategyPngMiniChefFarmBase {
                 );
             }
         }
-
+        
         _distributePerformanceFeesAndDeposit();
     }
 

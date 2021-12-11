@@ -56,7 +56,6 @@ contract StrategyPngAvaxOoeLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/OOE
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _ooe = IERC20(ooe).balanceOf(address(this));
 
         if (_wavax > 0 && _ooe > 0) {

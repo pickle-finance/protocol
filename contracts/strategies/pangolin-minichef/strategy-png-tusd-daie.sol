@@ -26,9 +26,10 @@ contract StrategyPngTusdDaiELp is StrategyPngMiniChefFarmBase {
             _timelock
         )
     {}
+
     // **** State Mutations ****
 
-  function harvest() public override onlyBenevolent {
+    function harvest() public override onlyBenevolent {
         // Collects Png tokens
         IMiniChef(miniChef).harvest(poolId, address(this));
 
@@ -51,7 +52,6 @@ contract StrategyPngTusdDaiELp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for TUSD/DAIE
         uint256 _tusd = IERC20(tusd).balanceOf(address(this));
-
         uint256 _daie = IERC20(daie).balanceOf(address(this));
 
         if (_tusd > 0 && _daie > 0) {
@@ -88,7 +88,6 @@ contract StrategyPngTusdDaiELp is StrategyPngMiniChefFarmBase {
                     _daie
                 );
             }
-
         }
 
         _distributePerformanceFeesAndDeposit();

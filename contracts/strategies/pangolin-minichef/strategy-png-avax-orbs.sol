@@ -56,7 +56,6 @@ contract StrategyPngAvaxOrbsLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/ORBS
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _orbs = IERC20(orbs).balanceOf(address(this));
 
         if (_wavax > 0 && _orbs > 0) {

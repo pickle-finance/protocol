@@ -56,7 +56,6 @@ contract StrategyPngAvaxJewelLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/JEWEL
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _jewel = IERC20(jewel).balanceOf(address(this));
 
         if (_wavax > 0 && _jewel > 0) {

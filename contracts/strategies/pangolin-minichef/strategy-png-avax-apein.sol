@@ -56,7 +56,6 @@ contract StrategyPngAvaxApeinLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/APEIN
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _apein = IERC20(apein).balanceOf(address(this));
 
         if (_wavax > 0 && _apein > 0) {
@@ -94,7 +93,7 @@ contract StrategyPngAvaxApeinLp is StrategyPngMiniChefFarmBase {
                 );
             }
         }
-
+        
         _distributePerformanceFeesAndDeposit();
     }
 

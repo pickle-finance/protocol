@@ -28,7 +28,7 @@ contract StrategyPngAvaxSporeLp is StrategyPngMiniChefFarmBase {
 
     // **** State Mutations ****
 
-  function harvest() public override onlyBenevolent {
+    function harvest() public override onlyBenevolent {
         // Collects Png tokens
         IMiniChef(miniChef).harvest(poolId, address(this));
 
@@ -45,18 +45,17 @@ contract StrategyPngAvaxSporeLp is StrategyPngMiniChefFarmBase {
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
 
-            _swapPangolin(png, wavax, _png.div(2));    
+            _swapPangolin(png, wavax, _png);    
         }
 
-         // Swap half WAVAX for SPORE
+        // Swap half WAVAX for SPORE
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             _swapPangolin(wavax, spore, _wavax.div(2));
         }
 
-        // Adds in liquidity for AVAX/Axial
-        _wavax = IERC20(wavax).balanceOf(address(this));
-        
+        // Adds in liquidity for AVAX/SPORE
+        _wavax = IERC20(wavax).balanceOf(address(this));        
         uint256 _spore = IERC20(spore).balanceOf(address(this));
         
         if (_wavax > 0 && _spore > 0) {
@@ -79,6 +78,7 @@ contract StrategyPngAvaxSporeLp is StrategyPngMiniChefFarmBase {
 
             _wavax = IERC20(wavax).balanceOf(address(this));
             _spore = IERC20(spore).balanceOf(address(this));
+            
             // Donates DUST
             if (_wavax > 0){
                 IERC20(wavax).transfer(

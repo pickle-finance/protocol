@@ -45,18 +45,17 @@ contract StrategyPngAvaxTusdLp is StrategyPngMiniChefFarmBase {
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
 
-            _swapPangolin(png, wavax, _png.div(2));    
+            _swapPangolin(png, wavax, _png);    
         }
 
-        // Swap half WAVAX for token
+        // Swap half WAVAX for TUSD
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             _swapPangolin(wavax, tusd, _wavax.div(2));
         }
 
-        // Adds in liquidity for AVAX/Axial
+        // Adds in liquidity for AVAX/TUSD
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _tusd = IERC20(tusd).balanceOf(address(this));
 
         if (_wavax > 0 && _tusd > 0) {

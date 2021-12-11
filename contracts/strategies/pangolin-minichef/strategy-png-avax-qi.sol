@@ -45,7 +45,7 @@ contract StrategyPngAvaxQiLp is StrategyPngMiniChefFarmBase {
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
 
-            _swapPangolin(png, wavax, _png.div(2));     
+            _swapPangolin(png, wavax, _png);     
         }
 
         // Swap half WAVAX for QI
@@ -56,7 +56,6 @@ contract StrategyPngAvaxQiLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/QI
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _qi = IERC20(qi).balanceOf(address(this));
 
         if (_wavax > 0 && _qi > 0) {

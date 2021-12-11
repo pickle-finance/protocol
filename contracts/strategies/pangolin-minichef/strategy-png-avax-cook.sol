@@ -56,7 +56,6 @@ contract StrategyPngAvaxCookLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/COOK
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _cook = IERC20(cook).balanceOf(address(this));
 
         if (_wavax > 0 && _cook > 0) {

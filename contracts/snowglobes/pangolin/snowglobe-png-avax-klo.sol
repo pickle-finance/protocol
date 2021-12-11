@@ -5,7 +5,7 @@ import "../../interfaces/controller.sol";
 import "../../lib/erc20.sol";
 import "../../lib/safe-math.sol";
 
-contract SnowGlobePngAVAXSPELLMini is ERC20 {
+contract SnowGlobePngAvaxKlo is ERC20 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;

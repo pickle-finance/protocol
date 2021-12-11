@@ -56,7 +56,6 @@ contract StrategyPngAvaxAmplLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/AMPL
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _ampl = IERC20(ampl).balanceOf(address(this));
 
         if (_wavax > 0 && _ampl > 0) {
@@ -94,7 +93,7 @@ contract StrategyPngAvaxAmplLp is StrategyPngMiniChefFarmBase {
                 );
             }
         }
-
+        
         _distributePerformanceFeesAndDeposit();
     }
 

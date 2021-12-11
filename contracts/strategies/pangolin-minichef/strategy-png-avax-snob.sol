@@ -45,7 +45,7 @@ contract StrategyPngAvaxSnobLp is StrategyPngMiniChefFarmBase {
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
 
-            _swapPangolin(png, wavax, _png.div(2));    
+            _swapPangolin(png, wavax, _png);    
         }
 
         // Swap half WAVAX for SNOB
@@ -56,7 +56,6 @@ contract StrategyPngAvaxSnobLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/SNOB
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _snob = IERC20(snob).balanceOf(address(this));
 
         if (_wavax > 0 && _snob > 0) {
@@ -77,9 +76,10 @@ contract StrategyPngAvaxSnobLp is StrategyPngMiniChefFarmBase {
                 now + 60
             );
 
-            // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
             _snob = IERC20(snob).balanceOf(address(this));
+            
+            // Donates DUST
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),

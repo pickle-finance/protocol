@@ -26,9 +26,10 @@ contract StrategyPngUsdcEPngLp is StrategyPngMiniChefFarmBase {
             _timelock
         )
     {}
+
     // **** State Mutations ****
 
-  function harvest() public override onlyBenevolent {
+    function harvest() public override onlyBenevolent {
         // Collects Png tokens
         IMiniChef(miniChef).harvest(poolId, address(this));
 
@@ -86,7 +87,6 @@ contract StrategyPngUsdcEPngLp is StrategyPngMiniChefFarmBase {
                     _usdce
                 );
             }
-
         }
 
         _distributePerformanceFeesAndDeposit();

@@ -2,12 +2,12 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-minichef-farm-base.sol";
 
-contract StrategyPngAVAXYAKMiniLp is StrategyPngMiniChefFarmBase {
-    uint256 public _poolId = 15;
+contract StrategyPngAvaxYayLp is StrategyPngMiniChefFarmBase {
+    uint256 public _poolId = 30;
 
     // Token addresses
-    address public Png_AVAX_YAK_lp = 0xd2F01cd87A43962fD93C21e07c1a420714Cc94C9;
-    address public token1 = 0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7;
+    address public png_avax_yay_lp = 0x04D80d453033450703E3DC2d0C1e0C0281c42D81;
+    address public yay = 0x01C2086faCFD7aA38f69A6Bd8C91BEF3BB5adFCa;
 
     constructor(
         address _governance,
@@ -18,22 +18,17 @@ contract StrategyPngAVAXYAKMiniLp is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            Png_AVAX_YAK_lp,
+            png_avax_yay_lp,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {}
+
     // **** State Mutations ****
 
-  function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But AVAX is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
+    function harvest() public override onlyBenevolent {
         // Collects Png tokens
         IMiniChef(miniChef).harvest(poolId, address(this));
 
@@ -41,39 +36,40 @@ contract StrategyPngAVAXYAKMiniLp is StrategyPngMiniChefFarmBase {
         if (_png > 0) {
             // 10% is sent to treasury
             uint256 _keep = _png.mul(keep).div(keepMax);
-            uint256 _amount = _png.sub(_keep).div(2);
             if (_keep > 0) {
                 _takeFeePngToSnob(_keep);
             }
+
+            _png = IERC20(png).balanceOf(address(this));
+
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png.sub(_keep));
 
-            _swapPangolin(png, wavax, _amount);    
+            _swapPangolin(png, wavax, _png);     
         }
 
-         // Swap half WAVAX for token
+        // Swap half WAVAX for YAY
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0 && token1 != png) {
-            _swapPangolin(wavax, token1, _wavax.div(2));
+        if (_wavax > 0) {
+            _swapPangolin(wavax, yay, _wavax.div(2));
         }
 
-        // Adds in liquidity for AVAX/Axial
+        // Adds in liquidity for AVAX/YAY
         _wavax = IERC20(wavax).balanceOf(address(this));
+        uint256 _yay = IERC20(yay).balanceOf(address(this));
 
-        uint256 _token1 = IERC20(token1).balanceOf(address(this));
-
-        if (_wavax > 0 && _token1 > 0) {
+        if (_wavax > 0 && _yay > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
 
-            IERC20(token1).safeApprove(pangolinRouter, 0);
-            IERC20(token1).safeApprove(pangolinRouter, _token1);
+            IERC20(yay).safeApprove(pangolinRouter, 0);
+            IERC20(yay).safeApprove(pangolinRouter, _yay);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
                 wavax,
-                token1,
+                yay,
                 _wavax,
-                _token1,
+                _yay,
                 0,
                 0,
                 address(this),
@@ -81,7 +77,8 @@ contract StrategyPngAVAXYAKMiniLp is StrategyPngMiniChefFarmBase {
             );
 
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _token1 = IERC20(token1).balanceOf(address(this));
+            _yay = IERC20(yay).balanceOf(address(this));
+            
             // Donates DUST
             if (_wavax > 0){
                 IERC20(wavax).transfer(
@@ -89,13 +86,12 @@ contract StrategyPngAVAXYAKMiniLp is StrategyPngMiniChefFarmBase {
                     _wavax
                 );
             }
-            if (_token1 > 0){
-                IERC20(token1).safeTransfer(
+            if (_yay > 0){
+                IERC20(yay).safeTransfer(
                     IController(controller).treasury(),
-                    _token1
+                    _yay
                 );
             }
-
         }
 
         _distributePerformanceFeesAndDeposit();
@@ -104,6 +100,6 @@ contract StrategyPngAVAXYAKMiniLp is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAVAXYAKMiniLp";
+        return "StrategyPngAvaxYayLp";
     }
 }

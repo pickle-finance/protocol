@@ -56,7 +56,6 @@ contract StrategyPngAvaxClyLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/CLY
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _cly = IERC20(cly).balanceOf(address(this));
 
         if (_wavax > 0 && _cly > 0) {

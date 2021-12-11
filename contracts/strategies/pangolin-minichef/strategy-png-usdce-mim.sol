@@ -26,10 +26,10 @@ contract StrategyPngUsdcEMimLp is StrategyPngMiniChefFarmBase {
             _timelock
         )
     {}
+
     // **** State Mutations ****
 
-  function harvest() public override onlyBenevolent {
-   
+    function harvest() public override onlyBenevolent {
         // Collects Png tokens
         IMiniChef(miniChef).harvest(poolId, address(this));
 
@@ -43,7 +43,7 @@ contract StrategyPngUsdcEMimLp is StrategyPngMiniChefFarmBase {
 
             _png = IERC20(png).balanceOf(address(this));
 
-            // swap half for usdce
+            // swap half PNG for USDCe
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
 
@@ -62,7 +62,6 @@ contract StrategyPngUsdcEMimLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for USDCE/MIM
         uint256 _usdce = IERC20(usdce).balanceOf(address(this));
-
         uint256 _mim = IERC20(mim).balanceOf(address(this));
 
         if (_usdce > 0 && _mim > 0) {
@@ -99,7 +98,6 @@ contract StrategyPngUsdcEMimLp is StrategyPngMiniChefFarmBase {
                     _mim
                 );
             }
-
         }
 
         _distributePerformanceFeesAndDeposit();

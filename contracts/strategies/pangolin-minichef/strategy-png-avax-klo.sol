@@ -56,7 +56,6 @@ contract StrategyPngAvaxKloLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/KLO
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _klo = IERC20(klo).balanceOf(address(this));
 
         if (_wavax > 0 && _klo > 0) {

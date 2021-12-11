@@ -56,7 +56,6 @@ contract StrategyPngAvaxLinkELp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/LINKe
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _linke = IERC20(linke).balanceOf(address(this));
 
         if (_wavax > 0 && _linke > 0) {

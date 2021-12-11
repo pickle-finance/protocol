@@ -56,7 +56,6 @@ contract StrategyPngAvaxJoeLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/JOE
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _joe = IERC20(joe).balanceOf(address(this));
 
         if (_wavax > 0 && _joe > 0) {

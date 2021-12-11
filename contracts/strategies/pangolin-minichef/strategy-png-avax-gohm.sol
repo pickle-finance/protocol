@@ -56,7 +56,6 @@ contract StrategyPngAvaxgOhmLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/GOHM
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _gohm = IERC20(gohm).balanceOf(address(this));
 
         if (_wavax > 0 && _gohm > 0) {

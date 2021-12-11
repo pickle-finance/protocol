@@ -45,18 +45,17 @@ contract StrategyPngAvaxRocoLp is StrategyPngMiniChefFarmBase {
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
 
-            _swapPangolin(png, wavax, _png.div(2));     
+            _swapPangolin(png, wavax, _png);     
         }
 
-        // Swap half WAVAX for token
+        // Swap half WAVAX for ROCO
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             _swapPangolin(wavax, roco, _wavax.div(2));
         }
 
-        // Adds in liquidity for AVAX/Axial
+        // Adds in liquidity for AVAX/ROCO
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _roco = IERC20(roco).balanceOf(address(this));
 
         if (_wavax > 0 && _roco > 0) {

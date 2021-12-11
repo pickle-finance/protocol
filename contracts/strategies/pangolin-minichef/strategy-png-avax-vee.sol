@@ -45,7 +45,7 @@ contract StrategyPngAvaxVeeLp is StrategyPngMiniChefFarmBase {
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
 
-            _swapPangolin(png, wavax, _png.div(2));    
+            _swapPangolin(png, wavax, _png);    
         }
 
         // Swap half WAVAX for VEE
@@ -56,7 +56,6 @@ contract StrategyPngAvaxVeeLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/VEE
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _vee = IERC20(vee).balanceOf(address(this));
 
         if (_wavax > 0 && _vee > 0) {

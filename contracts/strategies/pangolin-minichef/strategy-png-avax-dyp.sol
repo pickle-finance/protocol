@@ -56,7 +56,6 @@ contract StrategyPngAvaxDypLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/DYP
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _dyp = IERC20(dyp).balanceOf(address(this));
 
         if (_wavax > 0 && _dyp > 0) {

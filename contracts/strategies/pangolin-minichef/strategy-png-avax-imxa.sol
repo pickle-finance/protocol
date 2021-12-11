@@ -56,7 +56,6 @@ contract StrategyPngAvaxImxaLp is StrategyPngMiniChefFarmBase {
 
         // Adds in liquidity for AVAX/IMXA
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         uint256 _imxa = IERC20(imxa).balanceOf(address(this));
 
         if (_wavax > 0 && _imxa > 0) {

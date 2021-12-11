@@ -2,7 +2,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-minichef-farm-base.sol";
 
-contract StrategyPngUsdteSkillLp is StrategyPngMiniChefFarmBase {
+contract StrategyPngUsdtESkillLp is StrategyPngMiniChefFarmBase {
     uint256 public _poolId = 50;
 
     // Token addresses
@@ -28,8 +28,7 @@ contract StrategyPngUsdteSkillLp is StrategyPngMiniChefFarmBase {
     {}
     // **** State Mutations ****
 
-  function harvest() public override onlyBenevolent {
-   
+    function harvest() public override onlyBenevolent {
         // Collects Png tokens
         IMiniChef(miniChef).harvest(poolId, address(this));
 
@@ -51,9 +50,8 @@ contract StrategyPngUsdteSkillLp is StrategyPngMiniChefFarmBase {
         }
 
 
-        // Adds in liquidity for SKILL/USDTE
+        // Adds in liquidity for USDTe/SKILL
         uint256 _skill = IERC20(skill).balanceOf(address(this));
-
         uint256 _usdte = IERC20(usdte).balanceOf(address(this));
 
         if (_skill > 0 && _usdte > 0) {
@@ -76,6 +74,7 @@ contract StrategyPngUsdteSkillLp is StrategyPngMiniChefFarmBase {
 
             _skill = IERC20(skill).balanceOf(address(this));
             _usdte = IERC20(usdte).balanceOf(address(this));
+            
             // Donates DUST
             if (_skill > 0){
                 IERC20(skill).transfer(
@@ -89,7 +88,6 @@ contract StrategyPngUsdteSkillLp is StrategyPngMiniChefFarmBase {
                     _usdte
                 );
             }
-
         }
 
         _distributePerformanceFeesAndDeposit();
@@ -98,6 +96,6 @@ contract StrategyPngUsdteSkillLp is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngUsdteSkillLp";
+        return "StrategyPngUsdtESkillLp";
     }
 }
