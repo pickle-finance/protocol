@@ -194,9 +194,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             })
         );
 
-        uint256 _amount0 = IERC20(token0).balanceOf(address(this));
-        uint256 _amount1 = IERC20(token1).balanceOf(address(this));
-        return (_amount0, _amount1);
+        return (amount0, amount1);
     }
 
     // Override base withdraw function to redeposit
