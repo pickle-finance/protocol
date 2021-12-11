@@ -331,9 +331,6 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
                     sqrtPriceLimitX96: 0
                 })
             );
-
-            cache.amount0Desired = token0.balanceOf(address(this)); //rbn
-            cache.amount1Desired = token1.balanceOf(address(this)); //weth
         }
     }
 }
