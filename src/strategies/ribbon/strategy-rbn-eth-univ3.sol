@@ -185,12 +185,13 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             })
         );
 
+       //Only collect decreasedLiquidity, not trading fees.
         nftManager.collect(
             IUniswapV3PositionsNFT.CollectParams({
                 tokenId: tokenId,
                 recipient: address(this),
-                amount0Max: type(uint128).max,
-                amount1Max: type(uint128).max
+                amount0Max: uint128(amount0),
+                amount1Max: uint128(amount1)
             })
         );
 
@@ -236,6 +237,8 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             })
         );
 
+        // This has to be done after DecreaseLiquidity to collect the tokens we 
+        // decreased and the fees at the same time.
         nftManager.collect(
             IUniswapV3PositionsNFT.CollectParams({
                 tokenId: tokenId,
@@ -257,8 +260,8 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         balanceProportion(_tickLower, _tickUpper);
 
         //Need to do this again after the swap to cover any slippage.
-        uint256 amount0Desired = token0.balanceOf(address(this)); //rbn
-        uint256 amount1Desired = token1.balanceOf(address(this)); //weth
+        uint256 _amount0Desired = token0.balanceOf(address(this)); //rbn
+        uint256 _amount1Desired = token1.balanceOf(address(this)); //weth
 
         (_tokenId, , , ) = nftManager.mint(
             IUniswapV3PositionsNFT.MintParams({
@@ -267,8 +270,8 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
                 fee: pool.fee(),
                 tickLower: _tickLower,
                 tickUpper: _tickUpper,
-                amount0Desired: amount0Desired,
-                amount1Desired: amount1Desired,
+                amount0Desired: _amount0Desired,
+                amount1Desired: _amount1Desired,
                 amount0Min: 0,
                 amount1Min: 0,
                 recipient: address(this),
@@ -290,41 +293,47 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
     }
 
     function balanceProportion(int24 _tickLower, int24 _tickUpper) internal {
-        PoolVariables.Info memory cache;
+        PoolVariables.Info memory _cache;
 
-        cache.amount0Desired = token0.balanceOf(address(this)); //rbn
-        cache.amount1Desired = token1.balanceOf(address(this)); //weth
+        _cache.amount0Desired = token0.balanceOf(address(this)); //rbn
+        _cache.amount1Desired = token1.balanceOf(address(this)); //weth
 
-        cache.liquidity = pool.liquidityForAmounts(cache.amount0Desired, cache.amount1Desired, _tickLower, _tickUpper);
+        //Get Max Liquidity for Amounts we own.
+        _cache.liquidity = pool.liquidityForAmounts(_cache.amount0Desired, _cache.amount1Desired, _tickLower, _tickUpper);
 
-        (cache.amount0, cache.amount1) = pool.amountsForLiquidity(cache.liquidity, _tickLower, _tickUpper);
+        //Get correct amounts of each token for the liquidity we have.
+        (_cache.amount0, _cache.amount1) = pool.amountsForLiquidity(_cache.liquidity, _tickLower, _tickUpper);
 
-        bool zeroForOne = PoolVariables.amountsDirection(
-            cache.amount0Desired,
-            cache.amount1Desired,
-            cache.amount0,
-            cache.amount1
+        //Determine Trade Direction
+        bool _zeroForOne = PoolVariables.amountsDirection(
+            _cache.amount0Desired,
+            _cache.amount1Desired,
+            _cache.amount0,
+            _cache.amount1
         );
 
-        uint256 amountSpecified = zeroForOne
-            ? (cache.amount0Desired.sub(cache.amount0).div(2))
-            : (cache.amount1Desired.sub(cache.amount1).div(2));
+        //Determine Amount to swap
+        uint256 _amountSpecified = _zeroForOne
+            ? (_cache.amount0Desired.sub(_cache.amount0).div(2))
+            : (_cache.amount1Desired.sub(_cache.amount1).div(2));
 
-        if (amountSpecified > 0) {
-            address inputToken = zeroForOne ? address(token0) : address(token1);
+        if (_amountSpecified > 0) {
 
-            IERC20(inputToken).safeApprove(univ3Router, 0);
-            IERC20(inputToken).safeApprove(univ3Router, amountSpecified);
+            //Determine Token to swap
+            address _inputToken = _zeroForOne ? address(token0) : address(token1);
+
+            IERC20(_inputToken).safeApprove(univ3Router, 0);
+            IERC20(_inputToken).safeApprove(univ3Router, _amountSpecified);
 
             //Swap the token imbalanced
             ISwapRouter(univ3Router).exactInputSingle(
                 ISwapRouter.ExactInputSingleParams({
-                    tokenIn: inputToken,
-                    tokenOut: zeroForOne ? address(token1) : address(token0),
+                    tokenIn: _inputToken,
+                    tokenOut: _zeroForOne ? address(token1) : address(token0),
                     fee: pool.fee(),
                     recipient: address(this),
                     deadline: block.timestamp + 300,
-                    amountIn: amountSpecified,
+                    amountIn: _amountSpecified,
                     amountOutMinimum: 0,
                     sqrtPriceLimitX96: 0
                 })
