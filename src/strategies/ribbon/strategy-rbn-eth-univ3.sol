@@ -128,7 +128,14 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         return _liquidity;
     }
 
-    function getHarvestable() public view returns (uint256, uint256) {}
+    function getHarvestable() public view returns (uint256, uint256) {
+      //This will only update when someone mint/burn/pokes the pool.
+      (, , , , , , , , , , uint128 _owed0, uint128 _owed1) = nftManager.positions(tokenId);
+      uint256 _stakingRewards = IUniswapV3Staker(univ3_staker).rewards(key.rewardToken, address(this));
+      //This assumes rewardToken == token0
+      return (uint256(_owed0 + _stakingRewards), uint256(_owed1));
+
+    }
 
     // **** Setters ****
 
