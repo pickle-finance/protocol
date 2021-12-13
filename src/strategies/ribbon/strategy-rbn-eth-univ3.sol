@@ -129,12 +129,11 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
     }
 
     function getHarvestable() public view returns (uint256, uint256) {
-      //This will only update when someone mint/burn/pokes the pool.
-      (, , , , , , , , , , uint128 _owed0, uint128 _owed1) = nftManager.positions(tokenId);
-      uint256 _stakingRewards = IUniswapV3Staker(univ3_staker).rewards(key.rewardToken, address(this));
-      //This assumes rewardToken == token0
-      return (uint256(_owed0 + _stakingRewards), uint256(_owed1));
-
+        //This will only update when someone mint/burn/pokes the pool.
+        (, , , , , , , , , , uint128 _owed0, uint128 _owed1) = nftManager.positions(tokenId);
+        uint256 _stakingRewards = IUniswapV3Staker(univ3_staker).rewards(key.rewardToken, address(this));
+        //This assumes rewardToken == token0
+        return (uint256(_owed0 + _stakingRewards), uint256(_owed1));
     }
 
     // **** Setters ****
@@ -192,7 +191,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             })
         );
 
-       //Only collect decreasedLiquidity, not trading fees.
+        //Only collect decreasedLiquidity, not trading fees.
         nftManager.collect(
             IUniswapV3PositionsNFT.CollectParams({
                 tokenId: tokenId,
@@ -247,7 +246,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             })
         );
 
-        // This has to be done after DecreaseLiquidity to collect the tokens we 
+        // This has to be done after DecreaseLiquidity to collect the tokens we
         // decreased and the fees at the same time.
         nftManager.collect(
             IUniswapV3PositionsNFT.CollectParams({
@@ -293,7 +292,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         tokenId = _tokenId;
         tick_lower = _tickLower;
         tick_upper = _tickUpper;
-        
+
         if (isStakingActive()) {
             nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
             IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
@@ -309,7 +308,12 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         _cache.amount1Desired = token1.balanceOf(address(this)); //weth
 
         //Get Max Liquidity for Amounts we own.
-        _cache.liquidity = pool.liquidityForAmounts(_cache.amount0Desired, _cache.amount1Desired, _tickLower, _tickUpper);
+        _cache.liquidity = pool.liquidityForAmounts(
+            _cache.amount0Desired,
+            _cache.amount1Desired,
+            _tickLower,
+            _tickUpper
+        );
 
         //Get correct amounts of each token for the liquidity we have.
         (_cache.amount0, _cache.amount1) = pool.amountsForLiquidity(_cache.liquidity, _tickLower, _tickUpper);
@@ -328,7 +332,6 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             : (_cache.amount1Desired.sub(_cache.amount1).div(2));
 
         if (_amountSpecified > 0) {
-
             //Determine Token to swap
             address _inputToken = _zeroForOne ? address(token0) : address(token1);
 

@@ -127,13 +127,10 @@ describe("StrategyRbnEthUniV3", () => {
     let aliceShare, bobShare, charlesShare;
 
     console.log("=============== Alice deposit ==============");
-    console.log("Alice ETH balance before deposit: ", (await alice.getBalance()).toString())
-    console.log(
-      "Alice weth balance before => ",
-      (await weth.balanceOf(alice.address)).toString()
-    );
+    console.log("Alice ETH balance before deposit: ", (await alice.getBalance()).toString());
+    console.log("Alice weth balance before => ", (await weth.balanceOf(alice.address)).toString());
     await depositWithEth(alice, depositA, depositB);
-    console.log("Alice ETH balance after deposit: ", (await alice.getBalance()).toString())
+    console.log("Alice ETH balance after deposit: ", (await alice.getBalance()).toString());
     await rebalance();
     await harvest();
 
@@ -293,7 +290,6 @@ describe("StrategyRbnEthUniV3", () => {
     await pickleJar.connect(user).deposit(depositA, 0, {value: depositB});
   };
 
-
   const harvest = async () => {
     console.log("============ Harvest Started ==============");
 
@@ -313,10 +309,10 @@ describe("StrategyRbnEthUniV3", () => {
     let tickRangeMultiplier = 100;
     let baseThreshold = tickSpacing * tickRangeMultiplier;
     let currentTick;
-    [,currentTick,,,,,] = await pool.slot0();
+    [, currentTick, , , , ,] = await pool.slot0();
     let compressed = currentTick / tickSpacing;
-    let floor = Math.floor(currentTick/tickSpacing) * tickSpacing;
-    await strategy.rebalance(floor-baseThreshold, floor + baseThreshold);
+    let floor = Math.floor(currentTick / tickSpacing) * tickSpacing;
+    await strategy.rebalance(floor - baseThreshold, floor + baseThreshold);
     console.log("Ratio after rebalance => ", (await pickleJar.getRatio()).toString());
     console.log("============ Rebalance Ended ==============");
   };
