@@ -216,6 +216,9 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
 
     function rebalance(int24 _tickLower, int24 _tickUpper) external returns (uint256 _tokenId) {
         require(msg.sender == governance, "!governance");
+        require(_tickLower % key.pool.tickSpacing() == 0, "_tickLower needs to be a multiple of tickSpacing");
+        require(_tickUpper % key.pool.tickSpacing() == 0, "_tickUpper needs to be a multiple of tickSpacing");
+        PoolVariables.checkRange(_tickLower, _tickUpper);
 
         if (isStakingActive()) {
             // If NFT is held by staker, then withdraw
