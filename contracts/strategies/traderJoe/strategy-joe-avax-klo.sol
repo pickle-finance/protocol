@@ -10,7 +10,6 @@ contract StrategyJoeAvaxKloLp is StrategyJoeRushFarmBase {
     address public joe_avax_klo_lp = 0xb2fF0817ad078C92C3AfB82326592e06C92581B8;
     address public klo = 0xb27c8941a7Df8958A1778c0259f76D1F8B711C35;
 
-
     constructor(
         address _governance,
         address _strategist,
