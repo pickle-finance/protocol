@@ -20,8 +20,8 @@ contract StrategyTriEthAuroraLp is StrategyTriFarmBase {
     )
         public
         StrategyTriFarmBase(
-            eth,
             aurora,
+            eth,
             tri_eth_aurora_poolid,
             tri_eth_aurora_lp,
             _governance,
@@ -30,7 +30,7 @@ contract StrategyTriEthAuroraLp is StrategyTriFarmBase {
             _timelock
         )
     {
-        swapRoutes[aurora] = [tri, near, eth, aurora];
+        swapRoutes[aurora] = [tri, aurora];
         swapRoutes[eth] = [tri, near, eth];
     }
 

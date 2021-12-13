@@ -100,6 +100,7 @@ abstract contract StrategyTriFarmBase is StrategyBase {
         harvestTwo();
         harvestThree();
         harvestFour();
+        harvestFive();
     }
 
     function harvestOne() public onlyBenevolent {
@@ -121,7 +122,6 @@ abstract contract StrategyTriFarmBase is StrategyBase {
         uint256 _tri = IERC20(tri).balanceOf(address(this));
         if (_tri > 0) {
             uint256 toToken0 = _tri.div(2);
-            uint256 toToken1 = _tri.sub(toToken0);
 
             if (swapRoutes[token0].length > 1) {
                 UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
@@ -132,9 +132,15 @@ abstract contract StrategyTriFarmBase is StrategyBase {
                     now + 60
                 );
             }
+        }
+    }
+
+    function harvestThree() public onlyBenevolent {
+        uint256 _tri = IERC20(tri).balanceOf(address(this));
+        if (_tri > 0) {
             if (swapRoutes[token1].length > 1) {
                 UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-                    toToken1,
+                    _tri, // Swap the remainder of TRI
                     0,
                     swapRoutes[token1],
                     address(this),
@@ -144,7 +150,7 @@ abstract contract StrategyTriFarmBase is StrategyBase {
         }
     }
 
-    function harvestThree() public onlyBenevolent {
+    function harvestFour() public onlyBenevolent {
         // Adds in liquidity for token0/token1
         uint256 _token0 = IERC20(token0).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
@@ -172,7 +178,7 @@ abstract contract StrategyTriFarmBase is StrategyBase {
         }
     }
 
-    function harvestFour() public onlyBenevolent {
+    function harvestFive() public onlyBenevolent {
         // We want to get back Tri LP tokens
         _distributePerformanceFeesAndDeposit();
     }
