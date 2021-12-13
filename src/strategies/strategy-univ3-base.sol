@@ -14,6 +14,7 @@ import "../interfaces/univ3/IUniswapV3Pool.sol";
 import "../interfaces/univ3/ISwapRouter.sol";
 import "../interfaces/controllerv2.sol";
 import "../lib/univ3/PoolActions.sol";
+import "../interfaces/weth.sol";
 
 // Strategy Contract Basics
 
@@ -47,6 +48,11 @@ abstract contract StrategyUniV3Base {
     address public controller;
     address public strategist;
     address public timelock;
+
+    address public feeToken = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    enum tokenPathEnum {univ3, univ2, univ2Exact, sushi, sushiExact}
+    tokenPathEnum feeTokenPath = tokenPathEnum.univ3;
+    address[] public feeTokenExactPath;
 
     // Dex
     address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
@@ -152,6 +158,16 @@ abstract contract StrategyUniV3Base {
     function setController(address _controller) external {
         require(msg.sender == timelock, "!timelock");
         controller = _controller;
+    }
+
+    function setFeeToken(address _feeToken) public {
+        require(msg.sender == governance, "!governance");
+        feeToken = _feeToken;
+    }
+
+    function setFeeTokenPath(address _feeToken, tokenPathEnum _feeTokenPath) external {
+        require(msg.sender == governance, "!governance");
+        setFeeToken(_feeToken);
     }
 
     function getProportion() public view returns (uint256) {
@@ -269,20 +285,21 @@ abstract contract StrategyUniV3Base {
     ) internal {
         require(_to != address(0));
 
-        address[] memory path;
+        IERC20(_from).safeApprove(univ3Router, 0);
+        IERC20(_from).safeApprove(univ3Router, _amount);
 
-        if (_from == weth || _to == weth) {
-            path = new address[](2);
-            path[0] = _from;
-            path[1] = _to;
-        } else {
-            path = new address[](3);
-            path[0] = _from;
-            path[1] = weth;
-            path[2] = _to;
-        }
-
-        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
+        ISwapRouter(univ3Router).exactInputSingle(
+            ISwapRouter.ExactInputSingleParams({
+                tokenIn: _from,
+                tokenOut: _to,
+                fee: pool.fee(),
+                recipient: address(this),
+                deadline: block.timestamp + 300,
+                amountIn: _amount,
+                amountOutMinimum: 0,
+                sqrtPriceLimitX96: 0
+            })
+        );
     }
 
     function _swapUniswap(
@@ -305,12 +322,15 @@ abstract contract StrategyUniV3Base {
             path[2] = _to;
         }
 
+        IERC20(_from).safeApprove(univ2Router2, 0);
+        IERC20(_from).safeApprove(univ2Router2, _amount);
+
         UniswapRouterV2(univ2Router2).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
     }
 
     function _swapUniswapWithPath(address[] memory path, uint256 _amount) internal {
         require(path[1] != address(0));
-
+        //TODO approve _from
         UniswapRouterV2(univ2Router2).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
     }
 
@@ -334,27 +354,81 @@ abstract contract StrategyUniV3Base {
             path[2] = _to;
         }
 
+        IERC20(_from).safeApprove(sushiRouter, 0);
+        IERC20(_from).safeApprove(sushiRouter, _amount);
+
         UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
     }
 
     function _swapSushiswapWithPath(address[] memory path, uint256 _amount) internal {
         require(path[1] != address(0));
-
+        //TODO approve _from
         UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
     }
 
-    function _distributePerformanceFees(uint256 _amount0, uint256 _amount1) internal {
-        if (_amount0 > 0) {
-            token0.safeTransfer(
-                IControllerV2(controller).treasury(),
-                _amount0.mul(performanceTreasuryFee).div(performanceTreasuryMax)
-            );
+    function _determineSwap(uint256 _amount0, uint256 _amount1) internal returns (uint256)  {
+      uint256 _totalFees;
+      address _token0 = address(token0);
+      address _token1 = address(token1);
+      if(_token0 == feeToken) {
+        _totalFees = _swap(_token1, _token0, _amount1).add(_amount0);
+      }
+      else if(_token1 == feeToken){
+        _totalFees = _swap(_token0, _token1, _amount0).add(_amount1);
+      }
+      else if(feeToken == address(0)){
+        if(_token0 == weth) {
+          _totalFees = _swap(_token1, _token0, _amount1).add(_amount0);
+          //WETH(weth).withdraw(_totalFees);//TODO
         }
-        if (_amount1 > 0) {
-            token1.safeTransfer(
-                IControllerV2(controller).treasury(),
-                _amount1.mul(performanceTreasuryFee).div(performanceTreasuryMax)
-            );
+        else if (_token1 == weth) {
+          _totalFees = _swap(_token0, _token1, _amount0).add(_amount1);
+          //WETH(weth).withdraw(_totalFees);//TODO
+        }
+        else {
+          _totalFees = _swap(_token0, weth, _amount0);
+          _totalFees = _totalFees.add(_swap(_token1, weth, _amount1));
+          //WETH(weth).withdraw(_totalFees);//TODO
+        }
+      }
+      else {
+        _totalFees = _swap(_token0, feeToken, _amount0);
+        _totalFees = _totalFees.add(_swap(_token1, feeToken, _amount1));
+      }
+      return _totalFees;
+    }
+
+    function _swap(address _from, address _to, uint256 _amount) internal returns (uint256) {
+      uint256 wantBalance = IERC20(_to).balanceOf(address(this));
+      if(feeTokenPath == tokenPathEnum.univ3) {
+        _swapUniswapV3(_from, _to, _amount);
+      }
+      else if(feeTokenPath == tokenPathEnum.univ2) {
+        _swapUniswap(_from, _to, _amount);
+      }
+      else if(feeTokenPath == tokenPathEnum.univ2Exact) {
+        _swapUniswapWithPath(feeTokenExactPath, _amount);
+      }
+      else if(feeTokenPath == tokenPathEnum.sushi) {
+        _swapSushiswap(_from, _to, _amount);
+      }
+      else {
+        _swapSushiswapWithPath(feeTokenExactPath, _amount);
+      }
+      return IERC20(_to).balanceOf(address(this)).sub(wantBalance);
+    }
+
+
+    function _distributePerformanceFees(uint256 _amount0, uint256 _amount1) internal {
+      uint256 _totalFees = _determineSwap(_amount0.mul(performanceTreasuryFee).div(performanceTreasuryMax), _amount1.mul(performanceTreasuryFee).div(performanceTreasuryMax));
+        if (feeToken == address(0)) {
+          (bool sent, bytes memory data) = (IControllerV2(controller).treasury()).call{value: _totalFees}("");
+          require(sent, "Failed to transfer Ether to Treasury");
+        }
+        else {
+          IERC20(feeToken).safeTransfer(
+              IControllerV2(controller).treasury(),
+              _totalFees);
         }
     }
 
