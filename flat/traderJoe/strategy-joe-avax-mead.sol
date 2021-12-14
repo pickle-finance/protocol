@@ -1,4 +1,4 @@
-// Sources flattened with hardhat v2.6.5 https://hardhat.org
+// Sources flattened with hardhat v2.6.8 https://hardhat.org
 
 // File contracts/lib/safe-math.sol
 
@@ -788,160 +788,6 @@ library SafeERC20 {
 }
 
 
-// File contracts/interfaces/IAllowlist.sol
-
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.6.7;
-
-interface IAllowlist {
-    function getPoolAccountLimit(address poolAddress)
-        external
-        view
-        returns (uint256);
-
-    function getPoolCap(address poolAddress) external view returns (uint256);
-
-    function verifyAddress(address account, bytes32[] calldata merkleProof)
-        external
-        returns (bool);
-}
-
-
-// File contracts/interfaces/swap.sol
-
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.6.7;
-interface ISwap {
-    // pool data view functions
-    function getA() external view returns (uint256);
-
-    function getAllowlist() external view returns (IAllowlist);
-
-    function getToken(uint8 index) external view returns (IERC20);
-
-    function getTokenIndex(address tokenAddress) external view returns (uint8);
-
-    function getTokenBalance(uint8 index) external view returns (uint256);
-
-    function getVirtualPrice() external view returns (uint256);
-
-    function isGuarded() external view returns (bool);
-
-    // min return calculation functions
-    function calculateSwap(
-        uint8 tokenIndexFrom,
-        uint8 tokenIndexTo,
-        uint256 dx
-    ) external view returns (uint256);
-
-    function calculateTokenAmount(uint256[] calldata amounts, bool deposit)
-        external
-        view
-        returns (uint256);
-
-    function calculateRemoveLiquidity(uint256 amount)
-        external
-        view
-        returns (uint256[] memory);
-
-    function calculateRemoveLiquidityOneToken(
-        uint256 tokenAmount,
-        uint8 tokenIndex
-    ) external view returns (uint256 availableTokenAmount);
-
-    // state modifying functions
-    function initialize(
-        IERC20[] calldata pooledTokens,
-        uint8[] calldata decimals,
-        string calldata lpTokenName,
-        string calldata lpTokenSymbol,
-        uint256 a,
-        uint256 fee,
-        uint256 adminFee,
-        address lpTokenTargetAddress
-    ) external;
-
-    function swap(
-        uint8 tokenIndexFrom,
-        uint8 tokenIndexTo,
-        uint256 dx,
-        uint256 minDy,
-        uint256 deadline
-    ) external returns (uint256);
-
-    function addLiquidity(
-        uint256[] calldata amounts,
-        uint256 minToMint,
-        uint256 deadline
-    ) external returns (uint256);
-
-    function removeLiquidity(
-        uint256 amount,
-        uint256[] calldata minAmounts,
-        uint256 deadline
-    ) external returns (uint256[] memory);
-
-    function removeLiquidityOneToken(
-        uint256 tokenAmount,
-        uint8 tokenIndex,
-        uint256 minAmount,
-        uint256 deadline
-    ) external returns (uint256);
-
-    function removeLiquidityImbalance(
-        uint256[] calldata amounts,
-        uint256 maxBurnAmount,
-        uint256 deadline
-    ) external returns (uint256);
-}
-
-interface ISwapFlashLoan is ISwap {
-    function flashLoan(
-        address receiver,
-        IERC20 token,
-        uint256 amount,
-        bytes calldata params
-    ) external;
-}
-
-
-// File contracts/interfaces/wavax.sol
-
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.6.0;
-
-interface WAVAX {
-    function name() external view returns (string memory);
-
-    function approve(address guy, uint256 wad) external returns (bool);
-
-    function totalSupply() external view returns (uint256);
-
-    function transferFrom(
-        address src,
-        address dst,
-        uint256 wad
-    ) external returns (bool);
-
-    function withdraw(uint256 wad) external;
-
-    function decimals() external view returns (uint8);
-
-    function balanceOf(address) external view returns (uint256);
-
-    function symbol() external view returns (string memory);
-
-    function transfer(address dst, uint256 wad) external returns (bool);
-
-    function deposit() external payable;
-
-    function allowance(address, address) external view returns (uint256);
-}
-
-
 // File contracts/interfaces/globe.sol
 
 // SPDX-License-Identifier: MIT
@@ -1198,6 +1044,18 @@ interface IPangolinRouter {
         address to,
         uint256 deadline
     ) external returns (uint256 amountA, uint256 amountB);
+
+    function quote(
+        uint256 amountA,
+        uint256 reserveA,
+        uint256 reserveB
+    ) external pure returns (uint256 amountB);
+
+    function getAmountOut(
+        uint256 amountIn,
+        uint256 reserveIn,
+        uint256 reserveOut
+    ) external pure returns (uint256 amountOut);
 
     function getAmountsOut(uint256 amountIn, address[] calldata path)
         external
@@ -1758,15 +1616,16 @@ abstract contract StrategyBase {
 }
 
 
-// File contracts/interfaces/axial-rewarder.sol
+// File contracts/interfaces/joe-rewarder.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
-// interface for Axial Rewarder contract
-interface IAxialRewarder {
+
+// interface for Trader Joe Rewarder contract
+interface IJoeRewarder {
     using SafeERC20 for IERC20;
 
-    function onAxialReward(address user, uint256 newLpAmount) external;
+    function onJoeReward(address user, uint256 newLpAmount) external;
 
     function pendingTokens(address user)
         external
@@ -1777,12 +1636,13 @@ interface IAxialRewarder {
 }
 
 
-// File contracts/interfaces/masterchefaxialv2.sol
+// File contracts/interfaces/masterchefjoev2.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
-// interface for MasterChefAxialV2 contract
-interface IMasterChefAxialV2 {
+
+// interface for MasterChefJoeV2 contract
+interface IMasterChefJoeV2 {
 
 
     /* Reads */
@@ -1825,7 +1685,7 @@ interface IMasterChefAxialV2 {
     function set(
         uint256 _pid,
         uint256 _allocPoint,
-        IAxialRewarder _rewarder,
+        IJoeRewarder _rewarder,
         bool overwrite
     ) external;
 
@@ -1914,6 +1774,20 @@ interface IJoeRouter {
         address to,
         uint256 deadline
     ) external payable returns (uint256[] memory amounts);
+
+     function quote(
+        uint256 amountA,
+        uint256 reserveA,
+        uint256 reserveB
+    ) external pure returns (uint256 amountB);
+
+
+     function getAmountOut(
+        uint256 amountIn,
+        uint256 reserveIn,
+        uint256 reserveOut
+    ) external pure returns (uint256 amountOut);
+
 
     function getAmountsOut(uint256 amountIn, address[] calldata path)
         external
@@ -2060,62 +1934,98 @@ interface IJoeFactory {
 }
 
 
-// File contracts/strategies/strategy-axial-base.sol
+// File contracts/interfaces/wavax.sol
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.6.0;
+
+interface WAVAX {
+    function name() external view returns (string memory);
+
+    function approve(address guy, uint256 wad) external returns (bool);
+
+    function totalSupply() external view returns (uint256);
+
+    function transferFrom(
+        address src,
+        address dst,
+        uint256 wad
+    ) external returns (bool);
+
+    function withdraw(uint256 wad) external;
+
+    function decimals() external view returns (uint8);
+
+    function balanceOf(address) external view returns (uint256);
+
+    function symbol() external view returns (string memory);
+
+    function transfer(address dst, uint256 wad) external returns (bool);
+
+    function deposit() external payable;
+
+    function allowance(address, address) external view returns (uint256);
+}
+
+
+// File contracts/strategies/strategy-joe-rush-farm-base.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
-// Base contract for Axial based staking contract interfaces
 
-abstract contract StrategyAxialBase is StrategyBase {
-    // Token address 
-    address public constant axial = 0xcF8419A615c57511807236751c0AF38Db4ba3351;
-    address public constant masterChefAxialV3 = 0x958C0d0baA8F220846d3966742D4Fb5edc5493D3;
+
+
+
+
+abstract contract StrategyJoeRushFarmBase is StrategyBase {
+    // Token addresses
+    address public constant joe = 0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd;
     address public constant joeRouter = 0x60aE616a2155Ee3d9A68541Ba4544862310933d4;
+    address public constant masterChefJoeV3 = 0x188bED1968b795d5c9022F6a0bb5931Ac4c18F00;
 
     uint256 public poolId;
 
     constructor(
         uint256 _poolId,
-        address _want,
+        address _lp,
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
     )
         public
-        StrategyBase(_want, _governance, _strategist, _controller, _timelock)
+        StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
     {
         poolId = _poolId;
     }
 
-    // **** Getters ****
-
-    function balanceOfPool() public override view returns (uint256) {
-        (uint256 amount, ) = IMasterChefAxialV2(masterChefAxialV3).userInfo(
+    function balanceOfPool() public view override returns (uint256) {
+        (uint256 amount, ) = IMasterChefJoeV2(masterChefJoeV3).userInfo(
             poolId,
             address(this)
         );
         return amount;
     }
 
+     receive() external payable {}
+
+    // Updated based on cryptofish's recommendation
     function getHarvestable() external view returns (uint256, uint256) {
-        (uint256 pendingJoe, , , uint256 pendingBonusToken) = IMasterChefAxialV2(
-            masterChefAxialV3
+        (uint256 pendingJoe, , , uint256 pendingBonusToken) = IMasterChefJoeV2(
+            masterChefJoeV3
         ).pendingTokens(poolId, address(this));
         return (pendingJoe, pendingBonusToken);
     }
 
-    function getMostPremium() public virtual view returns (address);
-
-
-    // **** State Mutation functions ****
+    // **** Setters ****
 
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(masterChefAxialV3, 0);
-            IERC20(want).safeApprove(masterChefAxialV3, _want);
-            IMasterChefAxialV2(masterChefAxialV3).deposit(poolId,_want);
+            IERC20(want).safeApprove(masterChefJoeV3, 0);
+            IERC20(want).safeApprove(masterChefJoeV3, _want);
+            IMasterChefJoeV2(masterChefJoeV3).deposit(poolId,_want);
         }
     }
 
@@ -2124,11 +2034,9 @@ abstract contract StrategyAxialBase is StrategyBase {
         override
         returns (uint256)
     {
-        IMasterChefAxialV2(masterChefAxialV3).withdraw(poolId, _amount);
+        IMasterChefJoeV2(masterChefJoeV3).withdraw(poolId, _amount);
         return _amount;
     }
-
-
 
     function _swapTraderJoe(
         address _from,
@@ -2173,13 +2081,13 @@ abstract contract StrategyAxialBase is StrategyBase {
         );
     }
 
-    function _takeFeeAxialToSnob(uint256 _keep) internal {
+    function _takeFeeJoeToSnob(uint256 _keep) internal {
         address[] memory path = new address[](3);
-        path[0] = axial;
+        path[0] = joe;
         path[1] = wavax;
         path[2] = snob;
-        IERC20(axial).safeApprove(joeRouter, 0);
-        IERC20(axial).safeApprove(joeRouter, _keep);
+        IERC20(joe).safeApprove(joeRouter, 0);
+        IERC20(joe).safeApprove(joeRouter, _keep);
         _swapTraderJoeWithPath(path, _keep);
         uint256 _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
@@ -2194,7 +2102,7 @@ abstract contract StrategyAxialBase is StrategyBase {
         IERC20(wavax).safeApprove(pangolinRouter, 0);
         IERC20(wavax).safeApprove(pangolinRouter, _keep);
         _swapPangolin(wavax, snob, _keep);
-        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
         IERC20(snob).safeTransfer(
             feeDistributor,
@@ -2208,7 +2116,7 @@ abstract contract StrategyAxialBase is StrategyBase {
 }
 
 
-// File hardhat/console.sol@v2.6.5
+// File hardhat/console.sol@v2.6.8
 
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.4.22 <0.9.0;
@@ -3744,197 +3652,157 @@ library console {
 }
 
 
-// File contracts/strategies/strategy-axial-3pool-base.sol
+// File contracts/strategies/traderJoe/strategy-joe-avax-mead.sol
 
-// SPDX-License-Identifier: MIT	
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
-abstract contract StrategyAxial3PoolBase is StrategyAxialBase {
-    address public flashLoan;
 
-    // stablecoins
-    address public pair1;
-    address public pair2;
-    address public pair3;
+
+contract StrategyJoeAvaxMeadLp is StrategyJoeRushFarmBase {
+
+    uint256 public avax_mead_poolId = 23;
+
+    address public joe_avax_mead_lp = 0xb97F23A9e289B5F5e8732b6e20df087977AcC434;
+    address public mead = 0x245C2591403e182e41d7A851eab53B01854844CE;
+
 
     constructor(
-        address _flashLoan,
-        address _pair1, 
-        address _pair2,
-        address _pair3,
-        uint256 _poolId,
-        address _lp,
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
     )
         public
-        StrategyAxialBase(
-            _poolId,
-            _lp,
+        StrategyJoeRushFarmBase(
+            avax_mead_poolId,
+            joe_avax_mead_lp,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
-    {
-        flashLoan = _flashLoan;
-        pair1 = _pair1;
-        pair2 = _pair2;
-        pair3 = _pair3;
+    {}
+
+     function _takeFeeMeadToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = mead;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(mead).safeApprove(joeRouter, 0);
+        IERC20(mead).safeApprove(joeRouter, _keep);
+        _swapTraderJoeWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
     }
-
-
-    // // // **** Views ****
-
-    function getMostPremium() public override view returns (address){
-        uint256[] memory balances = new uint256[](4);
-        balances[0] = ISwap(flashLoan).getTokenBalance(0); 
-        balances[1] = ISwap(flashLoan).getTokenBalance(1); 
-        balances[2] = ISwap(flashLoan).getTokenBalance(2); 
-
-        if (
-            balances[0] < balances[1] &&
-            balances[0] < balances[2] 
-        ) {
-            return (pair1);
-        }
-
-        if (
-            balances[1] < balances[0] &&
-            balances[1] < balances[2] 
-        ) {
-            return (pair2);
-        }
-
-        if (
-            balances[2] < balances[0] &&
-            balances[2] < balances[1] 
-        ) {
-            return (pair3);
-        } 
-
-        // If they're somehow equal, we just want one 
-        return (pair3);
-    }
-
 
     // **** State Mutations ****
 
-    function harvest() public onlyBenevolent override {
+    function harvest() public override onlyBenevolent {
         // Anyone can harvest it at any given time.
         // I understand the possibility of being frontrun
-        // But ETH is a dark forest, and I wanna see how this plays out
+        // But AVAX is a dark forest, and I wanna see how this plays out
         // i.e. will be be heavily frontrunned?
         //      if so, a new strategy will be deployed.
 
-        // stablecoin we want to convert to
-        (address to) = getMostPremium();
+        // Collects Rewards tokens (JOE & AVAX)
+        IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
 
-         // Collects Axial  tokens 
-        IMasterChefAxialV2(masterChefAxialV3).deposit(poolId, 0);
-        uint256 _axial = IERC20(axial).balanceOf(address(this));
-        if (_axial > 0) {
-            // x% is sent back to the rewards holder
-            // to be used to lock up in as veCRV in a future date
-            uint256 _keep = _axial.mul(keep).div(keepMax);
-            uint256 _amount = _axial.sub(_keep);
-            if (_keep > 0) {
-                _takeFeeAxialToSnob(_keep);
-            }
-
-            // if the stablecoin we need is frax, then swap with pangolin
-            if( to == 0xD24C2Ad096400B6FBcd2ad8B24E7acBc21A1da64){
-                IERC20(axial).safeApprove(pangolinRouter, 0);
-                IERC20(axial).safeApprove(pangolinRouter, _amount);
-
-                _swapPangolin(axial, to, _amount);
-
-            }else{
-                IERC20(axial).safeApprove(joeRouter, 0);
-                IERC20(axial).safeApprove(joeRouter, _amount);
-                
-                _swapTraderJoe(axial, to, _amount); 
-            }
-        }
-
-        // Take Avax Rewards    
+        //Take Avax Rewards    
         uint256 _avax = address(this).balance;            //get balance of native Avax
         if (_avax > 0) {                                 //wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
         }
-
+        
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
             uint256 _keep2 = _wavax.mul(keep).div(keepMax);
             if (_keep2 > 0){
                 _takeFeeWavaxToSnob(_keep2);
             }
-            //convert Avax Rewards
+
+            _wavax = IERC20(wavax).balanceOf(address(this));
+
+            // convert Avax Rewards to Joe first to better account for reflection
             IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax.sub(_keep2));   
-            _swapTraderJoe(wavax, to, _wavax.sub(_keep2));
+            IERC20(wavax).safeApprove(joeRouter, _wavax);   
+            _swapTraderJoe(wavax, joe, _wavax);
+
+        }
+        
+        // Take Joe Rewards
+        uint256 _joe = IERC20(joe).balanceOf(address(this));
+        if (_joe > 0) {
+            // 10% is sent to treasury
+            uint256 _keep = _joe.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeeJoeToSnob(_keep);
+            }
+
+            _joe = IERC20(joe).balanceOf(address(this));
+
+            IERC20(joe).safeApprove(joeRouter, 0);
+            IERC20(joe).safeApprove(joeRouter, _joe);
+            // MEAD: 2% reflection? They are changing this all the time... 
+            _swapTraderJoe(joe, wavax, _joe.mul(98).div(198));
+            _swapTraderJoe(joe, mead, _joe.mul(100).div(198));
         }
 
+        // Adds in liquidity for AVAX/MEAD
+        _wavax = IERC20(wavax).balanceOf(address(this));
 
-        // Adds liquidity to axial's as4d or ac4d pool
-        uint256 _to = IERC20(to).balanceOf(address(this));
-        if (_to > 0) {
-            IERC20(to).safeApprove(flashLoan, 0);
-            IERC20(to).safeApprove(flashLoan, _to);
-            uint256[] memory liquidity = new uint256[](3);
+        uint256 _mead = IERC20(mead).balanceOf(address(this));
 
-            liquidity[0] = IERC20(pair1).balanceOf(address(this));
-            liquidity[1] = IERC20(pair2).balanceOf(address(this));
-            liquidity[2] = IERC20(pair3).balanceOf(address(this));
+        if (_wavax > 0 && _mead > 0) {
+            IERC20(wavax).safeApprove(joeRouter, 0);
+            IERC20(wavax).safeApprove(joeRouter, _wavax);
 
-            ISwap(flashLoan).addLiquidity(liquidity, 0, now + 60);
+            IERC20(mead).safeApprove(joeRouter, 0);
+            IERC20(mead).safeApprove(joeRouter, _mead);
+
+            IJoeRouter(joeRouter).addLiquidity(
+                wavax,
+                mead,
+                _wavax,
+                _mead,
+                0,
+                0,
+                address(this),
+                now + 60
+            );
+
+            // Donates DUST
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _mead = IERC20(mead).balanceOf(address(this));
+            console.log("wavax dust: ",_wavax);
+            console.log("mead dust: ",_mead);
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
+            if (_mead > 0){
+                IERC20(mead).safeTransfer(
+                    IController(controller).treasury(),
+                    _mead
+                );
+            }
         }
 
-        // We want to get back sCRV
         _distributePerformanceFeesAndDeposit();
     }
-}
 
-
-// File contracts/strategies/axial/strategy-am3d.sol
-
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
-contract StrategyAxialAM3DLp is StrategyAxial3PoolBase {
-    // stablecoins
-    address public mim = 0x130966628846BFd36ff31a822705796e8cb8C18D;
-    address public usdcE = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
-    address public daiE = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
-
-    uint256 public am3d_poolId = 3; 
-    address public lp = 0xc161E4B11FaF62584EFCD2100cCB461A2DdE64D1;
-    address public swapLoan = 0x90c7b96AD2142166D001B27b5fbc128494CDfBc8;
-    
-    constructor(
-        address _governance,
-        address _strategist,
-        address _controller,
-        address _timelock
-    )
-    public 
-    StrategyAxial3PoolBase(
-        swapLoan,
-        mim,
-        usdcE,
-        daiE, 
-        am3d_poolId,
-        lp,
-        _governance,
-        _strategist,
-        _controller,
-        _timelock
-
-    ){}
-
-     // **** Views ****
+    // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyAxialAM3DLp";
+        return "StrategyJoeAvaxMeadLp";
     }
 }

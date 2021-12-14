@@ -5,14 +5,17 @@ import "../strategy-axial-4pool-base.sol";
 
 contract StrategyAxialAC4DLp is StrategyAxial4PoolBase {
     // stablecoins
-    address public tsd = 0x4fbf0429599460D327BD5F55625E30E4fC066095;
-    address public mim = 0x130966628846BFd36ff31a822705796e8cb8C18D;
-    address public frax = 0xD24C2Ad096400B6FBcd2ad8B24E7acBc21A1da64; 
-    address public daiE = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
+    address public constant tsd = 0x4fbf0429599460D327BD5F55625E30E4fC066095;
+    address public constant mim = 0x130966628846BFd36ff31a822705796e8cb8C18D;
+    address public constant frax = 0xD24C2Ad096400B6FBcd2ad8B24E7acBc21A1da64; 
+    address public constant daiE = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
+    address public constant teddy = 0x094bd7B2D99711A1486FB94d4395801C6d0fdDcC;
+    address public constant fxs = 0x214DB107654fF987AD859F34125307783fC8e387;
 
-    uint256 public ac4d_poolId = 1; 
-    address public lp = 0x4da067E13974A4d32D342d86fBBbE4fb0f95f382;
-    address public swapLoan = 0x8c3c1C6F971C01481150CA7942bD2bbB9Bc27bC7;
+
+    uint256 public constant ac4d_poolId = 1; 
+    address public constant lp = 0x4da067E13974A4d32D342d86fBBbE4fb0f95f382;
+    address public constant swapLoan = 0x8c3c1C6F971C01481150CA7942bD2bbB9Bc27bC7;
     
     constructor(
         address _governance,
@@ -37,6 +40,39 @@ contract StrategyAxialAC4DLp is StrategyAxial4PoolBase {
     ){}
 
     // **** State Mutations ****
+    function _takeFeeTeddyToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = teddy;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(teddy).safeApprove(joeRouter, 0);
+        IERC20(teddy).safeApprove(joeRouter, _keep);
+        _swapTraderJoeWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(feeDistributor, _share);
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
+    function _takeFeeFxsToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = fxs;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(fxs).safeApprove(joeRouter, 0);
+        IERC20(fxs).safeApprove(joeRouter, _keep);
+        _swapTraderJoeWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(feeDistributor, _share);
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
 
     function harvest() public onlyBenevolent override {
         // stablecoin we want to convert to

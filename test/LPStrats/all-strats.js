@@ -337,6 +337,66 @@ const tests = [
   //   snowglobeAddress: "",
   // },
   // {
+  //   name: "PngAvaxOrca",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxAvai",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngTusdDaiEMini",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxMaxi",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxCraft",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxCra",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxJewel",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxgOhm",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngUsdcEMim",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  {
+      name: "PngAvaxCly",
+      controllerAddress: "",
+      snowglobeAddress: "",
+    },      
+  {
+    name: "PngUsdteSkill",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
+  {
+    name: "PngAvaxCook",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
+  // {
   //   name: "JoeAvaxPng",
   //   controllerAddress: "",
   //   snowglobeAddress: "0x962ECf51A169090002CC88B4Bf16e447d2E13100",
@@ -594,8 +654,20 @@ const tests = [
     {
       name: "AxialAC4D",
       controllerAddress: "0xc7D536a04ECC43269B6B95aC1ce0a06E0000D095",
-      slot: 3,
+      slot: 51,
     },
+    // {
+    //   name: "AxialAA3D",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    //   slot: 51
+    // },
+    // {
+    //     name: "AxialAM3D",
+    //     controllerAddress: "",
+    //     snowglobeAddress: "",
+    //     slot: 51
+    //   },
 ];
 
 for (const test of tests) {
