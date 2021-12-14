@@ -42,6 +42,11 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         token0 = _token0;
         token1 = _token1;
         sushiRouter = padRouter;
+
+        IERC20(token0).approve(sushiRouter, uint256(-1));
+        IERC20(token1).approve(sushiRouter, uint256(-1));
+        IERC20(pad).approve(sushiRouter, uint256(-1));
+        IERC20(want).approve(miniChef, uint256(-1));
     }
 
     function balanceOfPool() public view override returns (uint256) {
@@ -93,11 +98,12 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         harvestTwo();
         harvestThree();
         harvestFour();
+        harvestFive();
     }
 
     function harvestOne() public onlyBenevolent {
         // Collects TRI tokens
-        IMiniChefNearPad(miniChef).harvest(poolId);
+        IMiniChefNearPad(miniChef).deposit(poolId, 0);
         uint256 _pad = IERC20(pad).balanceOf(address(this));
         uint256 _keepPAD = _pad.mul(keepPAD).div(keepPADMax);
 
@@ -114,7 +120,6 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         uint256 _pad = IERC20(pad).balanceOf(address(this));
         if (_pad > 0) {
             uint256 toToken0 = _pad.div(2);
-            uint256 toToken1 = _pad.sub(toToken0);
 
             if (swapRoutes[token0].length > 1) {
                 UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
@@ -125,9 +130,15 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
                     now + 60
                 );
             }
+        }
+    }
+
+    function harvestThree() public onlyBenevolent {
+        uint256 _pad = IERC20(pad).balanceOf(address(this));
+        if (_pad > 0) {
             if (swapRoutes[token1].length > 1) {
                 UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-                    toToken1,
+                    _pad, // Swap the remainder of PAD
                     0,
                     swapRoutes[token1],
                     address(this),
@@ -137,7 +148,7 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         }
     }
 
-    function harvestThree() public onlyBenevolent {
+    function harvestFour() public onlyBenevolent {
         // Adds in liquidity for token0/token1
         uint256 _token0 = IERC20(token0).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
@@ -165,7 +176,7 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         }
     }
 
-    function harvestFour() public onlyBenevolent {
+    function harvestFive() public onlyBenevolent {
         // We want to get back PAD LP tokens
         _distributePerformanceFeesAndDeposit();
     }
