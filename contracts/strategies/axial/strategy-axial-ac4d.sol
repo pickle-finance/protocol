@@ -8,7 +8,7 @@ contract StrategyAxialAC4DLp is StrategyAxial4PoolBase {
     address public constant tsd = 0x4fbf0429599460D327BD5F55625E30E4fC066095;
     address public constant mim = 0x130966628846BFd36ff31a822705796e8cb8C18D;
     address public constant frax = 0xD24C2Ad096400B6FBcd2ad8B24E7acBc21A1da64; 
-    address public constant daiE = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
+    address public constant daie = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
     address public constant teddy = 0x094bd7B2D99711A1486FB94d4395801C6d0fdDcC;
     address public constant fxs = 0x214DB107654fF987AD859F34125307783fC8e387;
 
@@ -29,7 +29,7 @@ contract StrategyAxialAC4DLp is StrategyAxial4PoolBase {
         tsd,
         mim,
         frax,
-        daiE, 
+        daie, 
         ac4d_poolId,
         lp,
         _governance,

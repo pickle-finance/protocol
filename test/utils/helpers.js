@@ -46,9 +46,9 @@ const toGwei = (amount) => {
 const overwriteTokenAmount = async (assetAddr, walletAddr, amount, slot = 0) => {
   const index = ethers.utils.solidityKeccak256(["uint256", "uint256"], [walletAddr, slot]);
   const BN = ethers.BigNumber.from(amount)._hex.toString();
-  // const number = ethers.utils.hexZeroPad(BN, 32);
+  const number = ethers.utils.hexZeroPad(BN, 32);
 
-  await ethers.provider.send("hardhat_setStorageAt", [assetAddr, index, BN]);
+  await ethers.provider.send("hardhat_setStorageAt", [assetAddr, index, number]);
   await hre.network.provider.send("evm_mine");
 };
 
