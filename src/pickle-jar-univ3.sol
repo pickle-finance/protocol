@@ -80,6 +80,20 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         uint256 _balance1 = token1.balanceOf(address(this));
         return uint256(pool.liquidityForAmounts(_balance0, _balance1, tick_lower, tick_upper));
     }
+    function totalLiquidityFullRange() public view returns (uint256) {
+	return liquidityFullRange(totalLiquidity());
+    }
+    function liquidityFullRange(uint256 _liquidity) public view returns (uint256) {
+       (uint256 _amount0,  uint256 _amount1) = pool.amountsForLiquidity(uint128(_liquidity), tick_lower, tick_upper);
+       _liquidity = pool.liquidityForAmounts(
+          _amount0,
+	  _amount1,
+	  -887200,
+	  887200
+	);
+	return _liquidity;
+    }
+
 
     function setGovernance(address _governance) public {
         require(msg.sender == governance, "!governance");
@@ -130,25 +144,6 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
             token1Amount = _eth;
         }
 
-        // account for imperfect deposit ratios
-        uint256 amount0ForAmount1 = getDepositAmount(address(token1), token1Amount).mul(1e18).div(getProportion());
-        uint256 amount1ForAmount0 = getDepositAmount(address(token0), token0Amount).mul(getProportion()).div(1e18);
-
-        if (token0Amount > amount0ForAmount1) {
-            token0Amount = amount0ForAmount1;
-        } else {
-            token1Amount = amount1ForAmount0;
-
-            // refund excess ETH to user
-            if (isEth && address(token1) == weth) {
-                uint256 _refund = _eth.sub(token1Amount);
-                WETH(weth).withdraw(_refund);
-                (bool sent, bytes memory data) = (msg.sender).call{value: _refund}("");
-                require(sent, "Failed to refund Ether");
-            }
-        }
-
-        uint256 _pool = totalLiquidity();
         uint256 _liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, tick_lower, tick_upper));
 
         if (token0Amount > 0) token0.safeTransferFrom(msg.sender, address(this), token0Amount);
@@ -156,9 +151,9 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
         uint256 shares = 0;
         if (totalSupply() == 0) {
-            shares = _liquidity;
+            shares = liquidityFullRange(_liquidity);
         } else {
-            shares = (_liquidity.mul(totalSupply())).div(_pool);
+            shares = (liquidityFullRange(_liquidity).mul(totalSupply())).div(totalLiquidityFullRange());
         }
 
         _mint(msg.sender, shares);

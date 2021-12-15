@@ -15,6 +15,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
 
     address public constant rbn = 0x6123B0049F904d730dB3C36a31167D9d4121fA6B;
     uint256 public tokenId;
+    int24 public tickSpacing;
 
     IUniswapV3Staker.IncentiveKey key =
         IUniswapV3Staker.IncentiveKey({
@@ -44,6 +45,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         token0.safeApprove(address(nftManager), uint256(-1));
         token1.safeApprove(address(nftManager), uint256(-1));
         nftManager.setApprovalForAll(univ3_staker, true);
+        tickSpacing = pool.tickSpacing();
     }
 
     function getName() external pure override returns (string memory) {
@@ -116,7 +118,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         uint256 _rbn = IERC20(token0).balanceOf(address(this));
         uint256 _weth = IERC20(token1).balanceOf(address(this));
 
-        if (_rbn > 0 && _weth > 0) {
+        if (_rbn > 0 || _weth > 0) {
             _distributePerformanceFeesAndDeposit();
         }
 
@@ -124,7 +126,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
     }
 
     function liquidityOfPool() public view override returns (uint256) {
-        (, , , , , , , uint256 _liquidity, , , , ) = nftManager.positions(tokenId);
+        (, , , , , , , uint128 _liquidity, , , , ) = nftManager.positions(tokenId);
         return _liquidity;
     }
 
@@ -144,6 +146,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
             IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
         }
+	balanceProportion(tick_lower, tick_upper);
 
         uint256 _token0 = token0.balanceOf(address(this)); // rbn
         uint256 _token1 = token1.balanceOf(address(this)); // weth
@@ -220,11 +223,8 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         emit withdrawn(tokenId, _liquidity);
     }
 
-    function rebalance(int24 _tickLower, int24 _tickUpper) external returns (uint256 _tokenId) {
+    function rebalance() external returns (uint256 _tokenId) {
         require(msg.sender == governance, "!governance");
-        require(_tickLower % key.pool.tickSpacing() == 0, "_tickLower needs to be a multiple of tickSpacing");
-        require(_tickUpper % key.pool.tickSpacing() == 0, "_tickUpper needs to be a multiple of tickSpacing");
-        PoolVariables.checkRange(_tickLower, _tickUpper);
 
         if (isStakingActive()) {
             // If NFT is held by staker, then withdraw
@@ -266,8 +266,8 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             token1.balanceOf(address(this)).sub(_liqAmt1)
         );
 
+        (int24 _tickLower, int24 _tickUpper) = determineTicks();
         balanceProportion(_tickLower, _tickUpper);
-
         //Need to do this again after the swap to cover any slippage.
         uint256 _amount0Desired = token0.balanceOf(address(this)); //rbn
         uint256 _amount1Desired = token1.balanceOf(address(this)); //weth
@@ -299,6 +299,13 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         }
 
         emit rebalanced(tokenId, _tickLower, _tickUpper);
+    }
+
+    function determineTicks() internal returns (int24, int24) {
+        (, int24 currentTick, , , , , ) = pool.slot0();
+       
+        int24 baseThreshold = tickSpacing * tickRangeMultiplier;
+        return PoolVariables.baseTicks(currentTick, baseThreshold, tickSpacing);
     }
 
     function balanceProportion(int24 _tickLower, int24 _tickUpper) internal {

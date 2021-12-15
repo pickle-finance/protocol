@@ -305,14 +305,7 @@ describe("StrategyRbnEthUniV3", () => {
     console.log("============ Rebalance Started ==============");
 
     console.log("Ratio before rebalance => ", (await pickleJar.getRatio()).toString());
-    let tickSpacing = await pool.tickSpacing();
-    let tickRangeMultiplier = 100;
-    let baseThreshold = tickSpacing * tickRangeMultiplier;
-    let currentTick;
-    [, currentTick, , , , ,] = await pool.slot0();
-    let compressed = currentTick / tickSpacing;
-    let floor = Math.floor(currentTick / tickSpacing) * tickSpacing;
-    await strategy.rebalance(floor - baseThreshold, floor + baseThreshold);
+    await strategy.rebalance();
     console.log("Ratio after rebalance => ", (await pickleJar.getRatio()).toString());
     console.log("============ Rebalance Ended ==============");
   };
@@ -321,7 +314,8 @@ describe("StrategyRbnEthUniV3", () => {
     console.log("============ Rebalance Started ==============");
 
     console.log("Ratio before rebalance => ", (await pickleJar.getRatio()).toString());
-    await strategy.rebalance(-887200, 887200);
+    await strategy.connect(governance).setTickRangeMultiplier(20);
+    await strategy.rebalance();
     console.log("Ratio after rebalance => ", (await pickleJar.getRatio()).toString());
     console.log("============ Rebalance Ended ==============");
   };
