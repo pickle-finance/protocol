@@ -17,43 +17,35 @@ async function main() {
 
   const pools = [
     {
-      name: "JoeLink",
-      snowglobe: "0x6C6B562100663b4179C95E5B199576f2E16b150e"
+      name: "BenqiEthE",
+      snowglobe: "0x37d4b7B04ccfC14d3D660EDca1637417f5cA37f3"
     },
     {
-      name: "JoeUsdc",
-      snowglobe: "0x8C9fAEBD41c68B801d628902EDad43D88e4dD0a6"
+      name: "BenqiLinkE",
+      snowglobe: "0x32d9D114A2F5aC4ce777463e661BFA28C8fE9Eb7"
     },
     {
-      name: "JoeUsdt",
-      snowglobe: "0xc7Ca863275b2D0F7a07cA6e2550504362705aA1A"
+      name: "BenqiQi",
+      snowglobe: "0x68b8037876385BBd6bBe80bAbB2511b95DA372C4"
     },
     {
-      name: "JoeWbtc",
-      snowglobe: "0xfb49ea67b84F7c1bBD825de7febd2C836BC4B47E"
+      name: "BenqiWavax",
+      snowglobe: "0xaCF2814cF22fCB08b3dDA331221A52ad7B05639B"
     },
     {
-      name: "JoeEth",
-      snowglobe: "0x49e6A1255DEfE0B194a67199e78aD5AA5D7cb092"
-    },
-    {
-      name: "JoeMim",
-      snowglobe: "0x3aAF997FdDA51eBb0918e3E59021f5FDE52444d8"
-    },
-    {
-      name: "JoeXJoe",
-      snowglobe: "0x6a52e6b23700A63eA4a0Db313eBD386Fb510eE3C"
+      name: "BenqiWbtcE",
+      snowglobe: "0x8FA104f65BDfddEcA211867b77e83949Fc9d8b44"
     },
   ];
 
   const Council = new ethers.Contract(council_addr, multisig_ABI, signer);
   const iMultiSig = new ethers.utils.Interface(multisig_ABI);
   const iSnowGlobe = new ethers.utils.Interface(snowglobe_ABI);
-  const controller_addr = "0xF2FA11Fc9247C23b3B622C41992d8555f6D01D8f";
+  const new_controller_addr = "0x8bfBA506B442f0D93Da2aDFd1ab70b7cB6a77B76";
 
   const withdrawFromPool = async pool => {
 
-    const first_encoding = iSnowGlobe.encodeFunctionData("setController", [controller_addr]);
+    const first_encoding = iSnowGlobe.encodeFunctionData("setController", [new_controller_addr]);
 
     const second_encoding = iMultiSig.encodeFunctionData("submitTransaction", [pool.snowglobe, 0, first_encoding]);
     

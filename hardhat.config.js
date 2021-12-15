@@ -50,6 +50,9 @@ module.exports = {
   mocha: {
     timeout: 120000
   },
+  paths: {
+    sources:"./contracts/AxialRouter.sol"
+  },
   // vyper: {
   //   version: "0.2.4",
   // },

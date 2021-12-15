@@ -65,6 +65,6 @@ for (const test of tests) {
       test.amount,
       test.slot,
       test.fold,
-      test.controller);
+      "0x8bfBA506B442f0D93Da2aDFd1ab70b7cB6a77B76"); // benqi controller
   });
 }

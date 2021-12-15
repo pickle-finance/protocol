@@ -4,7 +4,7 @@ require('dotenv').config();
 
 async function main() {
 
-  const platform = "BankerJoe";
+  const platform = "Benqi";
   const controller_name = platform+"ControllerV4";
   
   const [deployer] = await ethers.getSigners();
@@ -12,7 +12,7 @@ async function main() {
 
   const governance_addr = "0x294aB3200ef36200db84C4128b7f1b4eec71E38a";
   const strategist_addr = "0xc9a51fB9057380494262fd291aED74317332C0a2";
-  const timelock_addr = strategist_addr;
+  const timelock_addr = "0x3d88b8022142ea2693ba43BA349F89256392d59b";
   const devfund_addr = "0x0Aa5CB6F365259524F7Ece8e09ccE9A7B394077A";
   const treasury_addr = "0x028933a66DD0cCC239a3d5c2243b2d96672f11F5";
 
