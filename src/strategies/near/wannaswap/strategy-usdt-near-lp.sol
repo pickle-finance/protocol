@@ -8,8 +8,9 @@ contract StrategyWannaUsdtNearLp is StrategyWannaFarmBase {
     uint256 public wanna_usdt_near_poolid = 2;
     // Token addresses
     address public wanna_usdt_near_lp =
-        0x7E9EA10E5984a09D19D05F31ca3cB65BB7df359d;
+        0x2e02Bea8e9118f7d2ccadA1d402286Cc6d54bd67;
     address public usdt = 0x4988a896b1227218e4A686fdE5EabdcAbd91571f;
+    address public near = 0xC42C30aC6Cc15faC9bD938618BcaA1a1FaE8501d;
 
     constructor(
         address _governance,

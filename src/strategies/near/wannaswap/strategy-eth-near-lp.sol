@@ -10,6 +10,7 @@ contract StrategyWannaEthNearLp is StrategyWannaFarmBase {
     address public wanna_eth_near_lp =
         0x256d03607eeE0156b8A2aB84da1D5B283219Fe97;
     address public near = 0xC42C30aC6Cc15faC9bD938618BcaA1a1FaE8501d;
+    address public eth = 0xC9BdeEd33CD01541e1eeD10f90519d2C06Fe3feB;
 
     constructor(
         address _governance,

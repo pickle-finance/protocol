@@ -10,6 +10,7 @@ contract StrategyWannaBtcEthLp is StrategyWannaFarmBase {
     address public wanna_btc_eth_lp =
         0xf56997948d4235514Dcc50fC0EA7C0e110EC255d;
     address public btc = 0xF4eB217Ba2454613b15dBdea6e5f22276410e89e;
+    address public eth = 0xC9BdeEd33CD01541e1eeD10f90519d2C06Fe3feB;
 
     constructor(
         address _governance,

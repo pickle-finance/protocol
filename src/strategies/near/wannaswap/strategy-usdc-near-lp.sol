@@ -10,6 +10,7 @@ contract StrategyWannaUsdcNearLp is StrategyWannaFarmBase {
     address public wanna_usdc_near_lp =
         0xBf560771B6002a58477EFBCDD6774A5a1947587B;
     address public usdc = 0xB12BFcA5A55806AaF64E99521918A4bf0fC40802;
+    address public near = 0xC42C30aC6Cc15faC9bD938618BcaA1a1FaE8501d;
 
     constructor(
         address _governance,
