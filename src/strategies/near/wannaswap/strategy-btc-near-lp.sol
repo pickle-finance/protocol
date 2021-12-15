@@ -10,7 +10,6 @@ contract StrategyWannaBtcNearLp is StrategyWannaFarmBase {
     address public wanna_btc_near_lp =
         0xbF58062D23f869a90c6Eb04B9655f0dfCA345947;
     address public btc = 0xF4eB217Ba2454613b15dBdea6e5f22276410e89e;
-    address public near = 0xC42C30aC6Cc15faC9bD938618BcaA1a1FaE8501d;
 
     constructor(
         address _governance,

@@ -9,7 +9,6 @@ contract StrategyWannaWannaNearLp is StrategyWannaFarmBase {
     // Token addresses
     address public wanna_wanna_near_lp =
         0xbf9Eef63139b67fd0ABf22bD5504ACB0519a4212;
-    address public near = 0xC42C30aC6Cc15faC9bD938618BcaA1a1FaE8501d;
 
     constructor(
         address _governance,
