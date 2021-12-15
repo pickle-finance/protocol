@@ -34,6 +34,14 @@ async function main() {
       default: controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; break; //Base
     }
 
+    // if there is no targets or data array, create one
+    if (!pools[name].targets) {
+      pools[name].targets = [];
+    }
+    if (!pools[name].data) {
+      pools[name].data = [];
+    }
+
     const Controller = new ethers.Contract(controller_addr, controller_ABI, deployer);
     const IController = new ethers.utils.Interface(controller_ABI);
   

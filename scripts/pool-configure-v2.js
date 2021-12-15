@@ -41,6 +41,7 @@ async function main() {
         }
         pools[name].submitted = true;
         writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
+        console.log(`submitted scheduleBatch for ${name}`);
       }
 
       // timelock execute
@@ -53,9 +54,9 @@ async function main() {
         console.error(`Error submitting transaction "executeBatch" for ${name}`);
         return;
       }
-      console.log(`transaction submitted for "executeBatch" for ${name}`);
       pools[name].executeSent = true;
       writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
+      console.log(`transaction submitted for "executeBatch" for ${name}`);
 
       return;
     }

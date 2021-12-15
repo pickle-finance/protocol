@@ -54,8 +54,8 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
             const harvest = await oldStrategy.harvest();
             const tx_harvest = await harvest.wait(1);
             if (!tx_harvest.status) {
-            console.error("Error harvesting the old strategy for: ",name);
-            return;
+                console.error("Error harvesting the old strategy for: ",name);
+                return;
             }
             console.log("Harvested the old strategy for: ",name);
 
