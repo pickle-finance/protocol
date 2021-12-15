@@ -144,7 +144,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
             token1Amount = _eth;
         }
 
-        uint256 _liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, tick_lower, tick_upper));
+        uint256 _liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, -887200, 887200));
 
         if (token0Amount > 0) token0.safeTransferFrom(msg.sender, address(this), token0Amount);
         if (token1Amount > 0 && !isEth) token1.safeTransferFrom(msg.sender, address(this), token1Amount);
