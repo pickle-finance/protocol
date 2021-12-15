@@ -382,6 +382,21 @@ const tests = [
   //   snowglobeAddress: "",
   // },
   // {
+  //     name: "PngAvaxCly",
+  //     controllerAddress: "",
+  //     snowglobeAddress: "",
+  //   },      
+  // {
+  //   name: "PngUsdteSkill",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxCook",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
   //   name: "JoeAvaxPng",
   //   controllerAddress: "",
   //   snowglobeAddress: "0x962ECf51A169090002CC88B4Bf16e447d2E13100",
@@ -551,11 +566,11 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "0x916aEbEE43E2bE7ed126A21208db4092392d80AD",
   // },
-  // {
-  //   name: "JoeAvaxKlo",
-  //   controllerAddress: "",
-  //   snowglobeAddress: "0xf6E8432EF7d85Ae1202Dc537106D3696eBB27769",
-  // },
+  {
+    name: "JoeAvaxKlo",
+    controllerAddress: "",
+    snowglobeAddress: "0xf6E8432EF7d85Ae1202Dc537106D3696eBB27769",
+  },
   // {
   //   name: "JoeAvaxMai",
   //   controllerAddress: "",
@@ -648,11 +663,6 @@ const tests = [
     //     snowglobeAddress: "",
     //     slot: 51
     //   },
-    {
-        name: "JoeAvaxMead",
-        controllerAddress: "",
-        snowglobeAddress: "",
-      },      
 
 ];
 
