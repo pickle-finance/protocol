@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-wanna-base.sol";
+import "../strategy-tri-base-dual.sol";
 
-contract StrategyWannaWannaNearLp is StrategyWannaFarmBase {
+contract StrategyTriAuroraLp is StrategyTriDualFarmBase {
     // Token/ETH pool id in MasterChef contract
-    uint256 public wanna_wanna_near_poolid = 0;
+    uint256 public tri_aurora_poolid = 1;
     // Token addresses
-    address public wanna_wanna_near_lp =
-        0xbf9Eef63139b67fd0ABf22bD5504ACB0519a4212;
+    address public tri_aurora_lp = 0xd1654a7713617d41A8C9530Fb9B948d00e162194;
 
     constructor(
         address _governance,
@@ -17,23 +16,23 @@ contract StrategyWannaWannaNearLp is StrategyWannaFarmBase {
         address _timelock
     )
         public
-        StrategyWannaFarmBase(
-            wanna,
-            near,
-            wanna_wanna_near_poolid,
-            wanna_wanna_near_lp,
+        StrategyTriDualFarmBase(
+            tri,
+            aurora,
+            tri_aurora_poolid,
+            tri_aurora_lp,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {
-        swapRoutes[near] = [wanna, near];
+        swapRoutes[aurora] = [tri, aurora];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyWannaWannaNearLp";
+        return "StrategyTriAuroraLp";
     }
 }
