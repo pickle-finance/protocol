@@ -1,6 +1,3 @@
-
-
-
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.12;
@@ -356,20 +353,22 @@ abstract contract StrategyUniV3Base {
 
     function _swapSushiswapWithPath(address[] memory path, uint256 _amount) internal {
         require(path[1] != address(0));
- 
+
         UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
     }
 
     function _distributePerformanceFees(uint256 _amount0, uint256 _amount1) internal {
         if (_amount0 > 0) {
-           IERC20(token0).safeTransfer(
-               IControllerV2(controller).treasury(),
-               _amount0.mul(performanceTreasuryFee).div(performanceTreasuryMax));
+            IERC20(token0).safeTransfer(
+                IControllerV2(controller).treasury(),
+                _amount0.mul(performanceTreasuryFee).div(performanceTreasuryMax)
+            );
         }
         if (_amount1 > 0) {
-           IERC20(token1).safeTransfer(
-              IControllerV2(controller).treasury(),
-              _amount1.mul(performanceTreasuryFee).div(performanceTreasuryMax));
+            IERC20(token1).safeTransfer(
+                IControllerV2(controller).treasury(),
+                _amount1.mul(performanceTreasuryFee).div(performanceTreasuryMax)
+            );
         }
     }
 

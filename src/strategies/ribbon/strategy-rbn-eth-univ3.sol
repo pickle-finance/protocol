@@ -146,7 +146,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
             IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
         }
-	balanceProportion(tick_lower, tick_upper);
+        balanceProportion(tick_lower, tick_upper);
 
         uint256 _token0 = token0.balanceOf(address(this)); // rbn
         uint256 _token1 = token1.balanceOf(address(this)); // weth
@@ -303,7 +303,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
 
     function determineTicks() internal returns (int24, int24) {
         (, int24 currentTick, , , , , ) = pool.slot0();
-       
+
         int24 baseThreshold = tickSpacing * tickRangeMultiplier;
         return PoolVariables.baseTicks(currentTick, baseThreshold, tickSpacing);
     }

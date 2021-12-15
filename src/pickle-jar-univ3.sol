@@ -80,20 +80,16 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         uint256 _balance1 = token1.balanceOf(address(this));
         return uint256(pool.liquidityForAmounts(_balance0, _balance1, tick_lower, tick_upper));
     }
+
     function totalLiquidityFullRange() public view returns (uint256) {
-	return liquidityFullRange(totalLiquidity());
-    }
-    function liquidityFullRange(uint256 _liquidity) public view returns (uint256) {
-       (uint256 _amount0,  uint256 _amount1) = pool.amountsForLiquidity(uint128(_liquidity), tick_lower, tick_upper);
-       _liquidity = pool.liquidityForAmounts(
-          _amount0,
-	  _amount1,
-	  -887200,
-	  887200
-	);
-	return _liquidity;
+        return liquidityFullRange(totalLiquidity());
     }
 
+    function liquidityFullRange(uint256 _liquidity) public view returns (uint256) {
+        (uint256 _amount0, uint256 _amount1) = pool.amountsForLiquidity(uint128(_liquidity), tick_lower, tick_upper);
+        _liquidity = pool.liquidityForAmounts(_amount0, _amount1, -887200, 887200);
+        return _liquidity;
+    }
 
     function setGovernance(address _governance) public {
         require(msg.sender == governance, "!governance");
@@ -226,5 +222,5 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         return this.onERC721Received.selector;
     }
 
-    fallback () external payable {}
+    fallback() external payable {}
 }
