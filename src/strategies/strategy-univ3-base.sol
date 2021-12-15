@@ -12,7 +12,7 @@ import "../interfaces/uniswapv2.sol";
 import "../interfaces/univ3/IUniswapV3PositionsNFT.sol";
 import "../interfaces/univ3/IUniswapV3Pool.sol";
 import "../interfaces/univ3/ISwapRouter.sol";
-import "../interfaces/controllerv2.sol";
+import "../interfaces/controllerv3.sol";
 import "../lib/univ3/PoolActions.sol";
 import "../interfaces/weth.sol";
 
@@ -36,7 +36,7 @@ abstract contract StrategyUniV3Base {
 
     int24 public tick_lower;
     int24 public tick_upper;
-    int24 public tickRangeMultiplier = 100;
+    int24 public tickRangeMultiplier = 1000;
 
     address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     IUniswapV3PositionsNFT public nftManager = IUniswapV3PositionsNFT(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
@@ -215,7 +215,7 @@ abstract contract StrategyUniV3Base {
         require(msg.sender == controller, "!controller");
         (a0, a1) = _withdrawSome(_liquidity);
 
-        address _jar = IControllerV2(controller).jars(address(pool));
+        address _jar = IControllerV3(controller).jars(address(pool));
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
 
         token0.safeTransfer(_jar, a0);
@@ -226,7 +226,7 @@ abstract contract StrategyUniV3Base {
     function withdrawAll() external returns (uint256 a0, uint256 a1) {
         require(msg.sender == controller, "!controller");
         _withdrawAll();
-        address _jar = IControllerV2(controller).jars(address(pool));
+        address _jar = IControllerV3(controller).jars(address(pool));
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
 
         a0 = token0.balanceOf(address(this));
@@ -360,13 +360,13 @@ abstract contract StrategyUniV3Base {
     function _distributePerformanceFees(uint256 _amount0, uint256 _amount1) internal {
         if (_amount0 > 0) {
             IERC20(token0).safeTransfer(
-                IControllerV2(controller).treasury(),
+                IControllerV3(controller).treasury(),
                 _amount0.mul(performanceTreasuryFee).div(performanceTreasuryMax)
             );
         }
         if (_amount1 > 0) {
             IERC20(token1).safeTransfer(
-                IControllerV2(controller).treasury(),
+                IControllerV3(controller).treasury(),
                 _amount1.mul(performanceTreasuryFee).div(performanceTreasuryMax)
             );
         }

@@ -31,7 +31,7 @@ describe("StrategyRbnEthUniV3", () => {
     console.log("✅ ProxyAdmin is deployed at ", proxyAdmin.address);
 
     controller = await deployContract(
-      "ControllerV6",
+      "ControllerV7",
       governance.address,
       strategist.address,
       timelock.address,

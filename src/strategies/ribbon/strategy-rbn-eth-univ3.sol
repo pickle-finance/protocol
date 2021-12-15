@@ -110,8 +110,6 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             })
         );
 
-        balanceProportion(tick_lower, tick_upper);
-
         nftManager.sweepToken(weth, 0, address(this));
         nftManager.sweepToken(rbn, 0, address(this));
 
@@ -121,6 +119,10 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         if (_rbn > 0 || _weth > 0) {
             _distributePerformanceFeesAndDeposit();
         }
+
+        balanceProportion(tick_lower, tick_upper);
+
+        redeposit();
 
         emit harvested(tokenId);
     }
@@ -146,7 +148,6 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
             IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
             IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
         }
-        balanceProportion(tick_lower, tick_upper);
 
         uint256 _token0 = token0.balanceOf(address(this)); // rbn
         uint256 _token1 = token1.balanceOf(address(this)); // weth
@@ -212,7 +213,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         require(msg.sender == controller, "!controller");
         (a0, a1) = _withdrawSome(_liquidity);
 
-        address _jar = IControllerV2(controller).jars(address(pool));
+        address _jar = IControllerV3(controller).jars(address(pool));
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
 
         token0.safeTransfer(_jar, a0);

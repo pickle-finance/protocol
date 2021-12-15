@@ -15,7 +15,7 @@ pragma experimental ABIEncoderV2;
 // ─██████─────────██████████─██████████████─██████──████████─██████████████─██████████████────██████████████─██████──██████─██████──██████████─
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-import "./interfaces/controllerv2.sol";
+import "./interfaces/controllerv3.sol";
 import "./lib/erc20.sol";
 import "./lib/univ3/PoolActions.sol";
 import "./lib/reentrancy-guard.sol";
@@ -72,13 +72,14 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     }
 
     function totalLiquidity() public view returns (uint256) {
-        return liquidityOfThis().add(IControllerV2(controller).liquidityOf(address(pool)));
+        return liquidityOfThis().add(IControllerV3(controller).liquidityOf(address(pool)));
     }
 
     function liquidityOfThis() public view returns (uint256) {
         uint256 _balance0 = token0.balanceOf(address(this));
         uint256 _balance1 = token1.balanceOf(address(this));
-        return uint256(pool.liquidityForAmounts(_balance0, _balance1, tick_lower, tick_upper));
+        (int24 _tickLower, int24 _tickUpper) = IControllerV3(controller).getTicks(address(pool));
+        return uint256(pool.liquidityForAmounts(_balance0, _balance1, _tickLower, _tickUpper));
     }
 
     function totalLiquidityFullRange() public view returns (uint256) {
@@ -86,7 +87,8 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     }
 
     function liquidityFullRange(uint256 _liquidity) public view returns (uint256) {
-        (uint256 _amount0, uint256 _amount1) = pool.amountsForLiquidity(uint128(_liquidity), tick_lower, tick_upper);
+        (int24 _tickLower, int24 _tickUpper) = IControllerV3(controller).getTicks(address(pool));
+        (uint256 _amount0, uint256 _amount1) = pool.amountsForLiquidity(uint128(_liquidity), _tickLower, _tickUpper);
         _liquidity = pool.liquidityForAmounts(_amount0, _amount1, -887200, 887200);
         return _liquidity;
     }
@@ -128,7 +130,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         token0.safeTransfer(controller, balance0);
         token1.safeTransfer(controller, balance1);
 
-        IControllerV2(controller).earn(address(pool), balance0, balance1);
+        IControllerV3(controller).earn(address(pool), balance0, balance1);
     }
 
     function deposit(uint256 token0Amount, uint256 token1Amount) external payable nonReentrant whenNotPaused {
@@ -139,7 +141,25 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
             isEth = true;
             token1Amount = _eth;
         }
+        // account for imperfect deposit ratios
+        uint256 amount0ForAmount1 = getDepositAmount(address(token1), token1Amount).mul(1e18).div(getProportion());
+        uint256 amount1ForAmount0 = getDepositAmount(address(token0), token0Amount).mul(getProportion()).div(1e18);
 
+        if (token0Amount > amount0ForAmount1) {
+            token0Amount = amount0ForAmount1;
+        } else {
+            token1Amount = amount1ForAmount0;
+
+            // refund excess ETH to user
+            if (isEth && address(token1) == weth) {
+                uint256 _refund = _eth.sub(token1Amount);
+                WETH(weth).withdraw(_refund);
+                (bool sent, bytes memory data) = (msg.sender).call{value: _refund}("");
+                require(sent, "Failed to refund Ether");
+            }
+        }
+
+        uint256 _pool = totalLiquidity();
         uint256 _liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, -887200, 887200));
 
         if (token0Amount > 0) token0.safeTransferFrom(msg.sender, address(this), token0Amount);
@@ -147,9 +167,9 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
         uint256 shares = 0;
         if (totalSupply() == 0) {
-            shares = liquidityFullRange(_liquidity);
+            shares = _liquidity;
         } else {
-            shares = (liquidityFullRange(_liquidity).mul(totalSupply())).div(totalLiquidityFullRange());
+            shares = (_liquidity.mul(totalSupply())).div(totalLiquidityFullRange());
         }
 
         _mint(msg.sender, shares);
@@ -171,7 +191,8 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     }
 
     function getProportion() public view returns (uint256) {
-        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1e18, tick_lower, tick_upper);
+        (int24 _tickLower, int24 _tickUpper) = IControllerV3(controller).getTicks(address(pool));
+        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1e18, _tickLower, _tickUpper);
         return (a2 * (10**18)) / a1;
     }
 
@@ -181,7 +202,8 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
     function withdraw(uint256 _shares) public nonReentrant whenNotPaused {
         uint256 r = (totalLiquidity().mul(_shares)).div(totalSupply());
-        (uint256 _expectA0, uint256 _expectA1) = pool.amountsForLiquidity(uint128(r), tick_lower, tick_upper);
+        (int24 _tickLower, int24 _tickUpper) = IControllerV3(controller).getTicks(address(pool));
+        (uint256 _expectA0, uint256 _expectA1) = pool.amountsForLiquidity(uint128(r), _tickLower, _tickUpper);
         _burn(msg.sender, _shares);
         // Check balance
         uint256[2] memory _balances = [token0.balanceOf(address(this)), token1.balanceOf(address(this))];
@@ -189,7 +211,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
         if (b < r) {
             uint256 _withdraw = r.sub(b);
-            (uint256 _a0, uint256 _a1) = IControllerV2(controller).withdraw(address(pool), _withdraw);
+            (uint256 _a0, uint256 _a1) = IControllerV3(controller).withdraw(address(pool), _withdraw);
             _expectA0 = _balances[0].add(_a0);
             _expectA1 = _balances[1].add(_a1);
         }
@@ -200,7 +222,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
     function getRatio() public view returns (uint256) {
         if (totalSupply() == 0) return 0;
-        return totalLiquidity().mul(1e18).div(totalSupply());
+        return totalLiquidityFullRange().mul(1e18).div(totalSupply());
     }
 
     modifier checkRatio(uint256 amount0, uint256 amount1) {
