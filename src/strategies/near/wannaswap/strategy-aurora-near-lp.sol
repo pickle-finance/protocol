@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-wanna-base.sol";
 
-contract StrategyWannaWannaNearLp is StrategyWannaFarmBase {
+contract StrategyWannaAuroraNearLp is StrategyWannaFarmBase {
     // Token/ETH pool id in MasterChef contract
     uint256 public wanna_aurora_near_poolid = 8;
     // Token addresses
@@ -37,6 +37,6 @@ contract StrategyWannaWannaNearLp is StrategyWannaFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyWannaWannaNearLp";
+        return "StrategyWannaAuroraNearLp";
     }
 }
