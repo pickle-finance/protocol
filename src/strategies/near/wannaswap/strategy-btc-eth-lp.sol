@@ -5,7 +5,7 @@ import "../strategy-wanna-base.sol";
 
 contract StrategyWannaBtcEthLp is StrategyWannaFarmBase {
     // Token/ETH pool id in MasterChef contract
-    uint256 public wanna_btc_eth_poolid = 0;
+    uint256 public wanna_btc_eth_poolid = 5;
     // Token addresses
     address public wanna_btc_eth_lp =
         0xf56997948d4235514Dcc50fC0EA7C0e110EC255d;

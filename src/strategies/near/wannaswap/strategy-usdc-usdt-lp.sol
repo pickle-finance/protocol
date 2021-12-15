@@ -5,7 +5,7 @@ import "../strategy-wanna-base.sol";
 
 contract StrategyWannaUsdcUsdtLp is StrategyWannaFarmBase {
     // Token/ETH pool id in MasterChef contract
-    uint256 public wanna_usdc_usdt_poolid = 2;
+    uint256 public wanna_usdc_usdt_poolid = 3;
     // Token addresses
     address public wanna_usdc_usdt_lp =
         0x3502eaC6Fa27bEebDC5cd3615B7CB0784B0Ce48f;
