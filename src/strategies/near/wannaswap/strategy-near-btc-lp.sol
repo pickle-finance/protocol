@@ -3,14 +3,13 @@ pragma solidity ^0.6.7;
 
 import "../strategy-wanna-base.sol";
 
-contract StrategyWannaUsdcUsdtLp is StrategyWannaFarmBase {
+contract StrategyWannaNearBtcLp is StrategyWannaFarmBase {
     // Token/ETH pool id in MasterChef contract
-    uint256 public wanna_usdc_usdt_poolid = 3;
+    uint256 public wanna_near_btc_poolid = 6;
     // Token addresses
-    address public wanna_usdc_usdt_lp =
-        0x3502eaC6Fa27bEebDC5cd3615B7CB0784B0Ce48f;
-    address public usdt = 0x4988a896b1227218e4A686fdE5EabdcAbd91571f;
-    address public usdc = 0xB12BFcA5A55806AaF64E99521918A4bf0fC40802;
+    address public wanna_near_btc_lp =
+        0xbF58062D23f869a90c6Eb04B9655f0dfCA345947;
+    address public btc = 0xF4eB217Ba2454613b15dBdea6e5f22276410e89e;
 
     constructor(
         address _governance,
@@ -20,23 +19,23 @@ contract StrategyWannaUsdcUsdtLp is StrategyWannaFarmBase {
     )
         public
         StrategyWannaFarmBase(
-            usdc,
-            usdt,
-            wanna_usdc_usdt_poolid,
-            wanna_usdc_usdt_lp,
+            near,
+            btc,
+            wanna_near_btc_poolid,
+            wanna_near_btc_lp,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {
-        swapRoutes[usdt] = [wanna, usdt];
-        swapRoutes[usdc] = [wanna, usdc];
+        swapRoutes[near] = [wanna, near];
+        swapRoutes[btc] = [wanna, near, btc];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyWannaUsdcUsdtLp";
+        return "StrategyWannaNearBtcLp";
     }
 }

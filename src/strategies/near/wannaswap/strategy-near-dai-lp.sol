@@ -3,13 +3,13 @@ pragma solidity ^0.6.7;
 
 import "../strategy-wanna-base.sol";
 
-contract StrategyWannaEthNearLp is StrategyWannaFarmBase {
+contract StrategyWannaNearDaiLp is StrategyWannaFarmBase {
     // Token/ETH pool id in MasterChef contract
-    uint256 public wanna_eth_near_poolid = 4;
+    uint256 public wanna_near_dai_poolid = 7;
     // Token addresses
-    address public wanna_eth_near_lp =
-        0x256d03607eeE0156b8A2aB84da1D5B283219Fe97;
-    address public eth = 0xC9BdeEd33CD01541e1eeD10f90519d2C06Fe3feB;
+    address public wanna_near_dai_lp =
+        0xE6c47B036f6Fd0684B109B484aC46094e633aF2e;
+    address public dai = 0xe3520349F477A5F6EB06107066048508498A291b;
 
     constructor(
         address _governance,
@@ -19,10 +19,10 @@ contract StrategyWannaEthNearLp is StrategyWannaFarmBase {
     )
         public
         StrategyWannaFarmBase(
-            eth,
             near,
-            wanna_eth_near_poolid,
-            wanna_eth_near_lp,
+            dai,
+            wanna_near_dai_poolid,
+            wanna_near_dai_lp,
             _governance,
             _strategist,
             _controller,
@@ -30,12 +30,12 @@ contract StrategyWannaEthNearLp is StrategyWannaFarmBase {
         )
     {
         swapRoutes[near] = [wanna, near];
-        swapRoutes[eth] = [wanna, near, eth];
+        swapRoutes[dai] = [wanna, near, dai];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyWannaEthNearLp";
+        return "StrategyWannaNearDaiLp";
     }
 }
