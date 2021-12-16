@@ -44,6 +44,9 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     IERC20 public token0;
     IERC20 public token1;
 
+    int24 public constant MIN_TICK = -887200;
+    int24 public constant MAX_TICK = 887200;
+
     constructor(
         string memory _name,
         string memory _symbol,
@@ -79,7 +82,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
     function liquidityFullRange(uint256 _liquidity) public view returns (uint256) {
         (uint256 _amount0, uint256 _amount1) = pool.amountsForLiquidity(uint128(_liquidity), getLowerTick(), getUpperTick());
-        _liquidity = pool.liquidityForAmounts(_amount0, _amount1, -887200, 887200);
+        _liquidity = pool.liquidityForAmounts(_amount0, _amount1, MIN_TICK, MAX_TICK);
         return _liquidity;
     }
 
@@ -158,7 +161,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         }
 
         uint256 _pool = totalLiquidity();
-        uint256 _liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, -887200, 887200));
+        uint256 _liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, MIN_TICK, MAX_TICK));
 
         if (token0Amount > 0) token0.safeTransferFrom(msg.sender, address(this), token0Amount);
         if (token1Amount > 0 && !isEth) token1.safeTransferFrom(msg.sender, address(this), token1Amount);

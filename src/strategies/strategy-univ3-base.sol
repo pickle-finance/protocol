@@ -37,6 +37,8 @@ abstract contract StrategyUniV3Base {
     int24 public tick_lower;
     int24 public tick_upper;
     int24 public tickRangeMultiplier = 1000;
+    int24 public constant MIN_TICK = -887200;
+    int24 public constant MAX_TICK = 887200;
 
     address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     IUniswapV3PositionsNFT public nftManager = IUniswapV3PositionsNFT(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
