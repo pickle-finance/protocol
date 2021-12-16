@@ -21,5 +21,7 @@ interface IControllerV3 {
 
     function strategies(address) external view returns (address);
 
-    function getTicks(address) external view returns (int24, int24);
+    function getUpperTick(address) external view returns (int24);
+
+    function getLowerTick(address) external view returns (int24);
 }

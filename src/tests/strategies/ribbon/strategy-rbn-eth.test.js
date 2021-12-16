@@ -54,8 +54,6 @@ describe("StrategyRbnEthUniV3", () => {
       "pickling RBN/ETH Jar",
       "pRBNETH",
       RBN_ETH_POOL,
-      -887200,
-      887200,
       governance.address,
       timelock.address,
       controller.address

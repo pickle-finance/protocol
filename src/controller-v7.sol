@@ -105,10 +105,12 @@ contract ControllerV7 {
         strategies[_pool] = _strategy;
     }
 
-    function getTicks(address _pool) external view returns (int24, int24) {
+    function getUpperTick(address _pool) external view returns (int24) {
+        return IStrategyV3(strategies[_pool]).tick_upper();
+    }
 
-        address _current = strategies[_pool];
-        return (IStrategyV3(_current).tick_lower(), IStrategyV3(_current).tick_upper());
+    function getLowerTick(address _pool) external view returns (int24) {
+        return IStrategyV3(strategies[_pool]).tick_lower();
     }
 
     function earn(
