@@ -49,7 +49,6 @@ async function main() {
 
     const second_encoding = iMultiSig.encodeFunctionData("submitTransaction", [pool.snowglobe, 0, first_encoding]);
     
-    // var options = { gasPrice: 25000000000, gasLimit: 8000000 };
     const submission = await Council.submitTransaction(treasury_addr, 0, second_encoding);
     const tx_submission = await submission.wait(1);
     if (!tx_submission.status) {

@@ -9,8 +9,6 @@ async function main() {
 
   const [signer] = await ethers.getSigners();
 
-  //Testing Below
-
   // SNOB addresses
   const treasury_addr = "0x294aB3200ef36200db84C4128b7f1b4eec71E38a";
   const council_addr = "0x028933a66DD0cCC239a3d5c2243b2d96672f11F5";
@@ -49,7 +47,7 @@ async function main() {
 
     const second_encoding = IMultiSig.encodeFunctionData("submitTransaction", [pool.strategy, 0, first_encoding]);
     
-    // var options = { gasPrice: 25000000000, gasLimit: 8000000 };
+    // var options = { gasPrice: 35000000000, gasLimit: 8000000 };
     const submission = await Council.submitTransaction(treasury_addr, 0, second_encoding);
     const tx_submission = await submission.wait(1);
     if (!tx_submission.status) {
