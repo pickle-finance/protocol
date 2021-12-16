@@ -3,10 +3,10 @@ pragma solidity ^0.6.7;
 
 import "../strategy-nearpad-base.sol";
 
-contract StrategyPadPadNearLp is StrategyNearPadFarmBase {
-    uint256 public pad_near_poolid = 5;
+contract StrategyPadNearPadLp is StrategyNearPadFarmBase {
+    uint256 public near_pad_poolid = 5;
     // Token addresses
-    address public pad_near_lp = 0xc374776Cf5C497Adeef6b505588b00cB298531FD;
+    address public near_pad_lp = 0xc374776Cf5C497Adeef6b505588b00cB298531FD;
 
     constructor(
         address _governance,
@@ -16,10 +16,10 @@ contract StrategyPadPadNearLp is StrategyNearPadFarmBase {
     )
         public
         StrategyNearPadFarmBase(
-            pad,
             near,
-            pad_near_poolid,
-            pad_near_lp,
+            pad,
+            near_pad_poolid,
+            near_pad_lp,
             _governance,
             _strategist,
             _controller,
@@ -32,6 +32,6 @@ contract StrategyPadPadNearLp is StrategyNearPadFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPadPadNearLp";
+        return "StrategyPadNearPadLp";
     }
 }
