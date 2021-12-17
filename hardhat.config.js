@@ -35,7 +35,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+        url: `https://polygon-rpc.com/`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -49,7 +49,16 @@ module.exports = {
       accounts: [`0x${process.env.MNEMONIC}`],
     },
     matic: {
-      url: "https://keen-bell:chaste-gulf-chunk-aloe-deuce-copied@nd-654-291-805.p2pify.com/",
+      url: "https://polygon-rpc.com/",
+      accounts: {
+        mnemonic: process.env.MNEMONIC,
+      },
+    },
+    arbitrum: {
+      url: `https://arb1.arbitrum.io/rpc/`,
+      accounts: {
+        mnemonic: process.env.MNEMONIC,
+      },
       accounts: [`0x${process.env.MNEMONIC}`]
     },
   },
