@@ -93,7 +93,7 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         keepPAD = _keepPAD;
     }
 
-    function harvest() public override onlyBenevolent {
+    function harvest() public override {
         harvestOne();
         harvestTwo();
         harvestThree();
@@ -101,7 +101,7 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         harvestFive();
     }
 
-    function harvestOne() public onlyBenevolent {
+    function harvestOne() public {
         // Collects TRI tokens
         IMiniChefNearPad(miniChef).deposit(poolId, 0);
         uint256 _pad = IERC20(pad).balanceOf(address(this));
@@ -110,7 +110,7 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         IERC20(pad).safeTransfer(IController(controller).treasury(), _keepPAD);
     }
 
-    function harvestTwo() public onlyBenevolent {
+    function harvestTwo() public {
         // Anyone can harvest it at any given time.
         // I understand the possibility of being frontrun
         // But ETH is a dark forest, and I wanna see how this plays out
@@ -133,12 +133,15 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         }
     }
 
-    function harvestThree() public onlyBenevolent {
+    function harvestThree() public {
         uint256 _pad = IERC20(pad).balanceOf(address(this));
         if (_pad > 0) {
             if (swapRoutes[token1].length > 1) {
+                uint256 swapAmount = swapRoutes[token0].length > 1
+                    ? _pad
+                    : _pad.div(2);
                 UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-                    _pad, // Swap the remainder of PAD
+                    swapAmount, // Swap the remainder of PAD
                     0,
                     swapRoutes[token1],
                     address(this),
@@ -148,7 +151,7 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         }
     }
 
-    function harvestFour() public onlyBenevolent {
+    function harvestFour() public {
         // Adds in liquidity for token0/token1
         uint256 _token0 = IERC20(token0).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
@@ -176,7 +179,7 @@ abstract contract StrategyNearPadFarmBase is StrategyBase {
         }
     }
 
-    function harvestFive() public onlyBenevolent {
+    function harvestFive() public {
         // We want to get back PAD LP tokens
         _distributePerformanceFeesAndDeposit();
     }

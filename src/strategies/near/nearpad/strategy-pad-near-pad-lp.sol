@@ -16,8 +16,8 @@ contract StrategyPadNearPadLp is StrategyNearPadFarmBase {
     )
         public
         StrategyNearPadFarmBase(
-            near,
             pad,
+            near,
             near_pad_poolid,
             near_pad_lp,
             _governance,

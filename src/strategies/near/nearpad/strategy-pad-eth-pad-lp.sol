@@ -17,8 +17,8 @@ contract StrategyPadEthPadLp is StrategyNearPadFarmBase {
     )
         public
         StrategyNearPadFarmBase(
-            eth,
             pad,
+            eth,
             eth_pad_poolid,
             eth_pad_lp,
             _governance,
