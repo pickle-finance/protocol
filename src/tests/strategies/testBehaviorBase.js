@@ -166,16 +166,16 @@ const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isP
       console.log("\nAlice balance after half withdrawal: %s\n", _aliceBalanceAfter.toString());
       console.log("\nStrategist balance after half withdrawal: %s\n", _strategistBalanceAfter.toString());
 
-      expect(_aliceBalanceAfter).to.be.eq(_wantHalved.div(2), "Alice withdrawal amount incorrect");
+      expect(_aliceBalanceAfter).to.be.eqApprox(_wantHalved.div(2), "Alice withdrawal amount incorrect");
 
-      expect(_strategistBalanceAfter).to.be.eq(_wantHalved, "Strategist withdrawal amount incorrect");
+      expect(_strategistBalanceAfter).to.be.eqApprox(_wantHalved, "Strategist withdrawal amount incorrect");
 
       // Alice withdraws remainder
 
       await pickleJar.connect(alice).withdrawAll();
       _aliceBalanceAfter = await want.balanceOf(alice.address);
       console.log("\nAlice balance after full withdrawal: %s\n", _aliceBalanceAfter.toString());
-      expect(_aliceBalanceAfter).to.be.eq(_wantHalved, "Alice withdrawal amount incorrect");
+      expect(_aliceBalanceAfter).to.be.eqApprox(_wantHalved, "Alice withdrawal amount incorrect");
 
     });
 

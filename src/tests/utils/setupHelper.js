@@ -198,7 +198,7 @@ const getWantFromWhale = async (want_addr, amount, to, whaleAddr) => {
   const want = await getContractAt("ERC20", want_addr);
   await to.sendTransaction({
     to: whaleAddr,
-    value: toWei(1),
+    value: toWei(5),
   });
   await want.connect(whale).transfer(to.address, amount);
   const _balance = await want.balanceOf(to.address);

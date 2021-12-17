@@ -18,7 +18,7 @@ const harvesters = [
   "0xb4522eB2cA49963De9c3dC69023cBe6D53489C98"
 ];
 
-const want = "0x7AfcF11F3e2f01e71B7Cc6b8B5e707E42e6Ea397";
+const want = "0xb4d09ff3dA7f9e9A2BA029cb0A81A989fd7B8f17";
 
 const mainnetJarArgs = [want, governance, timelock, controller];
 const polygonJarArgs = [want, governancePoly, timelockPoly, controllerPoly];

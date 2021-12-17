@@ -3,22 +3,29 @@ pragma experimental ABIEncoderV2;
 
 import "../strategy-base.sol";
 import "../../interfaces/saddle-farm.sol";
+import "../../interfaces/curve.sol";
 
 contract StrategySaddleD4 is StrategyBase {
-    address public staking = 0x0639076265e9f88542C91DCdEda65127974A5CA5;
-    address public saddle_d4lp = 0xd48cF4D7FB0824CC8bAe055dF3092584d0a1726A;
+    address private staking = 0x0639076265e9f88542C91DCdEda65127974A5CA5;
+    address private saddle_d4lp = 0xd48cF4D7FB0824CC8bAe055dF3092584d0a1726A;
 
-    address public alusd = 0xBC6DA0FE9aD5f3b0d58160288917AA56653660E9;
-    address public frax = 0x853d955aCEf822Db058eb8505911ED77F175b99e;
-    address public fei = 0x956F47F50A910163D8BF957Cf5846D573E7f87CA;
-    address public lusd = 0x5f98805A4E8be255a32880FDeC7F6728C6568bA0;
+    address private alusd = 0xBC6DA0FE9aD5f3b0d58160288917AA56653660E9;
+    address private frax = 0x853d955aCEf822Db058eb8505911ED77F175b99e;
+    address private fei = 0x956F47F50A910163D8BF957Cf5846D573E7f87CA;
+    address private lusd = 0x5f98805A4E8be255a32880FDeC7F6728C6568bA0;
 
-    address public alcx = 0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF;
-    address public fxs = 0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0;
-    address public tribe = 0xc7283b66Eb1EB5FB86327f08e1B5816b0720212B;
-    address public lqty = 0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D;
+    address private alcx = 0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF;
+    address private fxs = 0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0;
+    address private tribe = 0xc7283b66Eb1EB5FB86327f08e1B5816b0720212B;
+    address private lqty = 0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D;
 
-    address public flashLoan = 0xC69DDcd4DFeF25D8a793241834d4cc4b3668EAD6;
+    address private flashLoan = 0xC69DDcd4DFeF25D8a793241834d4cc4b3668EAD6;
+
+    uint24 private constant poolFee = 3000;
+
+    // Uniswap swap paths
+    address[] private fxs_frax_path;
+    address[] private tribe_fei_path;
 
     constructor(
         address _governance,
@@ -34,7 +41,15 @@ contract StrategySaddleD4 is StrategyBase {
             _controller,
             _timelock
         )
-    {}
+    {
+        fxs_frax_path = new address[](2);
+        fxs_frax_path[0] = fxs;
+        fxs_frax_path[1] = frax;
+
+        tribe_fei_path = new address[](2);
+        tribe_fei_path[0] = tribe;
+        tribe_fei_path[1] = fei;
+    }
 
     function getName() external pure override returns (string memory) {
         return "StrategySaddleD4";
@@ -64,7 +79,7 @@ contract StrategySaddleD4 is StrategyBase {
         returns (uint256)
     {
         LockedStake[] memory lockedStakes = ICommunalFarm(staking)
-        .lockedStakesOf(address(this));
+            .lockedStakesOf(address(this));
         uint256 _sum = 0;
         uint256 count = 0;
         uint256 i;
@@ -92,21 +107,29 @@ contract StrategySaddleD4 is StrategyBase {
         if (_fxs > 0) {
             IERC20(fxs).safeApprove(univ2Router2, 0);
             IERC20(fxs).safeApprove(univ2Router2, _fxs);
-            _swapUniswap(fxs, frax, _fxs);
+            _swapUniswapWithPath(fxs_frax_path, _fxs);
         }
 
         uint256 _tribe = IERC20(tribe).balanceOf(address(this));
         if (_tribe > 0) {
             IERC20(tribe).safeApprove(univ2Router2, 0);
             IERC20(tribe).safeApprove(univ2Router2, _tribe);
-            _swapUniswap(tribe, fei, _tribe);
+            _swapUniswapWithPath(tribe_fei_path, _tribe);
         }
 
         uint256 _lqty = IERC20(lqty).balanceOf(address(this));
         if (_lqty > 0) {
-            IERC20(lqty).safeApprove(univ2Router2, 0);
-            IERC20(lqty).safeApprove(univ2Router2, _lqty);
-            _swapUniswap(lqty, lusd, _lqty);
+            IERC20(lqty).safeApprove(univ3Router, 0);
+            IERC20(lqty).safeApprove(univ3Router, _lqty);
+            ISwapRouter(univ3Router).exactInput(
+                ISwapRouter.ExactInputParams({
+                    path: abi.encodePacked(lqty, poolFee, weth, poolFee, lusd),
+                    recipient: address(this),
+                    deadline: block.timestamp + 300,
+                    amountIn: _lqty,
+                    amountOutMinimum: 0
+                })
+            );
         }
 
         uint256 _alcx = IERC20(alcx).balanceOf(address(this));

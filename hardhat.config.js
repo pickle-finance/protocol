@@ -42,12 +42,11 @@ module.exports = {
       },
       hardfork: "london",
       gasPrice: "auto",
+      gas: 2500000
     },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
+      accounts: [`0x${process.env.MNEMONIC}`],
     },
     matic: {
       url: "https://polygon-rpc.com/",
@@ -60,6 +59,7 @@ module.exports = {
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },
+      accounts: [`0x${process.env.MNEMONIC}`]
     },
   },
   contractSizer: {

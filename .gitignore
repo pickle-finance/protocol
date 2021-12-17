@@ -118,3 +118,6 @@ hardhat/
 
 # vscode
 .vscode
+
+out.sol
+pickleJarOut.sol
