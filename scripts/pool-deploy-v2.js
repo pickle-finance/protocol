@@ -18,7 +18,7 @@ async function main() {
   const governance_addr = "0x294aB3200ef36200db84C4128b7f1b4eec71E38a";
   const timelock_addr = "0x3d88b8022142ea2693ba43BA349F89256392d59b";
   const gaugeproxy_addr = "0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27";
-  const strategist_addr = "0xc9a51fB9057380494262fd291aED74317332C0a2";
+  const strategist_addr = timelock_addr;
 
   const deploy = async (name) => {
     console.log(`mending deploy for ${name}`);
@@ -31,7 +31,8 @@ async function main() {
       case "BankerJoe": controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
       case "Aave": controller_addr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; break;
       case "Axial": controller_addr = "0xc7D536a04ECC43269B6B95aC1ce0a06E0000D095"; break;
-      case "Benqi": controller_addr = "0x8bfBA506B442f0D93Da2aDFd1ab70b7cB6a77B76"; break;
+      case "Benqi": controller_addr = "0x252B5fD3B1Cb07A2109bF36D5bDE6a247c6f4B59"; break;
+      // case "Benqi": controller_addr = "0x8bfBA506B442f0D93Da2aDFd1ab70b7cB6a77B76"; break;
       default: controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; break; //Base
     }
 
@@ -79,9 +80,9 @@ async function main() {
       if (snowglobe_addr != 0) {
         SnowGlobe = new ethers.Contract(snowglobe_addr, snowglobe_ABI, deployer);
         pools[name].snowglobe_addr = SnowGlobe.address;
-        pools[name].setGlobe=true;
-        pools[name].addGauge=true;
-        writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
+        // pools[name].setGlobe=true;
+        // pools[name].addGauge=true;
+        // writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
       }
       // If we didn't supply a globe, and we didn't have one previously...
       else {
@@ -103,6 +104,9 @@ async function main() {
     }
     else {
       lp = await Strategy.want();
+      SnowGlobe = new ethers.Contract(pools[name].snowglobe_addr, snowglobe_ABI, deployer);
+      console.log(`connected to ${snowglobe_name} at : ${SnowGlobe.address}`);
+      
     }
 
     // We are now building towards a proposal.
@@ -113,6 +117,7 @@ async function main() {
       pools[name].data.push(IController.encodeFunctionData("setGlobe", [lp, pools[name].snowglobe_addr]));
       pools[name].setGlobe = true;
       writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
+      console.log(`encoded setGlobe for ${name}`);
     }
 
     /* Encoding for Approve Strategy */
@@ -121,6 +126,7 @@ async function main() {
       pools[name].data.push(IController.encodeFunctionData("approveStrategy", [lp, pools[name].strategy_addr]));
       pools[name].approveStrategy = true;
       writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
+      console.log(`encoded approveStrategy for ${name}`);
     }
 
     /* 
@@ -135,6 +141,7 @@ async function main() {
         pools[name].data.push(IStrategy.encodeFunctionData("harvest", []));
         pools[name].harvest = true;
         writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
+        console.log(`encoded harvest for ${name}`);
       }
       else {
         pools[name].harvest = true;
@@ -148,6 +155,7 @@ async function main() {
       pools[name].data.push(IController.encodeFunctionData("setStrategy", [lp, pools[name].strategy_addr]));
       pools[name].setStrategy = true;
       writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
+      console.log(`encoded setStrategy for ${name}`);
     }
 
     /* Encoding for Earn */
@@ -159,6 +167,7 @@ async function main() {
         pools[name].data.push(ISnowGlobe.encodeFunctionData("earn", []));
         pools[name].earn = true;
         writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
+        console.log(`encoded earn for ${name}`);
       }
       else {
         pools[name].earn = true;
@@ -173,6 +182,7 @@ async function main() {
       pools[name].data.push(IStrategy.encodeFunctionData("whitelistHarvester", ["0x096a46142C199C940FfEBf34F0fe2F2d674fDB1F"]));
       pools[name].whitelist = true;
       writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
+      console.log(`encoded whitelistHarvester for ${name}`);
     }
 
     /* Encoding for Add Keeper */
@@ -187,6 +197,7 @@ async function main() {
       pools[name].data.push(IStrategy.encodeFunctionData("addKeeper", ["0x096a46142C199C940FfEBf34F0fe2F2d674fDB1F"]));
       pools[name].keeper = true;
       writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
+      console.log(`encoded addKeeper for ${name}`);
     }
     
     /* Encoding for Add Gauge */
@@ -196,6 +207,7 @@ async function main() {
       pools[name].data.push(IGaugeProxy.encodeFunctionData("addGauge", [pools[name].snowglobe_addr]));
       pools[name].addGauge = true;
       writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
+      console.log(`encoded addGauge for ${name}`);
     }
     return;
   };

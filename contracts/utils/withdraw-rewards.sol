@@ -15,5 +15,4 @@ contract WithdrawRewards {
       IERC20(_token).safeTransfer(_target, IERC20(_token).balanceOf(address(this)));
     }
   }
-
 }

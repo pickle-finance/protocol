@@ -54,7 +54,9 @@ const overwriteTokenAmount = async (assetAddr, walletAddr, amount, slot = 0) => 
 
 const returnSigner = async (address) => {
   await network.provider.send('hardhat_impersonateAccount', [address]);
-  return ethers.provider.getSigner(address)
+  let signer = await ethers.provider.getSigner(address);
+  await network.provider.send("hardhat_setBalance", [signer._address,"0x10000000000000000000000",]);
+  return signer;
 };
 
 const findSlot = (address) => {
@@ -70,7 +72,7 @@ const findSlot = (address) => {
   }
 
   return slot;
-}
+};
 
 const returnController = (controller => {
   let address;
