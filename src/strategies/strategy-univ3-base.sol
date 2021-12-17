@@ -33,9 +33,11 @@ abstract contract StrategyUniV3Base {
 
     IERC20 public token0;
     IERC20 public token1;
+    uint256 public tokenId;
 
     int24 public tick_lower;
     int24 public tick_upper;
+    int24 public tickSpacing;
     int24 public tickRangeMultiplier = 1000;
     int24 public constant MIN_TICK = -887200;
     int24 public constant MAX_TICK = 887200;
@@ -84,6 +86,11 @@ abstract contract StrategyUniV3Base {
         strategist = _strategist;
         controller = _controller;
         timelock = _timelock;
+
+        tickSpacing = pool.tickSpacing();
+
+        token0.safeApprove(address(nftManager), uint256(-1));
+        token1.safeApprove(address(nftManager), uint256(-1));
     }
 
     // **** Modifiers **** //
@@ -389,5 +396,65 @@ abstract contract StrategyUniV3Base {
         bytes memory
     ) public pure returns (bytes4) {
         return this.onERC721Received.selector;
+    }
+
+    function determineTicks() internal returns (int24, int24) {
+        (, int24 currentTick, , , , , ) = pool.slot0();
+
+        int24 baseThreshold = tickSpacing * tickRangeMultiplier;
+        return PoolVariables.baseTicks(currentTick, baseThreshold, tickSpacing);
+    }
+
+    function balanceProportion(int24 _tickLower, int24 _tickUpper) internal {
+        PoolVariables.Info memory _cache;
+
+        _cache.amount0Desired = token0.balanceOf(address(this));
+        _cache.amount1Desired = token1.balanceOf(address(this));
+
+        //Get Max Liquidity for Amounts we own.
+        _cache.liquidity = pool.liquidityForAmounts(
+            _cache.amount0Desired,
+            _cache.amount1Desired,
+            _tickLower,
+            _tickUpper
+        );
+
+        //Get correct amounts of each token for the liquidity we have.
+        (_cache.amount0, _cache.amount1) = pool.amountsForLiquidity(_cache.liquidity, _tickLower, _tickUpper);
+
+        //Determine Trade Direction
+        bool _zeroForOne = PoolVariables.amountsDirection(
+            _cache.amount0Desired,
+            _cache.amount1Desired,
+            _cache.amount0,
+            _cache.amount1
+        );
+
+        //Determine Amount to swap
+        uint256 _amountSpecified = _zeroForOne
+            ? (_cache.amount0Desired.sub(_cache.amount0).div(2))
+            : (_cache.amount1Desired.sub(_cache.amount1).div(2));
+
+        if (_amountSpecified > 0) {
+            //Determine Token to swap
+            address _inputToken = _zeroForOne ? address(token0) : address(token1);
+
+            IERC20(_inputToken).safeApprove(univ3Router, 0);
+            IERC20(_inputToken).safeApprove(univ3Router, _amountSpecified);
+
+            //Swap the token imbalanced
+            ISwapRouter(univ3Router).exactInputSingle(
+                ISwapRouter.ExactInputSingleParams({
+                    tokenIn: _inputToken,
+                    tokenOut: _zeroForOne ? address(token1) : address(token0),
+                    fee: pool.fee(),
+                    recipient: address(this),
+                    deadline: block.timestamp + 300,
+                    amountIn: _amountSpecified,
+                    amountOutMinimum: 0,
+                    sqrtPriceLimitX96: 0
+                })
+            );
+        }
     }
 }

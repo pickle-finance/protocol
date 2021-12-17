@@ -14,8 +14,7 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
     address public univ3_staker = 0x1f98407aaB862CdDeF78Ed252D6f557aA5b0f00d;
 
     address public constant rewardToken = 0x6123B0049F904d730dB3C36a31167D9d4121fA6B;
-    uint256 public tokenId;
-    int24 public tickSpacing;
+
 
     IUniswapV3Staker.IncentiveKey key =
         IUniswapV3Staker.IncentiveKey({
@@ -45,7 +44,6 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         token0.safeApprove(address(nftManager), uint256(-1));
         token1.safeApprove(address(nftManager), uint256(-1));
         nftManager.setApprovalForAll(univ3_staker, true);
-        tickSpacing = pool.tickSpacing();
     }
 
     function getName() external pure override returns (string memory) {
@@ -82,7 +80,6 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         nftManager.sweepToken(address(token0), 0, address(this));
         nftManager.sweepToken(address(token1), 0, address(this));
 
-        // Record tokenId
         tokenId = _tokenId;
 
         // Deposit + stake in Uni v3 staker only if staking is active.
@@ -297,63 +294,4 @@ contract StrategyRbnEthUniV3 is StrategyUniV3Base {
         emit rebalanced(tokenId, _tickLower, _tickUpper);
     }
 
-    function determineTicks() internal returns (int24, int24) {
-        (, int24 currentTick, , , , , ) = pool.slot0();
-
-        int24 baseThreshold = tickSpacing * tickRangeMultiplier;
-        return PoolVariables.baseTicks(currentTick, baseThreshold, tickSpacing);
-    }
-
-    function balanceProportion(int24 _tickLower, int24 _tickUpper) internal {
-        PoolVariables.Info memory _cache;
-
-        _cache.amount0Desired = token0.balanceOf(address(this));
-        _cache.amount1Desired = token1.balanceOf(address(this));
-
-        //Get Max Liquidity for Amounts we own.
-        _cache.liquidity = pool.liquidityForAmounts(
-            _cache.amount0Desired,
-            _cache.amount1Desired,
-            _tickLower,
-            _tickUpper
-        );
-
-        //Get correct amounts of each token for the liquidity we have.
-        (_cache.amount0, _cache.amount1) = pool.amountsForLiquidity(_cache.liquidity, _tickLower, _tickUpper);
-
-        //Determine Trade Direction
-        bool _zeroForOne = PoolVariables.amountsDirection(
-            _cache.amount0Desired,
-            _cache.amount1Desired,
-            _cache.amount0,
-            _cache.amount1
-        );
-
-        //Determine Amount to swap
-        uint256 _amountSpecified = _zeroForOne
-            ? (_cache.amount0Desired.sub(_cache.amount0).div(2))
-            : (_cache.amount1Desired.sub(_cache.amount1).div(2));
-
-        if (_amountSpecified > 0) {
-            //Determine Token to swap
-            address _inputToken = _zeroForOne ? address(token0) : address(token1);
-
-            IERC20(_inputToken).safeApprove(univ3Router, 0);
-            IERC20(_inputToken).safeApprove(univ3Router, _amountSpecified);
-
-            //Swap the token imbalanced
-            ISwapRouter(univ3Router).exactInputSingle(
-                ISwapRouter.ExactInputSingleParams({
-                    tokenIn: _inputToken,
-                    tokenOut: _zeroForOne ? address(token1) : address(token0),
-                    fee: pool.fee(),
-                    recipient: address(this),
-                    deadline: block.timestamp + 300,
-                    amountIn: _amountSpecified,
-                    amountOutMinimum: 0,
-                    sqrtPriceLimitX96: 0
-                })
-            );
-        }
-    }
 }
