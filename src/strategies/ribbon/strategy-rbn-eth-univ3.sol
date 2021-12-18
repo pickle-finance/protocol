@@ -2,296 +2,151 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../strategy-univ3-base.sol";
-import "../../interfaces//univ3/IUniswapV3Staker.sol";
-import "../../interfaces/weth.sol";
-import "../../lib/univ3/PoolActions.sol";
-import "../../lib/univ3/PoolVariables.sol";
-import "hardhat/console.sol";
+import "../strategy-univ3-rebase.sol";
 
-contract StrategyRbnEthUniV3 is StrategyUniV3Base {
-    address public rbn_eth_pool = 0x94981F69F7483AF3ae218CbfE65233cC3c60d93a;
-    address public univ3_staker = 0x1f98407aaB862CdDeF78Ed252D6f557aA5b0f00d;
+contract StrategyRbnEthUniV3 is StrategyRebalanceUniV3 {
 
-    address public constant rewardToken = 0x6123B0049F904d730dB3C36a31167D9d4121fA6B;
+  address public rbn_eth_pool = 0x94981F69F7483AF3ae218CbfE65233cC3c60d93a;
+  address public constant rewardToken = 0x6123B0049F904d730dB3C36a31167D9d4121fA6B;
+  address[] public rewardTokens = [address(token0), address(token1)];
 
+      constructor(
+          int24   _tickRangeMultiplier,
+          address _governance,
+          address _strategist,
+          address _controller,
+          address _timelock
+      ) public StrategyRebalanceUniV3(rbn_eth_pool, _tickRangeMultiplier, _governance, _strategist, _controller, _timelock) {
 
-    IUniswapV3Staker.IncentiveKey key =
-        IUniswapV3Staker.IncentiveKey({
-            rewardToken: IERC20Minimal(rewardToken),
-            pool: IUniswapV3Pool(rbn_eth_pool),
-            startTime: 1633694400,
-            endTime: 1638878400,
-            refundee: 0xDAEada3d210D2f45874724BeEa03C7d4BBD41674 // rbn multisig
-        });
+          univ3_staker = 0x1f98407aaB862CdDeF78Ed252D6f557aA5b0f00d;
 
-    address[] public rewardTokens = [address(token0), address(token1)];
+          key =
+             IUniswapV3Staker.IncentiveKey({
+                 rewardToken: IERC20Minimal(rewardToken),
+                 pool: IUniswapV3Pool(rbn_eth_pool),
+                 startTime: 1633694400,
+                 endTime: 1638878400,
+                 refundee: 0xDAEada3d210D2f45874724BeEa03C7d4BBD41674 // rbn multisig
+             });
+     }
 
-    bool public stakingActive = true;
+      function getName() external pure override returns (string memory) {
+          return "StrategyRbnEthUniV3";
+      }
 
-    event InitialDeposited(uint256 tokenId);
-    event harvested(uint256 tokenId);
-    event deposited(uint256 tokenId, uint256 token0Balance, uint256 token1Balance);
-    event withdrawn(uint256 tokenId, uint256 _liquidity);
-    event rebalanced(uint256 tokenId, int24 _tickLower, int24 _tickUpper);
+      //This function assumes staking rewards is one of the deposited tokens.
+      function harvest() public override onlyBenevolent {
+          if (isStakingActive()) {
+              IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
+              IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rewardToken), address(this), 0);
+              IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
+          }
 
-    constructor(
-        address _governance,
-        address _strategist,
-        address _controller,
-        address _timelock
-    ) public StrategyUniV3Base(rbn_eth_pool, MIN_TICK, MAX_TICK, _governance, _strategist, _controller, _timelock) {
-        token0.safeApprove(address(nftManager), uint256(-1));
-        token1.safeApprove(address(nftManager), uint256(-1));
-        nftManager.setApprovalForAll(univ3_staker, true);
-    }
+          nftManager.collect(
+              IUniswapV3PositionsNFT.CollectParams({
+                  tokenId: tokenId,
+                  recipient: address(this),
+                  amount0Max: type(uint128).max,
+                  amount1Max: type(uint128).max
+              })
+          );
 
-    function getName() external pure override returns (string memory) {
-        return "StrategyRbnEthUniV3";
-    }
+          nftManager.sweepToken(address(token0), 0, address(this));
+          nftManager.sweepToken(address(token1), 0, address(this));
 
-    function isStakingActive() internal returns (bool stakingActive) {
-        return (block.timestamp >= key.startTime && block.timestamp < key.endTime) ? true : false;
-    }
+          _distributePerformanceFeesAndDeposit();
 
-    function depositInitial() public returns (uint256 _tokenId) {
-        require(msg.sender == governance || msg.sender == strategist, "not authorized");
-        require(tokenId == 0, "token already set");
+          balanceProportion(tick_lower, tick_upper);
 
-        uint256 _token0 = token0.balanceOf(address(this));
-        uint256 _token1 = token1.balanceOf(address(this));
+          redeposit();
 
-        (_tokenId, , , ) = nftManager.mint(
-            IUniswapV3PositionsNFT.MintParams({
-                token0: address(token0),
-                token1: address(token1),
-                fee: pool.fee(),
-                tickLower: tick_lower,
-                tickUpper: tick_upper,
-                amount0Desired: _token0,
-                amount1Desired: _token1,
-                amount0Min: 0,
-                amount1Min: 0,
-                recipient: address(this),
-                deadline: block.timestamp + 300
-            })
-        );
+          emit harvested(tokenId);
+      }
 
-        nftManager.sweepToken(address(token0), 0, address(this));
-        nftManager.sweepToken(address(token1), 0, address(this));
+      //This assumes rewardToken == token0
+      function getHarvestable() public view returns (uint256, uint256) {
+          //This will only update when someone mint/burn/pokes the pool.
+          (, , , , , , , , , , uint128 _owed0, uint128 _owed1) = nftManager.positions(tokenId);
+          uint256 _stakingRewards = IUniswapV3Staker(univ3_staker).rewards(key.rewardToken, address(this));
+          return (uint256(_owed0 + _stakingRewards), uint256(_owed1));
+      }
 
-        tokenId = _tokenId;
+      //This assumes rewardToken == (token0 || token1)
+      function rebalance() external returns (uint256 _tokenId) {
+          require(msg.sender == governance, "!governance");
 
-        // Deposit + stake in Uni v3 staker only if staking is active.
-        if (isStakingActive()) {
-            nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
-            IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
-        }
+          if (isStakingActive()) {
+              // If NFT is held by staker, then withdraw
+              IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
 
-        emit InitialDeposited(tokenId);
-    }
+              // claim entire rewards
+              IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rewardToken), address(this), 0);
+              IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
+          }
 
-    function harvest() public override onlyBenevolent {
-        if (isStakingActive()) {
-            IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
-            IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rewardToken), address(this), 0);
-            IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
-        }
+          (, , , , , , , uint256 _liquidity, , , , ) = nftManager.positions(tokenId);
+          (uint256 _liqAmt0, uint256 _liqAmt1) = nftManager.decreaseLiquidity(
+              IUniswapV3PositionsNFT.DecreaseLiquidityParams({
+                  tokenId: tokenId,
+                  liquidity: uint128(_liquidity),
+                  amount0Min: 0,
+                  amount1Min: 0,
+                  deadline: block.timestamp + 300
+              })
+          );
 
-        nftManager.collect(
-            IUniswapV3PositionsNFT.CollectParams({
-                tokenId: tokenId,
-                recipient: address(this),
-                amount0Max: type(uint128).max,
-                amount1Max: type(uint128).max
-            })
-        );
+          // This has to be done after DecreaseLiquidity to collect the tokens we
+          // decreased and the fees at the same time.
+          nftManager.collect(
+              IUniswapV3PositionsNFT.CollectParams({
+                  tokenId: tokenId,
+                  recipient: address(this),
+                  amount0Max: type(uint128).max,
+                  amount1Max: type(uint128).max
+              })
+          );
 
-        nftManager.sweepToken(address(token0), 0, address(this));
-        nftManager.sweepToken(address(token1), 0, address(this));
+          nftManager.sweepToken(address(token0), 0, address(this));
+          nftManager.sweepToken(address(token1), 0, address(this));
+          nftManager.burn(tokenId);
 
-        _distributePerformanceFeesAndDeposit();
+          _distributePerformanceFees(
+              token0.balanceOf(address(this)).sub(_liqAmt0),
+              token1.balanceOf(address(this)).sub(_liqAmt1)
+          );
 
-        balanceProportion(tick_lower, tick_upper);
+          (int24 _tickLower, int24 _tickUpper) = determineTicks();
+          balanceProportion(_tickLower, _tickUpper);
+          //Need to do this again after the swap to cover any slippage.
+          uint256 _amount0Desired = token0.balanceOf(address(this));
+          uint256 _amount1Desired = token1.balanceOf(address(this));
 
-        redeposit();
+          (_tokenId, , , ) = nftManager.mint(
+              IUniswapV3PositionsNFT.MintParams({
+                  token0: address(token0),
+                  token1: address(token1),
+                  fee: pool.fee(),
+                  tickLower: _tickLower,
+                  tickUpper: _tickUpper,
+                  amount0Desired: _amount0Desired,
+                  amount1Desired: _amount1Desired,
+                  amount0Min: 0,
+                  amount1Min: 0,
+                  recipient: address(this),
+                  deadline: block.timestamp + 300
+              })
+          );
 
-        emit harvested(tokenId);
-    }
+          //Record updated information.
+          tokenId = _tokenId;
+          tick_lower = _tickLower;
+          tick_upper = _tickUpper;
 
-    function liquidityOfPool() public view override returns (uint256) {
-        (, , , , , , , uint128 _liquidity, , , , ) = nftManager.positions(tokenId);
-        return _liquidity;
-    }
+          if (isStakingActive()) {
+              nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
+              IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
+          }
 
-    function getHarvestable() public view returns (uint256, uint256) {
-        //This will only update when someone mint/burn/pokes the pool.
-        (, , , , , , , , , , uint128 _owed0, uint128 _owed1) = nftManager.positions(tokenId);
-        uint256 _stakingRewards = IUniswapV3Staker(univ3_staker).rewards(key.rewardToken, address(this));
-        //This assumes rewardToken == token0
-        return (uint256(_owed0 + _stakingRewards), uint256(_owed1));
-    }
-
-    // **** Setters ****
-
-    function deposit() public override {
-        // If NFT is held by staker, then withdraw
-        if (nftManager.ownerOf(tokenId) != address(this) && isStakingActive()) {
-            IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
-            IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
-        }
-
-        uint256 _token0 = token0.balanceOf(address(this));
-        uint256 _token1 = token1.balanceOf(address(this));
-
-        if (_token0 > 0 && _token1 > 0) {
-            nftManager.increaseLiquidity(
-                IUniswapV3PositionsNFT.IncreaseLiquidityParams({
-                    tokenId: tokenId,
-                    amount0Desired: _token0,
-                    amount1Desired: _token1,
-                    amount0Min: 0,
-                    amount1Min: 0,
-                    deadline: block.timestamp + 300
-                })
-            );
-        }
-        redeposit();
-
-        emit deposited(tokenId, _token0, _token1);
-    }
-
-    // Deposit + stake in Uni v3 staker
-    function redeposit() internal {
-        if (isStakingActive()) {
-            nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
-            IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
-        }
-    }
-
-    function _withdrawSome(uint256 _liquidity) internal override returns (uint256, uint256) {
-        if (_liquidity == 0) return (0, 0);
-        if (isStakingActive()) {
-            IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
-            IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
-        }
-
-        (uint256 _a0Expect, uint256 _a1Expect) = pool.amountsForLiquidity(uint128(_liquidity), tick_lower, tick_upper);
-        (uint256 amount0, uint256 amount1) = nftManager.decreaseLiquidity(
-            IUniswapV3PositionsNFT.DecreaseLiquidityParams({
-                tokenId: tokenId,
-                liquidity: uint128(_liquidity),
-                amount0Min: _a0Expect,
-                amount1Min: _a1Expect,
-                deadline: block.timestamp + 300
-            })
-        );
-
-        //Only collect decreasedLiquidity, not trading fees.
-        nftManager.collect(
-            IUniswapV3PositionsNFT.CollectParams({
-                tokenId: tokenId,
-                recipient: address(this),
-                amount0Max: uint128(amount0),
-                amount1Max: uint128(amount1)
-            })
-        );
-
-        return (amount0, amount1);
-    }
-
-    // Override base withdraw function to redeposit
-    function withdraw(uint256 _liquidity) external override returns (uint256 a0, uint256 a1) {
-        require(msg.sender == controller, "!controller");
-        (a0, a1) = _withdrawSome(_liquidity);
-
-        address _jar = IControllerV3(controller).jars(address(pool));
-        require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
-
-        token0.safeTransfer(_jar, a0);
-        token1.safeTransfer(_jar, a1);
-
-        redeposit();
-
-        emit withdrawn(tokenId, _liquidity);
-    }
-
-    function rebalance() external returns (uint256 _tokenId) {
-        require(msg.sender == governance, "!governance");
-
-        if (isStakingActive()) {
-            // If NFT is held by staker, then withdraw
-            IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
-
-            // claim entire rewards
-            IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rewardToken), address(this), 0);
-            IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
-        }
-
-        (, , , , , , , uint256 _liquidity, , , , ) = nftManager.positions(tokenId);
-        (uint256 _liqAmt0, uint256 _liqAmt1) = nftManager.decreaseLiquidity(
-            IUniswapV3PositionsNFT.DecreaseLiquidityParams({
-                tokenId: tokenId,
-                liquidity: uint128(_liquidity),
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: block.timestamp + 300
-            })
-        );
-
-        // This has to be done after DecreaseLiquidity to collect the tokens we
-        // decreased and the fees at the same time.
-        nftManager.collect(
-            IUniswapV3PositionsNFT.CollectParams({
-                tokenId: tokenId,
-                recipient: address(this),
-                amount0Max: type(uint128).max,
-                amount1Max: type(uint128).max
-            })
-        );
-
-        nftManager.sweepToken(address(token0), 0, address(this));
-        nftManager.sweepToken(address(token1), 0, address(this));
-        nftManager.burn(tokenId);
-
-        _distributePerformanceFees(
-            token0.balanceOf(address(this)).sub(_liqAmt0),
-            token1.balanceOf(address(this)).sub(_liqAmt1)
-        );
-
-        (int24 _tickLower, int24 _tickUpper) = determineTicks();
-        balanceProportion(_tickLower, _tickUpper);
-        //Need to do this again after the swap to cover any slippage.
-        uint256 _amount0Desired = token0.balanceOf(address(this));
-        uint256 _amount1Desired = token1.balanceOf(address(this));
-
-        (_tokenId, , , ) = nftManager.mint(
-            IUniswapV3PositionsNFT.MintParams({
-                token0: address(token0),
-                token1: address(token1),
-                fee: pool.fee(),
-                tickLower: _tickLower,
-                tickUpper: _tickUpper,
-                amount0Desired: _amount0Desired,
-                amount1Desired: _amount1Desired,
-                amount0Min: 0,
-                amount1Min: 0,
-                recipient: address(this),
-                deadline: block.timestamp + 300
-            })
-        );
-
-        //Record updated information.
-        tokenId = _tokenId;
-        tick_lower = _tickLower;
-        tick_upper = _tickUpper;
-
-        if (isStakingActive()) {
-            nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
-            IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
-        }
-
-        emit rebalanced(tokenId, _tickLower, _tickUpper);
-    }
-
+          emit rebalanced(tokenId, _tickLower, _tickUpper);
+      }
 }
