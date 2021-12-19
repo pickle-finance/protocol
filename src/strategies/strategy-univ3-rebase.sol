@@ -180,6 +180,21 @@ abstract contract StrategyRebalanceUniV3 {
         return (a2 * (10**18)) / a1;
     }
 
+    function getSqrtRatioAtTick(int24 _tick) public view returns (uint160) {
+      return TickMath.getSqrtRatioAtTick(_tick);
+    }
+
+    function getSqrtRatioAtRanges() public view returns (uint160, uint160) {
+      (int24 _tickLower, int24 _tickUpper) = determineTicks();
+      return (TickMath.getSqrtRatioAtTick(_tickLower), TickMath.getSqrtRatioAtTick(_tickUpper));
+    }
+
+    function determineTicks() public view returns (int24, int24) {
+        (, int24 currentTick, , , , , ) = pool.slot0();
+
+        int24 baseThreshold = tickSpacing * tickRangeMultiplier;
+        return PoolVariables.baseTicks(currentTick, baseThreshold, tickSpacing);
+    }
 
     // **** State mutations **** //
 
@@ -473,13 +488,6 @@ abstract contract StrategyRebalanceUniV3 {
         bytes memory
     ) public pure returns (bytes4) {
         return this.onERC721Received.selector;
-    }
-
-    function determineTicks() internal returns (int24, int24) {
-        (, int24 currentTick, , , , , ) = pool.slot0();
-
-        int24 baseThreshold = tickSpacing * tickRangeMultiplier;
-        return PoolVariables.baseTicks(currentTick, baseThreshold, tickSpacing);
     }
 
     function balanceProportion(int24 _tickLower, int24 _tickUpper) internal {
