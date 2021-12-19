@@ -189,6 +189,10 @@ abstract contract StrategyRebalanceUniV3 {
       return (TickMath.getSqrtRatioAtTick(_tickLower), TickMath.getSqrtRatioAtTick(_tickUpper));
     }
 
+    function getTickAtSqrtRatio(uint160 _sqrRtRatio) public view returns (int24) {
+      return TickMath.getTickAtSqrtRatio(_sqrRtRatio);
+    }
+
     function determineTicks() public view returns (int24, int24) {
         (, int24 currentTick, , , , , ) = pool.slot0();
 
