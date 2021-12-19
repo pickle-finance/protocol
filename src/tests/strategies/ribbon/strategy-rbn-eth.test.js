@@ -198,7 +198,7 @@ describe("StrategyRbnEthUniV3", () => {
     );
 
     await harvest();
-    await rebalance2();
+    await rebalance();
     console.log("=============== Controller withdraw ===============");
     console.log(
       "PickleJar rbn balance before withdrawal => ",
@@ -304,16 +304,6 @@ describe("StrategyRbnEthUniV3", () => {
     console.log("============ Rebalance Started ==============");
 
     console.log("Ratio before rebalance => ", (await pickleJar.getRatio()).toString());
-    await strategy.rebalance();
-    console.log("Ratio after rebalance => ", (await pickleJar.getRatio()).toString());
-    console.log("============ Rebalance Ended ==============");
-  };
-
-  const rebalance2 = async () => {
-    console.log("============ Rebalance Started ==============");
-
-    console.log("Ratio before rebalance => ", (await pickleJar.getRatio()).toString());
-    await strategy.connect(governance).setTickRangeMultiplier(20);
     await strategy.rebalance();
     console.log("Ratio after rebalance => ", (await pickleJar.getRatio()).toString());
     console.log("============ Rebalance Ended ==============");

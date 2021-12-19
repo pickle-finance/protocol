@@ -52,8 +52,6 @@ abstract contract StrategyRebalanceUniV3 {
     int24 public tick_upper;
     int24 public tickSpacing;
     int24 public tickRangeMultiplier;
-    int24 public constant MIN_TICK = -887200;
-    int24 public constant MAX_TICK = 887200;
 
     address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     IUniswapV3PositionsNFT public nftManager = IUniswapV3PositionsNFT(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
@@ -175,11 +173,6 @@ abstract contract StrategyRebalanceUniV3 {
     function setController(address _controller) external {
         require(msg.sender == timelock, "!timelock");
         controller = _controller;
-    }
-
-    function setTickRangeMultiplier(int24 _multiplier) external {
-        require(msg.sender == governance, "!governance");
-        tickRangeMultiplier = _multiplier;
     }
 
     function getProportion() public view returns (uint256) {

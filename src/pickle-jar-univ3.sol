@@ -44,9 +44,6 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     IERC20 public token0;
     IERC20 public token1;
 
-    int24 public constant MIN_TICK = -887200;
-    int24 public constant MAX_TICK = 887200;
-
     constructor(
         string memory _name,
         string memory _symbol,
@@ -74,16 +71,6 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         uint256 _balance0 = token0.balanceOf(address(this));
         uint256 _balance1 = token1.balanceOf(address(this));
         return uint256(pool.liquidityForAmounts(_balance0, _balance1, getLowerTick(), getUpperTick()));
-    }
-
-    function totalLiquidityFullRange() public view returns (uint256) {
-        return liquidityFullRange(totalLiquidity());
-    }
-
-    function liquidityFullRange(uint256 _liquidity) public view returns (uint256) {
-        (uint256 _amount0, uint256 _amount1) = pool.amountsForLiquidity(uint128(_liquidity), getLowerTick(), getUpperTick());
-        _liquidity = pool.liquidityForAmounts(_amount0, _amount1, MIN_TICK, MAX_TICK);
-        return _liquidity;
     }
 
     function getUpperTick() public view returns (int24) {
@@ -160,7 +147,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
             }
         }
 
-        uint256 _liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, MIN_TICK, MAX_TICK));
+        uint256 _liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, getLowerTick(), getUpperTick()));
 
         if (token0Amount > 0) token0.safeTransferFrom(msg.sender, address(this), token0Amount);
         if (token1Amount > 0 && !isEth) token1.safeTransferFrom(msg.sender, address(this), token1Amount);
@@ -169,7 +156,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         if (totalSupply() == 0) {
             shares = _liquidity;
         } else {
-            shares = (_liquidity.mul(totalSupply())).div(totalLiquidityFullRange());
+            shares = (_liquidity.mul(totalSupply())).div(IControllerV3(controller).liquidityOf(address(pool)));
         }
 
         _mint(msg.sender, shares);
@@ -220,7 +207,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
     function getRatio() public view returns (uint256) {
         if (totalSupply() == 0) return 0;
-        return totalLiquidityFullRange().mul(1e18).div(totalSupply());
+        return totalLiquidity().mul(1e18).div(totalSupply());
     }
 
     modifier checkRatio(uint256 amount0, uint256 amount1) {
