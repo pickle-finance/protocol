@@ -14,7 +14,6 @@ import "../interfaces/univ3/IUniswapV3Pool.sol";
 import "../interfaces//univ3/IUniswapV3Staker.sol";
 import "../interfaces/univ3/ISwapRouter.sol";
 import "../interfaces/controllerv3.sol";
-import "./strategy-univ3-base.sol";
 
 
 abstract contract StrategyRebalanceUniV3 {
