@@ -2,8 +2,6 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-
-
 import "../lib/erc20.sol";
 import "../lib/safe-math.sol";
 import "../lib/univ3/PoolActions.sol";
@@ -14,7 +12,6 @@ import "../interfaces/univ3/IUniswapV3Pool.sol";
 import "../interfaces//univ3/IUniswapV3Staker.sol";
 import "../interfaces/univ3/ISwapRouter.sol";
 import "../interfaces/controllerv3.sol";
-
 
 abstract contract StrategyRebalanceUniV3 {
     using SafeERC20 for IERC20;
@@ -68,7 +65,7 @@ abstract contract StrategyRebalanceUniV3 {
 
     constructor(
         address _pool,
-        int24   _tickRangeMultiplier,
+        int24 _tickRangeMultiplier,
         address _governance,
         address _strategist,
         address _controller,
@@ -125,8 +122,6 @@ abstract contract StrategyRebalanceUniV3 {
 
     function getName() external pure virtual returns (string memory);
 
-
-
     function isStakingActive() internal returns (bool stakingActive) {
         return (block.timestamp >= key.startTime && block.timestamp < key.endTime) ? true : false;
     }
@@ -180,16 +175,16 @@ abstract contract StrategyRebalanceUniV3 {
     }
 
     function getSqrtRatioAtTick(int24 _tick) public view returns (uint160) {
-      return TickMath.getSqrtRatioAtTick(_tick);
+        return TickMath.getSqrtRatioAtTick(_tick);
     }
 
     function getSqrtRatioAtRanges() public view returns (uint160, uint160) {
-      (int24 _tickLower, int24 _tickUpper) = determineTicks();
-      return (TickMath.getSqrtRatioAtTick(_tickLower), TickMath.getSqrtRatioAtTick(_tickUpper));
+        (int24 _tickLower, int24 _tickUpper) = determineTicks();
+        return (TickMath.getSqrtRatioAtTick(_tickLower), TickMath.getSqrtRatioAtTick(_tickUpper));
     }
 
     function getTickAtSqrtRatio(uint160 _sqrRtRatio) public view returns (int24) {
-      return TickMath.getTickAtSqrtRatio(_sqrRtRatio);
+        return TickMath.getTickAtSqrtRatio(_sqrRtRatio);
     }
 
     function determineTicks() public view returns (int24, int24) {
@@ -237,7 +232,6 @@ abstract contract StrategyRebalanceUniV3 {
 
         emit InitialDeposited(tokenId);
     }
-
 
     function deposit() public {
         // If NFT is held by staker, then withdraw

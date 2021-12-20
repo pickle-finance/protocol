@@ -134,7 +134,6 @@ describe("StrategyRbnEthUniV3Rebalance", () => {
 
     console.log("=============== Bob deposit ==============");
 
-
     await deposit(bob, depositA, depositB);
     await simulateTrading();
     await deposit(charles, depositA, depositB);
@@ -223,8 +222,8 @@ describe("StrategyRbnEthUniV3Rebalance", () => {
     console.log("===============Alice Full withdraw==============");
 
     console.log(
-      "Alice rbn balance before withdrawal => ",harvest
-      (await rbn.balanceOf(alice.address)).toString()
+      "Alice rbn balance before withdrawal => ",
+      harvest(await rbn.balanceOf(alice.address)).toString()
     );
     console.log(
       "Alice weth balance before withdrawal => ",
@@ -320,16 +319,26 @@ describe("StrategyRbnEthUniV3Rebalance", () => {
     let aliceAddress = alice.address;
     let amount = input.balanceOf(alice.address);
     await input.connect(alice).approve(univ3router.address, amount);
-    await univ3router.connect(alice).exactInputSingle({tokenIn: _inputToken, tokenOut: _outputToken, fee: poolFee, recipient: aliceAddress, deadline: "1659935160", amountIn: amount,amountOutMinimum: 0, sqrtPriceLimitX96: 0});
-  }
+    await univ3router
+      .connect(alice)
+      .exactInputSingle({
+        tokenIn: _inputToken,
+        tokenOut: _outputToken,
+        fee: poolFee,
+        recipient: aliceAddress,
+        deadline: "1659935160",
+        amountIn: amount,
+        amountOutMinimum: 0,
+        sqrtPriceLimitX96: 0,
+      });
+  };
 
   const simulateTrading = async () => {
     for (let i = 0; i < 100; i++) {
       await trade(WETH_TOKEN, RBN_TOKEN);
       await trade(RBN_TOKEN, WETH_TOKEN);
     }
-  }
-
+  };
 
   const getAmountB = async (amountA) => {
     const proportion = await pickleJar.getProportion();
