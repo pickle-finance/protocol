@@ -305,8 +305,12 @@ describe("StrategyRbnEthUniV3Rebalance", () => {
     console.log("============ Rebalance Started ==============");
 
     console.log("Ratio before rebalance => ", (await pickleJar.getRatio()).toString());
+    console.log("TickLower before rebalance => ", (await pickleJar.getLowerTick()).toString());
+    console.log("TickUpper before rebalance => ", (await pickleJar.getUpperTick()).toString());
     await strategy.rebalance();
     console.log("Ratio after rebalance => ", (await pickleJar.getRatio()).toString());
+    console.log("TickLower after rebalance => ", (await pickleJar.getLowerTick()).toString());
+    console.log("TickUpper after rebalance => ", (await pickleJar.getUpperTick()).toString());
     console.log("============ Rebalance Ended ==============");
   };
 
