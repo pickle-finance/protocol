@@ -6,7 +6,6 @@ import "../strategy-univ3-rebase.sol";
 
 contract StrategyRbnEthUniV3 is StrategyRebalanceUniV3 {
     address public rbn_eth_pool = 0x94981F69F7483AF3ae218CbfE65233cC3c60d93a;
-    address public constant rewardToken = 0x6123B0049F904d730dB3C36a31167D9d4121fA6B;
     address[] public rewardTokens = [address(token0), address(token1)];
 
     constructor(
@@ -28,6 +27,8 @@ contract StrategyRbnEthUniV3 is StrategyRebalanceUniV3 {
             endTime: 1638878400,
             refundee: 0xDAEada3d210D2f45874724BeEa03C7d4BBD41674 // rbn multisig
         });
+
+        rewardToken = 0x6123B0049F904d730dB3C36a31167D9d4121fA6B;
     }
 
     function getName() external pure override returns (string memory) {

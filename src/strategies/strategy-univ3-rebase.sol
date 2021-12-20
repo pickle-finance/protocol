@@ -50,6 +50,7 @@ abstract contract StrategyRebalanceUniV3 {
     int24 public tickRangeMultiplier;
 
     address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address public rewardToken;
     IUniswapV3PositionsNFT public nftManager = IUniswapV3PositionsNFT(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
 
     mapping(address => bool) public harvesters;
@@ -266,6 +267,15 @@ abstract contract StrategyRebalanceUniV3 {
             nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
             IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
         }
+    }
+
+    //Need to call this at end of Liquidity Mining
+    function endOfLM() external onlyBenevolent {
+      require(block.timestamp > key.endTime, "Not End of LM");
+      // claim entire rewards
+      IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
+      IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rewardToken), address(this), 0);
+      IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
     }
 
     function _withdrawSome(uint256 _liquidity) internal returns (uint256, uint256) {
