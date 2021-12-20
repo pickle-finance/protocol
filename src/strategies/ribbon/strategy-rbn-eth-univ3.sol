@@ -72,9 +72,7 @@ contract StrategyRbnEthUniV3 is StrategyRebalanceUniV3 {
       }
 
       //This assumes rewardToken == (token0 || token1)
-      function rebalance() external returns (uint256 _tokenId) {
-          require(msg.sender == governance, "!governance");
-
+      function rebalance() external onlyBenevolent returns (uint256 _tokenId) {
           if (isStakingActive()) {
               // If NFT is held by staker, then withdraw
               IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
