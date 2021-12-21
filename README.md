@@ -60,6 +60,44 @@ The flattened file can be used to deploy the contract through Remix.
 
 ---
 
+## Naming Convention
+
+“Programs must be written for people to read, and only incidentally for machines to execute.”
+- Harold Abelson, Structure and Interpretation of Computer Programs
+
+It is important that we come to a common understanding and practice when it comes to the naming convention of our code base.
+
+Although it is the case that human readability takes precedence, we should also weigh carefully the effects that naming will have on our operational scripts and automated processes.
+
+The smart contract code has recently begun to diverge from our historical naming convention. In order to combat this I'd like to make some notes on naming, especially with regard to our strategies.
+
+# Strategy names:
+Strategy names should include reference to the platform and the tokens affected.
+
+For example StrategyPngAvaxPngLp.
+Let's break this down:
+
+Strategy - this is the type of contract that it is
+Png - this is the platform it is built upon
+Avax this is the primary token
+Png this is the secondary token
+Lp the two tokens are bound together in a Liquidity Pool.
+
+It's worth noting that the strategies, as well as all other contracts, are written in UpperCamelCase format. This is in keeping with standard Object Oriented fashion since the contracts are Classes and follow standard Inheretance.
+
+# Function names
+
+Functions within the contracts should be written in lowerCamelCase. This is again in keeping with standard software engineering practices, both within and outside of Object Oriented Programing. 
+
+Functions that are private, that is, functions that can only be called by the parent class, should be prepended by an underscore '_' like so _lowerCamelcase.
+
+# Variable names
+Variables, should only contain lowercase letters, words separated by an underscore '_' (this is often called snake_case), unless the variable is representing an instantiated object of a class (contract or interface), in which case, it can follow the UpperCamelCase form used by objects.
+
+# Parameter names
+In order to match the convention elsewhere in our codebase, parameters should follow standard variable naming convention, except in the case that the parameter represents a class variable (field) that is being overwritten by the function (such as in a constructor). In this case, the parameter name should also be prepended by an underscore '_' like so _snake_case. 
+
+
 ## Contracts
 
 ### Main Snowball Contracts
