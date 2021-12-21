@@ -733,6 +733,11 @@ const tests = [
     //     snowglobeAddress: "",
     //     slot: 51
     //   },
+  {
+    name: "PngAvaxMim",
+    controllerAddress: "",
+    snowglobeAddress: "",
+  },
 
 ];
 

@@ -2,12 +2,12 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-minichef-farm-base.sol";
 
-contract StrategyPngAvaxHctLp is StrategyPngMiniChefFarmBase {
-    uint256 public _poolId = 33;
+contract StrategyPngAvaxMimLp is StrategyPngMiniChefFarmBase {
+    uint256 public _poolId = 52;
 
     // Token addresses
-    address public png_avax_hct_lp = 0x0B1efd689eBA7E610955d0FaBd9Ab713a04c3895;
-    address public hct = 0x45C13620B55C35A5f539d26E88247011Eb10fDbd;
+    address public png_avax_mim_lp = 0x239aAE4AaBB5D60941D7DFFAeaFE8e063C63Ab25;
+    address public mim = 0x130966628846BFd36ff31a822705796e8cb8C18D;
 
     constructor(
         address _governance,
@@ -18,7 +18,7 @@ contract StrategyPngAvaxHctLp is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            png_avax_hct_lp,
+            png_avax_mim_lp,
             _governance,
             _strategist,
             _controller,
@@ -48,28 +48,28 @@ contract StrategyPngAvaxHctLp is StrategyPngMiniChefFarmBase {
             _swapPangolin(png, wavax, _png);    
         }
 
-        // Swap half WAVAX for HCT
+        // Swap half WAVAX for MIM
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
-            _swapPangolin(wavax, hct, _wavax.div(2));
+            _swapPangolin(wavax, mim, _wavax.div(2));
         }
 
-        // Adds in liquidity for AVAX/HCT
+        // Adds in liquidity for AVAX/MIM
         _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _hct = IERC20(hct).balanceOf(address(this));
+        uint256 _mim = IERC20(mim).balanceOf(address(this));
 
-        if (_wavax > 0 && _hct > 0) {
+        if (_wavax > 0 && _mim > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
 
-            IERC20(hct).safeApprove(pangolinRouter, 0);
-            IERC20(hct).safeApprove(pangolinRouter, _hct);
+            IERC20(mim).safeApprove(pangolinRouter, 0);
+            IERC20(mim).safeApprove(pangolinRouter, _mim);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
                 wavax,
-                hct,
+                mim,
                 _wavax,
-                _hct,
+                _mim,
                 0,
                 0,
                 address(this),
@@ -77,7 +77,7 @@ contract StrategyPngAvaxHctLp is StrategyPngMiniChefFarmBase {
             );
 
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _hct = IERC20(hct).balanceOf(address(this));
+            _mim = IERC20(mim).balanceOf(address(this));
             
             // Donates DUST
             if (_wavax > 0){
@@ -86,10 +86,10 @@ contract StrategyPngAvaxHctLp is StrategyPngMiniChefFarmBase {
                     _wavax
                 );
             }
-            if (_hct > 0){
-                IERC20(hct).safeTransfer(
+            if (_mim > 0){
+                IERC20(mim).safeTransfer(
                     IController(controller).treasury(),
-                    _hct
+                    _mim
                 );
             }
         }
@@ -100,6 +100,6 @@ contract StrategyPngAvaxHctLp is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAvaxHctLp";
+        return "StrategyPngAvaxMimLp";
     }
 }
