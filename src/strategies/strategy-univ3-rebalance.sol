@@ -12,7 +12,6 @@ import "../interfaces/univ3/IUniswapV3Pool.sol";
 import "../interfaces//univ3/IUniswapV3Staker.sol";
 import "../interfaces/univ3/ISwapRouter.sol";
 import "../interfaces/controllerv2.sol";
-import "hardhat/console.sol";
 
 abstract contract StrategyRebalanceUniV3 {
     using SafeERC20 for IERC20;
@@ -209,9 +208,6 @@ abstract contract StrategyRebalanceUniV3 {
         uint256 _token0 = token0.balanceOf(address(this));
         uint256 _token1 = token1.balanceOf(address(this));
 
-        console.log("token0: ", _token0);
-        console.log("_token1: ", _token1);
-
         (_tokenId, , , ) = nftManager.mint(
             IUniswapV3PositionsNFT.MintParams({
                 token0: address(token0),
@@ -275,15 +271,6 @@ abstract contract StrategyRebalanceUniV3 {
             nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
             IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
         }
-    }
-
-    //Need to call this at end of Liquidity Mining
-    function endOfLM() external onlyBenevolent {
-      require(block.timestamp > key.endTime, "Not End of LM");
-      // claim entire rewards
-      IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
-      IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rewardToken), address(this), 0);
-      IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
     }
 
     function _withdrawSome(uint256 _liquidity) internal returns (uint256, uint256) {

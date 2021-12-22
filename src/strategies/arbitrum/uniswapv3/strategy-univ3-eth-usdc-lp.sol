@@ -72,6 +72,23 @@ contract StrategyUsdcEthUniV3Arbi is StrategyRebalanceUniV3 {
         return (uint256(_owed0 + _stakingRewards), uint256(_owed1));
     }
 
+    //Need to call this at end of Liquidity Mining This assumes rewardToken is token0 or token1
+    function endOfLM() external onlyBenevolent {
+      require(block.timestamp > key.endTime, "Not End of LM");
+
+      uint256 _liqAmt0 = token0.balanceOf(address(this));
+      uint256 _liqAmt1 = token1.balanceOf(address(this));
+      // claim entire rewards
+      IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
+      IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rewardToken), address(this), 0);
+      IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
+
+      _distributePerformanceFees(
+          token0.balanceOf(address(this)).sub(_liqAmt0),
+          token1.balanceOf(address(this)).sub(_liqAmt1)
+      );
+    }
+
     //This assumes rewardToken == (token0 || token1)
     function rebalance() external onlyBenevolent returns (uint256 _tokenId) {
         if (isStakingActive()) {
