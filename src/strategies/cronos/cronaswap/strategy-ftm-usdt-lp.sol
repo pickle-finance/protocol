@@ -3,13 +3,13 @@ pragma solidity ^0.6.7;
 
 import "../strategy-crona-farm-base.sol";
 
-contract StrategyCronaAvaxUsdtLp is StrategyCronaFarmBase {
-    uint256 public avax_usdt_poolId = 9;
+contract StrategyCronaFtmUsdtLp is StrategyCronaFarmBase {
+    uint256 public ftm_usdt_poolId = 10;
 
     // Token addresses
-    address public avax_usdt_lp = 0x193add22b0a333956C2Cb13F4D574aF129629c5f;
+    address public ftm_usdt_lp = 0xDee7A79bb414FFB248EF4d4c5560AdC91F547F41;
     address public usdt = 0x66e428c3f67a68878562e79A0234c1F83c208770;
-    address public avax = 0x765277EebeCA2e31912C9946eAe1021199B39C61;
+    address public ftm = 0xB44a9B6905aF7c801311e8F4E76932ee959c663C;
 
     constructor(
         address _governance,
@@ -19,10 +19,10 @@ contract StrategyCronaAvaxUsdtLp is StrategyCronaFarmBase {
     )
         public
         StrategyCronaFarmBase(
-            avax,
+            ftm,
             usdt,
-            avax_usdt_poolId,
-            avax_usdt_lp,
+            ftm_usdt_poolId,
+            ftm_usdt_lp,
             _governance,
             _strategist,
             _controller,
@@ -30,12 +30,12 @@ contract StrategyCronaAvaxUsdtLp is StrategyCronaFarmBase {
         )
     {
         uniswapRoutes[usdt] = [crona, usdt];
-        uniswapRoutes[avax] = [crona, usdt, avax];
+        uniswapRoutes[ftm] = [crona, usdt, ftm];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyCronaAvaxUsdtLp";
+        return "StrategyCronaFtmUsdtLp";
     }
 }
