@@ -12,7 +12,8 @@ import "../../interfaces/weth.sol";
 import "../../interfaces/strategy.sol";
 import "../../interfaces/curve.sol";
 import "../../interfaces/uniswapv2.sol";
-import "../../interfaces/uniswapv3.sol";
+import "../../interfaces/univ3/IUniswapV3PositionsNFT.sol";
+import "../../interfaces/univ3/ISwapRouter.sol";
 
 contract DSTestDefiBase is DSTestApprox {
     using SafeERC20 for IERC20;

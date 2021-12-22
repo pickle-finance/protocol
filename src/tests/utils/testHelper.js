@@ -36,11 +36,9 @@ const increaseBlock = async (block) => {
  * @returns contract instance
  */
 const deployContract = async (name, ...arg) => {
-  console.log("deploying....")
   const contractFactory = await hre.ethers.getContractFactory(name);
   const contract = await contractFactory.deploy(...arg);
   await contract.deployed();
-  console.log("deployed....")
   return contract;
 };
 
