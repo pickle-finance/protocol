@@ -114,10 +114,8 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
     );
 
     // Initial deposit to create NFT
-    const amountWeth = toWei(1);;
-    const amountUsdc = 1000000000;
     const amountWeth = 1000000000000;
-    const amountUsdc = 1000000;
+    const amountUsdc = 4000;
 
     await usdc.connect(alice).transfer(strategy.address, amountUsdc);
     await weth.connect(alice).transfer(strategy.address, amountWeth);
