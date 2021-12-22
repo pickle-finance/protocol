@@ -1,4 +1,5 @@
 pragma solidity ^0.6.7;
+pragma experimental ABIEncoderV2;
 
 import "../lib/hevm.sol";
 import "../lib/user.sol";
@@ -27,7 +28,24 @@ contract StrategyLqtyFarmTestBase is DSTestDefiBase {
     IStrategy strategy;
 
     function _getWant(uint256 ethAmount) internal {
-        _getERC20WithETH(want, ethAmount);
+        WETH(weth).deposit{value: ethAmount}();
+
+        uint256 _weth = IERC20(weth).balanceOf(address(this));
+        IERC20(weth).safeApprove(univ3Router, 0);
+        IERC20(weth).safeApprove(univ3Router, _weth);
+
+        ISwapRouter(univ3Router).exactInputSingle(
+            ISwapRouter.ExactInputSingleParams({
+                tokenIn: weth,
+                tokenOut: want,
+                fee: 3000,
+                recipient: address(this),
+                deadline: block.timestamp + 300,
+                amountIn: _weth,
+                amountOutMinimum: 0,
+                sqrtPriceLimitX96: 0
+            })
+        );
     }
 
     // **** Tests ****

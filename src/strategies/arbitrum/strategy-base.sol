@@ -334,4 +334,28 @@ abstract contract StrategyBase {
             deposit();
         }
     }
+
+    function _distributePerformanceFeesBasedAmountAndDeposit(uint256 _amount) internal {
+        uint256 _want = IERC20(want).balanceOf(address(this));
+
+        if (_amount > _want) {
+            _amount = _want;
+        }
+
+        if (_amount > 0) {
+            // Treasury fees
+            IERC20(want).safeTransfer(
+                IController(controller).treasury(),
+                _amount.mul(performanceTreasuryFee).div(performanceTreasuryMax)
+            );
+
+            // Performance fee
+            IERC20(want).safeTransfer(
+                IController(controller).devfund(),
+                _amount.mul(performanceDevFee).div(performanceDevMax)
+            );
+
+            deposit();
+        }
+    }
 }

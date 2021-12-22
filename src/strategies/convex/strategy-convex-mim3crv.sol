@@ -5,7 +5,7 @@ import "../strategy-convex-farm-base.sol";
 interface ICurveZapper {
     function add_liquidity(
         address,
-        uint256[4] memory,
+        uint256[4] calldata,
         uint256
     ) external returns (uint256);
 }

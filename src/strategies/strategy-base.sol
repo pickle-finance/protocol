@@ -3,10 +3,8 @@ pragma solidity ^0.6.7;
 import "../lib/erc20.sol";
 import "../lib/safe-math.sol";
 
-import "../interfaces/jar.sol";
-import "../interfaces/staking-rewards.sol";
-import "../interfaces/masterchef.sol";
 import "../interfaces/uniswapv2.sol";
+import "../interfaces/uniswapv3.sol";
 import "../interfaces/controller.sol";
 
 // Strategy Contract Basics
@@ -45,6 +43,13 @@ abstract contract StrategyBase {
     // Dex
     address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
     address public sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
+
+    address public constant nonFungiblePositionManager =
+        0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
+    address public constant univ3Factory =
+        0x1F98431c8aD98523631AE4a59f267346ea31F984;
+    address public constant univ3Router =
+        0xE592427A0AEce92De3Edee1F18E0157C05861564;
 
     mapping(address => bool) public harvesters;
 
@@ -85,30 +90,36 @@ abstract contract StrategyBase {
         return IERC20(want).balanceOf(address(this));
     }
 
-    function balanceOfPool() public virtual view returns (uint256);
+    function balanceOfPool() public view virtual returns (uint256);
 
     function balanceOf() public view returns (uint256) {
         return balanceOfWant().add(balanceOfPool());
     }
 
-    function getName() external virtual pure returns (string memory);
+    function getName() external pure virtual returns (string memory);
 
     // **** Setters **** //
 
     function whitelistHarvesters(address[] calldata _harvesters) external {
-        require(msg.sender == governance ||
-             msg.sender == strategist || harvesters[msg.sender], "not authorized");
-             
-        for (uint i = 0; i < _harvesters.length; i ++) {
+        require(
+            msg.sender == governance ||
+                msg.sender == strategist ||
+                harvesters[msg.sender],
+            "not authorized"
+        );
+
+        for (uint256 i = 0; i < _harvesters.length; i++) {
             harvesters[_harvesters[i]] = true;
         }
     }
 
     function revokeHarvesters(address[] calldata _harvesters) external {
-        require(msg.sender == governance ||
-             msg.sender == strategist, "not authorized");
+        require(
+            msg.sender == governance || msg.sender == strategist,
+            "not authorized"
+        );
 
-        for (uint i = 0; i < _harvesters.length; i ++) {
+        for (uint256 i = 0; i < _harvesters.length; i++) {
             harvesters[_harvesters[i]] = false;
         }
     }
@@ -264,10 +275,10 @@ abstract contract StrategyBase {
             returndatacopy(add(response, 0x20), 0, size)
 
             switch iszero(succeeded)
-                case 1 {
-                    // throw if delegatecall failed
-                    revert(add(response, 0x20), size)
-                }
+            case 1 {
+                // throw if delegatecall failed
+                revert(add(response, 0x20), size)
+            }
         }
     }
 
@@ -301,10 +312,9 @@ abstract contract StrategyBase {
         );
     }
 
-    function _swapUniswapWithPath(
-        address[] memory path,
-        uint256 _amount
-    ) internal {
+    function _swapUniswapWithPath(address[] memory path, uint256 _amount)
+        internal
+    {
         require(path[1] != address(0));
 
         UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
@@ -345,10 +355,9 @@ abstract contract StrategyBase {
         );
     }
 
-    function _swapSushiswapWithPath(
-        address[] memory path,
-        uint256 _amount
-    ) internal {
+    function _swapSushiswapWithPath(address[] memory path, uint256 _amount)
+        internal
+    {
         require(path[1] != address(0));
 
         UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
