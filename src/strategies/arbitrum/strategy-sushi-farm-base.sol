@@ -17,8 +17,9 @@ abstract contract StrategySushiFarmBase is StrategyBase {
     address rewardToken;
 
     // How much SUSHI tokens to keep?
-    uint256 public keepSUSHI = 0;
-    uint256 public constant keepSUSHIMax = 10000;
+    uint256 public keepSUSHI = 2000;
+    uint256 public keepReward = 2000;
+    uint256 public constant keepMax = 10000;
 
     uint256 public poolId;
 
@@ -95,8 +96,16 @@ abstract contract StrategySushiFarmBase is StrategyBase {
         keepSUSHI = _keepSUSHI;
     }
 
-    function setRewardToken(address _rewardToken) external {
+    function setKeepReward(uint256 _keepReward) external {
         require(msg.sender == timelock, "!timelock");
+        keepReward = _keepReward;
+    }
+
+    function setRewardToken(address _rewardToken) external {
+        require(
+            msg.sender == timelock || msg.sender == strategist,
+            "!timelock"
+        );
         rewardToken = _rewardToken;
     }
 
@@ -114,12 +123,7 @@ abstract contract StrategySushiFarmBase is StrategyBase {
         uint256 _sushi = IERC20(sushi).balanceOf(address(this));
         if (_sushi > 0) {
             // 10% is locked up for future gov
-            uint256 _keepSUSHI = _sushi.mul(keepSUSHI).div(keepSUSHIMax);
-            IERC20(sushi).safeApprove(IController(controller).treasury(), 0);
-            IERC20(sushi).safeApprove(
-                IController(controller).treasury(),
-                _keepSUSHI
-            );
+            uint256 _keepSUSHI = _sushi.mul(keepSUSHI).div(keepMax);
             IERC20(sushi).safeTransfer(
                 IController(controller).treasury(),
                 _keepSUSHI
@@ -131,7 +135,12 @@ abstract contract StrategySushiFarmBase is StrategyBase {
         if (rewardToken != address(0)) {
             uint256 _reward = IERC20(rewardToken).balanceOf(address(this));
             if (_reward > 0) {
-                _swapSushiswap(rewardToken, weth, _reward);
+                uint256 _keepReward = _reward.mul(keepReward).div(keepMax);
+                IERC20(rewardToken).safeTransfer(
+                    IController(controller).treasury(),
+                    _keepReward
+                );
+                _swapSushiswap(rewardToken, weth, _reward.sub(_keepReward));
             }
         }
 
