@@ -5,7 +5,6 @@ pragma experimental ABIEncoderV2;
 import "../../lib/erc20.sol";
 import "../../lib/safe-math.sol";
 import "../../lib/univ3/PoolActions.sol";
-import "../../interfaces/jarv2.sol";
 import "../../interfaces/uniswapv2.sol";
 import "../../interfaces/univ3/IUniswapV3PositionsNFT.sol";
 import "../../interfaces/univ3/IUniswapV3Pool.sol";
