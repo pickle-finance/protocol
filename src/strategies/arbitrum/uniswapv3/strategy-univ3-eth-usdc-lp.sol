@@ -55,9 +55,9 @@ contract StrategyUsdcEthUniV3Arbi is StrategyRebalanceUniV3 {
         nftManager.sweepToken(address(token0), 0, address(this));
         nftManager.sweepToken(address(token1), 0, address(this));
 
-        _distributePerformanceFeesAndDeposit();
-
         balanceProportion(tick_lower, tick_upper);
+
+        _distributePerformanceFeesAndDeposit();
 
         redeposit();
 
