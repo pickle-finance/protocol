@@ -2,18 +2,18 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../lib/erc20.sol";
-import "../lib/safe-math.sol";
-import "../lib/univ3/PoolActions.sol";
-import "../interfaces/jarv2.sol";
-import "../interfaces/uniswapv2.sol";
-import "../interfaces/univ3/IUniswapV3PositionsNFT.sol";
-import "../interfaces/univ3/IUniswapV3Pool.sol";
-import "../interfaces//univ3/IUniswapV3Staker.sol";
-import "../interfaces/univ3/ISwapRouter.sol";
-import "../interfaces/controllerv2.sol";
+import "../../lib/erc20.sol";
+import "../../lib/safe-math.sol";
+import "../../lib/univ3/PoolActions.sol";
+import "../../interfaces/jarv2.sol";
+import "../../interfaces/uniswapv2.sol";
+import "../../interfaces/univ3/IUniswapV3PositionsNFT.sol";
+import "../../interfaces/univ3/IUniswapV3Pool.sol";
+import "../../interfaces//univ3/IUniswapV3Staker.sol";
+import "../../interfaces/univ3/ISwapRouter.sol";
+import "../../interfaces/controllerv2.sol";
 
-abstract contract StrategyRebalanceUniV3 {
+abstract contract StrategyRebalanceStakerUniV3 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;

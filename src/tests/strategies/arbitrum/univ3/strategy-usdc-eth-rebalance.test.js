@@ -44,7 +44,7 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
 
     strategy = await deployContract(
       "StrategyUsdcEthUniV3Arbi",
-      10,
+      100,
       governance.address,
       strategist.address,
       controller.address,
