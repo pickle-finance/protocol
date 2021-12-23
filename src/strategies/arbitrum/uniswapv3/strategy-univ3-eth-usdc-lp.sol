@@ -61,7 +61,7 @@ contract StrategyUsdcEthUniV3Arbi is StrategyRebalanceUniV3 {
 
         redeposit();
 
-        emit harvested(tokenId);
+        emit Harvested(tokenId);
     }
 
     //This assumes rewardToken == token0
@@ -163,6 +163,6 @@ contract StrategyUsdcEthUniV3Arbi is StrategyRebalanceUniV3 {
             IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
         }
 
-        emit rebalanced(tokenId, _tickLower, _tickUpper);
+        emit Rebalanced(tokenId, _tickLower, _tickUpper);
     }
 }

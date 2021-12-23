@@ -59,10 +59,10 @@ abstract contract StrategyRebalanceUniV3 {
     IUniswapV3Staker.IncentiveKey key;
 
     event InitialDeposited(uint256 tokenId);
-    event harvested(uint256 tokenId);
-    event deposited(uint256 tokenId, uint256 token0Balance, uint256 token1Balance);
-    event withdrawn(uint256 tokenId, uint256 _liquidity);
-    event rebalanced(uint256 tokenId, int24 _tickLower, int24 _tickUpper);
+    event Harvested(uint256 tokenId);
+    event Deposited(uint256 tokenId, uint256 token0Balance, uint256 token1Balance);
+    event Withdrawn(uint256 tokenId, uint256 _liquidity);
+    event Rebalanced(uint256 tokenId, int24 _tickLower, int24 _tickUpper);
 
     constructor(
         address _pool,
@@ -265,7 +265,7 @@ abstract contract StrategyRebalanceUniV3 {
         }
         redeposit();
 
-        emit deposited(tokenId, _token0, _token1);
+        emit Deposited(tokenId, _token0, _token1);
     }
 
     // Deposit + stake in Uni v3 staker
@@ -327,7 +327,7 @@ abstract contract StrategyRebalanceUniV3 {
 
         redeposit();
 
-        emit withdrawn(tokenId, _liquidity);
+        emit Withdrawn(tokenId, _liquidity);
     }
 
     // Withdraw all funds, normally used when migrating strategies
