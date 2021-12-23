@@ -32,8 +32,8 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     using SafeMath for uint256;
     using PoolVariables for IUniswapV3Pool;
 
-    address public constant weth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
-    address public constant univ3Router = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
+    address public constant weth = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
+    address public constant univ3Router = 0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
 
     address public governance;
     address public timelock;

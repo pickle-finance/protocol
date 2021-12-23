@@ -67,33 +67,46 @@ const deployPickleJar = async () => {
   const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
   const timelock = "0xD92c7fAa0Ca0e6AE4918f3a83d9832d9CAEAA0d3";
 
-  const StrategyFactory = await ethers.getContractFactory("src/strategies/saddle/strategy-saddle-d4.sol:StrategySaddleD4");
+  const StrategyFactory = await ethers.getContractFactory(
+    "src/strategies/saddle/strategy-saddle-d4.sol:StrategySaddleD4"
+  );
   const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
 
   console.log("Strategy deployed at ", strategy.address);
 };
 
 const setJar = async () => {
-  const governance = "0x9d074E37d408542FD38be78848e8814AFB38db17";
-  const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
-  const timelock = "0xD92c7fAa0Ca0e6AE4918f3a83d9832d9CAEAA0d3";
+  const governance = "0x9796b1FA0DE058877a3235e6b1beB9C1f945d99c";
 
-  const want = "0xEd4064f376cB8d68F770FB1Ff088a3d0F3FF5c4d";
+  const want = "0x167384319B41F7094e62f7506409Eb38079AbfF8";
 
-  // const StrategyFactory = await ethers.getContractFactory("src/strategies/convex/strategy-convex-crv-eth-lp.sol:StrategyCrvEth");
+  const controller = "0xE8bf268Df27833f984280d45861eB96D9C440a88";
 
-  // const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
-  // await strategy.deployed()
-  // console.log("strategy deployed at: ", strategy.address)
+  console.log("deploying strategy...");
 
-  console.log("deplying")
-  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
-  const PickleJar = await PickleJarFactory.deploy(want, governance, timelock, controller);
+  const StrategyFactory = await ethers.getContractFactory(
+    "src/strategies/polygon/uniswapv3/strategy-univ3-matic-eth-lp.sol:StrategyMaticEthUniV3Poly"
+  );
 
-  await PickleJar.deployed();
-  console.log("Jar deployed at: ", PickleJar.address)
-  
+  const strategy = await StrategyFactory.deploy(100, governance, governance, controller, governance);
+  await strategy.deployed();
+
+  console.log("strategy deployed at: ", strategy.address);
+
+  console.log("deploying jar...");
+
+  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar-univ3.sol:PickleJarUniV3");
+  const jar = PickleJarFactory.deploy(
+    "pickling MATIC/ETH Jar",
+    "pMATICETH",
+    want,
+    governance,
+    governance,
+    controller
+  );
+
+  await jar.deployed();
+  console.log("Jar deployed at: ", jar.address);
 };
 
 const approveBal = async () => {
@@ -102,9 +115,9 @@ const approveBal = async () => {
   const ERC20 = await ethers.getContractAt("src/lib/erc20.sol:ERC20", lpToken);
 
   const deployer = new ethers.Wallet(process.env.MNEMONIC, ethers.provider);
-  console.log("approving...")
+  console.log("approving...");
   await ERC20.connect(deployer).approve(jar, ethers.constants.MaxUint256);
-  console.log("success!")
+  console.log("success!");
 };
 
 const main = async () => {

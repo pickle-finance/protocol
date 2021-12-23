@@ -28,33 +28,33 @@ abstract contract StrategyRebalanceUniV3 {
     address public timelock;
 
     // Dex
-    address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-    address public sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
-    address public constant univ3Factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
-    address public constant univ3Router = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
+    address public constant univ3Router =
+        0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
 
     // Tokens
     IUniswapV3Pool public pool;
 
     IERC20 public token0;
     IERC20 public token1;
-    address[] public rewardTokens = [address(token0), address(token1)];
-    uint256 public tokenId;
-
+    uint256 private tokenId;
 
     int24 public tick_lower;
     int24 public tick_upper;
-    int24 public tickSpacing;
-    int24 public tickRangeMultiplier;
+    int24 private tickSpacing;
+    int24 private tickRangeMultiplier;
 
-    address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    IUniswapV3PositionsNFT public nftManager = IUniswapV3PositionsNFT(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
+    IUniswapV3PositionsNFT public nftManager =
+        IUniswapV3PositionsNFT(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
 
     mapping(address => bool) public harvesters;
 
     event InitialDeposited(uint256 tokenId);
     event Harvested(uint256 tokenId);
-    event Deposited(uint256 tokenId, uint256 token0Balance, uint256 token1Balance);
+    event Deposited(
+        uint256 tokenId,
+        uint256 token0Balance,
+        uint256 token1Balance
+    );
     event Withdrawn(uint256 tokenId, uint256 _liquidity);
     event Rebalanced(uint256 tokenId, int24 _tickLower, int24 _tickUpper);
 
@@ -78,6 +78,7 @@ abstract contract StrategyRebalanceUniV3 {
 
         tickSpacing = pool.tickSpacing();
         tickRangeMultiplier = _tickRangeMultiplier;
+        (tick_lower, tick_upper) = determineTicks();
 
         token0.safeApprove(address(nftManager), uint256(-1));
         token1.safeApprove(address(nftManager), uint256(-1));
@@ -86,7 +87,11 @@ abstract contract StrategyRebalanceUniV3 {
     // **** Modifiers **** //
 
     modifier onlyBenevolent() {
-        require(harvesters[msg.sender] || msg.sender == governance || msg.sender == strategist);
+        require(
+            harvesters[msg.sender] ||
+                msg.sender == governance ||
+                msg.sender == strategist
+        );
         _;
     }
 
@@ -105,7 +110,9 @@ abstract contract StrategyRebalanceUniV3 {
     }
 
     function liquidityOfPool() public view returns (uint256) {
-        (, , , , , , , uint128 _liquidity, , , , ) = nftManager.positions(tokenId);
+        (, , , , , , , uint128 _liquidity, , , , ) = nftManager.positions(
+            tokenId
+        );
         return _liquidity;
     }
 
@@ -118,7 +125,12 @@ abstract contract StrategyRebalanceUniV3 {
     // **** Setters **** //
 
     function whitelistHarvesters(address[] calldata _harvesters) external {
-        require(msg.sender == governance || msg.sender == strategist || harvesters[msg.sender], "not authorized");
+        require(
+            msg.sender == governance ||
+                msg.sender == strategist ||
+                harvesters[msg.sender],
+            "not authorized"
+        );
 
         for (uint256 i = 0; i < _harvesters.length; i++) {
             harvesters[_harvesters[i]] = true;
@@ -126,14 +138,19 @@ abstract contract StrategyRebalanceUniV3 {
     }
 
     function revokeHarvesters(address[] calldata _harvesters) external {
-        require(msg.sender == governance || msg.sender == strategist, "not authorized");
+        require(
+            msg.sender == governance || msg.sender == strategist,
+            "not authorized"
+        );
 
         for (uint256 i = 0; i < _harvesters.length; i++) {
             harvesters[_harvesters[i]] = false;
         }
     }
 
-    function setPerformanceTreasuryFee(uint256 _performanceTreasuryFee) external {
+    function setPerformanceTreasuryFee(uint256 _performanceTreasuryFee)
+        external
+    {
         require(msg.sender == timelock, "!timelock");
         performanceTreasuryFee = _performanceTreasuryFee;
     }
@@ -158,8 +175,12 @@ abstract contract StrategyRebalanceUniV3 {
         controller = _controller;
     }
 
-    function amountsForLiquid() public view returns (uint256,uint256) {
-        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1e18, tick_lower, tick_upper);
+    function amountsForLiquid() public view returns (uint256, uint256) {
+        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(
+            1e18,
+            tick_lower,
+            tick_upper
+        );
         return (a1, a2);
     }
 
@@ -169,10 +190,17 @@ abstract contract StrategyRebalanceUniV3 {
 
     function getSqrtRatioAtRanges() public view returns (uint160, uint160) {
         (int24 _tickLower, int24 _tickUpper) = determineTicks();
-        return (TickMath.getSqrtRatioAtTick(_tickLower), TickMath.getSqrtRatioAtTick(_tickUpper));
+        return (
+            TickMath.getSqrtRatioAtTick(_tickLower),
+            TickMath.getSqrtRatioAtTick(_tickUpper)
+        );
     }
 
-    function getTickAtSqrtRatio(uint160 _sqrRtRatio) public view returns (int24) {
+    function getTickAtSqrtRatio(uint160 _sqrRtRatio)
+        public
+        view
+        returns (int24)
+    {
         return TickMath.getTickAtSqrtRatio(_sqrRtRatio);
     }
 
@@ -181,15 +209,53 @@ abstract contract StrategyRebalanceUniV3 {
         _observeTime[0] = 3600;
         _observeTime[1] = 0;
         (int56[] memory _cumulativeTicks, ) = pool.observe(_observeTime);
-	      int56 _averageTick = (_cumulativeTicks[1] - _cumulativeTicks[0]) / 3600;
+        int56 _averageTick = (_cumulativeTicks[1] - _cumulativeTicks[0]) / 3600;
         int24 baseThreshold = tickSpacing * tickRangeMultiplier;
-        return PoolVariables.baseTicks(int24(_averageTick), baseThreshold, tickSpacing);
+        return
+            PoolVariables.baseTicks(
+                int24(_averageTick),
+                baseThreshold,
+                tickSpacing
+            );
     }
 
     // **** State mutations **** //
 
-    function deposit() public {
+    function depositInitial() public returns (uint256 _tokenId) {
+        require(
+            msg.sender == governance || msg.sender == strategist,
+            "not authorized"
+        );
+        require(tokenId == 0, "token already set");
 
+        uint256 _token0 = token0.balanceOf(address(this));
+        uint256 _token1 = token1.balanceOf(address(this));
+
+        (_tokenId, , , ) = nftManager.mint(
+            IUniswapV3PositionsNFT.MintParams({
+                token0: address(token0),
+                token1: address(token1),
+                fee: pool.fee(),
+                tickLower: tick_lower,
+                tickUpper: tick_upper,
+                amount0Desired: _token0,
+                amount1Desired: _token1,
+                amount0Min: 0,
+                amount1Min: 0,
+                recipient: address(this),
+                deadline: block.timestamp + 300
+            })
+        );
+
+        nftManager.sweepToken(address(token0), 0, address(this));
+        nftManager.sweepToken(address(token1), 0, address(this));
+
+        tokenId = _tokenId;
+
+        emit InitialDeposited(tokenId);
+    }
+
+    function deposit() public {
         uint256 _token0 = token0.balanceOf(address(this));
         uint256 _token1 = token1.balanceOf(address(this));
 
@@ -209,10 +275,17 @@ abstract contract StrategyRebalanceUniV3 {
         emit Deposited(tokenId, _token0, _token1);
     }
 
-    function _withdrawSome(uint256 _liquidity) internal returns (uint256, uint256) {
+    function _withdrawSome(uint256 _liquidity)
+        internal
+        returns (uint256, uint256)
+    {
         if (_liquidity == 0) return (0, 0);
 
-        (uint256 _a0Expect, uint256 _a1Expect) = pool.amountsForLiquidity(uint128(_liquidity), tick_lower, tick_upper);
+        (uint256 _a0Expect, uint256 _a1Expect) = pool.amountsForLiquidity(
+            uint128(_liquidity),
+            tick_lower,
+            tick_upper
+        );
         (uint256 amount0, uint256 amount1) = nftManager.decreaseLiquidity(
             IUniswapV3PositionsNFT.DecreaseLiquidityParams({
                 tokenId: tokenId,
@@ -224,7 +297,7 @@ abstract contract StrategyRebalanceUniV3 {
         );
 
         //Only collect decreasedLiquidity, not trading fees.
-        (amount0, amount1) = nftManager.collect(
+        nftManager.collect(
             IUniswapV3PositionsNFT.CollectParams({
                 tokenId: tokenId,
                 recipient: address(this),
@@ -243,7 +316,10 @@ abstract contract StrategyRebalanceUniV3 {
         _asset.safeTransfer(controller, balance);
     }
 
-    function withdraw(uint256 _liquidity) external returns (uint256 a0, uint256 a1) {
+    function withdraw(uint256 _liquidity)
+        external
+        returns (uint256 a0, uint256 a1)
+    {
         require(msg.sender == controller, "!controller");
         (a0, a1) = _withdrawSome(_liquidity);
 
@@ -274,7 +350,6 @@ abstract contract StrategyRebalanceUniV3 {
     }
 
     function harvest() public onlyBenevolent {
-
         nftManager.collect(
             IUniswapV3PositionsNFT.CollectParams({
                 tokenId: tokenId,
@@ -296,14 +371,15 @@ abstract contract StrategyRebalanceUniV3 {
 
     function getHarvestable() public view returns (uint256, uint256) {
         //This will only update when someone mint/burn/pokes the pool.
-        (, , , , , , , , , , uint128 _owed0, uint128 _owed1) = nftManager.positions(tokenId);
+        (, , , , , , , , , , uint128 _owed0, uint128 _owed1) = nftManager
+            .positions(tokenId);
         return (uint256(_owed0), uint256(_owed1));
     }
 
     function rebalance() external onlyBenevolent returns (uint256 _tokenId) {
-
-      if(tokenId != 0){
-        (, , , , , , , uint256 _liquidity, , , , ) = nftManager.positions(tokenId);
+        (, , , , , , , uint256 _liquidity, , , , ) = nftManager.positions(
+            tokenId
+        );
         (uint256 _liqAmt0, uint256 _liqAmt1) = nftManager.decreaseLiquidity(
             IUniswapV3PositionsNFT.DecreaseLiquidityParams({
                 tokenId: tokenId,
@@ -333,7 +409,6 @@ abstract contract StrategyRebalanceUniV3 {
             token0.balanceOf(address(this)).sub(_liqAmt0),
             token1.balanceOf(address(this)).sub(_liqAmt1)
         );
-      }
 
         (int24 _tickLower, int24 _tickUpper) = determineTicks();
         balanceProportion(_tickLower, _tickUpper);
@@ -357,9 +432,6 @@ abstract contract StrategyRebalanceUniV3 {
             })
         );
 
-        if( tokenId == 0)       emit InitialDeposited(_tokenId);
-
-
         //Record updated information.
         tokenId = _tokenId;
         tick_lower = _tickLower;
@@ -370,17 +442,31 @@ abstract contract StrategyRebalanceUniV3 {
 
     // **** Emergency functions ****
 
-    function execute(address _target, bytes memory _data) public payable returns (bytes memory response) {
+    function execute(address _target, bytes memory _data)
+        public
+        payable
+        returns (bytes memory response)
+    {
         require(msg.sender == timelock, "!timelock");
         require(_target != address(0), "!target");
 
         // call contract in current context
         assembly {
-            let succeeded := delegatecall(sub(gas(), 5000), _target, add(_data, 0x20), mload(_data), 0, 0)
+            let succeeded := delegatecall(
+                sub(gas(), 5000),
+                _target,
+                add(_data, 0x20),
+                mload(_data),
+                0,
+                0
+            )
             let size := returndatasize()
 
             response := mload(0x40)
-            mstore(0x40, add(response, and(add(add(size, 0x20), 0x1f), not(0x1f))))
+            mstore(
+                0x40,
+                add(response, and(add(add(size, 0x20), 0x1f), not(0x1f)))
+            )
             mstore(response, size)
             returndatacopy(add(response, 0x20), 0, size)
 
@@ -394,7 +480,9 @@ abstract contract StrategyRebalanceUniV3 {
 
     // **** Internal functions ****
 
-    function _distributePerformanceFees(uint256 _amount0, uint256 _amount1) internal {
+    function _distributePerformanceFees(uint256 _amount0, uint256 _amount1)
+        internal
+    {
         if (_amount0 > 0) {
             IERC20(token0).safeTransfer(
                 IControllerV2(controller).treasury(),
@@ -441,7 +529,11 @@ abstract contract StrategyRebalanceUniV3 {
         );
 
         //Get correct amounts of each token for the liquidity we have.
-        (_cache.amount0, _cache.amount1) = pool.amountsForLiquidity(_cache.liquidity, _tickLower, _tickUpper);
+        (_cache.amount0, _cache.amount1) = pool.amountsForLiquidity(
+            _cache.liquidity,
+            _tickLower,
+            _tickUpper
+        );
 
         //Determine Trade Direction
         bool _zeroForOne = PoolVariables.amountsDirection(
@@ -453,12 +545,14 @@ abstract contract StrategyRebalanceUniV3 {
 
         //Determine Amount to swap
         uint256 _amountSpecified = _zeroForOne
-    ? (_cache.amount0Desired.sub(_cache.amount0).div(2))
+            ? (_cache.amount0Desired.sub(_cache.amount0).div(2))
             : (_cache.amount1Desired.sub(_cache.amount1).div(2));
 
         if (_amountSpecified > 0) {
             //Determine Token to swap
-            address _inputToken = _zeroForOne ? address(token0) : address(token1);
+            address _inputToken = _zeroForOne
+                ? address(token0)
+                : address(token1);
 
             IERC20(_inputToken).safeApprove(univ3Router, 0);
             IERC20(_inputToken).safeApprove(univ3Router, _amountSpecified);

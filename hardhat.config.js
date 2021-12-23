@@ -50,9 +50,9 @@ module.exports = {
     },
     matic: {
       url: "https://polygon-rpc.com/",
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
+      accounts: [`0x${process.env.MNEMONIC}`],
+      gasPrice: 30000000000,
+      gas: 50000000
     },
     arbitrum: {
       url: `https://arb1.arbitrum.io/rpc/`,
