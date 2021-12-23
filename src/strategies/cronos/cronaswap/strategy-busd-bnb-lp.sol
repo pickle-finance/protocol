@@ -3,11 +3,13 @@ pragma solidity ^0.6.7;
 
 import "../strategy-crona-farm-base.sol";
 
-contract StrategyCronaUsdcCroLp is StrategyCronaFarmBase {
-    uint256 public usdc_cro_poolId = 2;
+contract StrategyCronaBusdBnbLp is StrategyCronaFarmBase {
+    uint256 public busd_bnb_poolId = 12;
 
     // Token addresses
-    address public usdc_cro_lp = 0x0625A68D25d304aed698c806267a4e369e8Eb12a;
+    address public busd_bnb_lp = 0xe8B18116040acf83D6e1f873375adF61103AB45c;
+    address public busd = 0x6aB6d61428fde76768D7b45D8BFeec19c6eF91A8;
+    address public bnb = 0xfA9343C3897324496A05fC75abeD6bAC29f8A40f;
     address public usdc = 0xc21223249CA28397B4B6541dfFaEcC539BfF0c59;
 
     constructor(
@@ -18,23 +20,23 @@ contract StrategyCronaUsdcCroLp is StrategyCronaFarmBase {
     )
         public
         StrategyCronaFarmBase(
-            usdc,
-            cro,
-            usdc_cro_poolId,
-            usdc_cro_lp,
+            busd,
+            bnb,
+            busd_bnb_poolId,
+            busd_bnb_lp,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {
-        uniswapRoutes[cro] = [crona, cro];
-        uniswapRoutes[usdc] = [crona, usdc];
+        uniswapRoutes[busd] = [crona, usdc, busd];
+        uniswapRoutes[bnb] = [crona, usdc, busd, bnb];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyCronaUsdcCroLp";
+        return "StrategyCronaBusdBnbLp";
     }
 }

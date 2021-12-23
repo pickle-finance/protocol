@@ -3,12 +3,11 @@ pragma solidity ^0.6.7;
 
 import "../strategy-crona-farm-base.sol";
 
-contract StrategyCronaBtcCroLp is StrategyCronaFarmBase {
-    uint256 public btc_cro_poolId = 5;
+contract StrategyCronaCroCronaLp is StrategyCronaFarmBase {
+    uint256 public cro_crona_poolId = 1;
 
     // Token addresses
-    address public btc_cro_lp = 0x8232aA9C3EFf79cd845FcDa109B461849Bf1Be83;
-    address public btc = 0x062E66477Faf219F25D27dCED647BF57C3107d52;
+    address public cro_crona_lp = 0xeD75347fFBe08d5cce4858C70Df4dB4Bbe8532a0;
 
     constructor(
         address _governance,
@@ -18,10 +17,10 @@ contract StrategyCronaBtcCroLp is StrategyCronaFarmBase {
     )
         public
         StrategyCronaFarmBase(
-            btc,
             cro,
-            btc_cro_poolId,
-            btc_cro_lp,
+            crona,
+            cro_crona_poolId,
+            cro_crona_lp,
             _governance,
             _strategist,
             _controller,
@@ -29,12 +28,11 @@ contract StrategyCronaBtcCroLp is StrategyCronaFarmBase {
         )
     {
         uniswapRoutes[cro] = [crona, cro];
-        uniswapRoutes[btc] = [crona, cro, btc];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyCronaBtcCroLp";
+        return "StrategyCronaCroCronaLp";
     }
 }
