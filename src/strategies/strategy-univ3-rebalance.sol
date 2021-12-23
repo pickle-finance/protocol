@@ -193,10 +193,13 @@ abstract contract StrategyRebalanceUniV3 {
     }
 
     function determineTicks() public view returns (int24, int24) {
-        (, int24 currentTick, , , , , ) = pool.slot0();
-
+        uint32[] memory _observeTime = new uint32[](2);
+        _observeTime[0] = 3600;
+        _observeTime[1] = 0;
+        (int56[] memory _cumulativeTicks, ) = pool.observe(_observeTime);
+	int56 _averageTick = (_cumulativeTicks[1] - _cumulativeTicks[0]) / 3600;
         int24 baseThreshold = tickSpacing * tickRangeMultiplier;
-        return PoolVariables.baseTicks(currentTick, baseThreshold, tickSpacing);
+        return PoolVariables.baseTicks(int24(_averageTick), baseThreshold, tickSpacing);
     }
 
     // **** State mutations **** //
