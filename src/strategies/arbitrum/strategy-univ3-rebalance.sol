@@ -78,7 +78,6 @@ abstract contract StrategyRebalanceUniV3 {
 
         tickSpacing = pool.tickSpacing();
         tickRangeMultiplier = _tickRangeMultiplier;
-        (tick_lower, tick_upper) = determineTicks();
 
         token0.safeApprove(address(nftManager), uint256(-1));
         token1.safeApprove(address(nftManager), uint256(-1));
@@ -182,43 +181,12 @@ abstract contract StrategyRebalanceUniV3 {
         _observeTime[0] = 3600;
         _observeTime[1] = 0;
         (int56[] memory _cumulativeTicks, ) = pool.observe(_observeTime);
-	int56 _averageTick = (_cumulativeTicks[1] - _cumulativeTicks[0]) / 3600;
+	      int56 _averageTick = (_cumulativeTicks[1] - _cumulativeTicks[0]) / 3600;
         int24 baseThreshold = tickSpacing * tickRangeMultiplier;
         return PoolVariables.baseTicks(int24(_averageTick), baseThreshold, tickSpacing);
     }
 
     // **** State mutations **** //
-
-    function depositInitial() public returns (uint256 _tokenId) {
-        require(msg.sender == governance || msg.sender == strategist, "not authorized");
-        require(tokenId == 0, "token already set");
-
-        uint256 _token0 = token0.balanceOf(address(this));
-        uint256 _token1 = token1.balanceOf(address(this));
-
-        (_tokenId, , , ) = nftManager.mint(
-            IUniswapV3PositionsNFT.MintParams({
-                token0: address(token0),
-                token1: address(token1),
-                fee: pool.fee(),
-                tickLower: tick_lower,
-                tickUpper: tick_upper,
-                amount0Desired: _token0,
-                amount1Desired: _token1,
-                amount0Min: 0,
-                amount1Min: 0,
-                recipient: address(this),
-                deadline: block.timestamp + 300
-            })
-        );
-
-        nftManager.sweepToken(address(token0), 0, address(this));
-        nftManager.sweepToken(address(token1), 0, address(this));
-
-        tokenId = _tokenId;
-
-        emit InitialDeposited(tokenId);
-    }
 
     function deposit() public {
 
@@ -256,7 +224,7 @@ abstract contract StrategyRebalanceUniV3 {
         );
 
         //Only collect decreasedLiquidity, not trading fees.
-        nftManager.collect(
+        (amount0, amount1) = nftManager.collect(
             IUniswapV3PositionsNFT.CollectParams({
                 tokenId: tokenId,
                 recipient: address(this),
@@ -334,6 +302,7 @@ abstract contract StrategyRebalanceUniV3 {
 
     function rebalance() external onlyBenevolent returns (uint256 _tokenId) {
 
+      if(tokenId != 0){
         (, , , , , , , uint256 _liquidity, , , , ) = nftManager.positions(tokenId);
         (uint256 _liqAmt0, uint256 _liqAmt1) = nftManager.decreaseLiquidity(
             IUniswapV3PositionsNFT.DecreaseLiquidityParams({
@@ -364,6 +333,7 @@ abstract contract StrategyRebalanceUniV3 {
             token0.balanceOf(address(this)).sub(_liqAmt0),
             token1.balanceOf(address(this)).sub(_liqAmt1)
         );
+      }
 
         (int24 _tickLower, int24 _tickUpper) = determineTicks();
         balanceProportion(_tickLower, _tickUpper);
@@ -386,6 +356,9 @@ abstract contract StrategyRebalanceUniV3 {
                 deadline: block.timestamp + 300
             })
         );
+
+        if( tokenId == 0)       emit InitialDeposited(_tokenId);
+
 
         //Record updated information.
         tokenId = _tokenId;
@@ -420,94 +393,6 @@ abstract contract StrategyRebalanceUniV3 {
     }
 
     // **** Internal functions ****
-
-    function _swapUniswapV3(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal {
-        require(_to != address(0));
-
-        IERC20(_from).safeApprove(univ3Router, 0);
-        IERC20(_from).safeApprove(univ3Router, _amount);
-
-        ISwapRouter(univ3Router).exactInputSingle(
-            ISwapRouter.ExactInputSingleParams({
-                tokenIn: _from,
-                tokenOut: _to,
-                fee: pool.fee(),
-                recipient: address(this),
-                deadline: block.timestamp + 300,
-                amountIn: _amount,
-                amountOutMinimum: 0,
-                sqrtPriceLimitX96: 0
-            })
-        );
-    }
-
-    function _swapUniswap(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal {
-        require(_to != address(0));
-
-        address[] memory path;
-
-        if (_from == weth || _to == weth) {
-            path = new address[](2);
-            path[0] = _from;
-            path[1] = _to;
-        } else {
-            path = new address[](3);
-            path[0] = _from;
-            path[1] = weth;
-            path[2] = _to;
-        }
-
-        IERC20(_from).safeApprove(univ2Router2, 0);
-        IERC20(_from).safeApprove(univ2Router2, _amount);
-
-        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
-    }
-
-    function _swapUniswapWithPath(address[] memory path, uint256 _amount) internal {
-        require(path[1] != address(0));
-        //TODO approve _from
-        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
-    }
-
-    function _swapSushiswap(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal {
-        require(_to != address(0));
-
-        address[] memory path;
-
-        if (_from == weth || _to == weth) {
-            path = new address[](2);
-            path[0] = _from;
-            path[1] = _to;
-        } else {
-            path = new address[](3);
-            path[0] = _from;
-            path[1] = weth;
-            path[2] = _to;
-        }
-
-        IERC20(_from).safeApprove(sushiRouter, 0);
-        IERC20(_from).safeApprove(sushiRouter, _amount);
-
-        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
-    }
-
-    function _swapSushiswapWithPath(address[] memory path, uint256 _amount) internal {
-        require(path[1] != address(0));
-
-        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
-    }
 
     function _distributePerformanceFees(uint256 _amount0, uint256 _amount1) internal {
         if (_amount0 > 0) {
@@ -568,7 +453,7 @@ abstract contract StrategyRebalanceUniV3 {
 
         //Determine Amount to swap
         uint256 _amountSpecified = _zeroForOne
-            ? (_cache.amount0Desired.sub(_cache.amount0).div(2))
+    ? (_cache.amount0Desired.sub(_cache.amount0).div(2))
             : (_cache.amount1Desired.sub(_cache.amount1).div(2));
 
         if (_amountSpecified > 0) {

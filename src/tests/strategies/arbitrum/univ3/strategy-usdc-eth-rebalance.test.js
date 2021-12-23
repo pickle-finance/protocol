@@ -67,10 +67,11 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
     await controller.connect(governance).setStrategy(USDC_ETH_POOL, strategy.address);
 
     usdc = await getContractAt("ERC20", USDC_TOKEN);
-    weth = await getContractAt("ERC20", WETH_TOKEN);
+    weth = await getContractAt("src/interfaces/weth.sol:WETH", WETH_TOKEN);
     pool = await getContractAt("IUniswapV3Pool", USDC_ETH_POOL);
     univ3router = await getContractAt("ISwapRouter", UNIV3ROUTER);
 
+    await weth.deposit({value: toWei(100)});
     await getWantFromWhale(
       USDC_TOKEN,
       12200780243,
@@ -119,7 +120,7 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
 
     await usdc.connect(alice).transfer(strategy.address, amountUsdc);
     await weth.connect(alice).transfer(strategy.address, amountWeth);
-    await strategy.connect(alice).depositInitial();
+    await strategy.connect(alice).rebalance();
   });
 
   it("should rebalance correctly", async () => {
