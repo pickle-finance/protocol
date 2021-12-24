@@ -4,9 +4,9 @@ const {doTestBalancerBehaviorBase} = require("../../polygon/balancer/testBalance
 
 describe("StrategyBalancerWbtcWethUsdcLp", () => {
   const want_addr = "0x64541216bAFFFEec8ea535BB71Fbc927831d0595";
-  const whale_addr = "0xd2d2f6a38f3a323df87346413269cdb62cbddb71";
+  const whale_addr = "0x7c132BdE28AD1e0101D45121757d7c6C2e8A550a";
   const bal_addr = "0x040d1EdC9569d4Bab2D15287Dc5A4F10F56a56B8";
-  const bal_whale_addr = "0xd09ca75315e70bd3988a47958a0c6c5b30b830e1";
+  const bal_whale_addr = "0x36cc7B13029B5DEe4034745FB4F24034f3F2ffc6";
 
   before("Get want token", async () => {
     const signers = await hre.ethers.getSigners();

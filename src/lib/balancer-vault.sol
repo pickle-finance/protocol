@@ -3,6 +3,15 @@ pragma experimental ABIEncoderV2;
 
 import "./erc20.sol";
 
+interface IMerkleRedeem {
+    function claimWeek(
+        address liquidityProvider,
+        uint256 week,
+        uint256 claimedBalance,
+        bytes32[] calldata merkleProof
+    ) external;
+}
+
 interface IAsset {}
 
 interface IBVault {
