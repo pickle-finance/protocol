@@ -56,7 +56,7 @@ contract StrategyRoseUstPool is StrategyRoseFarmStableBase {
     function harvestThree() public override {
         uint256 _frax = IERC20(frax).balanceOf(address(this));
         if (_frax > 0) {
-            uint256[2] memory liquidity;
+            uint256[3] memory liquidity;
             liquidity[0] = _frax;
             ICurveFi_3(three_pool).add_liquidity(liquidity, 0);
         }
@@ -72,7 +72,7 @@ contract StrategyRoseUstPool is StrategyRoseFarmStableBase {
         }
     }
 
-    function harvestFive() public override {
+    function harvestFive() public {
         // We want to get back Rose LP tokens
         _distributePerformanceFeesAndDeposit();
     }
