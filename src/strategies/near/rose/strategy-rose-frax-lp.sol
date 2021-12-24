@@ -5,8 +5,10 @@ import "../strategy-rose-farm-base-lp.sol";
 
 contract StrategyRoseFraxLp is StrategyRoseFarmLPBase {
     // Token addresses
-    address public rose_frax_rewards = 0x1B10bFCd6192edC573ced7Db7c7e403c7FAb8068;
-    address public pad_rose_frax_lp = 0xeD4C231b98b474f7cAeCAdD2736e5ebC642ad707;
+    address public rose_frax_rewards =
+        0x1B10bFCd6192edC573ced7Db7c7e403c7FAb8068;
+    address public pad_rose_frax_lp =
+        0xeD4C231b98b474f7cAeCAdD2736e5ebC642ad707;
 
     constructor(
         address _governance,
@@ -27,7 +29,7 @@ contract StrategyRoseFraxLp is StrategyRoseFarmLPBase {
 
     // **** Views ****
 
-    function getName() external override pure returns (string memory) {
+    function getName() external pure override returns (string memory) {
         return "StrategyRoseFraxLp";
     }
 }
