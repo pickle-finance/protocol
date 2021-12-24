@@ -29,6 +29,6 @@ contract StrategyPadRoseLp is StrategyRoseFarmLPBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyRoseFraxLp";
+        return "StrategyPadRoseLp";
     }
 }
