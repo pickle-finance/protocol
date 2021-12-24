@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-rose-farm-base-stable.sol";
 
-contract StrategyRoseUstPool is StrategyRoseFarmStableBase {
+contract StrategyRoseFraxPool is StrategyRoseFarmStableBase {
     // Token addresses
     address public frax_pool_rewards =
         0xB9D873cDc15e462f5414CCdFe618a679a47831b4;
