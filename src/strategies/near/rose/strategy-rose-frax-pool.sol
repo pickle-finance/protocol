@@ -36,7 +36,7 @@ contract StrategyRoseFraxPool is StrategyRoseFarmStableBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyRoseUstPool";
+        return "StrategyRoseFraxPool";
     }
 
     // **** State Mutations ****
