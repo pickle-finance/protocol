@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-rose-farm-base-lp.sol";
+import "../strategy-rose-farm-base-stable.sol";
 
-contract StrategyRoseFraxLp is StrategyRoseFarmLPBase {
+contract StrategyRoseThreePool is StrategyRoseFarmStableBase {
     // Token addresses
-    address public rose_frax_rewards = 0x1B10bFCd6192edC573ced7Db7c7e403c7FAb8068;
-    address public pad_rose_frax_lp = 0xeD4C231b98b474f7cAeCAdD2736e5ebC642ad707;
+    address public three_pool_rewards = 0x52CACa9a2D52b27b28767d3649565774A3B991f3;
+    address public three_pool_lp = 0xfF79D5bff48e1C01b722560D6ffDfCe9FC883587;
 
     constructor(
         address _governance,
@@ -15,9 +15,9 @@ contract StrategyRoseFraxLp is StrategyRoseFarmLPBase {
         address _timelock
     )
         public
-        StrategyRoseFarmLPBase(
-            rose_frax_rewards,
-            pad_rose_frax_lp,
+        StrategyRoseFarmStableBase(
+            three_pool_rewards,
+            three_pool_lp,
             _governance,
             _strategist,
             _controller,
@@ -28,6 +28,6 @@ contract StrategyRoseFraxLp is StrategyRoseFarmLPBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyRoseFraxLp";
+        return "StrategyRoseThreePool";
     }
 }
