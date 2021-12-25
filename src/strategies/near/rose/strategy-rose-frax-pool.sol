@@ -56,9 +56,9 @@ contract StrategyRoseFraxPool is StrategyRoseFarmStableBase {
     function harvestThree() public override {
         uint256 _frax = IERC20(frax).balanceOf(address(this));
         if (_frax > 0) {
-            uint256[3] memory liquidity;
+            uint256[2] memory liquidity;
             liquidity[0] = _frax;
-            ICurveFi_3(three_pool).add_liquidity(liquidity, 0);
+            ICurveFi_2(frax_pool).add_liquidity(liquidity, 0);
         }
     }
 
