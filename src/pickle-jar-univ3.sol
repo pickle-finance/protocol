@@ -143,7 +143,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         if (token0Amount > 0 && !isEthToken0) token0.safeTransferFrom(msg.sender, address(this), token0Amount);
         if (token1Amount > 0 && !isEthToken1) token1.safeTransferFrom(msg.sender, address(this), token1Amount);
 
-        balanceProportion();
+        IControllerV2(controller).balanceProportion(address(pool), getLowerTick(), getUpperTick());
 
         uint256 _liquidity = uint256(pool.liquidityForAmounts(token0.balanceOf(address(this)), token1.balanceOf(address(this)), getLowerTick(), getUpperTick()));
 
@@ -199,56 +199,6 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         bytes memory
     ) public pure returns (bytes4) {
         return this.onERC721Received.selector;
-    }
-    function balanceProportion() internal {
-        PoolVariables.Info memory _cache;
-        _cache.amount0Desired = token0.balanceOf(address(this));
-        _cache.amount1Desired = token1.balanceOf(address(this));
-
-        //Get Max Liquidity for Amounts we own.
-        _cache.liquidity = pool.liquidityForAmounts(
-            _cache.amount0Desired,
-            _cache.amount1Desired,
-            getLowerTick(),
-            getUpperTick()
-        );
-
-        //Get correct amounts of each token for the liquidity we have.
-        (_cache.amount0, _cache.amount1) = pool.amountsForLiquidity(_cache.liquidity, getLowerTick(), getUpperTick());
-
-        //Determine Trade Direction
-        bool _zeroForOne = PoolVariables.amountsDirection(
-            _cache.amount0Desired,
-            _cache.amount1Desired,
-            _cache.amount0,
-            _cache.amount1
-        );
-
-        //Determine Amount to swap
-        uint256 _amountSpecified = _zeroForOne
-            ? (_cache.amount0Desired.sub(_cache.amount0).div(2))
-            : (_cache.amount1Desired.sub(_cache.amount1).div(2));
-
-        if (_amountSpecified > 0) {
-            //Determine Token to swap
-            address _inputToken = _zeroForOne ? address(token0) : address(token1);
-            IERC20(_inputToken).safeApprove(univ3Router, 0);
-            IERC20(_inputToken).safeApprove(univ3Router, _amountSpecified);
-
-            //Swap the token imbalanced
-            ISwapRouter(univ3Router).exactInputSingle(
-                ISwapRouter.ExactInputSingleParams({
-                    tokenIn: _inputToken,
-                    tokenOut: _zeroForOne ? address(token1) : address(token0),
-                    fee: pool.fee(),
-                    recipient: address(this),
-                    deadline: block.timestamp + 300,
-                    amountIn: _amountSpecified,
-                    amountOutMinimum: 0,
-                    sqrtPriceLimitX96: 0
-                })
-            );
-        }
     }
 
     fallback() external payable {}

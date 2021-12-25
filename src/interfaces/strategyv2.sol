@@ -7,6 +7,8 @@ interface IStrategyV2 {
 
     function tick_upper() external view returns (int24);
 
+    function balanceProportion(int24, int24) external;
+
     function pool() external view returns (address);
 
     function timelock() external view returns (address);
