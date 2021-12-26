@@ -2,7 +2,7 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../../arbitrum/strategy-univ3-rebalance.sol";
+import "../strategy-univ3-rebalance.sol";
 
 contract StrategyMaticEthUniV3Poly is StrategyRebalanceUniV3 {
     address public matic_eth_pool = 0x167384319B41F7094e62f7506409Eb38079AbfF8;

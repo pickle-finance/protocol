@@ -4,11 +4,11 @@ pragma experimental ABIEncoderV2;
 
 import "../../lib/erc20.sol";
 import "../../lib/safe-math.sol";
-import "../../lib/univ3/PoolActions.sol";
+import "../../polygon/lib/univ3/PoolActions.sol";
 import "../../interfaces/uniswapv2.sol";
-import "../../interfaces/univ3/IUniswapV3PositionsNFT.sol";
-import "../../interfaces/univ3/IUniswapV3Pool.sol";
-import "../../interfaces/univ3/ISwapRouter.sol";
+import "../../polygon/interfaces/univ3/IUniswapV3PositionsNFT.sol";
+import "../../polygon/interfaces/univ3/IUniswapV3Pool.sol";
+import "../../polygon/interfaces/univ3/ISwapRouter.sol";
 import "../../interfaces/controllerv2.sol";
 
 abstract contract StrategyRebalanceUniV3 {
@@ -461,7 +461,6 @@ abstract contract StrategyRebalanceUniV3 {
                     tokenOut: _zeroForOne ? address(token1) : address(token0),
                     fee: pool.fee(),
                     recipient: address(this),
-                    deadline: block.timestamp + 300,
                     amountIn: _amountSpecified,
                     amountOutMinimum: 0,
                     sqrtPriceLimitX96: 0
