@@ -10,9 +10,9 @@ const {getWantFromWhale} = require("../../../utils/setupHelper");
 const {BigNumber: BN} = require("ethers");
 
 describe("StrategyUsdcEthUniV3Rebalance", () => {
-  const USDC_ETH_POOL = "0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443";
-  const USDC_TOKEN = "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8";
-  const WETH_TOKEN = "0x82af49447d8a07e3bd95bd0d56f35241523fbab1";
+  const USDC_ETH_POOL = "0x167384319B41F7094e62f7506409Eb38079AbfF8";
+  const USDC_TOKEN = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
+  const WETH_TOKEN = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270";
   const UNIV3ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
 
   let alice;
@@ -43,8 +43,8 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
     console.log("✅ Controller is deployed at ", controller.address);
 
     strategy = await deployContract(
-      "StrategyUsdcEthUniV3Arbi",
-      100,
+      "StrategyMaticEthUniV3Poly",
+      20,
       governance.address,
       strategist.address,
       controller.address,
@@ -52,7 +52,7 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
     );
 
     pickleJar = await deployContract(
-      "PickleJarUniV3",
+      "src/polygon/pickle-jar-univ3.sol:PickleJarUniV3Poly",
       "pickling USDC/ETH Jar",
       "pUSDCETH",
       USDC_ETH_POOL,
@@ -68,74 +68,75 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
 
     usdc = await getContractAt("ERC20", USDC_TOKEN);
     weth = await getContractAt("src/interfaces/weth.sol:WETH", WETH_TOKEN);
-    pool = await getContractAt("IUniswapV3Pool", USDC_ETH_POOL);
-    univ3router = await getContractAt("ISwapRouter", UNIV3ROUTER);
+    pool = await getContractAt("src/polygon/interfaces/univ3/IUniswapV3Pool.sol:IUniswapV3Pool", USDC_ETH_POOL);
+    univ3router = await getContractAt("src/polygon/interfaces/univ3/ISwapRouter.sol:ISwapRouter", UNIV3ROUTER);
 
     await weth.deposit({value: toWei(100)});
+
     await getWantFromWhale(
       USDC_TOKEN,
-      12200780243,
+      toWei(50),
       alice,
-      "0xCe2CC46682E9C6D5f174aF598fb4931a9c0bE68e"
+      "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B"
     );
 
     await getWantFromWhale(
       WETH_TOKEN,
       toWei(50),
       alice,
-      "0x50a704293C7aFd32aF21DC2B3a6f42931Cd10c95"
+      "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B"
     );
 
     await getWantFromWhale(
       USDC_TOKEN,
-      12200780243,
+      toWei(50),
       bob,
-      "0xCe2CC46682E9C6D5f174aF598fb4931a9c0bE68e"
+      "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B"
     );
 
     await getWantFromWhale(
       WETH_TOKEN,
-      toWei(25),
+      toWei(50),
       bob,
-      "0x50a704293C7aFd32aF21DC2B3a6f42931Cd10c95"
+      "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B"
     );
 
     await getWantFromWhale(
       USDC_TOKEN,
-      12200780243,
+      toWei(50),
       charles,
-      "0xCe2CC46682E9C6D5f174aF598fb4931a9c0bE68e"
+      "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B"
     );
 
     await getWantFromWhale(
       WETH_TOKEN,
-      toWei(25),
+      toWei(50),
       charles,
-      "0x50a704293C7aFd32aF21DC2B3a6f42931Cd10c95"
+      "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B"
     );
 
     // Initial deposit to create NFT
-    const amountWeth = 1000000000000;
-    const amountUsdc = 4000;
+    const amountWeth = "1000000000000000000";
+    //const amountUsdc = "600000000000000";
 
-    await usdc.connect(alice).transfer(strategy.address, amountUsdc);
+    //await usdc.connect(alice).transfer(strategy.address, amountUsdc);
     await weth.connect(alice).transfer(strategy.address, amountWeth);
-    await strategy.connect(alice).rebalance();
+    await strategy.rebalance();
   });
 
   it("should rebalance correctly", async () => {
     depositA = toWei(1);
-    depositB = 1000000000;
+    depositB = toWei(1);
     let aliceShare, bobShare, charlesShare;
 
     console.log("=============== Alice deposit ==============");
-    await deposit(alice, depositA, depositB);
+    await depositWithEth(alice, toWei(1), depositB);
     await rebalance();
 
     console.log("=============== Bob deposit ==============");
 
     await deposit(bob, depositA, depositB);
-    await simulateTrading();
+    //await simulateTrading();
     await deposit(charles, depositA, depositB);
     await harvest();
 
@@ -196,7 +197,7 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
     );
 
     await harvest();
-    await trade(WETH_TOKEN, USDC_TOKEN);
+    //await trade(WETH_TOKEN, USDC_TOKEN);
     await rebalance();
     console.log("=============== Controller withdraw ===============");
     console.log(
@@ -326,7 +327,6 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
         tokenOut: _outputToken,
         fee: poolFee,
         recipient: aliceAddress,
-        deadline: "1659935160",
         amountIn: amount,
         amountOutMinimum: 0,
         sqrtPriceLimitX96: 0,
