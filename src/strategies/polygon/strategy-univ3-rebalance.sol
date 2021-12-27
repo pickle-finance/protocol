@@ -433,12 +433,18 @@ abstract contract StrategyRebalanceUniV3 {
         );
 
         //Determine Trade Direction
-        bool _zeroForOne = PoolVariables.amountsDirection(
-            _cache.amount0Desired,
-            _cache.amount1Desired,
-            _cache.amount0,
-            _cache.amount1
-        );
+        bool _zeroForOne;
+        if(_cache.amount1Desired == 0) {
+            _zeroForOne = true;
+        }
+        else {
+            _zeroForOne = PoolVariables.amountsDirection(
+              _cache.amount0Desired,
+              _cache.amount1Desired,
+              _cache.amount0,
+              _cache.amount1
+            );
+       }
 
         //Determine Amount to swap
         uint256 _amountSpecified = _zeroForOne
