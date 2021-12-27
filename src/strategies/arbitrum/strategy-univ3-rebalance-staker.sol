@@ -4,12 +4,12 @@ pragma experimental ABIEncoderV2;
 
 import "../../lib/erc20.sol";
 import "../../lib/safe-math.sol";
-import "../../lib/univ3/PoolActions.sol";
+import "../../polygon/lib/univ3/PoolActions.sol";
 import "../../interfaces/uniswapv2.sol";
-import "../../interfaces/univ3/IUniswapV3PositionsNFT.sol";
-import "../../interfaces/univ3/IUniswapV3Pool.sol";
-import "../../interfaces//univ3/IUniswapV3Staker.sol";
-import "../../interfaces/univ3/ISwapRouter.sol";
+import "../../polygon/interfaces/univ3/IUniswapV3PositionsNFT.sol";
+import "../../polygon/interfaces/univ3/IUniswapV3Pool.sol";
+import "../../polygon/interfaces//univ3/IUniswapV3Staker.sol";
+import "../../polygon/interfaces/univ3/ISwapRouter.sol";
 import "../../interfaces/controllerv2.sol";
 
 abstract contract StrategyRebalanceStakerUniV3 {
@@ -31,24 +31,20 @@ abstract contract StrategyRebalanceStakerUniV3 {
     address public univ3_staker;
 
     // Dex
-    address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-    address public sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
-    address public constant univ3Factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
-    address public constant univ3Router = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
+    address public constant univ3Router = 0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
 
     // Tokens
     IUniswapV3Pool public pool;
 
     IERC20 public token0;
     IERC20 public token1;
-    uint256 public tokenId;
+    uint256 private tokenId;
 
     int24 public tick_lower;
     int24 public tick_upper;
-    int24 public tickSpacing;
-    int24 public tickRangeMultiplier;
+    int24 private tickSpacing;
+    int24 private tickRangeMultiplier;
 
-    address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address public rewardToken;
     IUniswapV3PositionsNFT public nftManager = IUniswapV3PositionsNFT(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
 
@@ -83,7 +79,6 @@ abstract contract StrategyRebalanceStakerUniV3 {
 
         tickSpacing = pool.tickSpacing();
         tickRangeMultiplier = _tickRangeMultiplier;
-        (tick_lower, tick_upper) = determineTicks();
 
         token0.safeApprove(address(nftManager), uint256(-1));
         token1.safeApprove(address(nftManager), uint256(-1));
@@ -169,10 +164,6 @@ abstract contract StrategyRebalanceStakerUniV3 {
         controller = _controller;
     }
 
-    function getProportion() public view returns (uint256) {
-        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1e18, tick_lower, tick_upper);
-        return (a2 * (10**12) * (10**18)) / a1;
-    }
     function amountsForLiquid() public view returns (uint256,uint256) {
         (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1e18, tick_lower, tick_upper);
         return (a1, a2);
@@ -193,52 +184,15 @@ abstract contract StrategyRebalanceStakerUniV3 {
 
     function determineTicks() public view returns (int24, int24) {
         uint32[] memory _observeTime = new uint32[](2);
-        _observeTime[0] = 3600;
+        _observeTime[0] = 60;
         _observeTime[1] = 0;
         (int56[] memory _cumulativeTicks, ) = pool.observe(_observeTime);
-	int56 _averageTick = (_cumulativeTicks[1] - _cumulativeTicks[0]) / 3600;
+	      int56 _averageTick = (_cumulativeTicks[1] - _cumulativeTicks[0]) / 60;
         int24 baseThreshold = tickSpacing * tickRangeMultiplier;
         return PoolVariables.baseTicks(int24(_averageTick), baseThreshold, tickSpacing);
     }
 
     // **** State mutations **** //
-
-    function depositInitial() public returns (uint256 _tokenId) {
-        require(msg.sender == governance || msg.sender == strategist, "not authorized");
-        require(tokenId == 0, "token already set");
-
-        uint256 _token0 = token0.balanceOf(address(this));
-        uint256 _token1 = token1.balanceOf(address(this));
-
-        (_tokenId, , , ) = nftManager.mint(
-            IUniswapV3PositionsNFT.MintParams({
-                token0: address(token0),
-                token1: address(token1),
-                fee: pool.fee(),
-                tickLower: tick_lower,
-                tickUpper: tick_upper,
-                amount0Desired: _token0,
-                amount1Desired: _token1,
-                amount0Min: 0,
-                amount1Min: 0,
-                recipient: address(this),
-                deadline: block.timestamp + 300
-            })
-        );
-
-        nftManager.sweepToken(address(token0), 0, address(this));
-        nftManager.sweepToken(address(token1), 0, address(this));
-
-        tokenId = _tokenId;
-
-        // Deposit + stake in Uni v3 staker only if staking is active.
-        if (isStakingActive()) {
-            nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
-            IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
-        }
-
-        emit InitialDeposited(tokenId);
-    }
 
     function deposit() public {
         // If NFT is held by staker, then withdraw
@@ -346,7 +300,141 @@ abstract contract StrategyRebalanceStakerUniV3 {
         (a0, a1) = _withdrawSome(liquidityOfPool());
     }
 
-    function harvest() public virtual;
+    function harvest() public onlyBenevolent {
+        if (isStakingActive()) {
+            IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
+            IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rewardToken), address(this), 0);
+            IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
+        }
+
+        nftManager.collect(
+            IUniswapV3PositionsNFT.CollectParams({
+                tokenId: tokenId,
+                recipient: address(this),
+                amount0Max: type(uint128).max,
+                amount1Max: type(uint128).max
+            })
+        );
+
+        nftManager.sweepToken(address(token0), 0, address(this));
+        nftManager.sweepToken(address(token1), 0, address(this));
+
+        balanceProportion(tick_lower, tick_upper);
+
+        _distributePerformanceFeesAndDeposit();
+
+        redeposit();
+
+        emit Harvested(tokenId);
+    }
+
+    //This assumes rewardToken == token0
+    function getHarvestable() public view returns (uint256, uint256) {
+        //This will only update when someone mint/burn/pokes the pool.
+        (, , , , , , , , , , uint128 _owed0, uint128 _owed1) = nftManager.positions(tokenId);
+        uint256 _stakingRewards = IUniswapV3Staker(univ3_staker).rewards(key.rewardToken, address(this));
+        return (uint256(_owed0 + _stakingRewards), uint256(_owed1));
+    }
+
+    //Need to call this at end of Liquidity Mining This assumes rewardToken is token0 or token1
+    function endOfLM() external onlyBenevolent {
+      require(block.timestamp > key.endTime, "Not End of LM");
+
+      uint256 _liqAmt0 = token0.balanceOf(address(this));
+      uint256 _liqAmt1 = token1.balanceOf(address(this));
+      // claim entire rewards
+      IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
+      IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rewardToken), address(this), 0);
+      IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
+
+      _distributePerformanceFees(
+          token0.balanceOf(address(this)).sub(_liqAmt0),
+          token1.balanceOf(address(this)).sub(_liqAmt1)
+      );
+    }
+
+    //This assumes rewardToken == (token0 || token1)
+    function rebalance() external onlyBenevolent returns (uint256 _tokenId) {
+        if(tokenId != 0) {
+        if (isStakingActive()) {
+            // If NFT is held by staker, then withdraw
+            IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
+
+            // claim entire rewards
+            IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rewardToken), address(this), 0);
+            IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
+        }
+          (, , , , , , , uint256 _liquidity, , , , ) = nftManager.positions(
+              tokenId
+          );
+          (uint256 _liqAmt0, uint256 _liqAmt1) = nftManager.decreaseLiquidity(
+              IUniswapV3PositionsNFT.DecreaseLiquidityParams({
+                  tokenId: tokenId,
+                  liquidity: uint128(_liquidity),
+                  amount0Min: 0,
+                  amount1Min: 0,
+                  deadline: block.timestamp + 300
+              })
+          );
+
+          // This has to be done after DecreaseLiquidity to collect the tokens we
+          // decreased and the fees at the same time.
+          nftManager.collect(
+              IUniswapV3PositionsNFT.CollectParams({
+                  tokenId: tokenId,
+                  recipient: address(this),
+                  amount0Max: type(uint128).max,
+                  amount1Max: type(uint128).max
+              })
+          );
+
+          nftManager.sweepToken(address(token0), 0, address(this));
+          nftManager.sweepToken(address(token1), 0, address(this));
+          nftManager.burn(tokenId);
+
+          _distributePerformanceFees(
+              token0.balanceOf(address(this)).sub(_liqAmt0),
+              token1.balanceOf(address(this)).sub(_liqAmt1)
+          );
+        }
+        (int24 _tickLower, int24 _tickUpper) = determineTicks();
+        balanceProportion(_tickLower, _tickUpper);
+        //Need to do this again after the swap to cover any slippage.
+        uint256 _amount0Desired = token0.balanceOf(address(this));
+        uint256 _amount1Desired = token1.balanceOf(address(this));
+
+        (_tokenId, , , ) = nftManager.mint(
+            IUniswapV3PositionsNFT.MintParams({
+                token0: address(token0),
+                token1: address(token1),
+                fee: pool.fee(),
+                tickLower: _tickLower,
+                tickUpper: _tickUpper,
+                amount0Desired: _amount0Desired,
+                amount1Desired: _amount1Desired,
+                amount0Min: 0,
+                amount1Min: 0,
+                recipient: address(this),
+                deadline: block.timestamp + 300
+            })
+        );
+
+        //Record updated information.
+        tokenId = _tokenId;
+        tick_lower = _tickLower;
+        tick_upper = _tickUpper;
+
+        if (isStakingActive()) {
+            nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
+            IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
+        }
+
+        if( tokenId == 0) {
+          emit InitialDeposited(_tokenId);
+        }
+
+        emit Rebalanced(tokenId, _tickLower, _tickUpper);
+      }
 
     // **** Emergency functions ****
 
@@ -374,95 +462,9 @@ abstract contract StrategyRebalanceStakerUniV3 {
 
     // **** Internal functions ****
 
-    function _swapUniswapV3(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal {
-        require(_to != address(0));
-
-        IERC20(_from).safeApprove(univ3Router, 0);
-        IERC20(_from).safeApprove(univ3Router, _amount);
-
-        ISwapRouter(univ3Router).exactInputSingle(
-            ISwapRouter.ExactInputSingleParams({
-                tokenIn: _from,
-                tokenOut: _to,
-                fee: pool.fee(),
-                recipient: address(this),
-                deadline: block.timestamp + 300,
-                amountIn: _amount,
-                amountOutMinimum: 0,
-                sqrtPriceLimitX96: 0
-            })
-        );
-    }
-
-    function _swapUniswap(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal {
-        require(_to != address(0));
-
-        address[] memory path;
-
-        if (_from == weth || _to == weth) {
-            path = new address[](2);
-            path[0] = _from;
-            path[1] = _to;
-        } else {
-            path = new address[](3);
-            path[0] = _from;
-            path[1] = weth;
-            path[2] = _to;
-        }
-
-        IERC20(_from).safeApprove(univ2Router2, 0);
-        IERC20(_from).safeApprove(univ2Router2, _amount);
-
-        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
-    }
-
-    function _swapUniswapWithPath(address[] memory path, uint256 _amount) internal {
-        require(path[1] != address(0));
-        //TODO approve _from
-        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
-    }
-
-    function _swapSushiswap(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal {
-        require(_to != address(0));
-
-        address[] memory path;
-
-        if (_from == weth || _to == weth) {
-            path = new address[](2);
-            path[0] = _from;
-            path[1] = _to;
-        } else {
-            path = new address[](3);
-            path[0] = _from;
-            path[1] = weth;
-            path[2] = _to;
-        }
-
-        IERC20(_from).safeApprove(sushiRouter, 0);
-        IERC20(_from).safeApprove(sushiRouter, _amount);
-
-        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
-    }
-
-    function _swapSushiswapWithPath(address[] memory path, uint256 _amount) internal {
-        require(path[1] != address(0));
-
-        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
-    }
-
-    function _distributePerformanceFees(uint256 _amount0, uint256 _amount1) internal {
+    function _distributePerformanceFees(uint256 _amount0, uint256 _amount1)
+        internal
+    {
         if (_amount0 > 0) {
             IERC20(token0).safeTransfer(
                 IControllerV2(controller).treasury(),
@@ -509,15 +511,25 @@ abstract contract StrategyRebalanceStakerUniV3 {
         );
 
         //Get correct amounts of each token for the liquidity we have.
-        (_cache.amount0, _cache.amount1) = pool.amountsForLiquidity(_cache.liquidity, _tickLower, _tickUpper);
+        (_cache.amount0, _cache.amount1) = pool.amountsForLiquidity(
+            _cache.liquidity,
+            _tickLower,
+            _tickUpper
+        );
 
         //Determine Trade Direction
-        bool _zeroForOne = PoolVariables.amountsDirection(
-            _cache.amount0Desired,
-            _cache.amount1Desired,
-            _cache.amount0,
-            _cache.amount1
-        );
+        bool _zeroForOne;
+        if(_cache.amount1Desired == 0) {
+            _zeroForOne = true;
+        }
+        else {
+            _zeroForOne = PoolVariables.amountsDirection(
+              _cache.amount0Desired,
+              _cache.amount1Desired,
+              _cache.amount0,
+              _cache.amount1
+            );
+       }
 
         //Determine Amount to swap
         uint256 _amountSpecified = _zeroForOne
@@ -526,7 +538,9 @@ abstract contract StrategyRebalanceStakerUniV3 {
 
         if (_amountSpecified > 0) {
             //Determine Token to swap
-            address _inputToken = _zeroForOne ? address(token0) : address(token1);
+            address _inputToken = _zeroForOne
+                ? address(token0)
+                : address(token1);
 
             IERC20(_inputToken).safeApprove(univ3Router, 0);
             IERC20(_inputToken).safeApprove(univ3Router, _amountSpecified);
@@ -538,7 +552,6 @@ abstract contract StrategyRebalanceStakerUniV3 {
                     tokenOut: _zeroForOne ? address(token1) : address(token0),
                     fee: pool.fee(),
                     recipient: address(this),
-                    deadline: block.timestamp + 300,
                     amountIn: _amountSpecified,
                     amountOutMinimum: 0,
                     sqrtPriceLimitX96: 0
