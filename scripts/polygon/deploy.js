@@ -79,15 +79,16 @@ const setJar = async () => {
   const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
   const timelock = "0xD92c7fAa0Ca0e6AE4918f3a83d9832d9CAEAA0d3";
 
-  const want = "0xEd4064f376cB8d68F770FB1Ff088a3d0F3FF5c4d";
+  const want = "0x3A283D9c08E8b55966afb64C515f5143cf907611";
 
-  // const StrategyFactory = await ethers.getContractFactory("src/strategies/convex/strategy-convex-crv-eth-lp.sol:StrategyCrvEth");
+  const StrategyFactory = await ethers.getContractFactory("src/strategies/convex/strategy-convex-cvx-eth-lp.sol:StrategyCvxEth");
 
-  // const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
-  // await strategy.deployed()
-  // console.log("strategy deployed at: ", strategy.address)
+  console.log("deploying strtegy....")
+  const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
+  await strategy.deployed()
+  console.log("strategy deployed at: ", strategy.address)
 
-  console.log("deplying")
+  console.log("deplying le jar")
   const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
   const PickleJar = await PickleJarFactory.deploy(want, governance, timelock, controller);
 
