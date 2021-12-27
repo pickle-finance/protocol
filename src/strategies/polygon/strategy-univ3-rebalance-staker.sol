@@ -164,6 +164,17 @@ abstract contract StrategyRebalanceStakerUniV3 {
         controller = _controller;
     }
 
+    function setIncentive(address _rewardToken, uint256 _startTime, uint256 _endTime, address _refundee) public onlyBenevolent{
+      rewardToken = _rewardToken;
+      key = IUniswapV3Staker.IncentiveKey({
+          rewardToken: IERC20Minimal(rewardToken),
+          pool: IUniswapV3Pool(pool),
+          startTime: _startTime,
+          endTime: _endTime,
+          refundee: _refundee
+      });
+    }
+
     function amountsForLiquid() public view returns (uint256,uint256) {
         (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1e18, tick_lower, tick_upper);
         return (a1, a2);

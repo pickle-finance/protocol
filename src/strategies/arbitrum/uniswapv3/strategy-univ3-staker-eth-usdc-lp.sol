@@ -18,17 +18,15 @@ contract StrategyUsdcEthUniV3StakerArbi is StrategyRebalanceStakerUniV3 {
         StrategyRebalanceStakerUniV3(usdc_eth_pool, _tickRangeMultiplier, _governance, _strategist, _controller, _timelock)
     {
         univ3_staker = 0x1f98407aaB862CdDeF78Ed252D6f557aA5b0f00d;
-        rewardToken = 0x6123B0049F904d730dB3C36a31167D9d4121fA6B;
+        rewardToken = 0x0000000000000000000000000000000000000000;
 
         key = IUniswapV3Staker.IncentiveKey({
             rewardToken: IERC20Minimal(rewardToken),
             pool: IUniswapV3Pool(usdc_eth_pool),
-            startTime: 1633694400,
-            endTime: 1638878400,
-            refundee: 0xDAEada3d210D2f45874724BeEa03C7d4BBD41674
+            startTime: 0,
+            endTime: 1,
+            refundee: 0x0000000000000000000000000000000000000000
         });
-
-        rewardToken = 0x6123B0049F904d730dB3C36a31167D9d4121fA6B;
     }
 
     function getName() external pure override returns (string memory) {
