@@ -15,25 +15,24 @@ pragma experimental ABIEncoderV2;
 // ─██████─────────██████████─██████████████─██████──████████─██████████████─██████████████────██████████████─██████──██████─██████──██████████─
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-import "./interfaces/controllerv2.sol";
-import "./lib/erc20.sol";
+import "../interfaces/controllerv2.sol";
+import "../lib/erc20.sol";
 import "./lib/univ3/PoolActions.sol";
-import "./lib/reentrancy-guard.sol";
-import "./lib/safe-math.sol";
+import "../lib/reentrancy-guard.sol";
+import "../lib/safe-math.sol";
 import "./interfaces/univ3/IUniswapV3PositionsNFT.sol";
-import ".//interfaces/univ3/IUniswapV3PositionsNFT.sol";
 import "./interfaces/univ3/IUniswapV3Pool.sol";
 import "./interfaces/univ3/ISwapRouter.sol";
-import "./interfaces/weth.sol";
+import "../interfaces/weth.sol";
 import "hardhat/console.sol";
 
-contract PickleJarUniV3 is ERC20, ReentrancyGuard {
+contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
     using PoolVariables for IUniswapV3Pool;
 
-    address public constant weth = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
+    address public constant wmatic = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
     address public constant univ3Router = 0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
 
     address public governance;
@@ -130,12 +129,13 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         bool isEthToken1;
         uint256 _eth = address(this).balance;
         if (_eth > 0) {
-            WETH(weth).deposit{value: _eth}();
-            if(address(token0) == weth){
+            WETH(wmatic).deposit{value: _eth}();
+            //WETH(wmatic).transfer(address(this), WETH(wmatic).balanceOf(address(this)));
+            if(address(token0) == wmatic){
               token0Amount = _eth;
               isEthToken0 = true;
             }
-            else if(address(token1) == weth) {
+            else if(address(token1) == wmatic) {
               token1Amount = _eth;
               isEthToken1 = true;
             }
@@ -215,7 +215,6 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
                     tokenIn: _inputToken,
                     tokenOut: _zeroForOne ? address(token1) : address(token0),
                     fee: pool.fee(),
-                    deadline: block.timestamp + 300,
                     recipient: address(this),
                     amountIn: _amountSpecified,
                     amountOutMinimum: 0,

@@ -411,7 +411,7 @@ abstract contract StrategyRebalanceUniV3 {
         emit Rebalanced(tokenId, _tickLower, _tickUpper);
     }
 
-    function balanceProportion(int24 _tickLower, int24 _tickUpper) public {
+    function balanceProportion(int24 _tickLower, int24 _tickUpper) internal {
         PoolVariables.Info memory _cache;
 
         _cache.amount0Desired = token0.balanceOf(address(this));

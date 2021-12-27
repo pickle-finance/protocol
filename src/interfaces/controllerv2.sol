@@ -21,8 +21,6 @@ interface IControllerV2 {
 
     function strategies(address) external view returns (address);
 
-    function balanceProportion(address,int24,int24) external;
-
     function getUpperTick(address) external view returns (int24);
 
     function getLowerTick(address) external view returns (int24);

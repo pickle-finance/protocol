@@ -105,11 +105,6 @@ contract ControllerV6 {
         strategies[_pool] = _strategy;
     }
 
-    function balanceProportion(address _pool, int24 _lowerTick, int24 _upperTick) external {
-        require(msg.sender == jars[_pool], "!Jar");
-        return IStrategyV2(strategies[_pool]).balanceProportion(_lowerTick, _upperTick);
-    }
-
     function getUpperTick(address _pool) external view returns (int24) {
         return IStrategyV2(strategies[_pool]).tick_upper();
     }
