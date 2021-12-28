@@ -2,7 +2,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-minichef-farm-base.sol";
 
-contract StrategyPngAvaxOrbsLp is StrategyPngMiniChefFarmBase {
+contract StrategyPngAvaxOrbs is StrategyPngMiniChefFarmBase {
     uint256 public _poolId = 36;
 
     // Token addresses
@@ -100,6 +100,6 @@ contract StrategyPngAvaxOrbsLp is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAVAXORBSMiniLp";
+        return "StrategyPngAvaxOrbs";
     }
 }
