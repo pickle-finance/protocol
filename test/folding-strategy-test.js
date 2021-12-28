@@ -143,11 +143,12 @@ const doFoldingStrategyTest = (
                 console.log("snowglobe_addr: ",snowglobe_addr);
                 if (snowglobe_addr != 0) {
                     SnowGlobe = new ethers.Contract(snowglobe_addr, globeABI, governanceSigner);
-                    console.log(`deployed new snowglobe at ${SnowGlobe.address}`);
+                    console.log(`connected to snowglobe at ${SnowGlobe.address}`);
                 }
                 else {
                     const globeFactory = await ethers.getContractFactory(snowglobeName);
                     SnowGlobe = await globeFactory.deploy(asset_addr, governanceSigner._address, timelockSigner._address, controller_addr);
+                    console.log(`deployed new snowglobe at ${SnowGlobe.address}`);
                     const setGlobe = await Controller.setGlobe(asset_addr, SnowGlobe.address);
                     const tx_setGlobe = await setGlobe.wait(1);
                     if (!tx_setGlobe.status) {
@@ -160,6 +161,7 @@ const doFoldingStrategyTest = (
             }
             else {
                 SnowGlobe = new ethers.Contract(snowglobe_addr, globeABI, governanceSigner);
+                console.log(`connected to snowglobe at ${SnowGlobe.address}`);
             }
             const earn = await SnowGlobe.earn();
             const tx_earn = await earn.wait(1);
