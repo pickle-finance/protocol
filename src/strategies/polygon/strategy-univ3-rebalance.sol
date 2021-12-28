@@ -325,8 +325,8 @@ abstract contract StrategyRebalanceUniV3 {
     }
 
     function harvest() public onlyBenevolent {
-        int256 _initToken0 = token0.balanceOf(address(this));
-        int256 _initToken1 = token1.balanceOf(address(this));
+        uint256 _initToken0 = token0.balanceOf(address(this));
+        uint256 _initToken1 = token1.balanceOf(address(this));
         nftManager.collect(
             IUniswapV3PositionsNFT.CollectParams({
                 tokenId: tokenId,
@@ -340,7 +340,7 @@ abstract contract StrategyRebalanceUniV3 {
         nftManager.sweepToken(address(token1), 0, address(this));
 
         _distributePerformanceFees(token0.balanceOf(address(this)).sub(_initToken0),
-                                   token1.balanceOf(address(this)).sub(_initToken1);
+                                   token1.balanceOf(address(this)).sub(_initToken1));
 
         _balanceProportion(tick_lower, tick_upper);
 
@@ -363,8 +363,8 @@ abstract contract StrategyRebalanceUniV3 {
         returns (uint256 _tokenId)
     {
         if (tokenId != 0) {
-            int256 _initToken0 = token0.balanceOf(address(this));
-            int256 _initToken1 = token1.balanceOf(address(this));
+            uint256 _initToken0 = token0.balanceOf(address(this));
+            uint256 _initToken1 = token1.balanceOf(address(this));
             (, , , , , , , uint256 _liquidity, , , , ) = nftManager.positions(
                 tokenId
             );
