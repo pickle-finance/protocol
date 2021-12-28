@@ -325,6 +325,8 @@ abstract contract StrategyRebalanceUniV3 {
     }
 
     function harvest() public onlyBenevolent {
+        int256 _initToken0 = token0.balanceOf(address(this));
+        int256 _initToken1 = token1.balanceOf(address(this));
         nftManager.collect(
             IUniswapV3PositionsNFT.CollectParams({
                 tokenId: tokenId,
@@ -337,9 +339,12 @@ abstract contract StrategyRebalanceUniV3 {
         nftManager.sweepToken(address(token0), 0, address(this));
         nftManager.sweepToken(address(token1), 0, address(this));
 
-        balanceProportion(tick_lower, tick_upper);
+        _distributePerformanceFees(token0.balanceOf(address(this)).sub(_initToken0),
+                                   token1.balanceOf(address(this)).sub(_initToken1);
 
-        _distributePerformanceFeesAndDeposit();
+        _balanceProportion(tick_lower, tick_upper);
+
+        deposit();
 
         emit Harvested(tokenId);
     }
@@ -358,6 +363,8 @@ abstract contract StrategyRebalanceUniV3 {
         returns (uint256 _tokenId)
     {
         if (tokenId != 0) {
+            int256 _initToken0 = token0.balanceOf(address(this));
+            int256 _initToken1 = token1.balanceOf(address(this));
             (, , , , , , , uint256 _liquidity, , , , ) = nftManager.positions(
                 tokenId
             );
@@ -387,13 +394,13 @@ abstract contract StrategyRebalanceUniV3 {
             nftManager.burn(tokenId);
 
             _distributePerformanceFees(
-                token0.balanceOf(address(this)).sub(_liqAmt0),
-                token1.balanceOf(address(this)).sub(_liqAmt1)
+                token0.balanceOf(address(this)).sub(_liqAmt0).sub(_initToken0),
+                token1.balanceOf(address(this)).sub(_liqAmt1).sub(_initToken1)
             );
         }
 
         (int24 _tickLower, int24 _tickUpper) = determineTicks();
-        balanceProportion(_tickLower, _tickUpper);
+        _balanceProportion(_tickLower, _tickUpper);
         //Need to do this again after the swap to cover any slippage.
         uint256 _amount0Desired = token0.balanceOf(address(this));
         uint256 _amount1Desired = token1.balanceOf(address(this));
@@ -426,7 +433,46 @@ abstract contract StrategyRebalanceUniV3 {
         emit Rebalanced(tokenId, _tickLower, _tickUpper);
     }
 
-    function balanceProportion(int24 _tickLower, int24 _tickUpper) internal {
+    // **** Emergency functions ****
+
+    function execute(address _target, bytes memory _data)
+        public
+        payable
+        returns (bytes memory response)
+    {
+        require(msg.sender == timelock, "!timelock");
+        require(_target != address(0), "!target");
+
+        // call contract in current context
+        assembly {
+            let succeeded := delegatecall(
+                sub(gas(), 5000),
+                _target,
+                add(_data, 0x20),
+                mload(_data),
+                0,
+                0
+            )
+            let size := returndatasize()
+
+            response := mload(0x40)
+            mstore(
+                0x40,
+                add(response, and(add(add(size, 0x20), 0x1f), not(0x1f)))
+            )
+            mstore(response, size)
+            returndatacopy(add(response, 0x20), 0, size)
+
+            switch iszero(succeeded)
+            case 1 {
+                // throw if delegatecall failed
+                revert(add(response, 0x20), size)
+            }
+        }
+    }
+
+    // **** Internal functions ****
+    function _balanceProportion(int24 _tickLower, int24 _tickUpper) internal {
         PoolVariables.Info memory _cache;
 
         _cache.amount0Desired = token0.balanceOf(address(this));
@@ -489,46 +535,6 @@ abstract contract StrategyRebalanceUniV3 {
         }
     }
 
-    // **** Emergency functions ****
-
-    function execute(address _target, bytes memory _data)
-        public
-        payable
-        returns (bytes memory response)
-    {
-        require(msg.sender == timelock, "!timelock");
-        require(_target != address(0), "!target");
-
-        // call contract in current context
-        assembly {
-            let succeeded := delegatecall(
-                sub(gas(), 5000),
-                _target,
-                add(_data, 0x20),
-                mload(_data),
-                0,
-                0
-            )
-            let size := returndatasize()
-
-            response := mload(0x40)
-            mstore(
-                0x40,
-                add(response, and(add(add(size, 0x20), 0x1f), not(0x1f)))
-            )
-            mstore(response, size)
-            returndatacopy(add(response, 0x20), 0, size)
-
-            switch iszero(succeeded)
-            case 1 {
-                // throw if delegatecall failed
-                revert(add(response, 0x20), size)
-            }
-        }
-    }
-
-    // **** Internal functions ****
-
     function _distributePerformanceFees(uint256 _amount0, uint256 _amount1)
         internal
     {
@@ -544,14 +550,6 @@ abstract contract StrategyRebalanceUniV3 {
                 _amount1.mul(performanceTreasuryFee).div(performanceTreasuryMax)
             );
         }
-    }
-
-    function _distributePerformanceFeesAndDeposit() internal {
-        uint256 _balance0 = token0.balanceOf(address(this));
-        uint256 _balance1 = token1.balanceOf(address(this));
-
-        _distributePerformanceFees(_balance0, _balance1);
-        deposit();
     }
 
     function onERC721Received(
