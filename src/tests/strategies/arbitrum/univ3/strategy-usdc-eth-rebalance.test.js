@@ -73,47 +73,17 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
 
     await weth.deposit({value: toWei(100)});
 
-    await getWantFromWhale(
-      USDC_TOKEN,
-      toWei(50),
-      alice,
-      "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B"
-    );
+    await getWantFromWhale(USDC_TOKEN, toWei(50), alice, "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B");
 
-    await getWantFromWhale(
-      WETH_TOKEN,
-      toWei(50),
-      alice,
-      "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B"
-    );
+    await getWantFromWhale(WETH_TOKEN, toWei(50), alice, "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B");
 
-    await getWantFromWhale(
-      USDC_TOKEN,
-      toWei(50),
-      bob,
-      "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B"
-    );
+    await getWantFromWhale(USDC_TOKEN, toWei(50), bob, "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B");
 
-    await getWantFromWhale(
-      WETH_TOKEN,
-      toWei(50),
-      bob,
-      "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B"
-    );
+    await getWantFromWhale(WETH_TOKEN, toWei(50), bob, "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B");
 
-    await getWantFromWhale(
-      USDC_TOKEN,
-      toWei(50),
-      charles,
-      "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B"
-    );
+    await getWantFromWhale(USDC_TOKEN, toWei(50), charles, "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B");
 
-    await getWantFromWhale(
-      WETH_TOKEN,
-      toWei(50),
-      charles,
-      "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B"
-    );
+    await getWantFromWhale(WETH_TOKEN, toWei(50), charles, "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B");
 
     // Initial deposit to create NFT
     const amountWeth = "1000000000000000000";
@@ -150,116 +120,53 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
     console.log("Charles share amount => ", charlesShare.toString());
 
     console.log("===============Alice partial withdraw==============");
-    console.log(
-      "Alice usdc balance before withdrawal => ",
-      (await usdc.balanceOf(alice.address)).toString()
-    );
-    console.log(
-      "Alice weth balance before withdrawal => ",
-      (await weth.balanceOf(alice.address)).toString()
-    );
+    console.log("Alice usdc balance before withdrawal => ", (await usdc.balanceOf(alice.address)).toString());
+    console.log("Alice weth balance before withdrawal => ", (await weth.balanceOf(alice.address)).toString());
     await pickleJar.connect(alice).withdraw(aliceShare.div(BN.from(2)));
 
-    console.log(
-      "Alice usdc balance after withdrawal => ",
-      (await usdc.balanceOf(alice.address)).toString()
-    );
-    console.log(
-      "Alice weth balance after withdrawal => ",
-      (await weth.balanceOf(alice.address)).toString()
-    );
+    console.log("Alice usdc balance after withdrawal => ", (await usdc.balanceOf(alice.address)).toString());
+    console.log("Alice weth balance after withdrawal => ", (await weth.balanceOf(alice.address)).toString());
 
-    console.log(
-      "Alice shares remaining => ",
-      (await pickleJar.balanceOf(alice.address)).toString()
-    );
+    console.log("Alice shares remaining => ", (await pickleJar.balanceOf(alice.address)).toString());
 
     await increaseTime(60 * 60 * 24 * 1); //travel 1 day
 
     console.log("===============Bob withdraw==============");
-    console.log(
-      "Bob usdc balance before withdrawal => ",
-      (await usdc.balanceOf(bob.address)).toString()
-    );
-    console.log(
-      "Bob weth balance before withdrawal => ",
-      (await weth.balanceOf(bob.address)).toString()
-    );
+    console.log("Bob usdc balance before withdrawal => ", (await usdc.balanceOf(bob.address)).toString());
+    console.log("Bob weth balance before withdrawal => ", (await weth.balanceOf(bob.address)).toString());
     await pickleJar.connect(bob).withdrawAll();
 
-    console.log(
-      "Bob usdc balance after withdrawal => ",
-      (await usdc.balanceOf(bob.address)).toString()
-    );
-    console.log(
-      "Bob weth balance after withdrawal => ",
-      (await weth.balanceOf(bob.address)).toString()
-    );
+    console.log("Bob usdc balance after withdrawal => ", (await usdc.balanceOf(bob.address)).toString());
+    console.log("Bob weth balance after withdrawal => ", (await weth.balanceOf(bob.address)).toString());
 
     await harvest();
     //await trade(WETH_TOKEN, USDC_TOKEN);
     await rebalance();
     console.log("=============== Controller withdraw ===============");
-    console.log(
-      "PickleJar usdc balance before withdrawal => ",
-      (await usdc.balanceOf(pickleJar.address)).toString()
-    );
-    console.log(
-      "PickleJar weth balance before withdrawal => ",
-      (await weth.balanceOf(pickleJar.address)).toString()
-    );
+    console.log("PickleJar usdc balance before withdrawal => ", (await usdc.balanceOf(pickleJar.address)).toString());
+    console.log("PickleJar weth balance before withdrawal => ", (await weth.balanceOf(pickleJar.address)).toString());
 
     await controller.withdrawAll(USDC_ETH_POOL);
 
-    console.log(
-      "PickleJar usdc balance after withdrawal => ",
-      (await usdc.balanceOf(pickleJar.address)).toString()
-    );
-    console.log(
-      "PickleJar weth balance after withdrawal => ",
-      (await weth.balanceOf(pickleJar.address)).toString()
-    );
+    console.log("PickleJar usdc balance after withdrawal => ", (await usdc.balanceOf(pickleJar.address)).toString());
+    console.log("PickleJar weth balance after withdrawal => ", (await weth.balanceOf(pickleJar.address)).toString());
 
     console.log("===============Alice Full withdraw==============");
 
-    console.log(
-      "Alice usdc balance before withdrawal => ",
-      harvest(await usdc.balanceOf(alice.address)).toString()
-    );
-    console.log(
-      "Alice weth balance before withdrawal => ",
-      (await weth.balanceOf(alice.address)).toString()
-    );
+    console.log("Alice usdc balance before withdrawal => ", harvest(await usdc.balanceOf(alice.address)).toString());
+    console.log("Alice weth balance before withdrawal => ", (await weth.balanceOf(alice.address)).toString());
     await pickleJar.connect(alice).withdrawAll();
 
-    console.log(
-      "Alice usdc balance after withdrawal => ",
-      (await usdc.balanceOf(alice.address)).toString()
-    );
-    console.log(
-      "Alice weth balance after withdrawal => ",
-      (await weth.balanceOf(alice.address)).toString()
-    );
+    console.log("Alice usdc balance after withdrawal => ", (await usdc.balanceOf(alice.address)).toString());
+    console.log("Alice weth balance after withdrawal => ", (await weth.balanceOf(alice.address)).toString());
 
     console.log("=============== charles withdraw ==============");
-    console.log(
-      "Charles usdc balance before withdrawal => ",
-      (await usdc.balanceOf(charles.address)).toString()
-    );
-    console.log(
-      "Charles weth balance before withdrawal => ",
-      (await weth.balanceOf(charles.address)).toString()
-    );
+    console.log("Charles usdc balance before withdrawal => ", (await usdc.balanceOf(charles.address)).toString());
+    console.log("Charles weth balance before withdrawal => ", (await weth.balanceOf(charles.address)).toString());
     await pickleJar.connect(charles).withdrawAll();
 
-    console.log(
-      "Charles usdc balance after withdrawal => ",
-      (await usdc.balanceOf(charles.address)).toString()
-    );
-    console.log(
-      "Charles weth balance after withdrawal => ",
-      (await weth.balanceOf(charles.address)).toString()
-    );
+    console.log("Charles usdc balance after withdrawal => ", (await usdc.balanceOf(charles.address)).toString());
+    console.log("Charles weth balance after withdrawal => ", (await weth.balanceOf(charles.address)).toString());
 
     console.log("------------------ Finished -----------------------");
 
@@ -320,17 +227,15 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
     let aliceAddress = alice.address;
     let amount = input.balanceOf(alice.address);
     await input.connect(alice).approve(univ3router.address, amount);
-    await univ3router
-      .connect(alice)
-      .exactInputSingle({
-        tokenIn: _inputToken,
-        tokenOut: _outputToken,
-        fee: poolFee,
-        recipient: aliceAddress,
-        amountIn: amount,
-        amountOutMinimum: 0,
-        sqrtPriceLimitX96: 0,
-      });
+    await univ3router.connect(alice).exactInputSingle({
+      tokenIn: _inputToken,
+      tokenOut: _outputToken,
+      fee: poolFee,
+      recipient: aliceAddress,
+      amountIn: amount,
+      amountOutMinimum: 0,
+      sqrtPriceLimitX96: 0,
+    });
   };
 
   const simulateTrading = async () => {
@@ -346,8 +251,10 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
     const token0 = await strategy.token0();
     const token1 = await strategy.token1();
 
-    const amountB = amountA.mul(proportion).div(hre.ethers.BigNumber.from("1000000000000000000"))
-                    .div(hre.ethers.BigNumber.from("1000000000000"));
+    const amountB = amountA
+      .mul(proportion)
+      .div(hre.ethers.BigNumber.from("1000000000000000000"))
+      .div(hre.ethers.BigNumber.from("1000000000000"));
     return amountB;
   };
 

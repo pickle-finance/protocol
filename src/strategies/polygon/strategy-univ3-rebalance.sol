@@ -42,6 +42,8 @@ abstract contract StrategyRebalanceUniV3 {
     int24 public tick_upper;
     int24 private tickSpacing;
     int24 private tickRangeMultiplier;
+    int24 private maxDeviation = 500;
+    uint24 private twapTime = 10;
 
     IUniswapV3PositionsNFT public nftManager =
         IUniswapV3PositionsNFT(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
@@ -91,6 +93,11 @@ abstract contract StrategyRebalanceUniV3 {
                 msg.sender == governance ||
                 msg.sender == strategist
         );
+        _;
+    }
+
+    modifier checkDeviation() {
+        determineTicks();
         _;
     }
 
@@ -204,18 +211,21 @@ abstract contract StrategyRebalanceUniV3 {
     }
 
     function determineTicks() public view returns (int24, int24) {
+        (, int24 _currentTick, , , , , ) = pool.slot0();
         uint32[] memory _observeTime = new uint32[](2);
-        _observeTime[0] = 60;
+        _observeTime[0] = twapTime;
         _observeTime[1] = 0;
         (int56[] memory _cumulativeTicks, ) = pool.observe(_observeTime);
-        int56 _averageTick = (_cumulativeTicks[1] - _cumulativeTicks[0]) / 60;
+        int24 _averageTick = int24(
+            (_cumulativeTicks[1] - _cumulativeTicks[0]) / twapTime
+        );
+        int24 _deviation = _currentTick > _averageTick
+            ? _currentTick - _averageTick
+            : _averageTick - _currentTick;
+        require(_deviation <= maxDeviation, "Flash Loan Protection");
         int24 baseThreshold = tickSpacing * tickRangeMultiplier;
         return
-            PoolVariables.baseTicks(
-                int24(_averageTick),
-                baseThreshold,
-                tickSpacing
-            );
+            PoolVariables.baseTicks(_currentTick, baseThreshold, tickSpacing);
     }
 
     // **** State mutations **** //
@@ -337,44 +347,49 @@ abstract contract StrategyRebalanceUniV3 {
     function getHarvestable() public view returns (uint256, uint256) {
         //This will only update when someone mint/burn/pokes the pool.
         (, , , , , , , , , , uint128 _owed0, uint128 _owed1) = nftManager
-            .positions(tokenId);
+        .positions(tokenId);
         return (uint256(_owed0), uint256(_owed1));
     }
 
-    function rebalance() external onlyBenevolent returns (uint256 _tokenId) {
-        if(tokenId != 0) {
-          (, , , , , , , uint256 _liquidity, , , , ) = nftManager.positions(
-              tokenId
-          );
-          (uint256 _liqAmt0, uint256 _liqAmt1) = nftManager.decreaseLiquidity(
-              IUniswapV3PositionsNFT.DecreaseLiquidityParams({
-                  tokenId: tokenId,
-                  liquidity: uint128(_liquidity),
-                  amount0Min: 0,
-                  amount1Min: 0,
-                  deadline: block.timestamp + 300
-              })
-          );
+    function rebalance()
+        external
+        onlyBenevolent
+        checkDeviation
+        returns (uint256 _tokenId)
+    {
+        if (tokenId != 0) {
+            (, , , , , , , uint256 _liquidity, , , , ) = nftManager.positions(
+                tokenId
+            );
+            (uint256 _liqAmt0, uint256 _liqAmt1) = nftManager.decreaseLiquidity(
+                IUniswapV3PositionsNFT.DecreaseLiquidityParams({
+                    tokenId: tokenId,
+                    liquidity: uint128(_liquidity),
+                    amount0Min: 0,
+                    amount1Min: 0,
+                    deadline: block.timestamp + 300
+                })
+            );
 
-          // This has to be done after DecreaseLiquidity to collect the tokens we
-          // decreased and the fees at the same time.
-          nftManager.collect(
-              IUniswapV3PositionsNFT.CollectParams({
-                  tokenId: tokenId,
-                  recipient: address(this),
-                  amount0Max: type(uint128).max,
-                  amount1Max: type(uint128).max
-              })
-          );
+            // This has to be done after DecreaseLiquidity to collect the tokens we
+            // decreased and the fees at the same time.
+            nftManager.collect(
+                IUniswapV3PositionsNFT.CollectParams({
+                    tokenId: tokenId,
+                    recipient: address(this),
+                    amount0Max: type(uint128).max,
+                    amount1Max: type(uint128).max
+                })
+            );
 
-          nftManager.sweepToken(address(token0), 0, address(this));
-          nftManager.sweepToken(address(token1), 0, address(this));
-          nftManager.burn(tokenId);
+            nftManager.sweepToken(address(token0), 0, address(this));
+            nftManager.sweepToken(address(token1), 0, address(this));
+            nftManager.burn(tokenId);
 
-          _distributePerformanceFees(
-              token0.balanceOf(address(this)).sub(_liqAmt0),
-              token1.balanceOf(address(this)).sub(_liqAmt1)
-          );
+            _distributePerformanceFees(
+                token0.balanceOf(address(this)).sub(_liqAmt0),
+                token1.balanceOf(address(this)).sub(_liqAmt1)
+            );
         }
 
         (int24 _tickLower, int24 _tickUpper) = determineTicks();
@@ -404,8 +419,8 @@ abstract contract StrategyRebalanceUniV3 {
         tick_lower = _tickLower;
         tick_upper = _tickUpper;
 
-        if( tokenId == 0) {
-          emit InitialDeposited(_tokenId);
+        if (tokenId == 0) {
+            emit InitialDeposited(_tokenId);
         }
 
         emit Rebalanced(tokenId, _tickLower, _tickUpper);
@@ -434,17 +449,16 @@ abstract contract StrategyRebalanceUniV3 {
 
         //Determine Trade Direction
         bool _zeroForOne;
-        if(_cache.amount1Desired == 0) {
+        if (_cache.amount1Desired == 0) {
             _zeroForOne = true;
-        }
-        else {
+        } else {
             _zeroForOne = PoolVariables.amountsDirection(
-              _cache.amount0Desired,
-              _cache.amount1Desired,
-              _cache.amount0,
-              _cache.amount1
+                _cache.amount0Desired,
+                _cache.amount1Desired,
+                _cache.amount0,
+                _cache.amount1
             );
-       }
+        }
 
         //Determine Amount to swap
         uint256 _amountSpecified = _zeroForOne
@@ -548,5 +562,4 @@ abstract contract StrategyRebalanceUniV3 {
     ) public pure returns (bytes4) {
         return this.onERC721Received.selector;
     }
-
 }
