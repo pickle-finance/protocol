@@ -3,10 +3,10 @@ pragma solidity ^0.6.2;
 
 import "../strategy-qi-farm-base.sol";
 
-contract StrategyBenqiWbtc is StrategyQiFarmBase {
+contract StrategyBenqiLinkE is StrategyQiFarmBase {
     
-    address public constant wbtc = 0x50b7545627a5162F82A992c33b87aDc75187B218; //qideposit token
-    address public constant qiwbtc = 0xe194c4c5aC32a3C9ffDb358d9Bfd523a0B6d1568; //lending receipt token
+    address public constant link = 0x5947BB275c521040051D82396192181b413227A3; //qideposit token
+    address public constant qilink = 0x4e9f683A27a6BdAD3FC2764003759277e93696e6; //lending receipt token
 
     constructor(
         address _governance,
@@ -16,8 +16,8 @@ contract StrategyBenqiWbtc is StrategyQiFarmBase {
     )
         public
         StrategyQiFarmBase(
-            wbtc, 
-            qiwbtc, 
+            link, 
+            qilink, 
             _governance, 
             _strategist, 
             _controller, 
@@ -69,6 +69,6 @@ contract StrategyBenqiWbtc is StrategyQiFarmBase {
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {
-        return "StrategyBenqiWbtc";
+        return "StrategyBenqiLinkE";
     }
 }

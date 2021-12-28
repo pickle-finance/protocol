@@ -1,4 +1,4 @@
-// Sources flattened with hardhat v2.6.8 https://hardhat.org
+// Sources flattened with hardhat v2.8.0 https://hardhat.org
 
 // File contracts/interfaces/controller.sol
 
@@ -827,14 +827,14 @@ library SafeERC20 {
 }
 
 
-// File contracts/snowglobes/bankerJoe/snowglobe-joe-eth.sol
+// File contracts/snowglobes/benqi/snowglobe-benqi-qi.sol
 
 // https://github.com/iearn-finance/vaults/blob/master/contracts/vaults/yVault.sol
 
 pragma solidity ^0.6.7;
 
 
-contract SnowGlobeJoeEth is ERC20 {
+contract SnowGlobeBenqiQi is ERC20 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;

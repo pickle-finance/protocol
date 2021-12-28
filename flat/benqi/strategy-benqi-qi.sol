@@ -1,4 +1,4 @@
-// Sources flattened with hardhat v2.6.8 https://hardhat.org
+// Sources flattened with hardhat v2.8.0 https://hardhat.org
 
 // File contracts/lib/safe-math.sol
 
@@ -1426,12 +1426,21 @@ interface IIcequeen {
 }
 
 
-// File contracts/interfaces/joe.sol
+// File contracts/interfaces/pangolin.sol
+
+// SPDX-License-Identifier: MIT
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.2;
 
-interface IJoeRouter {
+interface IPangolinRouter {
+    function swapExactTokensForTokens(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external returns (uint256[] memory amounts);
 
     function addLiquidity(
         address tokenA,
@@ -1476,27 +1485,17 @@ interface IJoeRouter {
         uint256 deadline
     ) external returns (uint256 amountA, uint256 amountB);
 
-    function swapExactTokensForTokens(
+    function quote(
+        uint256 amountA,
+        uint256 reserveA,
+        uint256 reserveB
+    ) external pure returns (uint256 amountB);
+
+    function getAmountOut(
         uint256 amountIn,
-        uint256 amountOutMin,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external returns (uint256[] memory amounts);
-
-    function swapExactAVAXForTokens(
-        uint256 amountOutMin,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external payable returns (uint256[] memory amounts);
-
-    function swapAVAXForExactTokens(
-        uint256 amountOut,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external payable returns (uint256[] memory amounts);
+        uint256 reserveIn,
+        uint256 reserveOut
+    ) external pure returns (uint256 amountOut);
 
     function getAmountsOut(uint256 amountIn, address[] calldata path)
         external
@@ -1507,9 +1506,23 @@ interface IJoeRouter {
         external
         view
         returns (uint256[] memory amounts);
+
+    function swapAVAXForExactTokens(
+        uint256 amountOut,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external payable returns (uint256[] memory amounts);
+
+    function swapExactAVAXForTokens(
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external payable returns (uint256[] memory amounts);
 }
 
-interface IJoePair {
+interface IPangolinPair {
     event Approval(
         address indexed owner,
         address indexed spender,
@@ -1616,7 +1629,7 @@ interface IJoePair {
     function sync() external;
 }
 
-interface IJoeFactory {
+interface IPangolinFactory {
     event PairCreated(
         address indexed token0,
         address indexed token1,
@@ -1682,7 +1695,7 @@ interface IController {
 }
 
 
-// File contracts/strategies/strategy-joe-base.sol
+// File contracts/strategies/strategy-base.sol
 
 // SPDX-License-Identifier: MIT	
 pragma solidity ^0.6.7;
@@ -1694,7 +1707,7 @@ pragma solidity ^0.6.7;
 
 // Strategy Contract Basics
 
-abstract contract StrategyJoeBase {
+abstract contract StrategyBase {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -1702,27 +1715,25 @@ abstract contract StrategyJoeBase {
     // Tokens
     address public want;
     address public constant wavax = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
-    address public constant joe = 0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd;
+    address public constant png = 0x60781C2586D68229fde47564546784ab3fACA982;
     address public constant snob = 0xC38f41A296A4493Ff429F1238e030924A1542e50;
 
     // Dex
-    address public constant joeRouter = 0x60aE616a2155Ee3d9A68541Ba4544862310933d4;
-
-    //xSnob Fee Distributor
+    address public pangolinRouter = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
+    
     address public feeDistributor = 0xAd86ef5fD2eBc25bb9Db41A1FE8d0f2a322c7839;
 
-    // Perfomance fees - start with 0%
+    // Perfomance fees - start with 10%
     uint256 public performanceTreasuryFee = 0;
     uint256 public constant performanceTreasuryMax = 10000;
 
     uint256 public performanceDevFee = 0;
     uint256 public constant performanceDevMax = 10000;
 
-    // How many rewards tokens to keep? start with 10% converted to Snowballss
+    // How many rewards tokens to keep?
     uint256 public keep = 1000;
     uint256 public constant keepMax = 10000;
 
-    //portion to seend to fee distributor
     uint256 public revenueShare = 3000;
     uint256 public constant revenueShareMax = 10000;
 
@@ -1973,17 +1984,17 @@ abstract contract StrategyJoeBase {
     }
 
     // **** Internal functions ****
-    function _swapTraderJoe(
+    function _swapPangolin(
         address _from,
         address _to,
         uint256 _amount
     ) internal {
         require(_to != address(0));
-        // Swap with TraderJoe
-        IERC20(_from).safeApprove(joeRouter, 0);
-        IERC20(_from).safeApprove(joeRouter, _amount);
+        // Swap with Pangolin
+        IERC20(_from).safeApprove(pangolinRouter, 0);
+        IERC20(_from).safeApprove(pangolinRouter, _amount);
         address[] memory path;
-        if (_from == joe || _to == joe) {
+        if (_from == png || _to == png) {
             path = new address[](2);
             path[0] = _from;
             path[1] = _to;
@@ -1996,10 +2007,10 @@ abstract contract StrategyJoeBase {
         else {
             path = new address[](3);
             path[0] = _from;
-            path[1] = wavax;
+            path[1] = png;
             path[2] = _to;
         }
-        IJoeRouter(joeRouter).swapExactTokensForTokens(
+        IPangolinRouter(pangolinRouter).swapExactTokensForTokens(
             _amount,
             0,
             path,
@@ -2008,16 +2019,13 @@ abstract contract StrategyJoeBase {
         );
     }
 
-    function _swapTraderJoeWithPath(
+    function _swapPangolinWithPath(
         address[] memory path,
         uint256 _amount
     ) internal {
         require(path[1] != address(0));
-        //approvals
-        IERC20(joe).safeApprove(joeRouter, 0);
-        IERC20(joe).safeApprove(joeRouter,_amount);
-        //swap
-        IJoeRouter(joeRouter).swapExactTokensForTokens(
+
+        IPangolinRouter(pangolinRouter).swapExactTokensForTokens(
             _amount,
             0,
             path,
@@ -2025,28 +2033,6 @@ abstract contract StrategyJoeBase {
             now.add(60)
         );
     }
-        
-
-    function _takeFeeJoeToSnob(uint256 _keep) internal {
-        address[] memory path = new address[](3);
-        path[0] = joe;
-        path[1] = wavax;
-        path[2] = snob;
-        IERC20(joe).safeApprove(joeRouter, 0);
-        IERC20(joe).safeApprove(joeRouter, _keep);
-        _swapTraderJoeWithPath(path, _keep);
-        uint _snob = IERC20(snob).balanceOf(address(this));
-        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
-        IERC20(snob).safeTransfer(
-            feeDistributor,
-            _share
-        );
-        IERC20(snob).safeTransfer(
-            IController(controller).treasury(),
-            _snob.sub(_share)
-        );
-    }
-
 
     function _distributePerformanceFeesAndDeposit() internal {
         uint256 _want = IERC20(want).balanceOf(address(this));
@@ -2067,234 +2053,32 @@ abstract contract StrategyJoeBase {
             deposit();
         }
     }
-}
 
-
-// File contracts/interfaces/pangolin.sol
-
-// SPDX-License-Identifier: MIT
-
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.6.2;
-
-interface IPangolinRouter {
-    function swapExactTokensForTokens(
-        uint256 amountIn,
-        uint256 amountOutMin,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external returns (uint256[] memory amounts);
-
-    function addLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 amountADesired,
-        uint256 amountBDesired,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to,
-        uint256 deadline
-    )
-        external
-        returns (
-            uint256 amountA,
-            uint256 amountB,
-            uint256 liquidity
+    function _takeFeeWavaxToSnob(uint256 _keep) internal {
+        IERC20(wavax).safeApprove(pangolinRouter, 0);
+        IERC20(wavax).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(wavax, snob, _keep);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
         );
-
-    function addLiquidityAVAX(
-        address token,
-        uint256 amountTokenDesired,
-        uint256 amountTokenMin,
-        uint256 amountAVAXMin,
-        address to,
-        uint256 deadline
-    )
-        external
-        payable
-        returns (
-            uint256 amountToken,
-            uint256 amountAVAX,
-            uint256 liquidity
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
         );
-
-    function removeLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 liquidity,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to,
-        uint256 deadline
-    ) external returns (uint256 amountA, uint256 amountB);
-
-    function getAmountsOut(uint256 amountIn, address[] calldata path)
-        external
-        view
-        returns (uint256[] memory amounts);
-
-    function getAmountsIn(uint256 amountOut, address[] calldata path)
-        external
-        view
-        returns (uint256[] memory amounts);
-
-    function swapAVAXForExactTokens(
-        uint256 amountOut,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external payable returns (uint256[] memory amounts);
-
-    function swapExactAVAXForTokens(
-        uint256 amountOutMin,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external payable returns (uint256[] memory amounts);
-}
-
-interface IPangolinPair {
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
-    function name() external pure returns (string memory);
-
-    function symbol() external pure returns (string memory);
-
-    function decimals() external pure returns (uint8);
-
-    function totalSupply() external view returns (uint256);
-
-    function balanceOf(address owner) external view returns (uint256);
-
-    function allowance(address owner, address spender)
-        external
-        view
-        returns (uint256);
-
-    function approve(address spender, uint256 value) external returns (bool);
-
-    function transfer(address to, uint256 value) external returns (bool);
-
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) external returns (bool);
-
-    function DOMAIN_SEPARATOR() external view returns (bytes32);
-
-    function PERMIT_TYPEHASH() external pure returns (bytes32);
-
-    function nonces(address owner) external view returns (uint256);
-
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external;
-
-    event Mint(address indexed sender, uint256 amount0, uint256 amount1);
-    event Burn(
-        address indexed sender,
-        uint256 amount0,
-        uint256 amount1,
-        address indexed to
-    );
-    event Swap(
-        address indexed sender,
-        uint256 amount0In,
-        uint256 amount1In,
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address indexed to
-    );
-    event Sync(uint112 reserve0, uint112 reserve1);
-
-    function MINIMUM_LIQUIDITY() external pure returns (uint256);
-
-    function factory() external view returns (address);
-
-    function token0() external view returns (address);
-
-    function token1() external view returns (address);
-
-    function getReserves()
-        external
-        view
-        returns (
-            uint112 reserve0,
-            uint112 reserve1,
-            uint32 blockTimestampLast
-        );
-
-    function price0CumulativeLast() external view returns (uint256);
-
-    function price1CumulativeLast() external view returns (uint256);
-
-    function kLast() external view returns (uint256);
-
-    function mint(address to) external returns (uint256 liquidity);
-
-    function burn(address to)
-        external
-        returns (uint256 amount0, uint256 amount1);
-
-    function swap(
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address to,
-        bytes calldata data
-    ) external;
-
-    function skim(address to) external;
-
-    function sync() external;
-}
-
-interface IPangolinFactory {
-    event PairCreated(
-        address indexed token0,
-        address indexed token1,
-        address pair,
-        uint256
-    );
-
-    function getPair(address tokenA, address tokenB)
-        external
-        view
-        returns (address pair);
-
-    function allPairs(uint256) external view returns (address pair);
-
-    function allPairsLength() external view returns (uint256);
-
-    function feeTo() external view returns (address);
-
-    function feeToSetter() external view returns (address);
-
-    function createPair(address tokenA, address tokenB)
-        external
-        returns (address pair);
+    }
 }
 
 
-// File contracts/interfaces/bankerjoe.sol
+// File contracts/interfaces/benqi.sol
 
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.0;
 
-interface IJToken {
+interface IQiToken {
     function totalSupply() external view returns (uint256);
 
     function totalBorrows() external returns (uint256);
@@ -2366,19 +2150,19 @@ interface IJToken {
     ) external returns (uint256);
 }
 
-interface IJAvax {
+interface IQiAvax {
     function mint() external payable;
 
     /**
-     * @notice Sender redeems jTokens in exchange for the underlying asset
+     * @notice Sender redeems qiTokens in exchange for the underlying asset
      * @dev Accrues interest whether or not the operation succeeds, unless reverted
-     * @param redeemTokens The number of jTokens to redeem into underlying
+     * @param redeemTokens The number of qiTokens to redeem into underlying
      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
      */
     function redeem(uint256 redeemTokens) external returns (uint256);
 
     /**
-     * @notice Sender redeems jTokens in exchange for a specified amount of underlying asset
+     * @notice Sender redeems qiTokens in exchange for a specified amount of underlying asset
      * @dev Accrues interest whether or not the operation succeeds, unless reverted
      * @param redeemAmount The amount of underlying to redeem
      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
@@ -2406,163 +2190,19 @@ interface IJAvax {
     function repayBorrowBehalf(address borrower) external payable;
 
     /**
-     * @notice The sender liquidates the borrowers collateral
+     * @notice The sender liquidates the borrowers collateral.
      *  The collateral seized is transferred to the liquidator.
      * @dev Reverts upon any failure
-     * @param borrower The borrower of this jToken to be liquidated
-     * @param jTokenCollateral The market in which to seize collateral from the borrower
+     * @param borrower The borrower of this qiToken to be liquidated
+     * @param qiTokenCollateral The market in which to seize collateral from the borrower
      */
-    function liquidateBorrow(address borrower, address jTokenCollateral)
+    function liquidateBorrow(address borrower, address qiTokenCollateral)
         external
         payable;
 }
 
-interface IJoetroller {
-	
-
-    /*** Assets You Are In ***/
-
-    function enterMarkets(address[] calldata jTokens)
-        external
-        returns (uint256[] memory);
-
-    function exitMarket(address jToken) external returns (uint256);
-
-    /*** Policy Hooks ***/
-
-    function mintAllowed(
-        address jToken,
-        address minter,
-        uint256 mintAmount
-    ) external returns (uint256);
-
-    function mintVerify(
-        address jToken,
-        address minter,
-        uint256 mintAmount,
-        uint256 mintTokens
-    ) external;
-
-    function redeemAllowed(
-        address jToken,
-        address redeemer,
-        uint256 redeemTokens
-    ) external returns (uint256);
-
-    function redeemVerify(
-        address jToken,
-        address redeemer,
-        uint256 redeemAmount,
-        uint256 redeemTokens
-    ) external;
-
-    function borrowAllowed(
-        address jToken,
-        address borrower,
-        uint256 borrowAmount
-    ) external returns (uint256);
-
-    function borrowVerify(
-        address jToken,
-        address borrower,
-        uint256 borrowAmount
-    ) external;
-
-    function repayBorrowAllowed(
-        address jToken,
-        address payer,
-        address borrower,
-        uint256 repayAmount
-    ) external returns (uint256);
-
-    function repayBorrowVerify(
-        address jToken,
-        address payer,
-        address borrower,
-        uint256 repayAmount,
-        uint256 borrowerIndex
-    ) external;
-
-    function liquidateBorrowAllowed(
-        address jTokenBorrowed,
-        address jTokenCollateral,
-        address liquidator,
-        address borrower,
-        uint256 repayAmount
-    ) external returns (uint256);
-
-    function liquidateBorrowVerify(
-        address jTokenBorrowed,
-        address jTokenCollateral,
-        address liquidator,
-        address borrower,
-        uint256 repayAmount,
-        uint256 seizeTokens
-    ) external;
-
-    function seizeAllowed(
-        address jTokenCollateral,
-        address jTokenBorrowed,
-        address liquidator,
-        address borrower,
-        uint256 seizeTokens
-    ) external returns (uint256);
-
-    function seizeVerify(
-        address jTokenCollateral,
-        address jTokenBorrowed,
-        address liquidator,
-        address borrower,
-        uint256 seizeTokens
-    ) external;
-
-    function transferAllowed(
-        address jToken,
-        address src,
-        address dst,
-        uint256 transferTokens
-    ) external returns (uint256);
-
-    function transferVerify(
-        address jToken,
-        address src,
-        address dst,
-        uint256 transferTokens
-    ) external;
-
-    /*** Liquidity/Liquidation Calculations ***/
-
-    function liquidateCalculateSeizeTokens(
-        address jTokenBorrowed,
-        address jTokenCollateral,
-        uint256 repayAmount
-    ) external view returns (uint256, uint256);
-
-    
-		
-    function markets(address jTokenAddress)
-        external
-        view
-        returns (bool, uint256);
-}
-
-interface IJoeLens {
-    function getJTokenBalanceInternal(
-        address joe,
-        address joetroller,
-        address account
-    )
-        external
-        returns (
-            uint256 balance,
-            uint256 votes,
-            address delegate,
-            uint256 allocated
-        );
-}
-
-interface IRewardDistributor {
-    function rewardAccrued(uint8 rewardType, address holder) 
+interface IComptroller {
+	function rewardAccrued(uint8 rewardType, address holder) 
 		external 
 		view 
 		returns (uint);
@@ -2577,29 +2217,168 @@ interface IRewardDistributor {
 		view 
 		returns (uint224 index, uint32 timestamp);
 	
-    function rewardSupplierIndex(uint8 rewardType, address jContractAddress, address holder) 
+    function rewardSupplierIndex(uint8 rewardType, address qiContractAddress, address holder) 
 		external 
 		view 
 		returns (uint supplierIndex);
     
-	function rewardBorrowerIndex(uint8 rewardType, address jContractAddress, address holder) 	
+	function rewardBorrowerIndex(uint8 rewardType, address qiContractAddress, address holder) 	
 		external 
 		view 
 		returns (uint borrowerIndex);
 	
+
+    /*** Assets You Are In ***/
+
+    function enterMarkets(address[] calldata qiTokens)
+        external
+        returns (uint256[] memory);
+
+    function exitMarket(address qiToken) external returns (uint256);
+
+    /*** Policy Hooks ***/
+
+    function mintAllowed(
+        address qiToken,
+        address minter,
+        uint256 mintAmount
+    ) external returns (uint256);
+
+    function mintVerify(
+        address qiToken,
+        address minter,
+        uint256 mintAmount,
+        uint256 mintTokens
+    ) external;
+
+    function redeemAllowed(
+        address qiToken,
+        address redeemer,
+        uint256 redeemTokens
+    ) external returns (uint256);
+
+    function redeemVerify(
+        address qiToken,
+        address redeemer,
+        uint256 redeemAmount,
+        uint256 redeemTokens
+    ) external;
+
+    function borrowAllowed(
+        address qiToken,
+        address borrower,
+        uint256 borrowAmount
+    ) external returns (uint256);
+
+    function borrowVerify(
+        address qiToken,
+        address borrower,
+        uint256 borrowAmount
+    ) external;
+
+    function repayBorrowAllowed(
+        address qiToken,
+        address payer,
+        address borrower,
+        uint256 repayAmount
+    ) external returns (uint256);
+
+    function repayBorrowVerify(
+        address qiToken,
+        address payer,
+        address borrower,
+        uint256 repayAmount,
+        uint256 borrowerIndex
+    ) external;
+
+    function liquidateBorrowAllowed(
+        address qiTokenBorrowed,
+        address qiTokenCollateral,
+        address liquidator,
+        address borrower,
+        uint256 repayAmount
+    ) external returns (uint256);
+
+    function liquidateBorrowVerify(
+        address qiTokenBorrowed,
+        address qiTokenCollateral,
+        address liquidator,
+        address borrower,
+        uint256 repayAmount,
+        uint256 seizeTokens
+    ) external;
+
+    function seizeAllowed(
+        address qiTokenCollateral,
+        address qiTokenBorrowed,
+        address liquidator,
+        address borrower,
+        uint256 seizeTokens
+    ) external returns (uint256);
+
+    function seizeVerify(
+        address qiTokenCollateral,
+        address qiTokenBorrowed,
+        address liquidator,
+        address borrower,
+        uint256 seizeTokens
+    ) external;
+
+    function transferAllowed(
+        address qiToken,
+        address src,
+        address dst,
+        uint256 transferTokens
+    ) external returns (uint256);
+
+    function transferVerify(
+        address qiToken,
+        address src,
+        address dst,
+        uint256 transferTokens
+    ) external;
+
+    /*** Liquidity/Liquidation Calculations ***/
+
+    function liquidateCalculateSeizeTokens(
+        address qiTokenBorrowed,
+        address qiTokenCollateral,
+        uint256 repayAmount
+    ) external view returns (uint256, uint256);
+
     // Claim all the Reward Token accrued by holder in all markets
     function claimReward(uint8 rewardId, address holder) external;
 
     // Claim all the Reward Token accrued by holder in specific markets
-    function claimReward(uint8 rewardId, address holder, address[] calldata jTokens) external;
+    function claimReward(uint8 rewardId, address holder, address[] calldata qiTokens) external;
 
     // Claim all the Reward Token accrued by specific holders in specific markets for their supplies and/or borrows
     function claimReward(uint8 rewardId,
         address[] calldata holders,
-        address[] calldata jTokens,
+        address[] calldata qiTokens,
         bool borrowers,
         bool suppliers
     ) external;
+		
+    function markets(address qiTokenAddress)
+        external
+        view
+        returns (bool, uint256);
+}
+
+interface IBenqiLens {
+    function getQiBalanceMetadataExt(
+        address qi,
+        address comptroller,
+        address account
+    )
+        external
+        returns (
+            uint256 balance,
+            uint256 votes,
+            address delegate,
+            uint256 allocated
+        );
 }
 
 
@@ -2638,7 +2417,7 @@ interface WAVAX {
 }
 
 
-// File contracts/strategies/strategy-bankerjoe-farm-base.sol
+// File contracts/strategies/benqi/strategy-benqi-qi.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.2;
@@ -2651,12 +2430,11 @@ pragma solidity ^0.6.2;
 
 
 
-abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
-    address public constant joetroller = 0xdc13687554205E5b89Ac783db14bb5bba4A1eDaC; // Through UniTroller Address
-    address public constant rewardDistributor = 0x45B2C4139d96F44667577C0D7F7a7D170B420324; //separate function handling rewards
-    address public constant joeLens = 0x997fbA28c75747417571c5F3fe50015AaC2BB073; 
-       
-    address public jToken;
+contract StrategyBenqiQi is StrategyBase, Exponential {
+    address public constant comptroller = 0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4; // Through UniTroller Address
+    address public constant qi = 0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5; //qideposit token
+    address public constant benqi = 0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5; //Qi Token  
+    address public constant qiqi = 0x35Bd6aedA81a7E5FC7A7832490e71F757b0cD9Ce; //lending receipt token
 
     // Require a 0.04 buffer between
     // market collateral factor and strategy's collateral factor
@@ -2676,21 +2454,18 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
     mapping(address => bool) keepers;
 
     constructor(
-        address _token,
-        address _jToken,
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
     )
         public
-        StrategyJoeBase(_token, _governance, _strategist, _controller, _timelock)
+        StrategyBase(qi, _governance, _strategist, _controller, _timelock)
     {
-        jToken = _jToken;
-        // Enter jToken Market
-        address[] memory jTokens = new address[](1);
-        jTokens[0] = jToken;
-        IJoetroller(joetroller).enterMarkets(jTokens);
+        // Enter qiqi Market
+        address[] memory qitokens = new address[](1);
+        qitokens[0] = qiqi;
+        IComptroller(comptroller).enterMarkets(qitokens);
     }
 
     // **** Modifiers **** //
@@ -2698,9 +2473,9 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
     modifier onlyKeepers {
         require(
             keepers[msg.sender] ||
-            msg.sender == address(this) ||
-            msg.sender == strategist ||
-            msg.sender == governance,
+                msg.sender == address(this) ||
+                msg.sender == strategist ||
+                msg.sender == governance,
             "!keepers"
         );
         _;
@@ -2708,21 +2483,24 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
 
     // **** Views **** //
 
+    function getName() external override pure returns (string memory) {
+        return "StrategyBenqiQi";
+    }
+
     function getSuppliedView() public view returns (uint256) {
-        (, uint256 jTokenBal, , uint256 exchangeRate) = IJToken(jToken)
-            .getAccountSnapshot(address(this)
-        );
+        (, uint256 qiTokenBal, , uint256 exchangeRate) = IQiToken(qiqi)
+            .getAccountSnapshot(address(this));
 
         (, uint256 bal) = mulScalarTruncate(
             Exp({mantissa: exchangeRate}),
-            jTokenBal
+            qiTokenBal
         );
 
         return bal;
     }
 
     function getBorrowedView() public view returns (uint256) {
-        return IJToken(jToken).borrowBalanceStored(address(this));
+        return IQiToken(qiqi).borrowBalanceStored(address(this));
     }
 
     function balanceOfPool() public override view returns (uint256) {
@@ -2765,7 +2543,7 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
     }
 
     function getMarketColFactor() public view returns (uint256) {
-        (, uint256 colFactor) = IJoetroller(joetroller).markets(jToken);
+        (, uint256 colFactor) = IComptroller(comptroller).markets(qiqi);
 
         return colFactor;
     }
@@ -2779,24 +2557,13 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
         return leverage;
     }
 
-     // **** Pseudo-view functions (use `callStatic` on these) **** //
+    // **** Pseudo-view functions (use `callStatic` on these) **** //
     /* The reason why these exists is because of the nature of the
-       interest accruing supply + borrow balance. The "view" methods
+       interest accruing supply + borrow balance. The "view" mqiods
        are technically snapshots and don't represent the real value.
-       As such there are pseudo view methods where you can retrieve the
+       As such there are pseudo view mqiods where you can retrieve the
        results by calling `callStatic`.
     */
-
-    function getJoeAccrued() public returns (uint256) {
-        (, , , uint256 accrued) = IJoeLens(joeLens).getJTokenBalanceInternal(
-            joe,
-            rewardDistributor,
-            address(this)
-        );
-
-        return accrued;
-    }
-
 
 
     function getColFactor() public returns (uint256) {
@@ -2814,18 +2581,18 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
     }
 
     function getSupplied() public returns (uint256) {
-        return IJToken(jToken).balanceOfUnderlying(address(this));
+        return IQiToken(qiqi).balanceOfUnderlying(address(this));
     }
 
     function getBorrowed() public returns (uint256) {
-        return IJToken(jToken).borrowBalanceCurrent(address(this));
+        return IQiToken(qiqi).borrowBalanceCurrent(address(this));
     }
 
     function getBorrowable() public returns (uint256) {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
 
-        (, uint256 colFactor) = IJoetroller(joetroller).markets(jToken);
+        (, uint256 colFactor) = IComptroller(comptroller).markets(qiqi);
 
         // 99.99% just in case some dust accumulates
         return
@@ -2838,7 +2605,7 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
         uint256 supplied = getSupplied();
         uint256 borrowed = getBorrowed();
 
-        (, uint256 colFactor) = IJoetroller(joetroller).markets(jToken);
+        (, uint256 colFactor) = IComptroller(comptroller).markets(qiqi);
 
         // Return 99.99% of the time just incase
         return
@@ -2893,7 +2660,7 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
     // **** State mutations **** //
 
     // Do a `callStatic` on this.
-    // If it returns true then run it for realz. (i.e. eth_signedTx, not eth_call)
+    // If it returns true then run it for realz. (i.e. qi_signedTx, not qi_call)
     function sync() public returns (bool) {
         uint256 colFactor = getColFactor();
         uint256 safeSyncColFactor = getSafeSyncColFactor();
@@ -2918,17 +2685,17 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
     }
 
     // Leverages until we're supplying <x> amount
-    // 1. Redeem <x> want
-    // 2. Repay <x> want
+    // 1. Redeem <x> ETH
+    // 2. Repay <x> ETH
     function leverageUntil(uint256 _supplyAmount) public onlyKeepers {
-        // 1. Borrow out <X> want
-        // 2. Supply <X> want
+        // 1. Borrow out <X> ETH
+        // 2. Supply <X> ETH
 
         uint256 leverage = getMaxLeverage();
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         require(
             _supplyAmount >= unleveragedSupply &&
-            _supplyAmount <= unleveragedSupply.mul(leverage).div(1e18),
+                _supplyAmount <= unleveragedSupply.mul(leverage).div(1e18),
             "!leverage"
         );
 
@@ -2943,7 +2710,7 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
                 _borrowAndSupply = _supplyAmount.sub(supplied);
             }
 
-            IJToken(jToken).borrow(_borrowAndSupply);
+            IQiToken(qiqi).borrow(_borrowAndSupply);
             deposit();
 
             supplied = supplied.add(_borrowAndSupply);
@@ -2956,8 +2723,8 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
     }
 
     // Deleverages until we're supplying <x> amount
-    // 1. Redeem <x> want
-    // 2. Repay <x> want
+    // 1. Redeem <x> ETH
+    // 2. Repay <x> ETH
     function deleverageUntil(uint256 _supplyAmount) public onlyKeepers {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         uint256 supplied = getSupplied();
@@ -2979,12 +2746,12 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
             }
 
             require(
-                IJToken(jToken).redeemUnderlying(_redeemAndRepay) == 0,
+                IQiToken(qiqi).redeemUnderlying(_redeemAndRepay) == 0,
                 "!redeem"
             );
-            IERC20(want).safeApprove(jToken, 0);
-            IERC20(want).safeApprove(jToken, _redeemAndRepay);
-            require(IJToken(jToken).repayBorrow(_redeemAndRepay) == 0, "!repay");
+            IERC20(qi).safeApprove(qiqi, 0);
+            IERC20(qi).safeApprove(qiqi, _redeemAndRepay);
+            require(IQiToken(qiqi).repayBorrow(_redeemAndRepay) == 0, "!repay");
 
             supplied = supplied.sub(_redeemAndRepay);
 
@@ -2992,15 +2759,19 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
             _redeemAndRepay = _redeemAndRepay.mul(1e18).div(marketColFactor);
         } while (supplied > _supplyAmount);
     }
-    
-    
-    // allow Native Avax
-    receive() external payable {}
+	
+	
+	// allow Native Avax
+	receive() external payable {}
 
-    function _takeFeeWavaxToSnob(uint256 _keep) internal {
-        IERC20(wavax).safeApprove(joeRouter, 0);
-        IERC20(wavax).safeApprove(joeRouter, _keep);
-        _swapTraderJoe(wavax, snob, _keep);
+    function _takeFeeQiToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = benqi;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(benqi).safeApprove(pangolinRouter, 0);
+        IERC20(benqi).safeApprove(pangolinRouter, _keep);
+        _swapPangolinWithPath(path, _keep);
         uint _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
         IERC20(snob).safeTransfer(
@@ -3013,120 +2784,78 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
         );
     }
 
-    
     function harvest() public override onlyBenevolent {
-        address[] memory jTokens = new address[](1);
-        jTokens[0] = jToken;
-        uint256 _keep;
-        IRewardDistributor(rewardDistributor).claimReward(0, address(this));    // Claim
-        if (want != joe) {
-            uint256 _joe = IERC20(joe).balanceOf(address(this));
-            if (_joe > 0) {
-                _keep = _joe.mul(keep).div(keepMax);
-                if (_keep > 0){
-                    _takeFeeJoeToSnob(_keep);
-                }
-                address[] memory path = new address[](3);
-                path[0] = joe;
-                path[1] = wavax;
-                path[2] = want;
+        address[] memory qitokens = new address[](1);
+        qitokens[0] = qiqi;
 
-                _joe = IERC20(joe).balanceOf(address(this));
+        //ClaimQi
+        IComptroller(comptroller).claimReward(0, address(this));
 
-                IERC20(joe).safeApprove(joeRouter, 0);
-                IERC20(joe).safeApprove(joeRouter, _joe);
-
-                _swapTraderJoeWithPath(path, _joe);
+        uint256 _benqi = IERC20(benqi).balanceOf(address(this));
+        if (_benqi > 0) {
+            uint256 _keep = _benqi.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeeQiToSnob(_keep);
             }
         }
-        IRewardDistributor(rewardDistributor).claimReward(1, address(this));    // Claim Avax
-        uint256 _avax = address(this).balance;                                  // get balance of native Avax
-        if (_avax > 0) {                                                        // wrap avax into ERC20
+        
+        //ClaimAvax			
+		IComptroller(comptroller).claimReward(1, address(this)); 
+
+		uint256 _avax = address(this).balance;     //get balance of native Avax
+        if (_avax > 0) {                           //wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
         }
-        
+		
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
-            _keep = _wavax.mul(keep).div(keepMax);
+            uint256 _keep = _wavax.mul(keep).div(keepMax);
             if (_keep > 0){
                 _takeFeeWavaxToSnob(_keep);
             }
 
             _wavax = IERC20(wavax).balanceOf(address(this));
 
-            IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax);
-
-            _swapTraderJoe(wavax, want, _wavax);
-
+            //convert Avax Rewards
+            _swapPangolin(wavax, qi, _wavax);
         }
 
         _distributePerformanceFeesAndDeposit();
     }
-    
-    // Calculate the Accrued Rewards
-    function getHarvestable() external view returns (uint256, uint256) {
-        uint rewardsJoe = _calculateHarvestable(0, address(this));
+	
+	//Calculate the Accrued Rewards
+	function getHarvestable() external view returns (uint256, uint256) {
+		uint rewardsQi = _calculateHarvestable(0, address(this));
         uint rewardsAvax = _calculateHarvestable(1, address(this));
-        
-        return (rewardsJoe, rewardsAvax);
+		
+		return (rewardsQi, rewardsAvax);		
     }
 
-    function _calculateHarvestable(uint8 tokenIndex, address account) internal view returns (uint) {
-        uint rewardAccrued = IRewardDistributor(rewardDistributor).rewardAccrued(tokenIndex, account);
-        (uint224 supplyIndex, ) = IRewardDistributor(rewardDistributor).rewardSupplyState(tokenIndex, account);
-        uint supplierIndex = IRewardDistributor(rewardDistributor).rewardSupplierIndex(tokenIndex, jToken, account);
+	function _calculateHarvestable(uint8 tokenIndex, address account) internal view returns (uint) {
+        uint rewardAccrued = IComptroller(comptroller).rewardAccrued(tokenIndex, account);
+        (uint224 supplyIndex, ) = IComptroller(comptroller).rewardSupplyState(tokenIndex, account);
+        uint supplierIndex = IComptroller(comptroller).rewardSupplierIndex(tokenIndex, qiqi, account);
         uint supplyIndexDelta = 0;
         if (supplyIndex > supplierIndex) {
             supplyIndexDelta = supplyIndex - supplierIndex; 
         }
-        uint supplyAccrued = IJToken(jToken).balanceOf(account).mul(supplyIndexDelta);
-        (uint224 borrowIndex, ) = IRewardDistributor(rewardDistributor).rewardBorrowState(tokenIndex, account);
-        uint borrowerIndex = IRewardDistributor(rewardDistributor).rewardBorrowerIndex(tokenIndex, jToken, account);
+        uint supplyAccrued = IQiToken(qiqi).balanceOf(account).mul(supplyIndexDelta);
+        (uint224 borrowIndex, ) = IComptroller(comptroller).rewardBorrowState(tokenIndex, account);
+        uint borrowerIndex = IComptroller(comptroller).rewardBorrowerIndex(tokenIndex, qiqi, account);
         uint borrowIndexDelta = 0;
         if (borrowIndex > borrowerIndex) {
             borrowIndexDelta = borrowIndex - borrowerIndex;
         }
-        uint borrowAccrued = IJToken(jToken).borrowBalanceStored(account).mul(borrowIndexDelta);
+        uint borrowAccrued = IQiToken(qiqi).borrowBalanceStored(account).mul(borrowIndexDelta);
         return rewardAccrued.add(supplyAccrued.sub(borrowAccrued));
-    }
-
-}
-
-
-// File contracts/strategies/bankerJoe/strategy-joe-wbtc.sol
-
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.6.2;
-
-contract StrategyJoeWbtc is StrategyBankerJoeFarmBase {
-    
-    address public constant wbtc = 0x50b7545627a5162F82A992c33b87aDc75187B218; //banker joe deposit token
-    address public constant jWBTC = 0x3fE38b7b610C0ACD10296fEf69d9b18eB7a9eB1F; //lending receipt token
-
-    constructor(
-        address _governance,
-        address _strategist,
-        address _controller,
-        address _timelock
-    )
-        public
-        StrategyBankerJoeFarmBase(
-            wbtc, 
-            jWBTC, 
-            _governance, 
-            _strategist, 
-            _controller, 
-            _timelock
-        )
-    {}
+	}
 
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(jToken, 0);
-            IERC20(want).safeApprove(jToken, _want);
-            require(IJToken(jToken).mint(_want) == 0, "!deposit");
+            IERC20(want).safeApprove(qiqi, 0);
+            IERC20(want).safeApprove(qiqi, _want);
+            require(IQiToken(qiqi).mint(_want) == 0, "!deposit");
         }
     }
 
@@ -3138,13 +2867,16 @@ contract StrategyJoeWbtc is StrategyBankerJoeFarmBase {
         uint256 _want = balanceOfWant();
         if (_want < _amount) {
             uint256 _redeem = _amount.sub(_want);
+
             // Make sure market can cover liquidity
-            require(IJToken(jToken).getCash() >= _redeem, "!cash-liquidity");
+            require(IQiToken(qiqi).getCash() >= _redeem, "!cash-liquidity");
+
             // How much borrowed amount do we need to free?
             uint256 borrowed = getBorrowed();
             uint256 supplied = getSupplied();
             uint256 curLeverage = getCurrentLeverage();
             uint256 borrowedToBeFree = _redeem.mul(curLeverage).div(1e18);
+
             // If the amount we need to free is > borrowed
             // Just free up all the borrowed amount
             if (borrowed > 0) {
@@ -3156,15 +2888,11 @@ contract StrategyJoeWbtc is StrategyBankerJoeFarmBase {
                     this.deleverageUntil(supplied.sub(borrowedToBeFree));
                 }
             }
+	    
             // Redeems underlying
-            require(IJToken(jToken).redeemUnderlying(_redeem) == 0, "!redeem");
+            require(IQiToken(qiqi).redeemUnderlying(_redeem) == 0, "!redeem");
         }
+
         return _amount;
-    }
-
-    // **** Views **** //
-
-    function getName() external override pure returns (string memory) {
-        return "StrategyJoeWbtc";
     }
 }

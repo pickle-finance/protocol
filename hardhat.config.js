@@ -50,6 +50,11 @@ module.exports = {
   mocha: {
     timeout: 120000
   },
+  paths: { 
+    sources: "./contracts", 
+    cache: "./cache", 
+    artifacts:"./artifacts"
+  }
   // vyper: {
   //   version: "0.2.4",
   // },
