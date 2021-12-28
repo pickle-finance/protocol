@@ -827,14 +827,14 @@ library SafeERC20 {
 }
 
 
-// File contracts/snowglobes/bankerJoe/snowglobe-joe-eth.sol
+// File contracts/snowglobes/bankerJoe/snowglobe-joe-xjoe.sol
 
 // https://github.com/iearn-finance/vaults/blob/master/contracts/vaults/yVault.sol
 
 pragma solidity ^0.6.7;
 
 
-contract SnowGlobeJoeEth is ERC20 {
+contract SnowGlobeJoeXJoe is ERC20 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;

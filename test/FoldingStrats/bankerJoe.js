@@ -8,7 +8,7 @@ const tests = [
   // {
   //   name: "JoeDai",
   //   tokenAddress: "0xd586E7F844cEa2F87f50152665BCbc2C279D8d70",
-  //   strategyAddress: "0xcd9aa4d1a0cee1d0ed3798ded6fb925cbfe598a0",
+  //   strategyAddress: "",
   //   snowglobeAddress: "0x7b5FfCf45193986B757986379628432d90F20AAb",
   // },
   // {
@@ -29,31 +29,18 @@ const tests = [
   //   strategyAddress: "0xce1a073f8df6796bd3b969f8ce1a04f569965a2b",
   //   snowglobeAddress: "0x6C6B562100663b4179C95E5B199576f2E16b150e"
   // },
-  // {
-  //   name: "JoeWbtc",
-  //   tokenAddress: "0x50b7545627a5162F82A992c33b87aDc75187B218",
-  //   strategyAddress: "0xa0a72f0b5056fba03158fc2d75cf6b4e364c6520",
-  //   snowglobeAddress: "0xfb49ea67b84F7c1bBD825de7febd2C836BC4B47E",
-  // },
+  {
+    name: "JoeWbtc",
+    tokenAddress: "0x50b7545627a5162F82A992c33b87aDc75187B218",
+    strategyAddress: "",
+    snowglobeAddress: "0xfb49ea67b84F7c1bBD825de7febd2C836BC4B47E",
+  },
   // {
   //   name: "JoeEth",
   //   tokenAddress: "0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB",
   //   strategyAddress: "0x09e26431e600f22d111a6f3c8f88d9bae2a64ad5",
   //   snowglobeAddress: "0x49e6A1255DEfE0B194a67199e78aD5AA5D7cb092",
   // },
-  // {
-  //   name: "JoeMim",
-  //   tokenAddress: "0x130966628846BFd36ff31a822705796e8cb8C18D",
-  //   strategyAddress: "",
-  //   snowglobeAddress: "",
-  //   slot: "2",
-  // },
-  {
-    name: "JoeXJoe",
-    tokenAddress: "0x57319d41F71E81F3c65F2a47CA4e001EbAFd4F33",
-    strategyAddress: "",
-    snowglobeAddress: "0x6a52e6b23700A63eA4a0Db313eBD386Fb510eE3C",
-  }
 ];
 
 for (const test of tests) {

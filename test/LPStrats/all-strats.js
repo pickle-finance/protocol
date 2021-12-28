@@ -657,12 +657,12 @@ const tests = [
     //   snowglobeAddress: "",
     //   slot: 51
     // },
-    // {
-    //     name: "AxialAM3D",
-    //     controllerAddress: "",
-    //     snowglobeAddress: "",
-    //     slot: 51
-    //   },
+    {
+      name: "AxialAM3D",
+      controllerAddress: "",
+      snowglobeAddress: "",
+      slot: 51
+    },
 
 ];
 
