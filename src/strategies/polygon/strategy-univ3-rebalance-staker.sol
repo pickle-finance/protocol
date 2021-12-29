@@ -365,6 +365,10 @@ abstract contract StrategyRebalanceStakerUniV3 {
     }
 
     function harvest() public onlyBenevolent checkDeviation {
+
+        uint256 _initToken0 = token0.balanceOf(address(this));
+        uint256 _initToken1 = token1.balanceOf(address(this));
+
         if (isStakingActive()) {
             IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
             IUniswapV3Staker(univ3_staker).claimReward(
@@ -391,9 +395,12 @@ abstract contract StrategyRebalanceStakerUniV3 {
         nftManager.sweepToken(address(token0), 0, address(this));
         nftManager.sweepToken(address(token1), 0, address(this));
 
-        balanceProportion(tick_lower, tick_upper);
+        _distributePerformanceFees(token0.balanceOf(address(this)).sub(_initToken0),
+                                   token1.balanceOf(address(this)).sub(_initToken1));
 
-        _distributePerformanceFeesAndDeposit();
+        _balanceProportion(tick_lower, tick_upper);
+
+        deposit();
 
         redeposit();
 
@@ -405,10 +412,14 @@ abstract contract StrategyRebalanceStakerUniV3 {
         //This will only update when someone mint/burn/pokes the pool.
         (, , , , , , , , , , uint128 _owed0, uint128 _owed1) = nftManager
         .positions(tokenId);
-        uint256 _stakingRewards = IUniswapV3Staker(univ3_staker).rewards(
-            key.rewardToken,
-            address(this)
-        );
+
+        uint256 _stakingRewards;
+        if(isStakingActive()) {
+          _stakingRewards = IUniswapV3Staker(univ3_staker).rewards(
+              key.rewardToken,
+              address(this)
+          );
+        }
         if (address(key.rewardToken) == address(token0)) {
             _owed0 = _owed0 + uint128(_stakingRewards);
         } else if (address(key.rewardToken) == address(token1)) {
@@ -450,6 +461,9 @@ abstract contract StrategyRebalanceStakerUniV3 {
         returns (uint256 _tokenId)
     {
         if (tokenId != 0) {
+             uint256 _initToken0 = token0.balanceOf(address(this));
+             uint256 _initToken1 = token1.balanceOf(address(this));
+
             if (isStakingActive()) {
                 // If NFT is held by staker, then withdraw
                 IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
@@ -495,12 +509,12 @@ abstract contract StrategyRebalanceStakerUniV3 {
             nftManager.burn(tokenId);
 
             _distributePerformanceFees(
-                token0.balanceOf(address(this)).sub(_liqAmt0),
-                token1.balanceOf(address(this)).sub(_liqAmt1)
+                token0.balanceOf(address(this)).sub(_liqAmt0).sub(_initToken0),
+                token1.balanceOf(address(this)).sub(_liqAmt1).sub(_initToken1)
             );
         }
         (int24 _tickLower, int24 _tickUpper) = determineTicks();
-        balanceProportion(_tickLower, _tickUpper);
+        _balanceProportion(_tickLower, _tickUpper);
         //Need to do this again after the swap to cover any slippage.
         uint256 _amount0Desired = token0.balanceOf(address(this));
         uint256 _amount1Desired = token1.balanceOf(address(this));
@@ -595,14 +609,6 @@ abstract contract StrategyRebalanceStakerUniV3 {
         }
     }
 
-    function _distributePerformanceFeesAndDeposit() internal {
-        uint256 _balance0 = token0.balanceOf(address(this));
-        uint256 _balance1 = token1.balanceOf(address(this));
-
-        _distributePerformanceFees(_balance0, _balance1);
-        deposit();
-    }
-
     function onERC721Received(
         address,
         address,
@@ -612,7 +618,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
         return this.onERC721Received.selector;
     }
 
-    function balanceProportion(int24 _tickLower, int24 _tickUpper) internal {
+    function _balanceProportion(int24 _tickLower, int24 _tickUpper) internal {
         PoolVariables.Info memory _cache;
 
         _cache.amount0Desired = token0.balanceOf(address(this));
