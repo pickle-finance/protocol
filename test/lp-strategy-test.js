@@ -4,18 +4,20 @@ const chai = require("chai");
 const { BigNumber } = require("@ethersproject/bignumber");
 const {increaseTime, overwriteTokenAmount, increaseBlock, toGwei, fromWei} = require("./utils/helpers");
 const { expect } = chai;
-const {setupSigners,snowballAddr, treasuryAddr} = require("./utils/static");
+const {setupSigners,snowball_addr, treasury_addr} = require("./utils/static");
+
+const erc20_ABI = `[{"type":"event","name":"Approval","inputs":[{"type":"address","name":"owner","internalType":"address","indexed":true},{"type":"address","name":"spender","internalType":"address","indexed":true},{"type":"uint256","name":"value","internalType":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"DelegateChanged","inputs":[{"type":"address","name":"delegator","internalType":"address","indexed":true},{"type":"address","name":"fromDelegate","internalType":"address","indexed":true},{"type":"address","name":"toDelegate","internalType":"address","indexed":true}],"anonymous":false},{"type":"event","name":"DelegateVotesChanged","inputs":[{"type":"address","name":"delegate","internalType":"address","indexed":true},{"type":"uint256","name":"previousBalance","internalType":"uint256","indexed":false},{"type":"uint256","name":"newBalance","internalType":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"OwnershipTransferred","inputs":[{"type":"address","name":"previousOwner","internalType":"address","indexed":true},{"type":"address","name":"newOwner","internalType":"address","indexed":true}],"anonymous":false},{"type":"event","name":"Transfer","inputs":[{"type":"address","name":"from","internalType":"address","indexed":true},{"type":"address","name":"to","internalType":"address","indexed":true},{"type":"uint256","name":"value","internalType":"uint256","indexed":false}],"anonymous":false},{"type":"function","stateMutability":"view","outputs":[{"type":"bytes32","name":"","internalType":"bytes32"}],"name":"DELEGATION_TYPEHASH","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"bytes32","name":"","internalType":"bytes32"}],"name":"DOMAIN_TYPEHASH","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"allowance","inputs":[{"type":"address","name":"owner","internalType":"address"},{"type":"address","name":"spender","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[{"type":"bool","name":"","internalType":"bool"}],"name":"approve","inputs":[{"type":"address","name":"spender","internalType":"address"},{"type":"uint256","name":"amount","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"balanceOf","inputs":[{"type":"address","name":"account","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint32","name":"fromBlock","internalType":"uint32"},{"type":"uint256","name":"votes","internalType":"uint256"}],"name":"checkpoints","inputs":[{"type":"address","name":"","internalType":"address"},{"type":"uint32","name":"","internalType":"uint32"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint8","name":"","internalType":"uint8"}],"name":"decimals","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[{"type":"bool","name":"","internalType":"bool"}],"name":"decreaseAllowance","inputs":[{"type":"address","name":"spender","internalType":"address"},{"type":"uint256","name":"subtractedValue","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"delegate","inputs":[{"type":"address","name":"delegatee","internalType":"address"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"delegateBySig","inputs":[{"type":"address","name":"delegatee","internalType":"address"},{"type":"uint256","name":"nonce","internalType":"uint256"},{"type":"uint256","name":"expiry","internalType":"uint256"},{"type":"uint8","name":"v","internalType":"uint8"},{"type":"bytes32","name":"r","internalType":"bytes32"},{"type":"bytes32","name":"s","internalType":"bytes32"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"delegates","inputs":[{"type":"address","name":"delegator","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"getCurrentVotes","inputs":[{"type":"address","name":"account","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"getPriorVotes","inputs":[{"type":"address","name":"account","internalType":"address"},{"type":"uint256","name":"blockNumber","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[{"type":"bool","name":"","internalType":"bool"}],"name":"increaseAllowance","inputs":[{"type":"address","name":"spender","internalType":"address"},{"type":"uint256","name":"addedValue","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"maxSupply","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"mint","inputs":[{"type":"address","name":"_to","internalType":"address"},{"type":"uint256","name":"_amount","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"string","name":"","internalType":"string"}],"name":"name","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"nonces","inputs":[{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint32","name":"","internalType":"uint32"}],"name":"numCheckpoints","inputs":[{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"owner","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"renounceOwnership","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"string","name":"","internalType":"string"}],"name":"symbol","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"totalSupply","inputs":[]},{"type":"function","stateMutability":"nonpayable","outputs":[{"type":"bool","name":"","internalType":"bool"}],"name":"transfer","inputs":[{"type":"address","name":"recipient","internalType":"address"},{"type":"uint256","name":"amount","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[{"type":"bool","name":"","internalType":"bool"}],"name":"transferFrom","inputs":[{"type":"address","name":"sender","internalType":"address"},{"type":"address","name":"recipient","internalType":"address"},{"type":"uint256","name":"amount","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"transferOwnership","inputs":[{"type":"address","name":"newOwner","internalType":"address"}]}]`;
 
 
-const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, stratABI, _slot) => {
+const doLPStrategyTest = (name, _snowglobe_addr, _controller_addr, globeABI, stratABI, _slot) => {
 
-    const walletAddr = process.env.WALLET_ADDR;
+    const wallet_addr = process.env.WALLET_ADDR;
     let assetContract,controllerContract;
     let governanceSigner, strategistSigner, timelockSigner;
     let globeContract, strategyContract;
-    let strategyBalance, assetAddr, strategyAddr;
-    let snowglobeAddr = _snowglobeAddr ? _snowglobeAddr : "";
-    let controllerAddr = _controllerAddr ? _controllerAddr : "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85";
+    let strategyBalance, asset_addr, strategy_addr;
+    let snowglobe_addr = _snowglobe_addr ? _snowglobe_addr : "";
+    let controller_addr = _controller_addr ? _controller_addr : "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046";
     const txnAmt = "25000000000000000000000";
     const slot = _slot ? _slot : 1;
 
@@ -33,24 +35,24 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
         before( async () => {
             const strategyName = `Strategy${name}`;
             const snowglobeName = `SnowGlobe${name}`;
-            await network.provider.send('hardhat_impersonateAccount', [walletAddr]);
-            walletSigner = ethers.provider.getSigner(walletAddr);
+            await network.provider.send('hardhat_impersonateAccount', [wallet_addr]);
+            walletSigner = ethers.provider.getSigner(wallet_addr);
             [timelockSigner,strategistSigner,governanceSigner] = await setupSigners();
 
-            controllerContract = await ethers.getContractAt("ControllerV4", controllerAddr, governanceSigner);
+            controllerContract = await ethers.getContractAt("ControllerV4", controller_addr, governanceSigner);
             
             //The Strategy address will not be supplied. We should deploy and setup a new strategy
             const stratFactory = await ethers.getContractFactory(strategyName);
             // Now we can deploy the new strategy
-            strategyContract = await stratFactory.deploy(governanceSigner._address, strategistSigner._address,controllerAddr,timelockSigner._address);
-            assetAddr = await strategyContract.want();
-            strategyAddr = strategyContract.address;
-            // console.log(`\tDeployed ${strategyName} address is: ${strategyAddr}`);
-            await controllerContract.connect(timelockSigner).approveStrategy(assetAddr,strategyAddr);
+            strategyContract = await stratFactory.deploy(governanceSigner._address, strategistSigner._address,controller_addr,timelockSigner._address);
+            asset_addr = await strategyContract.want();
+            strategy_addr = strategyContract.address;
+            // console.log(`\tDeployed ${strategyName} address is: ${strategy_addr}`);
+            await controllerContract.connect(timelockSigner).approveStrategy(asset_addr,strategy_addr);
             
             /* Harvest old strategy */
-            const oldStrategyAddr = await controllerContract.strategies(assetAddr);
-            const oldStrategy = new ethers.Contract(oldStrategyAddr, stratABI, governanceSigner);
+            const oldStrategy_addr = await controllerContract.strategies(asset_addr);
+            const oldStrategy = new ethers.Contract(oldStrategy_addr, stratABI, governanceSigner);
             const harvest = await oldStrategy.harvest();
             const tx_harvest = await harvest.wait(1);
             if (!tx_harvest.status) {
@@ -59,25 +61,25 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
             }
             console.log("Harvested the old strategy for: ",name);
 
-            await controllerContract.connect(timelockSigner).setStrategy(assetAddr,strategyAddr);
+            await controllerContract.connect(timelockSigner).setStrategy(asset_addr,strategy_addr);
 
-            if (!snowglobeAddr) {
-                snowglobeAddr = await controllerContract.globes(assetAddr);
-                console.log("controllerAddr: ",controllerAddr);
-                console.log("snowglobeAddr: ",snowglobeAddr);
-                if (snowglobeAddr != 0) {
+            if (!snowglobe_addr) {
+                snowglobe_addr = await controllerContract.globes(asset_addr);
+                console.log("controller_addr: ",controller_addr);
+                console.log("snowglobe_addr: ",snowglobe_addr);
+                if (snowglobe_addr != 0) {
                     console.log("here");
-                    globeContract = new ethers.Contract(snowglobeAddr, globeABI, governanceSigner);
+                    globeContract = new ethers.Contract(snowglobe_addr, globeABI, governanceSigner);
                 }
                 else {
                     const globeFactory = await ethers.getContractFactory(snowglobeName);
-                    globeContract = await globeFactory.deploy(assetAddr, governanceSigner._address, timelockSigner._address, controllerAddr);
-                    await controllerContract.setGlobe(assetAddr, globeContract.address);
-                    snowglobeAddr = globeContract.address;
+                    globeContract = await globeFactory.deploy(asset_addr, governanceSigner._address, timelockSigner._address, controller_addr);
+                    await controllerContract.setGlobe(asset_addr, globeContract.address);
+                    snowglobe_addr = globeContract.address;
                 }
             }
             else {
-                globeContract = new ethers.Contract(snowglobeAddr, globeABI, governanceSigner);
+                globeContract = new ethers.Contract(snowglobe_addr, globeABI, governanceSigner);
             }
 
             /* Earn */
@@ -89,24 +91,24 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
             }
             console.log("Called earn in the Snowglobe for: ",name);
 
-            await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
-            assetContract = await ethers.getContractAt("ERC20",assetAddr,walletSigner);
+            await overwriteTokenAmount(asset_addr,wallet_addr,txnAmt,slot);
+            assetContract = await ethers.getContractAt("ERC20",asset_addr,walletSigner);
             
-            await strategyContract.connect(governanceSigner).whitelistHarvester(walletAddr);
+            await strategyContract.connect(governanceSigner).whitelistHarvester(wallet_addr);
         });
 
         const harvester = async () => {
-            await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
-            let amt = await assetContract.connect(walletSigner).balanceOf(walletAddr);
+            await overwriteTokenAmount(asset_addr,wallet_addr,txnAmt,slot);
+            let amt = await assetContract.connect(walletSigner).balanceOf(wallet_addr);
 
-            await assetContract.connect(walletSigner).approve(snowglobeAddr,amt);
-            let balBefore = await assetContract.connect(walletSigner).balanceOf(snowglobeAddr);
+            await assetContract.connect(walletSigner).approve(snowglobe_addr,amt);
+            let balBefore = await assetContract.connect(walletSigner).balanceOf(snowglobe_addr);
             await globeContract.connect(walletSigner).depositAll();
             
-            let userBal = await assetContract.connect(walletSigner).balanceOf(walletAddr);
+            let userBal = await assetContract.connect(walletSigner).balanceOf(wallet_addr);
             expect(userBal).to.be.equals(BigNumber.from("0x0"));
     
-            let balAfter = await assetContract.connect(walletSigner).balanceOf(snowglobeAddr);
+            let balAfter = await assetContract.connect(walletSigner).balanceOf(snowglobe_addr);
             expect(balBefore).to.be.lt(balAfter);
             await globeContract.connect(walletSigner).earn();
             await increaseTime(60 * 60 * 24 * 30);
@@ -124,7 +126,7 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
         };
     
         it("user wallet contains asset balance", async () =>{
-            let BNBal = await assetContract.balanceOf(walletAddr);
+            let BNBal = await assetContract.balanceOf(wallet_addr);
             console.log(`The balance of BNBal is: ${BNBal}`); 
 
             const BN = ethers.BigNumber.from(txnAmt)._hex.toString();
@@ -139,24 +141,24 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
         });
     
         it("Should be able to be configured correctly", async () => {
-            expect(await controllerContract.globes(assetAddr)).to.be.equals(snowglobeAddr);
-            expect(await controllerContract.strategies(assetAddr)).to.be.equals(strategyAddr);
+            expect(await controllerContract.globes(asset_addr)).to.be.equals(snowglobe_addr);
+            expect(await controllerContract.strategies(asset_addr)).to.be.equals(strategy_addr);
         });
     
         it("Should be able to deposit/withdraw money into globe", async () => {
-            await assetContract.approve(snowglobeAddr,"2500000000000000000000000000");
-            let balBefore = await assetContract.connect(walletSigner).balanceOf(snowglobeAddr);
+            await assetContract.approve(snowglobe_addr,"2500000000000000000000000000");
+            let balBefore = await assetContract.connect(walletSigner).balanceOf(snowglobe_addr);
             await globeContract.connect(walletSigner).depositAll();
             
-            let userBal = await assetContract.connect(walletSigner).balanceOf(walletAddr);
+            let userBal = await assetContract.connect(walletSigner).balanceOf(wallet_addr);
             expect(userBal).to.be.equals(BigNumber.from("0x0"));
     
-            let balAfter = await assetContract.connect(walletSigner).balanceOf(snowglobeAddr);
+            let balAfter = await assetContract.connect(walletSigner).balanceOf(snowglobe_addr);
             expect(balBefore).to.be.lt(balAfter);
     
             await globeContract.connect(walletSigner).withdrawAll();
             
-            userBal = await assetContract.connect(walletSigner).balanceOf(walletAddr);
+            userBal = await assetContract.connect(walletSigner).balanceOf(wallet_addr);
             expect(userBal).to.be.gt(BigNumber.from("0x0"));
         });
     
@@ -169,8 +171,8 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
         });
 
         it("Strategy loaded with initial balance", async () =>{
-            await assetContract.approve(snowglobeAddr,"2500000000000000000000000000");
-            let balBefore = await assetContract.connect(walletSigner).balanceOf(snowglobeAddr);
+            await assetContract.approve(snowglobe_addr,"2500000000000000000000000000");
+            let balBefore = await assetContract.connect(walletSigner).balanceOf(snowglobe_addr);
             await globeContract.connect(walletSigner).depositAll();
 
             await globeContract.connect(walletSigner).earn();
@@ -184,14 +186,14 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
             [amt,] = await harvester();
 
             await globeContract.connect(walletSigner).withdrawAll();
-            let newAmt = await assetContract.connect(walletSigner).balanceOf(walletAddr);
+            let newAmt = await assetContract.connect(walletSigner).balanceOf(wallet_addr);
             expect(amt).to.be.lt(newAmt);
         });
 
         it("should be be able change fee distributor", async () =>{
-            await strategyContract.connect(governanceSigner).setFeeDistributor(walletAddr);
+            await strategyContract.connect(governanceSigner).setFeeDistributor(wallet_addr);
             const feeDistributor = await strategyContract.feeDistributor();
-            expect(feeDistributor).to.be.equals(walletAddr);
+            expect(feeDistributor).to.be.equals(wallet_addr);
         });
 
         it("should be be able change keep amount for fees", async () =>{
@@ -210,18 +212,18 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
             // keep = await strategyContract.keep();
             // console.log("\tStrategy keep after: ",keep.toString());
 
-            let snobContract = await ethers.getContractAt("ERC20",snowballAddr,walletSigner);
+            let snobContract = await ethers.getContractAt("ERC20",snowball_addr,walletSigner);
 
 
             const globeBefore = await globeContract.balance();
-            const treasuryBefore = await assetContract.connect(walletSigner).balanceOf(treasuryAddr);
-            const snobBefore = await snobContract.balanceOf(treasuryAddr);
+            const treasuryBefore = await assetContract.connect(walletSigner).balanceOf(treasury_addr);
+            const snobBefore = await snobContract.balanceOf(treasury_addr);
             
             await harvester();
 
             const globeAfter = await globeContract.balance();
-            const treasuryAfter = await assetContract.connect(walletSigner).balanceOf(treasuryAddr);
-            const snobAfter = await snobContract.balanceOf(treasuryAddr);
+            const treasuryAfter = await assetContract.connect(walletSigner).balanceOf(treasury_addr);
+            const snobAfter = await snobContract.balanceOf(treasury_addr);
             const earnt = globeAfter.sub(globeBefore);
             const earntTTreasury = treasuryAfter.sub(treasuryBefore);
             const snobAccrued = snobAfter.sub(snobBefore);
@@ -242,18 +244,18 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
             // keep = await strategyContract.keep();
             //console.log("\tStrategy keep after: ",keep.toString());
 
-            let snobContract = await ethers.getContractAt("ERC20",snowballAddr,walletSigner);
+            let snobContract = new ethers.Contract(snowball_addr, erc20_ABI, walletSigner);
 
             const globeBefore = await globeContract.balance();
-            const treasuryBefore = await assetContract.connect(walletSigner).balanceOf(treasuryAddr);
-            const snobBefore = await snobContract.balanceOf(treasuryAddr);
+            const treasuryBefore = await assetContract.connect(walletSigner).balanceOf(treasury_addr);
+            const snobBefore = await snobContract.balanceOf(treasury_addr);
             console.log("snobBefore: ",snobBefore.toString());
 
             await harvester();
             
             const globeAfter = await globeContract.balance();
-            // const treasuryAfter = await assetContract.connect(walletSigner).balanceOf(treasuryAddr);
-            const snobAfter = await snobContract.balanceOf(treasuryAddr);
+            // const treasuryAfter = await assetContract.connect(walletSigner).balanceOf(treasury_addr);
+            const snobAfter = await snobContract.balanceOf(treasury_addr);
             console.log("snobAfter: ",snobAfter.toString());
             const earnt = globeAfter.sub(globeBefore);
             // const earntTTreasury = treasuryAfter.sub(treasuryBefore);

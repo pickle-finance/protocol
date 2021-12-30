@@ -139,7 +139,7 @@ contract StrategyJoeAvaxEgg is StrategyJoeRushFarmBase {
                 _takeFeeFeedToSnob(_keep);
             }
 
-            _feed = IERC20(joe).balanceOf(address(this));
+            _feed = IERC20(feed).balanceOf(address(this));
 
             IERC20(feed).safeApprove(joeRouter, 0);
             IERC20(feed).safeApprove(joeRouter, _feed);
