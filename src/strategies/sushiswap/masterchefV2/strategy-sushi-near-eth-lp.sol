@@ -3,12 +3,12 @@ pragma solidity ^0.6.7;
 
 import "../strategy-masterchefv2-base.sol";
 
-contract StrategySushiEthImxLp is StrategyMasterchefV2FarmBase {
-    uint256 public sushi_eth_imx_poolId = 27;
+contract StrategySushiNearEthLp is StrategyMasterchefV2FarmBase {
+    uint256 public sushi_near_eth_poolId = 13;
 
-    address public sushi_eth_imx_lp =
-        0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8;
-    address public imx = 0xF57e7e7C23978C3cAEC3C3548E3D615c346e79fF;
+    address public sushi_near_eth_lp =
+        0x6469B34a2a4723163C4902dbBdEa728D20693C12;
+    address public near = 0x85F17Cf997934a597031b2E18a9aB6ebD4B9f6a4;
 
     constructor(
         address _governance,
@@ -18,8 +18,8 @@ contract StrategySushiEthImxLp is StrategyMasterchefV2FarmBase {
     )
         public
         StrategyMasterchefV2FarmBase(
-            sushi_eth_imx_poolId,
-            sushi_eth_imx_lp,
+            sushi_near_eth_poolId,
+            sushi_near_eth_lp,
             _governance,
             _strategist,
             _controller,
@@ -36,15 +36,15 @@ contract StrategySushiEthImxLp is StrategyMasterchefV2FarmBase {
         // i.e. will be be heavily frontrunned?
         //      if so, a new strategy will be deployed.
 
-        // Collects Sushi and IMX tokens
+        // Collects Sushi and NEAR tokens
         IMasterchefV2(masterChef).harvest(poolId, address(this));
 
-        uint256 _imx = IERC20(imx).balanceOf(address(this));
-        if (_imx > 0) {
-            uint256 _amount = _imx.div(2);
-            IERC20(imx).safeApprove(sushiRouter, 0);
-            IERC20(imx).safeApprove(sushiRouter, _amount);
-            _swapSushiswap(imx, weth, _amount);
+        uint256 _near = IERC20(near).balanceOf(address(this));
+        if (_near > 0) {
+            uint256 _amount = _near.div(2);
+            IERC20(near).safeApprove(sushiRouter, 0);
+            IERC20(near).safeApprove(sushiRouter, _amount);
+            _swapSushiswap(near, weth, _amount);
         }
 
         uint256 _sushi = IERC20(sushi).balanceOf(address(this));
@@ -54,26 +54,26 @@ contract StrategySushiEthImxLp is StrategyMasterchefV2FarmBase {
             IERC20(sushi).safeApprove(sushiRouter, _sushi);
 
             _swapSushiswap(sushi, weth, _amount);
-            _swapSushiswap(sushi, imx, _amount);
+            _swapSushiswap(sushi, near, _amount);
         }
 
-        // Adds in liquidity for WETH/IMX
+        // Adds in liquidity for NEAR/WETH
         uint256 _weth = IERC20(weth).balanceOf(address(this));
 
-        _imx = IERC20(imx).balanceOf(address(this));
+        _near = IERC20(near).balanceOf(address(this));
 
-        if (_weth > 0 && _imx > 0) {
+        if (_weth > 0 && _near > 0) {
             IERC20(weth).safeApprove(sushiRouter, 0);
             IERC20(weth).safeApprove(sushiRouter, _weth);
 
-            IERC20(imx).safeApprove(sushiRouter, 0);
-            IERC20(imx).safeApprove(sushiRouter, _imx);
+            IERC20(near).safeApprove(sushiRouter, 0);
+            IERC20(near).safeApprove(sushiRouter, _near);
 
             UniswapRouterV2(sushiRouter).addLiquidity(
+                near,
                 weth,
-                imx,
+                _near,
                 _weth,
-                _imx,
                 0,
                 0,
                 address(this),
@@ -85,9 +85,9 @@ contract StrategySushiEthImxLp is StrategyMasterchefV2FarmBase {
                 IController(controller).treasury(),
                 IERC20(weth).balanceOf(address(this))
             );
-            IERC20(imx).safeTransfer(
+            IERC20(near).safeTransfer(
                 IController(controller).treasury(),
-                IERC20(imx).balanceOf(address(this))
+                IERC20(near).balanceOf(address(this))
             );
         }
 
@@ -97,6 +97,6 @@ contract StrategySushiEthImxLp is StrategyMasterchefV2FarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategySushiEthImxLp";
+        return "StrategySushiNearEthLp";
     }
 }
