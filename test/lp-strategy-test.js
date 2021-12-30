@@ -31,7 +31,7 @@ const doLPStrategyTest = (name, _snowglobeAddr, _controllerAddr, globeABI, strat
         });
 
         before( async () => {
-            const strategyName = `Strategy${name}Lp`;
+            const strategyName = `Strategy${name}`;
             const snowglobeName = `SnowGlobe${name}`;
             await network.provider.send('hardhat_impersonateAccount', [walletAddr]);
             walletSigner = ethers.provider.getSigner(walletAddr);
