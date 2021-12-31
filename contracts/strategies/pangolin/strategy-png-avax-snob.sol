@@ -1,12 +1,15 @@
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-png-farm-base.sol";
+import "../strategy-png-minichef-farm-base.sol";
 
-contract StrategyPngAvaxSnobLp is StrategyPngFarmBase {
+contract StrategyPngAvaxSnob is StrategyPngMiniChefFarmBase {
+    uint256 public _poolId = 22;
+
     // Token addresses
-    address public png_avax_snob_lp_rewards = 0x8Cc0183526ab00b2b1F3f4d42Ae7821e6Af2CbCb;
-    address public png_avax_snob_lp = 0x8364a01108D9b71Ed432C63Ba7fa57236A908647;
+    address public png_avax_snob_lp = 0xa1C2c3B6b120cBd4Cec7D2371FFd4a931A134A32;
+    // snob already defined in strategy-base.sol:24
+    // should we add "override" specifier, or remove declaration from this contract?
+    // address public snob = 0xC38f41A296A4493Ff429F1238e030924A1542e50;
 
     constructor(
         address _governance,
@@ -15,9 +18,8 @@ contract StrategyPngAvaxSnobLp is StrategyPngFarmBase {
         address _timelock
     )
         public
-        StrategyPngFarmBase(
-            snob,
-            png_avax_snob_lp_rewards,
+        StrategyPngMiniChefFarmBase(
+            _poolId,
             png_avax_snob_lp,
             _governance,
             _strategist,
@@ -26,9 +28,80 @@ contract StrategyPngAvaxSnobLp is StrategyPngFarmBase {
         )
     {}
 
+    // **** State Mutations ****
+
+    function harvest() public override onlyBenevolent {
+        // Collects Png tokens
+        IMiniChef(miniChef).harvest(poolId, address(this));
+
+        uint256 _png = IERC20(png).balanceOf(address(this));
+        if (_png > 0) {
+            // 10% is sent to treasury
+            uint256 _keep = _png.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeePngToSnob(_keep);
+            }
+
+            _png = IERC20(png).balanceOf(address(this));
+
+            IERC20(png).safeApprove(pangolinRouter, 0);
+            IERC20(png).safeApprove(pangolinRouter, _png);
+
+            _swapPangolin(png, wavax, _png);    
+        }
+
+        // Swap half WAVAX for SNOB
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        if (_wavax > 0) {
+            _swapPangolin(wavax, snob, _wavax.div(2));
+        }
+
+        // Adds in liquidity for AVAX/SNOB
+        _wavax = IERC20(wavax).balanceOf(address(this));
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+
+        if (_wavax > 0 && _snob > 0) {
+            IERC20(wavax).safeApprove(pangolinRouter, 0);
+            IERC20(wavax).safeApprove(pangolinRouter, _wavax);
+
+            IERC20(snob).safeApprove(pangolinRouter, 0);
+            IERC20(snob).safeApprove(pangolinRouter, _snob);
+
+            IPangolinRouter(pangolinRouter).addLiquidity(
+                wavax,
+                snob,
+                _wavax,
+                _snob,
+                0,
+                0,
+                address(this),
+                now + 60
+            );
+
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _snob = IERC20(snob).balanceOf(address(this));
+            
+            // Donates DUST
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
+            if (_snob > 0){
+                IERC20(snob).safeTransfer(
+                    IController(controller).treasury(),
+                    _snob
+                );
+            }
+        }
+
+        _distributePerformanceFeesAndDeposit();
+    }
+
     // **** Views ****
 
-    function getName() external override pure returns (string memory) {
-        return "StrategyPngAvaxSnobLp";
+    function getName() external pure override returns (string memory) {
+        return "StrategyPngAvaxSnob";
     }
 }
