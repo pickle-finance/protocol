@@ -35,7 +35,7 @@ contract StrategySushiGmEthLp is StrategyMasterchefV2FarmBase {
         // i.e. will be be heavily frontrunned?
         //      if so, a new strategy will be deployed.
 
-        // Collects Sushi and BIT tokens
+        // Collects Sushi and GM tokens
         IMasterchefV2(masterChef).harvest(poolId, address(this));
 
         uint256 _gm = IERC20(gm).balanceOf(address(this));
@@ -56,7 +56,7 @@ contract StrategySushiGmEthLp is StrategyMasterchefV2FarmBase {
             _swapSushiswap(sushi, gm, _amount);
         }
 
-        // Adds in liquidity for BIT/WETH
+        // Adds in liquidity for GM/WETH
         uint256 _weth = IERC20(weth).balanceOf(address(this));
 
         _gm = IERC20(gm).balanceOf(address(this));
