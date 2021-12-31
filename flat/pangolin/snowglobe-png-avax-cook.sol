@@ -827,14 +827,14 @@ library SafeERC20 {
 }
 
 
-// File contracts/snowglobes/pangolin/snowglobe-png-avax-roco.sol
+// File contracts/snowglobes/pangolin/snowglobe-png-avax-cook.sol
 
 // https://github.com/iearn-finance/vaults/blob/master/contracts/vaults/yVault.sol
 
 pragma solidity ^0.6.7;
 
 
-contract SnowGlobePngAvaxRoco is ERC20 {
+contract SnowGlobePngAvaxCook is ERC20 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -849,9 +849,9 @@ contract SnowGlobePngAvaxRoco is ERC20 {
     address public controller;
 
     constructor(
-        address _token,
-        address _governance,
-        address _timelock,
+        address _token, 
+        address _governance, 
+        address _timelock, 
         address _controller
     )
         public

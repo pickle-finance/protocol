@@ -1847,16 +1847,17 @@ abstract contract StrategyPngMiniChefFarmBase is StrategyBase {
 }
 
 
-// File contracts/strategies/pangolin/strategy-png-avax-frax.sol
+// File contracts/strategies/pangolin/strategy-png-usdce-daie.sol
 
 pragma solidity ^0.6.7;
 
-contract StrategyPngAvaxFrax is StrategyPngMiniChefFarmBase {
-    uint256 public _poolId = 37;
+contract StrategyPngUsdcEDaiE is StrategyPngMiniChefFarmBase {
+    uint256 public _poolId = 11;
 
     // Token addresses
-    address public png_avax_frax_lp = 0x0CE543c0f81ac9AAa665cCaAe5EeC70861a6b559;
-    address public frax = 0xD24C2Ad096400B6FBcd2ad8B24E7acBc21A1da64;
+    address public png_usdce_daie_lp = 0x221Caccd55F16B5176e14C0e9DBaF9C6807c83c9;
+    address public usdce = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
+    address public daie = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
 
     constructor(
         address _governance,
@@ -1867,7 +1868,7 @@ contract StrategyPngAvaxFrax is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            png_avax_frax_lp,
+            png_usdce_daie_lp,
             _governance,
             _strategist,
             _controller,
@@ -1894,51 +1895,46 @@ contract StrategyPngAvaxFrax is StrategyPngMiniChefFarmBase {
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
 
-            _swapPangolin(png, wavax, _png);    
+            _swapPangolin(png, usdce, _png.div(2));    
+            _swapPangolin(png, daie, _png.div(2)); 
         }
 
-        // Swap half WAVAX for FRAX
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0) {
-            _swapPangolin(wavax, frax, _wavax.div(2));
-        }
+        // Adds in liquidity for USDCe/DAIe
+        uint256 _usdce = IERC20(usdce).balanceOf(address(this));
+        uint256 _daie = IERC20(daie).balanceOf(address(this));
 
-        // Adds in liquidity for AVAX/FRAX
-        _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _frax = IERC20(frax).balanceOf(address(this));
+        if (_usdce > 0 && _daie > 0) {
+            IERC20(usdce).safeApprove(pangolinRouter, 0);
+            IERC20(usdce).safeApprove(pangolinRouter, _usdce);
 
-        if (_wavax > 0 && _frax > 0) {
-            IERC20(wavax).safeApprove(pangolinRouter, 0);
-            IERC20(wavax).safeApprove(pangolinRouter, _wavax);
-
-            IERC20(frax).safeApprove(pangolinRouter, 0);
-            IERC20(frax).safeApprove(pangolinRouter, _frax);
+            IERC20(daie).safeApprove(pangolinRouter, 0);
+            IERC20(daie).safeApprove(pangolinRouter, _daie);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
-                wavax,
-                frax,
-                _wavax,
-                _frax,
+                usdce,
+                daie,
+                _usdce,
+                _daie,
                 0,
                 0,
                 address(this),
                 now + 60
             );
 
-            _wavax = IERC20(wavax).balanceOf(address(this));
-            _frax = IERC20(frax).balanceOf(address(this));
+            _usdce = IERC20(usdce).balanceOf(address(this));
+            _daie = IERC20(daie).balanceOf(address(this));
             
             // Donates DUST
-            if (_wavax > 0){
-                IERC20(wavax).transfer(
+            if (_usdce > 0){
+                IERC20(usdce).transfer(
                     IController(controller).treasury(),
-                    _wavax
+                    _usdce
                 );
             }
-            if (_frax > 0){
-                IERC20(frax).safeTransfer(
+            if (_daie > 0){
+                IERC20(daie).safeTransfer(
                     IController(controller).treasury(),
-                    _frax
+                    _daie
                 );
             }
         }
@@ -1949,6 +1945,6 @@ contract StrategyPngAvaxFrax is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAvaxFrax";
+        return "StrategyPngUsdcEDaiE";
     }
 }

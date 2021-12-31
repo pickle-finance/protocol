@@ -1847,16 +1847,16 @@ abstract contract StrategyPngMiniChefFarmBase is StrategyBase {
 }
 
 
-// File contracts/strategies/pangolin/strategy-png-avax-frax.sol
+// File contracts/strategies/pangolin/strategy-png-avax-dyp.sol
 
 pragma solidity ^0.6.7;
 
-contract StrategyPngAvaxFrax is StrategyPngMiniChefFarmBase {
-    uint256 public _poolId = 37;
+contract StrategyPngAvaxDyp is StrategyPngMiniChefFarmBase {
+    uint256 public _poolId = 28;
 
     // Token addresses
-    address public png_avax_frax_lp = 0x0CE543c0f81ac9AAa665cCaAe5EeC70861a6b559;
-    address public frax = 0xD24C2Ad096400B6FBcd2ad8B24E7acBc21A1da64;
+    address public png_avax_dyp_lp = 0x497070e8b6C55fD283D8B259a6971261E2021C01;
+    address public dyp = 0x961C8c0B1aaD0c0b10a51FeF6a867E3091BCef17;
 
     constructor(
         address _governance,
@@ -1867,7 +1867,7 @@ contract StrategyPngAvaxFrax is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            png_avax_frax_lp,
+            png_avax_dyp_lp,
             _governance,
             _strategist,
             _controller,
@@ -1894,31 +1894,31 @@ contract StrategyPngAvaxFrax is StrategyPngMiniChefFarmBase {
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);
 
-            _swapPangolin(png, wavax, _png);    
+            _swapPangolin(png, wavax, _png);     
         }
 
-        // Swap half WAVAX for FRAX
+        // Swap half WAVAX for DYP
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
-            _swapPangolin(wavax, frax, _wavax.div(2));
+            _swapPangolin(wavax, dyp, _wavax.div(2));
         }
 
-        // Adds in liquidity for AVAX/FRAX
+        // Adds in liquidity for AVAX/DYP
         _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _frax = IERC20(frax).balanceOf(address(this));
+        uint256 _dyp = IERC20(dyp).balanceOf(address(this));
 
-        if (_wavax > 0 && _frax > 0) {
+        if (_wavax > 0 && _dyp > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
 
-            IERC20(frax).safeApprove(pangolinRouter, 0);
-            IERC20(frax).safeApprove(pangolinRouter, _frax);
+            IERC20(dyp).safeApprove(pangolinRouter, 0);
+            IERC20(dyp).safeApprove(pangolinRouter, _dyp);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
                 wavax,
-                frax,
+                dyp,
                 _wavax,
-                _frax,
+                _dyp,
                 0,
                 0,
                 address(this),
@@ -1926,7 +1926,7 @@ contract StrategyPngAvaxFrax is StrategyPngMiniChefFarmBase {
             );
 
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _frax = IERC20(frax).balanceOf(address(this));
+            _dyp = IERC20(dyp).balanceOf(address(this));
             
             // Donates DUST
             if (_wavax > 0){
@@ -1935,10 +1935,10 @@ contract StrategyPngAvaxFrax is StrategyPngMiniChefFarmBase {
                     _wavax
                 );
             }
-            if (_frax > 0){
-                IERC20(frax).safeTransfer(
+            if (_dyp > 0){
+                IERC20(dyp).safeTransfer(
                     IController(controller).treasury(),
-                    _frax
+                    _dyp
                 );
             }
         }
@@ -1949,6 +1949,6 @@ contract StrategyPngAvaxFrax is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAvaxFrax";
+        return "StrategyPngAvaxDyp";
     }
 }
