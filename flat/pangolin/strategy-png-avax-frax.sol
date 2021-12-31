@@ -1,4 +1,4 @@
-// Sources flattened with hardhat v2.6.5 https://hardhat.org
+// Sources flattened with hardhat v2.8.0 https://hardhat.org
 
 // File contracts/lib/safe-math.sol
 
@@ -1045,6 +1045,18 @@ interface IPangolinRouter {
         uint256 deadline
     ) external returns (uint256 amountA, uint256 amountB);
 
+    function quote(
+        uint256 amountA,
+        uint256 reserveA,
+        uint256 reserveB
+    ) external pure returns (uint256 amountB);
+
+    function getAmountOut(
+        uint256 amountIn,
+        uint256 reserveIn,
+        uint256 reserveOut
+    ) external pure returns (uint256 amountOut);
+
     function getAmountsOut(uint256 amountIn, address[] calldata path)
         external
         view
@@ -1601,39 +1613,198 @@ abstract contract StrategyBase {
             deposit();
         }
     }
+
+    function _takeFeeWavaxToSnob(uint256 _keep) internal {
+        IERC20(wavax).safeApprove(pangolinRouter, 0);
+        IERC20(wavax).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(wavax, snob, _keep);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
 }
 
 
-// File contracts/strategies/strategy-staking-rewards-base.sol
+// File contracts/interfaces/minichef-rewarder.sol
 
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-// Base contract for SNX Staking rewards contract interfaces
+// interface for Axial Rewarder contract
+interface IMiniChefRewarder {
+    using SafeERC20 for IERC20;
 
-abstract contract StrategyStakingRewardsBase is StrategyBase {
-    address public rewards;
+    function onReward(uint256 pid, address user, address recipient, uint256 rewardAmount, uint256 newLpAmount) external;
 
-    // **** Getters ****
+    function pendingTokens(uint256 pid, address user, uint256 rewardAmount) external view returns (IERC20[] memory, uint256[] memory);
+
+    function rewardToken() external view returns (address);
+}
+
+
+// File contracts/interfaces/minichefpangolin.sol
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.7;
+
+// interface for MiniChef contract
+interface IMiniChef {
+
+    /* Reads */
+    function userInfo(uint256, address) external view returns (
+        uint256 amount,
+        uint256 rewardDebt
+
+    );
+
+    function poolInfo(uint256 pid) external view returns (
+        IERC20 lpToken, // Address of LP token contract.
+        uint256 allocPoint, // How many allocation points assigned to this poolInfo. SUSHI to distribute per block.
+        uint256 lastRewardTimestamp, // Last block timestamp that SUSHI distribution occurs.
+        uint256 accJoePerShare, // Accumulated SUSHI per share, times 1e12. See below.
+        address rewarder
+    );
+
+    function totalAllocPoint() external view returns (uint256);
+
+    function poolLength() external view returns (uint256);
+
+
+    function pendingReward(uint256 _pid, address _user)
+        external
+        view
+        returns (
+            uint256 pending
+        );
+
+    /* Writes */
+
+    function add(
+        uint256 _allocPoint,
+        address _lpToken,
+        address _rewarder
+    ) external;
+
+    function set(
+        uint256 _pid,
+        uint256 _allocPoint,
+        IMiniChefRewarder _rewarder,
+        bool overwrite
+    ) external;
+
+    function updatePool(uint256 _pid) external;
+
+    function deposit(
+        uint256 _pid,
+        uint256 _amount,
+        address to
+    ) external;
+
+    function withdraw(
+        uint256 _pid,
+        uint256 _amount,
+        address to
+    ) external;
+
+    function withdrawAndHarvest(
+        uint256 _pid,
+        uint256 _amount,
+        address to
+    ) external;
+
+     function harvest(
+        uint256 _pid,
+        address to
+    ) external;
+}
+
+
+// File contracts/interfaces/wavax.sol
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.6.0;
+
+interface WAVAX {
+    function name() external view returns (string memory);
+
+    function approve(address guy, uint256 wad) external returns (bool);
+
+    function totalSupply() external view returns (uint256);
+
+    function transferFrom(
+        address src,
+        address dst,
+        uint256 wad
+    ) external returns (bool);
+
+    function withdraw(uint256 wad) external;
+
+    function decimals() external view returns (uint8);
+
+    function balanceOf(address) external view returns (uint256);
+
+    function symbol() external view returns (string memory);
+
+    function transfer(address dst, uint256 wad) external returns (bool);
+
+    function deposit() external payable;
+
+    function allowance(address, address) external view returns (uint256);
+}
+
+
+// File contracts/strategies/strategy-png-minichef-farm-base.sol
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.7;
+
+
+
+
+abstract contract StrategyPngMiniChefFarmBase is StrategyBase {
+    // Token addresses
+    address public constant miniChef = 0x1f806f7C8dED893fd3caE279191ad7Aa3798E928 ;
+
+    uint256 public poolId;
+
     constructor(
-        address _rewards,
-        address _want,
+        uint256 _poolId,
+        address _lp,
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
     )
         public
-        StrategyBase(_want, _governance, _strategist, _controller, _timelock)
+        StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
     {
-        rewards = _rewards;
+        poolId = _poolId;
     }
 
-    function balanceOfPool() public override view returns (uint256) {
-        return IStakingRewards(rewards).balanceOf(address(this));
+    function balanceOfPool() public view override returns (uint256) {
+        (uint256 amount, ) = IMiniChef(miniChef).userInfo(
+            poolId,
+            address(this)
+        );
+        return amount;
     }
 
+     receive() external payable {}
+
+    // Updated based on cryptofish's recommendation
     function getHarvestable() external view returns (uint256) {
-        return IStakingRewards(rewards).earned(address(this));
+        (uint256 pending) = IMiniChef(
+            miniChef
+        ).pendingReward(poolId, address(this));
+        return (pending);
     }
 
     // **** Setters ****
@@ -1641,9 +1812,9 @@ abstract contract StrategyStakingRewardsBase is StrategyBase {
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(rewards, 0);
-            IERC20(want).safeApprove(rewards, _want);
-            IStakingRewards(rewards).stake(_want);
+            IERC20(want).safeApprove(miniChef, 0);
+            IERC20(want).safeApprove(miniChef, _want);
+            IMiniChef(miniChef).deposit(poolId,_want, address(this));
         }
     }
 
@@ -1652,45 +1823,10 @@ abstract contract StrategyStakingRewardsBase is StrategyBase {
         override
         returns (uint256)
     {
-        IStakingRewards(rewards).withdraw(_amount);
+        IMiniChef(miniChef).withdraw(poolId, _amount, address(this));
         return _amount;
     }
-}
 
-
-// File contracts/strategies/strategy-png-farm-base.sol
-
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
-
-abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
-
-    // WAVAX/<token1> pair
-    address public token1;
-
-    constructor(
-        address _token1,
-        address _rewards,
-        address _lp,
-        address _governance,
-        address _strategist,
-        address _controller,
-        address _timelock
-    )
-        public
-        StrategyStakingRewardsBase(
-            _rewards,
-            _lp,
-            _governance,
-            _strategist,
-            _controller,
-            _timelock
-        )
-    {
-        token1 = _token1;
-    }
-
-    // **** State Mutations ****
 
     function _takeFeePngToSnob(uint256 _keep) internal {
         IERC20(png).safeApprove(pangolinRouter, 0);
@@ -1708,94 +1844,18 @@ abstract contract StrategyPngFarmBase is StrategyStakingRewardsBase {
         );
     }
 
-    function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But ETH is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
-        // Collects PNG tokens
-        IStakingRewards(rewards).getReward();
-        uint256 _png = IERC20(png).balanceOf(address(this));
-        if (_png > 0) {
-            // 10% is locked up for future gov
-            uint256 _keep = _png.mul(keep).div(keepMax);
-            if (_keep > 0) {
-                _takeFeePngToSnob(_keep);
-            }
-            IERC20(png).safeApprove(pangolinRouter, 0);
-            IERC20(png).safeApprove(pangolinRouter, _png.sub(_keep));
-            
-            if (token1 == png) {
-                _swapPangolin(png, wavax, _png.sub(_keep).div(2));
-            } else {            
-                _swapPangolin(png, wavax, _png.sub(_keep));
-            }
-             
-        }
-
-        // Swap half WAVAX for token
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0 && token1 != png) {
-            _swapPangolin(wavax, token1, _wavax.div(2));
-        }
-
-        // Adds in liquidity for WAVAX/token
-        _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _token1 = IERC20(token1).balanceOf(address(this));
-        _png = IERC20(png).balanceOf(address(this));
-        if (_wavax > 0 && _token1 > 0) {
-            IERC20(wavax).safeApprove(pangolinRouter, 0);
-            IERC20(wavax).safeApprove(pangolinRouter, _wavax);
-
-            IERC20(token1).safeApprove(pangolinRouter, 0);
-            IERC20(token1).safeApprove(pangolinRouter, _token1);
-
-            IPangolinRouter(pangolinRouter).addLiquidity(
-                wavax,
-                token1,
-                _wavax,
-                _token1,
-                0,
-                0,
-                address(this),
-                now + 60
-            );
-            _wavax = IERC20(wavax).balanceOf(address(this));
-            _token1 = IERC20(token1).balanceOf(address(this));
-            // Donates DUST
-            if (_wavax > 0){
-                IERC20(wavax).transfer(
-                    IController(controller).treasury(),
-                    _wavax
-                );
-            }
-            if (_token1 > 0){
-                IERC20(token1).safeTransfer(
-                    IController(controller).treasury(),
-                    _token1
-                );
-            }
-        }
-
-        // We want to get back PNG LP tokens
-        _distributePerformanceFeesAndDeposit();
-    }
 }
 
 
 // File contracts/strategies/pangolin/strategy-png-avax-frax.sol
 
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-contract StrategyPngAvaxFraxLp is StrategyPngFarmBase {
+contract StrategyPngAvaxFrax is StrategyPngMiniChefFarmBase {
+    uint256 public _poolId = 37;
+
     // Token addresses
-    address public png_avax_frax_lp_rewards =
-        0x55152E05202AE58fDab26b20c6Fd762F5BCA797c;
-    address public png_avax_frax_lp =
-        0x0CE543c0f81ac9AAa665cCaAe5EeC70861a6b559;
+    address public png_avax_frax_lp = 0x0CE543c0f81ac9AAa665cCaAe5EeC70861a6b559;
     address public frax = 0xD24C2Ad096400B6FBcd2ad8B24E7acBc21A1da64;
 
     constructor(
@@ -1805,9 +1865,8 @@ contract StrategyPngAvaxFraxLp is StrategyPngFarmBase {
         address _timelock
     )
         public
-        StrategyPngFarmBase(
-            frax,
-            png_avax_frax_lp_rewards,
+        StrategyPngMiniChefFarmBase(
+            _poolId,
             png_avax_frax_lp,
             _governance,
             _strategist,
@@ -1816,9 +1875,80 @@ contract StrategyPngAvaxFraxLp is StrategyPngFarmBase {
         )
     {}
 
+    // **** State Mutations ****
+
+    function harvest() public override onlyBenevolent {
+        // Collects Png tokens
+        IMiniChef(miniChef).harvest(poolId, address(this));
+
+        uint256 _png = IERC20(png).balanceOf(address(this));
+        if (_png > 0) {
+            // 10% is sent to treasury
+            uint256 _keep = _png.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeePngToSnob(_keep);
+            }
+
+            _png = IERC20(png).balanceOf(address(this));
+
+            IERC20(png).safeApprove(pangolinRouter, 0);
+            IERC20(png).safeApprove(pangolinRouter, _png);
+
+            _swapPangolin(png, wavax, _png);    
+        }
+
+        // Swap half WAVAX for FRAX
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        if (_wavax > 0) {
+            _swapPangolin(wavax, frax, _wavax.div(2));
+        }
+
+        // Adds in liquidity for AVAX/FRAX
+        _wavax = IERC20(wavax).balanceOf(address(this));
+        uint256 _frax = IERC20(frax).balanceOf(address(this));
+
+        if (_wavax > 0 && _frax > 0) {
+            IERC20(wavax).safeApprove(pangolinRouter, 0);
+            IERC20(wavax).safeApprove(pangolinRouter, _wavax);
+
+            IERC20(frax).safeApprove(pangolinRouter, 0);
+            IERC20(frax).safeApprove(pangolinRouter, _frax);
+
+            IPangolinRouter(pangolinRouter).addLiquidity(
+                wavax,
+                frax,
+                _wavax,
+                _frax,
+                0,
+                0,
+                address(this),
+                now + 60
+            );
+
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _frax = IERC20(frax).balanceOf(address(this));
+            
+            // Donates DUST
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
+            if (_frax > 0){
+                IERC20(frax).safeTransfer(
+                    IController(controller).treasury(),
+                    _frax
+                );
+            }
+        }
+
+        _distributePerformanceFeesAndDeposit();
+    }
+
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAvaxFraxLp";
+        return "StrategyPngAvaxFrax";
     }
 }

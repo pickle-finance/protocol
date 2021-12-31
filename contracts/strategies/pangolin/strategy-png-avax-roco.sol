@@ -1,11 +1,11 @@
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-png-farm-base.sol";
+import "../strategy-png-minichef-farm-base.sol";
 
-contract StrategyPngAvaxRocoLp is StrategyPngFarmBase {
+contract StrategyPngAvaxRoco is StrategyPngMiniChefFarmBase {
+    uint256 public _poolId = 17;
+
     // Token addresses
-    address public png_avax_roco_lp_rewards = 0x23855F21d158efAE410e3568FB623C35BC1952E0;
     address public png_avax_roco_lp = 0x4a2cB99e8d91f82Cf10Fb97D43745A1f23e47caA;
     address public roco = 0xb2a85C5ECea99187A977aC34303b80AcbDdFa208;
 
@@ -16,9 +16,8 @@ contract StrategyPngAvaxRocoLp is StrategyPngFarmBase {
         address _timelock
     )
         public
-        StrategyPngFarmBase(
-            roco,
-            png_avax_roco_lp_rewards,
+        StrategyPngMiniChefFarmBase(
+            _poolId,
             png_avax_roco_lp,
             _governance,
             _strategist,
@@ -27,9 +26,80 @@ contract StrategyPngAvaxRocoLp is StrategyPngFarmBase {
         )
     {}
 
+    // **** State Mutations ****
+
+    function harvest() public override onlyBenevolent {
+        // Collects Png tokens
+        IMiniChef(miniChef).harvest(poolId, address(this));
+
+        uint256 _png = IERC20(png).balanceOf(address(this));
+        if (_png > 0) {
+            // 10% is sent to treasury
+            uint256 _keep = _png.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeePngToSnob(_keep);
+            }
+
+            _png = IERC20(png).balanceOf(address(this));
+
+            IERC20(png).safeApprove(pangolinRouter, 0);
+            IERC20(png).safeApprove(pangolinRouter, _png);
+
+            _swapPangolin(png, wavax, _png);     
+        }
+
+        // Swap half WAVAX for ROCO
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        if (_wavax > 0) {
+            _swapPangolin(wavax, roco, _wavax.div(2));
+        }
+
+        // Adds in liquidity for AVAX/ROCO
+        _wavax = IERC20(wavax).balanceOf(address(this));
+        uint256 _roco = IERC20(roco).balanceOf(address(this));
+
+        if (_wavax > 0 && _roco > 0) {
+            IERC20(wavax).safeApprove(pangolinRouter, 0);
+            IERC20(wavax).safeApprove(pangolinRouter, _wavax);
+
+            IERC20(roco).safeApprove(pangolinRouter, 0);
+            IERC20(roco).safeApprove(pangolinRouter, _roco);
+
+            IPangolinRouter(pangolinRouter).addLiquidity(
+                wavax,
+                roco,
+                _wavax,
+                _roco,
+                0,
+                0,
+                address(this),
+                now + 60
+            );
+
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _roco = IERC20(roco).balanceOf(address(this));
+            
+            // Donates DUST
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
+            if (_roco > 0){
+                IERC20(roco).safeTransfer(
+                    IController(controller).treasury(),
+                    _roco
+                );
+            }
+        }
+
+        _distributePerformanceFeesAndDeposit();
+    }
+
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAvaxRocoLp";
+        return "StrategyPngAvaxRoco";
     }
 }

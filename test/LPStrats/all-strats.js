@@ -16,8 +16,8 @@ const tests = [
   // },
   // {
   //   name: "PngAvaxSnob",
-  //   controllerAddress: "0xacc69deef119ab5bbf14e6aaf0536eafb3d6e046",
-  //   snowglobeAddress: "0xF4072358C1E3d7841BD7AfDE31F61E17E8d99BE7",
+  //   controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
+  //   snowglobeAddress: "",
   // },
   // {
   //   name: "PngAvaxVso",
@@ -197,6 +197,11 @@ const tests = [
   //   snowglobeAddress: "0x39259A07C7B21189BF1bC2Bd75967565b3C1F16e",
   // },
   // {
+  //   name: "PngUsdcEUsdtE",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
   //   name: "PngAvaxTusd",
   //   controllerAddress: "",
   //   snowglobeAddress: "0xfe1A87Cc4a2144f7eBb7d731bE80bF0e4CC6E909",
@@ -249,7 +254,7 @@ const tests = [
   // {
   //   name: "PngAvaxFrax",
   //   controllerAddress: "",
-  //   snowglobeAddress: "0xD0686AC7d0CfFd00A29567D37774058452210D57",
+  //   snowglobeAddress: "",
   // },
   // {
   //   name: "PngAvaxFxs",
@@ -347,7 +352,7 @@ const tests = [
   //   snowglobeAddress: "",
   // },
   // {
-  //   name: "PngTusdDaiEMini",
+  //   name: "PngTusdDaiE",
   //   controllerAddress: "",
   //   snowglobeAddress: "",
   // },
@@ -381,18 +386,83 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "",
   // },
+  //  {
+  //     name: "PngAvaxAmpl",
+  //     controllerAddress: "",
+  //     snowglobeAddress: "",
+  // }, 
   // {
   //     name: "PngAvaxCly",
   //     controllerAddress: "",
   //     snowglobeAddress: "",
   //   },      
   // {
-  //   name: "PngUsdteSkill",
+  //   name: "PngUsdtESkill",
   //   controllerAddress: "",
   //   snowglobeAddress: "",
   // },
   // {
   //   name: "PngAvaxCook",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  //   {
+  //   name: "PngAvaxHct",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxImxa",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  //   {
+  //   name: "PngAvaxInsur",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxJoe",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxKlo",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxOoe",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxOrbs",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxSpell",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  //  {
+  //   name: "PngAvaxTime",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  //  {
+  //   name: "PngAvaxVee",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "PngAvaxWethE",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "",
+  // },
+  //  {
+  //   name: "PngUsdcEDaiE",
   //   controllerAddress: "",
   //   snowglobeAddress: "",
   // },

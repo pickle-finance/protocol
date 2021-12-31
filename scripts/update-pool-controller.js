@@ -20,31 +20,30 @@ async function main() {
   const new_controller_addr = "0x8bfBA506B442f0D93Da2aDFd1ab70b7cB6a77B76";
 
   const pools = [
-    {
-      name: "BenqiEthE",
-      strategy: "0x46a6aCd149f7BeA5c469580FEE851dd9F5ba968e",
-      snowglobe: "0x37d4b7B04ccfC14d3D660EDca1637417f5cA37f3"
-    },
-    {
-      name: "BenqiLinkE",
-      strategy: "0xbd86DdDf32923763F26A0eB051c35b6442c323fe",
-      snowglobe: "0x32d9D114A2F5aC4ce777463e661BFA28C8fE9Eb7"
-    },
     // {
-    //   name: "BenqiQi",
-    //   strategy: "0xe9d8C31c5Bd5f2939731387dBc4f1c984828F532",
-    //   snowglobe: "0x68b8037876385BBd6bBe80bAbB2511b95DA372C4"
+    //   name: "BenqiEthE",
+    //   strategy: "0x46a6aCd149f7BeA5c469580FEE851dd9F5ba968e",
+    //   snowglobe: "0x37d4b7B04ccfC14d3D660EDca1637417f5cA37f3"
+    // },
+    // {
+    //   name: "BenqiLinkE",
+    //   strategy: "0xbd86DdDf32923763F26A0eB051c35b6442c323fe",
+    //   snowglobe: "0x32d9D114A2F5aC4ce777463e661BFA28C8fE9Eb7"
+    // },
+    // {
+    //   name: "BenqiWavax",
+    //   strategy: "0x2098e8Ce5e24BB6f4984f9667ABd7aDC3d362a33",
+    //   snowglobe: "0xaCF2814cF22fCB08b3dDA331221A52ad7B05639B"
+    // },
+    // {
+    //   name: "BenqiWbtcE",
+    //   strategy: "0x3DD8c4BB2e3fC4dC42e5D2765093aE9325E49ed6",
+    //   snowglobe: "0x8FA104f65BDfddEcA211867b77e83949Fc9d8b44"
     // },
     {
-      name: "BenqiWavax",
-      strategy: "0x2098e8Ce5e24BB6f4984f9667ABd7aDC3d362a33",
-      snowglobe: "0xaCF2814cF22fCB08b3dDA331221A52ad7B05639B"
-    },
-    {
-      name: "BenqiWbtcE",
-      strategy: "0x3DD8c4BB2e3fC4dC42e5D2765093aE9325E49ed6",
-      snowglobe: "0x8FA104f65BDfddEcA211867b77e83949Fc9d8b44"
-    },
+      name: "PngAvaxXava",
+      strategy: "0x0a6dbfb865244af080d2da1a39b78ee5ca673762"
+    }
   ];
 
   const Council = new ethers.Contract(council_addr, multisig_ABI, signer);
