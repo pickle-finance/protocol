@@ -6,7 +6,7 @@ import "../strategy-brl-base.sol";
 contract StrategyBrlUsdcNearLp is StrategyBrlFarmBase {
     uint256 public usdc_near_poolid = 3;
     // Token addresses
-    address public usdc_near_lp = 0x5BdAC608cd38C5C8738f5bE20813194A3150d4Ff;
+    address public usdc_near_lp = 0x480A68bA97d70495e80e11e05D59f6C659749F27;
     address public usdc = 0xB12BFcA5A55806AaF64E99521918A4bf0fC40802;
 
     constructor(
