@@ -19,7 +19,7 @@ async function main() {
   const Council = new ethers.Contract(council_addr, multisig_ABI, signer);
   const IMultiSig = new ethers.utils.Interface(multisig_ABI);
   const IController = new ethers.utils.Interface(controller_ABI);
-  const controller_addr = "0x8bfBA506B442f0D93Da2aDFd1ab70b7cB6a77B76";
+  const controller_addr = "0xc7D536a04ECC43269B6B95aC1ce0a06E0000D095"; // Axial
 
   const first_encoding = IController.encodeFunctionData("setStrategist", [new_strategist]);
 

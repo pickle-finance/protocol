@@ -40,6 +40,11 @@ const doLPStrategyTest = (name, _snowglobe_addr, _controller_addr, globeABI, str
             [timelockSigner,strategistSigner,governanceSigner] = await setupSigners();
 
             controllerContract = await ethers.getContractAt("ControllerV4", controller_addr, governanceSigner);
+
+            let strategist = await controllerContract.strategist();
+            let tm = await controllerContract.timelock();
+            console.log("strategist: ",strategist);
+            console.log("tm: ",tm);
             
             //The Strategy address will not be supplied. We should deploy and setup a new strategy
             const stratFactory = await ethers.getContractFactory(strategyName);
