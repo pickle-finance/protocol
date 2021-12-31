@@ -27,11 +27,12 @@ async function main() {
     let lp, strategy, Strategy, globe, SnowGlobe, controller_addr;
 
     switch(pools[name].controller){
-      case "Backup": controller_addr = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; break;
-      case "BankerJoe": controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
       case "Aave": controller_addr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; break;
       case "Axial": controller_addr = "0xc7D536a04ECC43269B6B95aC1ce0a06E0000D095"; break;
-      case "Benqi": controller_addr = "0x252B5fD3B1Cb07A2109bF36D5bDE6a247c6f4B59"; break;
+      case "Backup": controller_addr = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; break;
+      case "BankerJoe": controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
+      case "Benqi": controller_addr = "0x252B5fD3B1Cb07A2109bF36D5bDE6a247c6f4B59"; break;    
+      case "TraderJoe": controller_addr = "0xCEB829a0881350689dAe8CBD77D0E012cf7a6a3f"; break;
       // case "Benqi": controller_addr = "0x8bfBA506B442f0D93Da2aDFd1ab70b7cB6a77B76"; break;
       default: controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; break; //Base
     }
@@ -161,25 +162,26 @@ async function main() {
 
 
 
-    // /* 
-    //   Encoding Harvest for old strategy
-    //   only runs if there was an old strategy on the same controller
-    // */
-    // if(!pools[name].harvest) {
-    //   const oldStrategy_addr = await Controller.strategies(lp);
-    //   if (oldStrategy_addr != 0) {
-    //     const IStrategy = new ethers.utils.Interface(strategy_ABI);
-    //     pools[name].targets.push(oldStrategy_addr);
-    //     pools[name].data.push(IStrategy.encodeFunctionData("harvest", []));
-    //     pools[name].harvest = true;
-    //     writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
-    //     console.log(`encoded harvest for ${name}`);
-    //   }
-    //   else {
-    //     pools[name].harvest = true;
-    //     writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
-    //   }
-    // }
+    /* 
+      Encoding Harvest for old strategy
+      only runs if there was an old strategy on the same controller
+      Be sure to check that the Timelock Controller has the correct permissions in the old strategy
+    */
+    if(!pools[name].harvest) {
+      const old_strategy_addr = await Controller.strategies(lp);
+      if (old_strategy_addr != 0) {
+        const IStrategy = new ethers.utils.Interface(strategy_ABI);
+        pools[name].targets.push(old_strategy_addr);
+        pools[name].data.push(IStrategy.encodeFunctionData("harvest", []));
+        pools[name].harvest = true;
+        writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
+        console.log(`encoded harvest for ${name}`);
+      }
+      else {
+        pools[name].harvest = true;
+        writeFileSync("./scripts/deploy.json", JSON.stringify(pools));
+      }
+    }
 
     /* Encoding for Set Strategy */
     if (!pools[name].setStrategy){
@@ -192,8 +194,8 @@ async function main() {
 
     /* Encoding for Earn */
     if (!pools[name].earn){
-      const oldStrategy_addr = await Controller.strategies(lp);
-      if (oldStrategy_addr != 0) {
+      const old_strategy_addr = await Controller.strategies(lp);
+      if (old_strategy_addr != 0) {
         const ISnowGlobe = new ethers.utils.Interface(snowglobe_ABI);
         pools[name].targets.push(pools[name].snowglobe_addr);
         pools[name].data.push(ISnowGlobe.encodeFunctionData("earn", []));

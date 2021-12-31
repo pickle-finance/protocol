@@ -636,11 +636,11 @@ const tests = [
   //   controllerAddress: "",
   //   snowglobeAddress: "0x916aEbEE43E2bE7ed126A21208db4092392d80AD",
   // },
-  {
-    name: "JoeAvaxKlo",
-    controllerAddress: "",
-    snowglobeAddress: "0xf6E8432EF7d85Ae1202Dc537106D3696eBB27769",
-  },
+  // {
+  //   name: "JoeAvaxKlo",
+  //   controllerAddress: "",
+  //   snowglobeAddress: "0xf6E8432EF7d85Ae1202Dc537106D3696eBB27769",
+  // },
   // {
   //   name: "JoeAvaxMai",
   //   controllerAddress: "",
@@ -728,17 +728,17 @@ const tests = [
     //   slot: 51
     // },
     // {
-    //     name: "AxialAM3D",
-    //     controllerAddress: "",
-    //     snowglobeAddress: "",
-    //     slot: 51
-    //   },
+    //   name: "AxialAM3D",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    //   slot: 51
+    // },
+    // 
   {
-    name: "PngAvaxMim",
+    name: "JoeAvaxEgg",
     controllerAddress: "",
     snowglobeAddress: "",
   },
-
 ];
 
 for (const test of tests) {
