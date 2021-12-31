@@ -173,7 +173,9 @@ contract StrategyJoeAvaxEgg is StrategyJoeRushFarmBase {
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
             _egg = IERC20(egg).balanceOf(address(this));
-            
+            _joe = IERC20(joe).balanceOf(address(this));
+            _feed = IERC20(feed).balanceOf(address(this));
+
             if (_wavax > 0){
                 IERC20(wavax).transfer(
                     IController(controller).treasury(),
@@ -186,7 +188,21 @@ contract StrategyJoeAvaxEgg is StrategyJoeRushFarmBase {
                     IController(controller).treasury(),
                     _egg
                 );
-            }  
+            } 
+
+            if (_joe > 0){
+                IERC20(joe).transfer(
+                    IController(controller).treasury(),
+                    _joe
+                );
+            }
+
+            if (_feed > 0){
+                IERC20(feed).transfer(
+                    IController(controller).treasury(),
+                    _feed
+                );
+            } 
         }
 
         _distributePerformanceFeesAndDeposit();
