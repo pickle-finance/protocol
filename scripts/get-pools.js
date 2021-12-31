@@ -33,7 +33,7 @@ const ignoreAddresses = [
 const lpSymbols = ['PGL', 'JLP'];
 const lpAxialSymbols = ['AS4D', 'AC4D', 'AM3D', 'AA3D'];
 const zero = '0x0000000000000000000000000000000000000000';
-const batchSize = 5; // Use 5-10 for spotty internet connections. 50-100 can be used for good connections.
+const batchSize = 10; // Use 5-10 for spotty internet connections. 50-100 can be used for good connections.
 let progress = 0;
 let maxProgress = 0;
 
@@ -127,12 +127,12 @@ const fetchUnderlyingTokens = async (address) => {
 
 /* ========================================================================================================================================================================= */
 
-// Function to match token names to platform:
+// Function to fetch pool platform:
 const fetchPlatform = async (token, strategy, globe) => {
   let platform = null;
   if(token.symbol === 'PGL') {
     platform = 'Pangolin';
-  } else if(token.symbol === 'JLP') {
+  } else if(token.symbol === 'JLP' || globe.toLowerCase() === '0x6a52e6b23700a63ea4a0db313ebd386fb510ee3c') {
     platform = 'Trader Joe';
   } else if(lpAxialSymbols.includes(token.symbol)) {
     platform = 'Axial';
@@ -147,11 +147,7 @@ const fetchPlatform = async (token, strategy, globe) => {
     } else if(name.startsWith('Png')) {
       platform = 'Pangolin';
     } else if(name.startsWith('Joe')) {
-      if(globe.toLowerCase() === '0x6a52e6b23700a63ea4a0db313ebd386fb510ee3c') { // xJOE Farm
-        platform = 'Trader Joe';
-      } else {
-        platform = 'Banker Joe';
-      }
+      platform = 'Banker Joe';
     }
   }
   return platform;
