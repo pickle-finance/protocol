@@ -32,7 +32,8 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
     using PoolVariables for IUniswapV3Pool;
 
     address public constant wmatic = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
-    address public constant univ3Router = 0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
+    address public constant univ3Router =
+        0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
 
     address public governance;
     address public timelock;
@@ -64,13 +65,24 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
     }
 
     function totalLiquidity() public view returns (uint256) {
-        return liquidityOfThis().add(IControllerV2(controller).liquidityOf(address(pool)));
+        return
+            liquidityOfThis().add(
+                IControllerV2(controller).liquidityOf(address(pool))
+            );
     }
 
     function liquidityOfThis() public view returns (uint256) {
         uint256 _balance0 = token0.balanceOf(address(this));
         uint256 _balance1 = token1.balanceOf(address(this));
-        return uint256(pool.liquidityForAmounts(_balance0, _balance1, getLowerTick(), getUpperTick()));
+        return
+            uint256(
+                pool.liquidityForAmounts(
+                    _balance0,
+                    _balance1,
+                    getLowerTick(),
+                    getUpperTick()
+                )
+            );
     }
 
     function getUpperTick() public view returns (int24) {
@@ -116,48 +128,69 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
         IControllerV2(controller).earn(address(pool), balance0, balance1);
     }
 
-    function deposit(uint256 token0Amount, uint256 token1Amount) external payable nonReentrant whenNotPaused {
+    function deposit(uint256 token0Amount, uint256 token1Amount)
+        external
+        payable
+        nonReentrant
+        whenNotPaused
+    {
         bool isEthToken0;
         bool isEthToken1;
         uint256 _eth = address(this).balance;
         if (_eth > 0) {
             WETH(wmatic).deposit{value: _eth}();
 
-            if(address(token0) == wmatic){
-              token0Amount = _eth;
-              isEthToken0 = true;
-            }
-            else if(address(token1) == wmatic) {
-              token1Amount = _eth;
-              isEthToken1 = true;
+            if (address(token0) == wmatic) {
+                token0Amount = _eth;
+                isEthToken0 = true;
+            } else if (address(token1) == wmatic) {
+                token1Amount = _eth;
+                isEthToken1 = true;
             }
         }
-        (token0Amount, token1Amount) = _getCorrectAmounts(token0Amount, token1Amount);
+        (token0Amount, token1Amount) = _getCorrectAmounts(
+            token0Amount,
+            token1Amount
+        );
 
-        if (token0Amount > 0 && !isEthToken0) token0.safeTransferFrom(msg.sender, address(this), token0Amount);
-        if (token1Amount > 0 && !isEthToken1) token1.safeTransferFrom(msg.sender, address(this), token1Amount);
+        if (token0Amount > 0 && !isEthToken0)
+            token0.safeTransferFrom(msg.sender, address(this), token0Amount);
+        if (token1Amount > 0 && !isEthToken1)
+            token1.safeTransferFrom(msg.sender, address(this), token1Amount);
 
         // refund excess ETH to user
-        if(isEthToken0) {
-           uint256 _refund = _eth.sub(token0Amount);
-           WETH(wmatic).withdraw(_refund);
-           (bool sent, bytes memory data) = (msg.sender).call{value: _refund}("");
-           require(sent, "Failed to refund Ether");
-        }
-        else if(isEthToken1) {
-           uint256 _refund = _eth.sub(token0Amount);
-           WETH(wmatic).withdraw(_refund);
-           (bool sent, bytes memory data) = (msg.sender).call{value: _refund}("");
-           require(sent, "Failed to refund Ether");    
+        if (isEthToken0) {
+            uint256 _refund = _eth.sub(token0Amount);
+            WETH(wmatic).withdraw(_refund);
+            (bool sent, bytes memory data) = (msg.sender).call{value: _refund}(
+                ""
+            );
+            require(sent, "Failed to refund Ether");
+        } else if (isEthToken1) {
+            uint256 _refund = _eth.sub(token1Amount);
+            WETH(wmatic).withdraw(_refund);
+            (bool sent, bytes memory data) = (msg.sender).call{value: _refund}(
+                ""
+            );
+            require(sent, "Failed to refund Ether");
         }
 
-        uint256 _liquidity = uint256(pool.liquidityForAmounts(token0.balanceOf(address(this)), token1.balanceOf(address(this)), getLowerTick(), getUpperTick()));
+        uint256 _liquidity = uint256(
+            pool.liquidityForAmounts(
+                token0.balanceOf(address(this)),
+                token1.balanceOf(address(this)),
+                getLowerTick(),
+                getUpperTick()
+            )
+        );
 
         uint256 shares = 0;
         if (totalSupply() == 0) {
             shares = _liquidity;
         } else {
-            shares = (_liquidity.mul(totalSupply())).div(IControllerV2(controller).liquidityOf(address(pool)));
+            shares = (_liquidity.mul(totalSupply())).div(
+                IControllerV2(controller).liquidityOf(address(pool))
+            );
         }
 
         _mint(msg.sender, shares);
@@ -166,21 +199,31 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
     }
 
     function getProportion() public view returns (uint256) {
-        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1e18, getLowerTick(), getUpperTick());
+        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(
+            1e18,
+            getLowerTick(),
+            getUpperTick()
+        );
         return (a2 * (10**18)) / a1;
     }
 
-    function _getCorrectAmounts(uint256 _token0Amount, uint256 _token1Amount) internal returns(uint256,uint256) {
-
-      uint256 amount0ForAmount1 = _token1Amount.mul(1e18).div(getProportion());
-      uint256 amount1ForAmount0 = _token0Amount.mul(getProportion()).div(1e18);
+    function _getCorrectAmounts(uint256 _token0Amount, uint256 _token1Amount)
+        internal
+        returns (uint256, uint256)
+    {
+        uint256 amount0ForAmount1 = _token1Amount.mul(1e18).div(
+            getProportion()
+        );
+        uint256 amount1ForAmount0 = _token0Amount.mul(getProportion()).div(
+            1e18
+        );
 
         if (_token0Amount > amount0ForAmount1) {
             _token0Amount = amount0ForAmount1;
         } else {
             _token1Amount = amount1ForAmount0;
         }
-       return (_token0Amount, _token1Amount);
+        return (_token0Amount, _token1Amount);
     }
 
     function withdrawAll() external {
@@ -189,15 +232,25 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
 
     function withdraw(uint256 _shares) public nonReentrant whenNotPaused {
         uint256 r = (totalLiquidity().mul(_shares)).div(totalSupply());
-        (uint256 _expectA0, uint256 _expectA1) = pool.amountsForLiquidity(uint128(r), getLowerTick(), getUpperTick());
+        (uint256 _expectA0, uint256 _expectA1) = pool.amountsForLiquidity(
+            uint128(r),
+            getLowerTick(),
+            getUpperTick()
+        );
         _burn(msg.sender, _shares);
         // Check balance
-        uint256[2] memory _balances = [token0.balanceOf(address(this)), token1.balanceOf(address(this))];
+        uint256[2] memory _balances = [
+            token0.balanceOf(address(this)),
+            token1.balanceOf(address(this))
+        ];
         uint256 b = liquidityOfThis();
 
         if (b < r) {
             uint256 _withdraw = r.sub(b);
-            (uint256 _a0, uint256 _a1) = IControllerV2(controller).withdraw(address(pool), _withdraw);
+            (uint256 _a0, uint256 _a1) = IControllerV2(controller).withdraw(
+                address(pool),
+                _withdraw
+            );
             _expectA0 = _balances[0].add(_a0);
             _expectA1 = _balances[1].add(_a1);
         }

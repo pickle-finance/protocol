@@ -15,7 +15,14 @@ contract StrategyUsdcEthUniV3StakerPoly is StrategyRebalanceStakerUniV3 {
         address _timelock
     )
         public
-        StrategyRebalanceStakerUniV3(usdc_eth_pool, _tickRangeMultiplier, _governance, _strategist, _controller, _timelock)
+        StrategyRebalanceStakerUniV3(
+            usdc_eth_pool,
+            _tickRangeMultiplier,
+            _governance,
+            _strategist,
+            _controller,
+            _timelock
+        )
     {
         univ3_staker = 0x1f98407aaB862CdDeF78Ed252D6f557aA5b0f00d;
         rewardToken = 0x0000000000000000000000000000000000000000;

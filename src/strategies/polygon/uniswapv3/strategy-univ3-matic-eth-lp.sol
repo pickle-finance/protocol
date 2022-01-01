@@ -15,7 +15,15 @@ contract StrategyMaticEthUniV3Poly is StrategyRebalanceUniV3 {
         address _timelock
     )
         public
-        StrategyRebalanceUniV3(matic_eth_pool, _tickRangeMultiplier, _governance, _strategist, _controller, _timelock){ }
+        StrategyRebalanceUniV3(
+            matic_eth_pool,
+            _tickRangeMultiplier,
+            _governance,
+            _strategist,
+            _controller,
+            _timelock
+        )
+    {}
 
     function getName() external pure override returns (string memory) {
         return "StrategyMaticEthUniV3Poly";
