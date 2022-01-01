@@ -24,7 +24,6 @@ import "./interfaces/univ3/IUniswapV3PositionsNFT.sol";
 import "./interfaces/univ3/IUniswapV3Pool.sol";
 import "./interfaces/univ3/ISwapRouter.sol";
 import "../interfaces/weth.sol";
-import "hardhat/console.sol";
 
 contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -40,7 +39,6 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
     address public controller;
 
     bool public paused;
-    bool public earnAfterDeposit;
 
     IUniswapV3Pool public pool;
 
@@ -63,7 +61,6 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
         timelock = _timelock;
         controller = _controller;
         paused = false;
-        earnAfterDeposit = true;
     }
 
     function totalLiquidity() public view returns (uint256) {
@@ -107,11 +104,6 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
         emit JarPaused(block.number, block.timestamp);
     }
 
-    function setEarnAfterDeposit(bool _earnAfterDeposit) external {
-        require(msg.sender == governance, "!governance");
-        earnAfterDeposit = _earnAfterDeposit;
-    }
-
     function earn() public {
         require(liquidityOfThis() > 0, "no liquidity here");
 
@@ -130,7 +122,7 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
         uint256 _eth = address(this).balance;
         if (_eth > 0) {
             WETH(wmatic).deposit{value: _eth}();
-            //WETH(wmatic).transfer(address(this), WETH(wmatic).balanceOf(address(this)));
+
             if(address(token0) == wmatic){
               token0Amount = _eth;
               isEthToken0 = true;
@@ -140,11 +132,24 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
               isEthToken1 = true;
             }
         }
+        (token0Amount, token1Amount) = _getCorrectAmounts(token0Amount, token1Amount);
 
         if (token0Amount > 0 && !isEthToken0) token0.safeTransferFrom(msg.sender, address(this), token0Amount);
         if (token1Amount > 0 && !isEthToken1) token1.safeTransferFrom(msg.sender, address(this), token1Amount);
 
-        balanceProportion(getLowerTick(), getUpperTick());
+        // refund excess ETH to user
+        if(isEthToken0) {
+           uint256 _refund = _eth.sub(token0Amount);
+           WETH(wmatic).withdraw(_refund);
+           (bool sent, bytes memory data) = (msg.sender).call{value: _refund}("");
+           require(sent, "Failed to refund Ether");
+        }
+        else if(isEthToken1) {
+           uint256 _refund = _eth.sub(token0Amount);
+           WETH(wmatic).withdraw(_refund);
+           (bool sent, bytes memory data) = (msg.sender).call{value: _refund}("");
+           require(sent, "Failed to refund Ether");    
+        }
 
         uint256 _liquidity = uint256(pool.liquidityForAmounts(token0.balanceOf(address(this)), token1.balanceOf(address(this)), getLowerTick(), getUpperTick()));
 
@@ -157,71 +162,25 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
 
         _mint(msg.sender, shares);
 
-        if (earnAfterDeposit) earn();
+        earn();
     }
 
-    function balanceProportion(int24 _tickLower, int24 _tickUpper) internal {
-        PoolVariables.Info memory _cache;
+    function getProportion() public view returns (uint256) {
+        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1e18, getLowerTick(), getUpperTick());
+        return (a2 * (10**18)) / a1;
+    }
 
-        _cache.amount0Desired = token0.balanceOf(address(this));
-        _cache.amount1Desired = token1.balanceOf(address(this));
+    function _getCorrectAmounts(uint256 _token0Amount, uint256 _token1Amount) internal returns(uint256,uint256) {
 
-        //Get Max Liquidity for Amounts we own.
-        _cache.liquidity = pool.liquidityForAmounts(
-            _cache.amount0Desired,
-            _cache.amount1Desired,
-            _tickLower,
-            _tickUpper
-        );
+      uint256 amount0ForAmount1 = _token1Amount.mul(1e18).div(getProportion());
+      uint256 amount1ForAmount0 = _token0Amount.mul(getProportion()).div(1e18);
 
-        //Get correct amounts of each token for the liquidity we have.
-        (_cache.amount0, _cache.amount1) = pool.amountsForLiquidity(
-            _cache.liquidity,
-            _tickLower,
-            _tickUpper
-        );
-
-        //Determine Trade Direction
-        bool _zeroForOne;
-        if(_cache.amount1Desired == 0) {
-            _zeroForOne = true;
+        if (_token0Amount > amount0ForAmount1) {
+            _token0Amount = amount0ForAmount1;
+        } else {
+            _token1Amount = amount1ForAmount0;
         }
-        else {
-            _zeroForOne = PoolVariables.amountsDirection(
-              _cache.amount0Desired,
-              _cache.amount1Desired,
-              _cache.amount0,
-              _cache.amount1
-            );
-       }
-
-        //Determine Amount to swap
-        uint256 _amountSpecified = _zeroForOne
-            ? (_cache.amount0Desired.sub(_cache.amount0).div(2))
-            : (_cache.amount1Desired.sub(_cache.amount1).div(2));
-
-        if (_amountSpecified > 0) {
-            //Determine Token to swap
-            address _inputToken = _zeroForOne
-                ? address(token0)
-                : address(token1);
-
-            IERC20(_inputToken).safeApprove(univ3Router, 0);
-            IERC20(_inputToken).safeApprove(univ3Router, _amountSpecified);
-
-            //Swap the token imbalanced
-            ISwapRouter(univ3Router).exactInputSingle(
-                ISwapRouter.ExactInputSingleParams({
-                    tokenIn: _inputToken,
-                    tokenOut: _zeroForOne ? address(token1) : address(token0),
-                    fee: pool.fee(),
-                    recipient: address(this),
-                    amountIn: _amountSpecified,
-                    amountOutMinimum: 0,
-                    sqrtPriceLimitX96: 0
-                })
-            );
-        }
+       return (_token0Amount, _token1Amount);
     }
 
     function withdrawAll() external {
