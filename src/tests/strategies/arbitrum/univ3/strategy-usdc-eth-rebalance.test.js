@@ -10,10 +10,12 @@ const {getWantFromWhale} = require("../../../utils/setupHelper");
 const {BigNumber: BN} = require("ethers");
 
 describe("StrategyUsdcEthUniV3Rebalance", () => {
-  const USDC_ETH_POOL = "0x167384319B41F7094e62f7506409Eb38079AbfF8";
-  const USDC_TOKEN = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
-  const WETH_TOKEN = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270";
+  const USDC_ETH_POOL = "0x45dDa9cb7c25131DF268515131f647d726f50608";
+  const USDC_TOKEN = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
+  const WETH_TOKEN = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
   const UNIV3ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
+  const USDC_WHALE = "0xc25DC289Edce5227cf15d42539824509e826b54D";
+  const WETH_WHALE = "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B";
 
   let alice;
   let usdc, weth;
@@ -43,8 +45,8 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
     console.log("✅ Controller is deployed at ", controller.address);
 
     strategy = await deployContract(
-      "StrategyMaticEthUniV3Poly",
-      20,
+      "StrategyUsdcEthUniV3StakerPoly",
+      50,
       governance.address,
       strategist.address,
       controller.address,
@@ -71,36 +73,36 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
     pool = await getContractAt("src/polygon/interfaces/univ3/IUniswapV3Pool.sol:IUniswapV3Pool", USDC_ETH_POOL);
     univ3router = await getContractAt("src/polygon/interfaces/univ3/ISwapRouter.sol:ISwapRouter", UNIV3ROUTER);
 
-    await weth.deposit({value: toWei(100)});
+    //  await weth.deposit({value: toWei(100)});
 
-    await getWantFromWhale(USDC_TOKEN, toWei(50), alice, "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B");
+    await getWantFromWhale(USDC_TOKEN, "10000000000", alice, USDC_WHALE);
 
-    await getWantFromWhale(WETH_TOKEN, toWei(50), alice, "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B");
+    await getWantFromWhale(WETH_TOKEN, toWei(50), alice, WETH_WHALE);
 
-    await getWantFromWhale(USDC_TOKEN, toWei(50), bob, "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B");
+    await getWantFromWhale(USDC_TOKEN, "10000000000", bob, USDC_WHALE);
 
-    await getWantFromWhale(WETH_TOKEN, toWei(50), bob, "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B");
+    await getWantFromWhale(WETH_TOKEN, toWei(50), bob, WETH_WHALE);
 
-    await getWantFromWhale(USDC_TOKEN, toWei(50), charles, "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B");
+    await getWantFromWhale(USDC_TOKEN, "10000000000", charles, USDC_WHALE);
 
-    await getWantFromWhale(WETH_TOKEN, toWei(50), charles, "0x8f6A86f3aB015F4D03DDB13AbB02710e6d7aB31B");
+    await getWantFromWhale(WETH_TOKEN, toWei(50), charles, WETH_WHALE);
 
     // Initial deposit to create NFT
-    const amountWeth = "1000000000000000000";
-    //const amountUsdc = "600000000000000";
+    const amountWeth = "100000000";
+    const amountUsdc = "100000";
 
-    //await usdc.connect(alice).transfer(strategy.address, amountUsdc);
+    await usdc.connect(alice).transfer(strategy.address, amountUsdc);
     await weth.connect(alice).transfer(strategy.address, amountWeth);
     await strategy.rebalance();
   });
 
   it("should rebalance correctly", async () => {
-    depositA = toWei(1);
-    depositB = toWei(1);
+    depositA = "37000000"; //await usdc.balanceOf(alice.address);
+    depositB = "10000000000000000000";
     let aliceShare, bobShare, charlesShare;
 
     console.log("=============== Alice deposit ==============");
-    await depositWithEth(alice, toWei(1), depositB);
+    await deposit(alice, depositA, depositB);
     await rebalance();
 
     console.log("=============== Bob deposit ==============");
@@ -180,12 +182,17 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
   });
 
   const deposit = async (user, depositA, depositB) => {
-    await usdc.connect(user).approve(pickleJar.address, depositB);
-    await weth.connect(user).approve(pickleJar.address, depositA);
+    await usdc.connect(user).approve(pickleJar.address, depositA);
+    await weth.connect(user).approve(pickleJar.address, depositB);
     console.log("depositA => ", depositA.toString());
     console.log("depositB => ", depositB.toString());
+    console.log("Strategy USDC Before Deposit: ", (await usdc.balanceOf(strategy.address)).toString());
+    console.log("Strategy ETH Before Deposit: ", (await weth.balanceOf(strategy.address)).toString());
 
     await pickleJar.connect(user).deposit(depositA, depositB);
+
+    console.log("Strategy USDC After Deposit: ", (await usdc.balanceOf(strategy.address)).toString());
+    console.log("Strategy ETH After Deposit: ", (await weth.balanceOf(strategy.address)).toString());
   };
 
   const depositWithEth = async (user, depositA, depositB) => {
