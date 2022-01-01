@@ -339,8 +339,10 @@ abstract contract StrategyRebalanceUniV3 {
         nftManager.sweepToken(address(token0), 0, address(this));
         nftManager.sweepToken(address(token1), 0, address(this));
 
-        _distributePerformanceFees(token0.balanceOf(address(this)).sub(_initToken0),
-                                   token1.balanceOf(address(this)).sub(_initToken1));
+        _distributePerformanceFees(
+            token0.balanceOf(address(this)).sub(_initToken0),
+            token1.balanceOf(address(this)).sub(_initToken1)
+        );
 
         _balanceProportion(tick_lower, tick_upper);
 
