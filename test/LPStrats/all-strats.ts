@@ -725,19 +725,21 @@ const tests = [
     //   snowglobeAddress: "",
     //   slot: 51
     // },
-    // {
-    //   name: "AxialAM3D",
-    //   controller: "",
-    //   snowglobeAddress: "",
-    //   slot: 51
-    // },
-    // 
+    {
+      name: "AxialAM3D",
+      controller: "main",
+      snowglobeAddress: "",
+      lp_suffix: true,
+      timelockIsStrategist: false,
+      slot: 51
+    },
   {
     name: "JoeAvaxEgg",
     controller: "bankerJoe",
     snowglobeAddress: "",
-    slot: 0,
+    slot: 1,
     lp_suffix: false,
+    timelockIsStrategist: true,
   },
 ];
 
@@ -748,7 +750,8 @@ describe("All LP test", function () {
             test.snowglobeAddress,
             test.slot,
             test.controller,
-            test.lp_suffix
+            test.lp_suffix,
+            test.timelockIsStrategist
         );
     }
 });
