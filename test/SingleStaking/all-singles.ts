@@ -13,7 +13,7 @@
  *  ***/
 
 import { doStrategyTest } from "./../strategy-test";
-import { IStrategyTestCase, SingleStakeTestDefault } from "./../strategy-test-case";
+import { TestableStrategy, SingleStakeTestDefault } from "./../strategy-test-case";
 
 
 const tests = [
@@ -42,7 +42,7 @@ const tests = [
 
 describe("Single staking tests", function() {
     for (const test of tests) {
-        let Test: IStrategyTestCase = { ...SingleStakeTestDefault, ...test };
+        let Test: TestableStrategy = { ...SingleStakeTestDefault, ...test };
         doStrategyTest(Test);
     }
 });

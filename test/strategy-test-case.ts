@@ -1,4 +1,4 @@
-export interface IStrategyTestCase {
+export interface TestableStrategy {
     type: string;
     name: string;
     lp_suffix: boolean;
@@ -10,7 +10,7 @@ export interface IStrategyTestCase {
     timelockIsStrategist: boolean;
 }
 
-export const FoldTestDefault: IStrategyTestCase = {
+export const FoldTestDefault: TestableStrategy = {
     type: "FOLD",
     name: "",
     lp_suffix: false,
@@ -21,7 +21,7 @@ export const FoldTestDefault: IStrategyTestCase = {
     fold: true,
     timelockIsStrategist: false,
 }
-export const SingleStakeTestDefault: IStrategyTestCase = {
+export const SingleStakeTestDefault: TestableStrategy = {
     type: "SS",
     name: "",
     lp_suffix: true,
@@ -32,7 +32,7 @@ export const SingleStakeTestDefault: IStrategyTestCase = {
     fold: false,
     timelockIsStrategist: true,
 }
-export const LPTestDefault: IStrategyTestCase = {
+export const LPTestDefault: TestableStrategy = {
     type: "LP",
     name: "",
     lp_suffix: true,

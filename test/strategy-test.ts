@@ -30,9 +30,9 @@ import {
     takeSomeFees,
 } from "./utils/its";
 
-import { IStrategyTestCase } from "./strategy-test-case";
+import { TestableStrategy } from "./strategy-test-case";
 
-export function doStrategyTest(test_case: IStrategyTestCase) {
+export function doStrategyTest(test_case: TestableStrategy) {
 
     const wallet_addr = process.env.WALLET_ADDR === undefined ? '' : process.env['WALLET_ADDR'];
     let name = test_case.name;

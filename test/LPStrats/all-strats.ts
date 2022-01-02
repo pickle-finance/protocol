@@ -1,5 +1,5 @@
 import { doStrategyTest } from "./../strategy-test";
-import { IStrategyTestCase, LPTestDefault } from "./../strategy-test-case";
+import { TestableStrategy, LPTestDefault } from "./../strategy-test-case";
 
 
 const tests = [
@@ -743,7 +743,7 @@ const tests = [
 
 describe("All LP test", function() {
     for (const test of tests) {
-        let Test: IStrategyTestCase = { ...LPTestDefault, ...test };
+        let Test: TestableStrategy = { ...LPTestDefault, ...test };
         doStrategyTest(Test);
     }
 });

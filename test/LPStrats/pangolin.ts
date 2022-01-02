@@ -1,5 +1,5 @@
 import { doStrategyTest } from "./../strategy-test";
-import { IStrategyTestCase, LPTestDefault } from "./../strategy-test-case";
+import { TestableStrategy, LPTestDefault } from "./../strategy-test-case";
 
 const tests = [
     //   {
@@ -164,7 +164,7 @@ const tests = [
 
 describe("Pangolin LP test", function() {
     for (const test of tests) {
-        let Test: IStrategyTestCase = {
+        let Test: TestableStrategy = {
             ...LPTestDefault,
             ...test,
             lp_suffix: false,

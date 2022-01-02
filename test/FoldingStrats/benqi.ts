@@ -1,5 +1,5 @@
 import { doStrategyTest } from "./../strategy-test";
-import { IStrategyTestCase, FoldTestDefault } from "./../strategy-test-case";
+import { TestableStrategy, FoldTestDefault } from "./../strategy-test-case";
 
 
 const tests = [
@@ -33,7 +33,7 @@ const tests = [
 
 describe("Benqi Folding Strategy Tests", function() {
     for (const test of tests) {
-        let Test: IStrategyTestCase = { ...FoldTestDefault, ...test };
+        let Test: TestableStrategy = { ...FoldTestDefault, ...test };
         doStrategyTest(Test);
     }
 });
