@@ -1,4 +1,5 @@
-import { doFoldingStrategyTest } from "./../folding-strategy-test";
+import { doStrategyTest } from "./../strategy-test";
+import { IStrategyTestCase, FoldTestDefault } from "./../strategy-test-case";  
 
 
 //Leaving Strategy Address blank will make generic-test.js instead build and deploy a new Contract specified by stratABI
@@ -88,13 +89,7 @@ const tests = [
 
 describe("BankJoe Folding Strategy", function () {
     for (const test of tests) {
-        doFoldingStrategyTest(
-            test.name,
-            test.snowglobeAddress,
-            test.strategyAddress,
-            test.slot,
-            test.fold,
-            test.controller,
-        );
+        let Test: IStrategyTestCase = { ...FoldTestDefault, ...test  };
+        doStrategyTest(Test);
     }
 });

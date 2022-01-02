@@ -12,7 +12,8 @@
  *
  *  ***/
 
-import { doSingleStakeTest } from "./../single-stake-test";
+import { doStrategyTest } from "./../strategy-test";
+import { IStrategyTestCase, SingleStakeTestDefault } from "./../strategy-test-case";  
 
 
 const tests = [
@@ -41,13 +42,7 @@ const tests = [
 
 describe("Single staking tests", function ()  {
     for (const test of tests) {
-        doSingleStakeTest(
-            test.name,
-            test.snowglobeAddress,
-            test.strategyAddress,
-            test.slot,
-            false,
-            test.controller 
-        );
+        let Test: IStrategyTestCase = { ...SingleStakeTestDefault, ...test  };
+        doStrategyTest(Test);
     }
 });

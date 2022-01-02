@@ -30,17 +30,19 @@ import  {
    takeSomeFees,
 } from "./utils/its";
 
+import { IStrategyTestCase } from "./strategy-test-case";  
 
-/************/
-export function doFoldingStrategyTest(
-    name: string,
-    snowglobe_addr: string,
-    strategy_addr: string,
-    slot: number = 0,
-    fold: boolean = true,
-    controller: string = "main") {
+export function doStrategyTest(test_case: IStrategyTestCase) {
 
     const wallet_addr = process.env.WALLET_ADDR === undefined ? '' : process.env['WALLET_ADDR'];
+    let name = test_case.name;
+    let snowglobe_addr = test_case.snowglobeAddress;
+    let strategy_addr = test_case.strategyAddress;
+    let fold = test_case.fold;
+    let slot = test_case.slot;
+    let controller = test_case.controller;
+    let lp_suffix = test_case.lp_suffix;
+    let timelockIsStrategist = test_case.timelockIsStrategist;
 
     let assetContract:      Contract;
     let Controller:         Contract;
@@ -75,13 +77,13 @@ export function doFoldingStrategyTest(
 
         before(async () => {
 
-            const strategyName = `Strategy${name}`;
+            const strategyName = lp_suffix ? `Strategy${name}Lp` : `Strategy${name}`;
             const snowglobeName = `SnowGlobe${name}`;
 
             await network.provider.send('hardhat_impersonateAccount', [wallet_addr]);
             log(`impersonating account: ${wallet_addr}`);
             walletSigner = await returnSigner(wallet_addr);
-            [timelockSigner, strategistSigner, governanceSigner] = await setupSigners();
+            [timelockSigner, strategistSigner, governanceSigner] = await setupSigners(timelockIsStrategist);
 
             //Add a new case here when including a new family of folding strategies
             controller_addr = returnController(controller);
@@ -92,6 +94,7 @@ export function doFoldingStrategyTest(
             governance_addr = await governanceSigner.getAddress()
             strategist_addr = await strategistSigner.getAddress()
 
+            /** Strategy Mock **/
             Strategy = await setupMockStrategy(
                strategyName, 
                strategy_addr, 
@@ -104,9 +107,12 @@ export function doFoldingStrategyTest(
             );
 
             asset_addr = await Strategy.want();
+            assetContract = await ethers.getContractAt("ERC20", asset_addr, walletSigner);
+            // ensure timelocker is same as used in Strategy
             timelock_addr = await Strategy.timelock();
             timelockSigner = await returnSigner(timelock_addr);
 
+            /** SnowGlobe Mock **/
             SnowGlobe = await setupMockSnowGlobe(
                snowglobeName, 
                snowglobe_addr, 
@@ -116,12 +122,16 @@ export function doFoldingStrategyTest(
                governanceSigner
             ); 
 
+            // ensure addresses
             strategy_addr = Strategy.address;
             snowglobe_addr = SnowGlobe.address;
 
+            /** Access **/
             await setStrategy(name, Controller, timelockSigner, asset_addr, strategy_addr); 
             await whitelistHarvester(name, Strategy, governanceSigner, wallet_addr);
-            await setKeeper(name, Strategy, governanceSigner, wallet_addr);
+            if (test_case.type == "FOLD") {
+                await setKeeper(name, Strategy, governanceSigner, wallet_addr);
+            }
 
             /** EARN **/
             await snowglobeEarn(name, SnowGlobe);
@@ -131,7 +141,6 @@ export function doFoldingStrategyTest(
             await addGauge(name, SnowGlobe, governanceSigner)
 
             await overwriteTokenAmount(asset_addr, wallet_addr, txnAmt, slot);
-            assetContract = await ethers.getContractAt("ERC20", asset_addr, walletSigner);
         });
 
         const harvester = async () => {
@@ -174,9 +183,11 @@ export function doFoldingStrategyTest(
            await controllerGlobeConfigure(Controller, asset_addr, snowglobe_addr); 
         });
 
-        //it("Controller strategy to be configured correctly", async () => {
-        //   await controllerStrategyConfigure(Controller, asset_addr, strategy_addr)
-        //});
+        if (test_case.type != "FOLD") { 
+            it("Controller strategy to be configured correctly", async () => {
+               await controllerStrategyConfigure(Controller, asset_addr, strategy_addr)
+            });
+        }
 
         it("Should be able to deposit/withdraw money into globe", async function () {
             await globeDepositWithdraw(assetContract, SnowGlobe, walletSigner);

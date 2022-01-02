@@ -1,4 +1,5 @@
-import { doLPStrategyTest } from "./../lp-strategy-test";
+import { doStrategyTest } from "./../strategy-test";
+import { IStrategyTestCase, LPTestDefault } from "./../strategy-test-case";  
 
 
 const tests = [
@@ -728,30 +729,21 @@ const tests = [
     {
       name: "AxialAM3D",
       controller: "main",
-      snowglobeAddress: "",
-      lp_suffix: true,
       timelockIsStrategist: false,
       slot: 51
     },
-  {
-    name: "JoeAvaxEgg",
-    controller: "bankerJoe",
-    snowglobeAddress: "",
-    slot: 1,
-    lp_suffix: false,
-    timelockIsStrategist: true,
-  },
+    {
+      name: "JoeAvaxEgg",
+      controller: "bankerJoe",
+      slot: 1,
+      lp_suffix: false,
+      timelockIsStrategist: true,
+    },
 ];
 
 describe("All LP test", function () {
     for (const test of tests) {
-        doLPStrategyTest(
-            test.name,
-            test.snowglobeAddress,
-            test.slot,
-            test.controller,
-            test.lp_suffix,
-            test.timelockIsStrategist
-        );
+        let Test: IStrategyTestCase = { ...LPTestDefault, ...test  };
+        doStrategyTest(Test);
     }
 });
