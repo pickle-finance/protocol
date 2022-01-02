@@ -32,7 +32,8 @@ export function doLPStrategyTest (
     name: string, 
     snowglobe_addr: string,
     slot: number,
-    controller: string
+    controller: string,
+    lp_suffix: boolean = true
 ) {
 
     const wallet_addr = process.env.WALLET_ADDR === undefined ? '' : process.env['WALLET_ADDR'];
@@ -71,12 +72,11 @@ export function doLPStrategyTest (
         });
 
         before( async () => {
-            const strategyName = `Strategy${name}Lp`;
+            const strategyName = lp_suffix ? `Strategy${name}Lp` : `Strategy${name}`;
             const snowglobeName = `SnowGlobe${name}`;
 
-            controller_addr = returnController(controller); //_controller_addr ? _controller_addr : "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85";
+            controller_addr = returnController(controller); 
 
-            let i = 0
             await network.provider.send('hardhat_impersonateAccount', [wallet_addr]);
             walletSigner = ethers.provider.getSigner(wallet_addr);
             [timelockSigner,strategistSigner,governanceSigner] = await setupSigners();
@@ -97,6 +97,7 @@ export function doLPStrategyTest (
                governanceSigner,
                strategistSigner
             );
+            console.log(i++)
 
             asset_addr = await Strategy.want();
             assetContract = await ethers.getContractAt("ERC20", asset_addr, walletSigner);
@@ -111,6 +112,7 @@ export function doLPStrategyTest (
                timelockSigner, 
                governanceSigner
             ); 
+            console.log(i++)
             
             snowglobe_addr = SnowGlobe.address;
             strategy_addr = Strategy.address;

@@ -251,13 +251,8 @@ const tests = [
   // },
   // {
   //   name: "PngAvaxFrax",
-<<<<<<< HEAD
-  //   controllerAddress: "",
-  //   snowglobeAddress: "",
-=======
   //   controller: "",
   //   snowglobeAddress: "0xD0686AC7d0CfFd00A29567D37774058452210D57",
->>>>>>> 0c19166 (typescript conversion, and deduplication of code)
   // },
   // {
   //   name: "PngAvaxFxs",
@@ -355,13 +350,8 @@ const tests = [
   //   snowglobeAddress: "",
   // },
   // {
-<<<<<<< HEAD
-  //   name: "PngTusdDaiE",
-  //   controllerAddress: "",
-=======
   //   name: "PngTusdDaiEMini",
   //   controller: "",
->>>>>>> 0c19166 (typescript conversion, and deduplication of code)
   //   snowglobeAddress: "",
   // },
   // {
@@ -405,13 +395,8 @@ const tests = [
   //     snowglobeAddress: "",
   //   },      
   // {
-<<<<<<< HEAD
-  //   name: "PngUsdtESkill",
-  //   controllerAddress: "",
-=======
   //   name: "PngUsdteSkill",
   //   controller: "",
->>>>>>> 0c19166 (typescript conversion, and deduplication of code)
   //   snowglobeAddress: "",
   // },
   // {
@@ -649,19 +634,11 @@ const tests = [
   //   controller: "",
   //   snowglobeAddress: "0x916aEbEE43E2bE7ed126A21208db4092392d80AD",
   // },
-<<<<<<< HEAD
-  // {
-  //   name: "JoeAvaxKlo",
-  //   controllerAddress: "",
-  //   snowglobeAddress: "0xf6E8432EF7d85Ae1202Dc537106D3696eBB27769",
-  // },
-=======
 //  {
 //    name: "JoeAvaxKlo",
 //    controller: "",
 //    snowglobeAddress: "0xf6E8432EF7d85Ae1202Dc537106D3696eBB27769",
 //  },
->>>>>>> 0c19166 (typescript conversion, and deduplication of code)
   // {
   //   name: "JoeAvaxMai",
   //   controller: "",
@@ -750,15 +727,17 @@ const tests = [
     // },
     // {
     //   name: "AxialAM3D",
-    //   controllerAddress: "",
+    //   controller: "",
     //   snowglobeAddress: "",
     //   slot: 51
     // },
     // 
   {
     name: "JoeAvaxEgg",
-    controllerAddress: "",
+    controller: "bankerJoe",
     snowglobeAddress: "",
+    slot: 0,
+    lp_suffix: false,
   },
 ];
 
@@ -768,7 +747,8 @@ describe("All LP test", function () {
             test.name,
             test.snowglobeAddress,
             test.slot,
-            test.controller
+            test.controller,
+            test.lp_suffix
         );
     }
 });
