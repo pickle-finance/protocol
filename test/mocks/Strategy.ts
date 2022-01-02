@@ -16,19 +16,23 @@ export async function setupMockStrategy(
    let Strategy: Contract
    let asset_addr: string
    let stratABI = (await ethers.getContractFactory(contract_name)).interface;
-   let timelock_addr = await timelockSigner.getAddress()
 
    if (strategy_addr == "") { // strategy not prodivded -- DEPLOY MOCK
+      let timelock_addr = await timelockSigner.getAddress()
+      let governance_addr = await governanceSigner.getAddress()
+      let strategist_addr = await strategistSigner.getAddress()
+      let controller_addr = Controller.address;
+
       log(`deploying strategy ${contract_name}`);
       const stratFactory = await ethers.getContractFactory(contract_name);
 
       // Now we can deploy the new strategy
       log(`${governanceSigner.getAddress()}, ${strategistSigner.getAddress()}, ${Controller.address}, ${timelock_addr}`);
       Strategy = await stratFactory.connect(walletSigner).deploy(
-         governanceSigner.getAddress(), 
-         strategistSigner.getAddress(), 
-         Controller.address, 
-         timelockSigner.getAddress()
+         governance_addr, 
+         strategist_addr, 
+         controller_addr, 
+         timelock_addr
       );
       log(`deployed new strategy at ${Strategy.address}`);
 
