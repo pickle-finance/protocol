@@ -25,6 +25,8 @@ interface IStrategyV2 {
 
     function harvest() external;
 
+    function rebalance() external;
+
     function setTimelock(address) external;
 
     function setController(address _controller) external;
