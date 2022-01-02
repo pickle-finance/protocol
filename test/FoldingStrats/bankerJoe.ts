@@ -1,10 +1,7 @@
-import { doFoldingStrategyTest } from "./folding-strategy-test";
-import type { FoldingStratTestCase } from "./FoldingStratTestCase";
+import { doFoldingStrategyTest } from "./../folding-strategy-test";
+
 
 //Leaving Strategy Address blank will make generic-test.js instead build and deploy a new Contract specified by stratABI
-
-const globeABI = require('./abis/GlobeABI.json');
-const stratBaseABI = require('./abis/StratBaseABI.json');
 
 const tests = [
   {
@@ -17,7 +14,6 @@ const tests = [
     fold: false,
     controller: "bankerJoe",
   },
-  /*
   {
     name: "JoeUsdc",
     tokenAddress: "0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664",
@@ -88,22 +84,17 @@ const tests = [
     fold: false,
     controller: "bankerJoe",
   }
-  */
 ];
 
 describe("BankJoe Folding Strategy", function () {
-for (const test of tests) {
-    doFoldingStrategyTest(
-      test.name,
-      test.tokenAddress,
-      test.snowglobeAddress,
-      test.strategyAddress,
-      globeABI,
-      stratBaseABI,
-      test.amount,
-      test.slot,
-      test.fold,
-      test.controller,
-      );
-   }
+    for (const test of tests) {
+        doFoldingStrategyTest(
+            test.name,
+            test.snowglobeAddress,
+            test.strategyAddress,
+            test.slot,
+            test.fold,
+            test.controller,
+        );
+    }
 });

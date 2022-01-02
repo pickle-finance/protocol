@@ -1,11 +1,9 @@
-import { doFoldingStrategyTest } from "./folding-strategy-test";
-import type { FoldingStratTestCase } from "./FoldingStratTestCase";
+import { doFoldingStrategyTest } from "./../folding-strategy-test";
+//import type { FoldingStratTestCase } from "./FoldingStratTestCase";
 
 // Leaving Strategy Address blank will make generic-test.js instead build and deploy a new Contract specified by stratABI
-const globeABI = require('./abis/GlobeABI.json'); 
-const stratBaseABI = require('./abis/StratBaseABI.json');
 
-const tests: Array<FoldingStratTestCase> = [ 
+const tests = [ 
   {
     name: "AaveWavax",
     tokenAddress: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
@@ -70,18 +68,14 @@ const tests: Array<FoldingStratTestCase> = [
 ];
 
 describe("Aave Folding Strategies", function () {
-for (const test of tests) {
-    doFoldingStrategyTest(
-      test.name,
-      test.tokenAddress,
-      test.snowglobeAddress,
-      test.strategyAddress,
-      globeABI,
-      stratBaseABI,
-      test.amount,
-      test.slot,
-      test.fold,
-      test.controller 
-      );
-   }
+    for (const test of tests) {
+        doFoldingStrategyTest(
+            test.name,
+            test.snowglobeAddress,
+            test.strategyAddress,
+            test.slot,
+            test.fold,
+            test.controller 
+        );
+    }
 });

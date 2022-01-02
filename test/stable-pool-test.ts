@@ -1,21 +1,27 @@
 /** NOTES ABOUT THIS TEST FILE * - This is called by the test scripts file `all-stable-pools.js` * - It should work with n number of tokens in pool, but has only been tested against 4 * - It should be extended with any optional functionality that needs to be tested against a new pool * - If logic differs between pools, add variable to the input parameter with default off value, so we can choose which path each pool should take * * TODO:  - Support deploying new swap pools via this file * **/
-
-const chai = require("chai");
+import chai from "chai";
+const { ethers, network } = require('hardhat');
 const { expect } = require('chai');
-const { ethers, network, deployments } = require('hardhat');
-const { increaseTime, overwriteTokenAmount, increaseBlock, returnSigner, fastForwardAWeek, findSlot } = require("../utils/helpers");
-const { BigNumber } = require("@ethersproject/bignumber");
-const { setupSigners, snowballAddr, treasuryAddr, MAX_UINT256 } = require("../utils/static");
-const IERC20 = require('./abis/IERC20.json');
-const txnAmt = "35000000000000000000000";
+
 import chaiAsPromised from 'chai-as-promised'
 chai.use(chaiAsPromised)
+import { BigNumber } from "@ethersproject/bignumber";
 import { 
    Contract, 
-   ContractFactory,
    Signer 
 } from "ethers";
+import { 
+    increaseTime, overwriteTokenAmount, increaseBlock, 
+    returnSigner, fastForwardAWeek, findSlot 
+} from "./utils/helpers";
+import  { 
+    setupSigners, 
+    MAX_UINT256 
+} from "./utils/static";
 
+const txnAmt = "35000000000000000000000";
+
+const IERC20 = require('./abis/IERC20.json');
 const poolTokenABI = require('./abis/PoolTokenABI.json');
 const poolABI = require('./abis/PoolABI.json');
 

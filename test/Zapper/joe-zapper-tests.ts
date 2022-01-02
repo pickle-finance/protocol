@@ -4,7 +4,7 @@
  * 
  *  ***/
 
-import { doZapperTests } from "./zapper-test";
+import { doZapperTests } from "./../zapper-test";
 
 const tests = [
     {
@@ -23,7 +23,7 @@ const tests = [
 
 
 describe("Joe Zapper Tests", function ()  {
-for (const test of tests) {
+    for (const test of tests) {
         doZapperTests(
            test.name, 
            test.snowglobeAddress, 
@@ -31,5 +31,5 @@ for (const test of tests) {
            test.gaugeAddress, 
            test.controller
         );
-   }
+    }
 });

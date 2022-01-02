@@ -12,7 +12,7 @@
  *
  *  ***/
 
-import { doSingleStakeTest } from "./single-stake-test";
+import { doSingleStakeTest } from "./../single-stake-test";
 
 
 const tests = [
@@ -23,11 +23,12 @@ const tests = [
   // snowglobeAddress: "0x8c06828A1707b0322baaa46e3B0f4D1D55f6c3E6",
   //},
   {
-    name: "PngXPngLp",
-    tokenAddress: "0x60781C2586D68229fde47564546784ab3fACA982",
+    name: "PngXPng",
+    //tokenAddress: "0x60781C2586D68229fde47564546784ab3fACA982",
     // strategyAddress: "0xA1EdFF60A604BB9dFEf25fc00b6D82a07cEAAf91",
-     strategyAddress: "",
+    strategyAddress: "",
     snowglobeAddress: "0xA22D8FD15FB36aA9e1Db795A78db8b688F6284F6",
+    slot: 1,
     controller: "backup",
   },
   // {
@@ -39,13 +40,14 @@ const tests = [
 ];
 
 describe("Single staking tests", function ()  {
-for (const test of tests) {
-    doSingleStakeTest(
-      test.name,
-      test.tokenAddress,
-      test.snowglobeAddress,
-      test.strategyAddress,
-      test.controller
-    );
-   }
+    for (const test of tests) {
+        doSingleStakeTest(
+            test.name,
+            test.snowglobeAddress,
+            test.strategyAddress,
+            test.slot,
+            false,
+            test.controller 
+        );
+    }
 });
