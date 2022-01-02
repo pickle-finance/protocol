@@ -20,7 +20,7 @@ const tests = [
         controller: "main"
     },
     {
-        name: "PngAavePng",
+        name: "PngAaveEPng",
         snowglobeAddress: "0x9397A0257631955DBee5404506B363ab276D2315",
         gaugeAddress: "0xfd72D186ba9ac0f5f79f4370ba584B8Bda2ae4dd",
         controller: "main"
