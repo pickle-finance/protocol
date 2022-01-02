@@ -22,14 +22,14 @@ const tests = [
 ];
 
 
-describe("Joe Zapper Tests", function ()  {
+describe("Joe Zapper Tests", function() {
     for (const test of tests) {
         doZapperTests(
-           test.name, 
-           test.snowglobeAddress, 
-           "TraderJoe", 
-           test.gaugeAddress, 
-           test.controller
+            test.name,
+            test.snowglobeAddress,
+            "TraderJoe",
+            test.gaugeAddress,
+            test.controller
         );
     }
 });

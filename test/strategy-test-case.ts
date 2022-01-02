@@ -1,13 +1,13 @@
 export interface IStrategyTestCase {
-    type:                   string;
-    name:                   string;
-    lp_suffix:              boolean;
-    controller:              string;
-    snowglobeAddress:      string;
-    strategyAddress:       string;
-    slot:                   number;
-    fold:                   boolean;
-    timelockIsStrategist:   boolean;
+    type: string;
+    name: string;
+    lp_suffix: boolean;
+    controller: string;
+    snowglobeAddress: string;
+    strategyAddress: string;
+    slot: number;
+    fold: boolean;
+    timelockIsStrategist: boolean;
 }
 
 export const FoldTestDefault: IStrategyTestCase = {

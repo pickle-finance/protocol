@@ -1,9 +1,9 @@
 const hre = require("hardhat")
 const { ethers } = require("hardhat")
-import { 
-   Contract, 
-   ContractFactory, 
-   Signer 
+import {
+    Contract,
+    ContractFactory,
+    Signer
 } from "ethers";
 
 import { getContractName, addGauge } from "./../utils/helpers";

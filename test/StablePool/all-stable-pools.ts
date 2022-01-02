@@ -25,9 +25,9 @@ const tests = [
     },
 ];
 
-describe("Stable pool tests", function () {
+describe("Stable pool tests", function() {
     for (const test of tests) {
-        doStablePoolTests (
+        doStablePoolTests(
             test.name,
             test.addr,
             test.tokens

@@ -34,14 +34,14 @@ const tests = [
 ];
 
 
-describe("Pangolin Zapper Tests", function () {
+describe("Pangolin Zapper Tests", function() {
     for (const test of tests) {
         doZapperTests(
-           test.name, 
-           test.snowglobeAddress, 
-           "Pangolin", 
-           test.gaugeAddress, 
-           test.controller
+            test.name,
+            test.snowglobeAddress,
+            "Pangolin",
+            test.gaugeAddress,
+            test.controller
         );
     }
 });

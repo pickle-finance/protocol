@@ -1,5 +1,5 @@
 /** NOTES ABOUT THIS TEST FILE
--- Only designed for testing against LPs ***/ 
+-- Only designed for testing against LPs ***/
 const { ethers } = require("hardhat");
 import { BigNumber } from "@ethersproject/bignumber";
 import chai from "chai";
@@ -10,23 +10,23 @@ chai.use(solidity);
 chai.use(chaiAsPromised);
 chai.use(chaiRoughly);
 import { expect } from "chai"
-import { 
-   increaseTime, overwriteTokenAmount, increaseBlock, 
-   returnSigner, fastForwardAWeek, findSlot, returnController,
-   getLpSlot, getPoolABI, getBalancesAvax,
-   getBalances, printBals, returnBal, returnWalletBal
+import {
+    increaseTime, overwriteTokenAmount, increaseBlock,
+    returnSigner, fastForwardAWeek, findSlot, returnController,
+    getLpSlot, getPoolABI, getBalancesAvax,
+    getBalances, printBals, returnBal, returnWalletBal
 } from "./utils/helpers";
-import { 
-   setupSigners, 
-   MAX_UINT256,
-   WAVAX_ADDR
+import {
+    setupSigners,
+    MAX_UINT256,
+    WAVAX_ADDR
 } from "./utils/static";
-import { setupMockSnowGlobe } from "./mocks/SnowGlobe"; 
-import { setupMockGauge } from "./mocks/Gauge"; 
-import { setupMockZapper } from "./mocks/Zapper"; 
-import { 
-   Contract, 
-   Signer 
+import { setupMockSnowGlobe } from "./mocks/SnowGlobe";
+import { setupMockGauge } from "./mocks/Gauge";
+import { setupMockZapper } from "./mocks/Zapper";
+import {
+    Contract,
+    Signer
 } from "ethers";
 import {
     zapInToken, zapOutToken
@@ -37,7 +37,7 @@ const txnAmt = "35000000000000000000000";
 const gauge_proxy_addr: string = "0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27";
 const poolTokenABI = require('./abis/PoolTokenABI.json');
 
-export function doZapperTests (
+export function doZapperTests(
     name: string,
     snowglobe_addr: string,
     pool_type: string,
@@ -53,16 +53,16 @@ export function doZapperTests (
         let controllerSigner: Signer;
         let walletSigner: Signer;
         let LPToken: Contract;
-        let TokenA:             Contract;
-        let TokenB:             Contract;
-        let Gauge:              Contract;
-        let SnowGlobe:          Contract;
-        let Controller:         Contract;
-        let Zapper:             Contract;
+        let TokenA: Contract;
+        let TokenB: Contract;
+        let Gauge: Contract;
+        let SnowGlobe: Contract;
+        let Controller: Contract;
+        let Zapper: Contract;
 
-        let timelockSigner:     Signer
-        let strategistSigner:   Signer
-        let governanceSigner:   Signer
+        let timelockSigner: Signer
+        let strategistSigner: Signer
+        let governanceSigner: Signer
 
         const wallet_addr = process.env.WALLET_ADDR === undefined ? '' : process.env.WALLET_ADDR;
 
@@ -86,13 +86,13 @@ export function doZapperTests (
             const snowglobeName = `SnowGlobe${name}`;
             // assumes always given a snowglobe address
             SnowGlobe = await setupMockSnowGlobe(
-               snowglobeName, 
-               snowglobe_addr, 
-               "",
-               Controller, 
-               timelockSigner, 
-               governanceSigner
-            ); 
+                snowglobeName,
+                snowglobe_addr,
+                "",
+                Controller,
+                timelockSigner,
+                governanceSigner
+            );
 
             // Derive Relevant Tokens
             let lp_token_addr = await SnowGlobe.token();
@@ -177,8 +177,8 @@ export function doZapperTests (
                 let [user2, globe2] = await getBalancesAvax(LPToken, walletSigner, SnowGlobe);
                 printBals(`Zap ${txnAmt} AVAX`, globe2, user2);
 
-                log(`The value of token A after zapping in with Avax is: ${user2}`); 
-                log(`the difference between both A's : ${user1-user2}`);
+                log(`The value of token A after zapping in with Avax is: ${user2}`);
+                log(`the difference between both A's : ${user1 - user2}`);
 
                 await SnowGlobe.connect(walletSigner).earn();
                 let [user3, globe3] = await getBalancesAvax(LPToken, walletSigner, SnowGlobe);
@@ -227,16 +227,16 @@ export function doZapperTests (
                 log(`The balance of A after we zap out is: ${balAAfter}`);
                 log(`The balance of B after we zap out is: ${balBAfter}`);
 
-                log(`The difference of A before and after is: ${balAAfter-balABefore}`);
-                log(`The difference of B before and after is: ${balBAfter-balBBefore}`);
-                
+                log(`The difference of A before and after is: ${balAAfter - balABefore}`);
+                log(`The difference of B before and after is: ${balBAfter - balBBefore}`);
+
                 log(`The thing we want our balance to be equal to is: ${Number(txnAmt) / 2}`);
-                
+
                 (TokenA.address != WAVAX_ADDR) ?
-                    expect(balAAfter - balABefore,"Incorrect TokenA").to.roughly(0.01).deep.equal(Number(txnAmt) / 2) :
+                    expect(balAAfter - balABefore, "Incorrect TokenA").to.roughly(0.01).deep.equal(Number(txnAmt) / 2) :
                     expect(balAAfter).to.be.greaterThan(balABefore);
                 (TokenB.address != WAVAX_ADDR) ?
-                    expect(balBAfter - balBBefore,"Incorrect TokenB").to.roughly(0.01).deep.equal(Number(txnAmt) / 2) :
+                    expect(balBAfter - balBBefore, "Incorrect TokenB").to.roughly(0.01).deep.equal(Number(txnAmt) / 2) :
                     expect(balBAfter).to.be.greaterThan(balBBefore);
                 expect(receipt2).to.be.equals(0);
             })
@@ -246,7 +246,7 @@ export function doZapperTests (
             it("..reverts on zap in token", async () => {
                 const txnAmt = "100";
                 const amt = ethers.utils.parseEther(txnAmt);
-               
+
                 expect(Zapper.zapIn(snowglobe_addr, amt, TokenA.address, amt)).to.be.reverted;
             })
             it("..reverts on zap in avax", async () => {
@@ -254,18 +254,18 @@ export function doZapperTests (
                 const txnAmt2 = "5";
                 const amt = ethers.utils.parseEther(txnAmt);
                 const amt2 = ethers.utils.parseEther(txnAmt2);
-                
+
                 //amt was too large that it succeeds when reaching line 60 of the zapper contract. However, we want it to fail
                 log(`the token A address is ${TokenA.address}`);
                 log(`the token B address is ${TokenB.address}`);
-                
+
                 await expect(Zapper.zapInAVAX(snowglobe_addr, amt2, TokenA.address, { value: txnAmt })).to.be.reverted;
             })
 
             it("..reverts on zap out token", async () => {
                 const txnAmt = "35";
                 const amt = ethers.utils.parseEther(txnAmt);
-                
+
                 await Zapper.zapIn(snowglobe_addr, 0, TokenB.address, amt);
                 let receipt = await Gauge.balanceOf(wallet_addr);
                 await SnowGlobe.connect(walletSigner).earn();
