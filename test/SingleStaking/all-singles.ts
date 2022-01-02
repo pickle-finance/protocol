@@ -12,7 +12,9 @@
  *
  *  ***/
 
-const { doSingleStakeTest } = require("../single-stake-test");
+import { doSingleStakeTest } from "./single-stake-test";
+
+
 const tests = [
   //{
   // name: "JoexJoe",
@@ -24,6 +26,7 @@ const tests = [
     name: "PngXPngLp",
     tokenAddress: "0x60781C2586D68229fde47564546784ab3fACA982",
     // strategyAddress: "0xA1EdFF60A604BB9dFEf25fc00b6D82a07cEAAf91",
+     strategyAddress: "",
     snowglobeAddress: "0xA22D8FD15FB36aA9e1Db795A78db8b688F6284F6",
     controller: "backup",
   },
@@ -35,8 +38,8 @@ const tests = [
   // },
 ];
 
+describe("Single staking tests", function ()  {
 for (const test of tests) {
-  describe(test.name, async () => {
     doSingleStakeTest(
       test.name,
       test.tokenAddress,
@@ -44,5 +47,5 @@ for (const test of tests) {
       test.strategyAddress,
       test.controller
     );
-  });
-}
+   }
+});

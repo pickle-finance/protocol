@@ -1,29 +1,37 @@
 /* eslint-disable no-undef */
 const { ethers, network } = require("hardhat");
-const chai = require("chai");
-const { BigNumber } = require("@ethersproject/bignumber");
-const { increaseTime, overwriteTokenAmount, increaseBlock, returnSigner, fastForwardAWeek } = require("./utils/helpers");
-const { expect } = chai;
-const { setupSigners, snowball_addr, treasury_addr} = require("./utils/static");
+import chai from "chai";
+import { expect } from "chai";
+import { BigNumber } from "@ethersproject/bignumber";
+import { 
+   returnController, 
+   overwriteTokenAmount, 
+   increaseBlock, 
+   returnSigner, 
+   fastForwardAWeek, 
+   findSlot, 
+   getEnvVar
+} from "../utils/helpers";
+import { setupSigners, snowballAddr, treasuryAddr} from "../utils/static";
+import { 
+   Contract, 
+   ContractFactory,
+   Signer 
+} from "ethers";
 
-const globeABI = [{ "type": "constructor", "stateMutability": "nonpayable", "inputs": [{ "type": "address", "name": "_token", "internalType": "address" }, { "type": "address", "name": "_governance", "internalType": "address" }, { "type": "address", "name": "_timelock", "internalType": "address" }, { "type": "address", "name": "_controller", "internalType": "address" }] }, { "type": "event", "name": "Approval", "inputs": [{ "type": "address", "name": "owner", "internalType": "address", "indexed": true }, { "type": "address", "name": "spender", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "value", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "event", "name": "Transfer", "inputs": [{ "type": "address", "name": "from", "internalType": "address", "indexed": true }, { "type": "address", "name": "to", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "value", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "allowance", "inputs": [{ "type": "address", "name": "owner", "internalType": "address" }, { "type": "address", "name": "spender", "internalType": "address" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "approve", "inputs": [{ "type": "address", "name": "spender", "internalType": "address" }, { "type": "uint256", "name": "amount", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "available", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "balance", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "balanceOf", "inputs": [{ "type": "address", "name": "account", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "controller", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint8", "name": "", "internalType": "uint8" }], "name": "decimals", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "decreaseAllowance", "inputs": [{ "type": "address", "name": "spender", "internalType": "address" }, { "type": "uint256", "name": "subtractedValue", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "deposit", "inputs": [{ "type": "uint256", "name": "_amount", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "depositAll", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "earn", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "getRatio", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "governance", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "harvest", "inputs": [{ "type": "address", "name": "reserve", "internalType": "address" }, { "type": "uint256", "name": "amount", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "increaseAllowance", "inputs": [{ "type": "address", "name": "spender", "internalType": "address" }, { "type": "uint256", "name": "addedValue", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "max", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "min", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "string", "name": "", "internalType": "string" }], "name": "name", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setController", "inputs": [{ "type": "address", "name": "_controller", "internalType": "address" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setGovernance", "inputs": [{ "type": "address", "name": "_governance", "internalType": "address" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setMin", "inputs": [{ "type": "uint256", "name": "_min", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setTimelock", "inputs": [{ "type": "address", "name": "_timelock", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "string", "name": "", "internalType": "string" }], "name": "symbol", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "timelock", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "contract IERC20" }], "name": "token", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "totalSupply", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "transfer", "inputs": [{ "type": "address", "name": "recipient", "internalType": "address" }, { "type": "uint256", "name": "amount", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "transferFrom", "inputs": [{ "type": "address", "name": "sender", "internalType": "address" }, { "type": "address", "name": "recipient", "internalType": "address" }, { "type": "uint256", "name": "amount", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "withdraw", "inputs": [{ "type": "uint256", "name": "_shares", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "withdrawAll", "inputs": [] }];
+const GlobeABI = require('./abis/GlobeABI.json');
+const StratABI = require('./abis/StratABI.json');
 
-const doFoldingStrategyTest = (
-    name,
-    snowglobe_addr,
-    strategy_addr,
-    stratABI,
-    slot = "0",
-    fold = true,
-    controller = "main"
-) => {
-
-    const wallet_addr = process.env.WALLET_ADDR;
-    let assetContract, Controller;
-    let governanceSigner, strategistSigner, timelockSigner;
-    let SnowGlobe, Strategy;
-    let strategyBalance, controller_addr;
-    const txnAmt = "25000000000000000000000";
+export function doSingleStakeTest (
+    name: string,
+    assetAddr: string,
+    snowglobeAddr = "",
+    strategyAddr = "",
+    controller = "main",
+    globeABI = GlobeABI,
+    stratABI = StratABI,
+    txnAmt = "250000000000000000000000",
+) {
 
     const walletAddr = getEnvVar('WALLET_ADDR');
     const slot = findSlot(assetAddr);
@@ -59,26 +67,25 @@ const doFoldingStrategyTest = (
             walletSigner = ethers.provider.getSigner(wallet_addr);
             [timelockSigner, strategistSigner, governanceSigner] = await setupSigners();
 
-            //Add a new case here when including a new family of folding strategies
-            switch (controller) {
-                case "main": controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85";break;
-                case "backup": controller_addr = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; break;
-                case "aave": controller_addr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; break;
-                case "bankerJoe": controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
-                case "benqi": controller_addr = "0x252B5fD3B1Cb07A2109bF36D5bDE6a247c6f4B59"; break;
-                // case "benqi": controller_addr = "0x8bfBA506B442f0D93Da2aDFd1ab70b7cB6a77B76"; break; //old
-                default : break;
+            controllerAddr = returnController(controller);
+            controllerSigner = await returnSigner(controllerAddr);
+            walletSigner = await returnSigner(walletAddr);
+
+            await overwriteTokenAmount(assetAddr, walletAddr, txnAmt, slot);
+
+            assetContract = await ethers.getContractAt("ERC20", assetAddr, walletSigner);
+            controllerContract = await ethers.getContractAt("ControllerV4", controllerAddr, governanceSigner);
+
+            //If snowglobe address not supplied then we should deploy and setup a new snowglobe
+            if (snowglobeAddr == "") {
+                const globeFactory = await ethers.getContractFactory(snowglobeName);
+                globeContract = await globeFactory.deploy(assetAddr, governanceSigner.getAddress(), timelockSigner.getAddress(), controllerAddr);
+                await controllerContract.setGlobe(assetAddr, globeContract.address);
+                snowglobeAddr = globeContract.address;
             }
-
-            console.log(`using controller: ${controller_addr}`);
-
-            walletSigner = await returnSigner(wallet_addr);
-            Controller = await ethers.getContractAt("ControllerV4", controller_addr, governanceSigner);
-            timelock_addr = await Controller.timelock();
-            console.log(`timelock_addr: `,timelock_addr);
-            timelockSigner = await returnSigner(timelock_addr);
-            console.log(`timelockSigner: ${timelockSigner}`);
-
+            else {
+                globeContract = new ethers.Contract(snowglobeAddr, globeABI, governanceSigner);
+            }
             //If strategy address not supplied then we should deploy and setup a new strategy
             if (!strategy_addr) {
                 console.log(`deploying strategy ${strategyName}`);
@@ -99,52 +106,12 @@ const doFoldingStrategyTest = (
                 }
                 console.log("Approved Strategy in the Controller for: ",name);
 
-                /* Handle old strategy */
-                const oldStrategy_addr = await Controller.strategies(asset_addr);
-                if (oldStrategy_addr != 0) {
-                    const oldStrategy = new ethers.Contract(oldStrategy_addr, stratABI, governanceSigner);
-                    const harvest = await oldStrategy.connect(governanceSigner).harvest();
-                    const tx_harvest = await harvest.wait(1);
-                    if (!tx_harvest.status) {
-                        console.error("Error harvesting the old strategy for: ",name);
-                        return;
-                    }
-                    console.log("Harvested the old strategy for: ",name);
-                    if (fold) {
-                        // Before we can setup new strategy we must deleverage from old one
-                        const deleverage = await oldStrategy.connect(governanceSigner).deleverageToMin();
-                        const tx_deleverage = await deleverage.wait(1);
-                        if (!tx_deleverage.status) {
-                            console.error("Error deleveraging the old strategy for: ",name);
-                            return;
-                        }
-                        console.log("Deleveraged the old strategy for: ",name);
-                    }
-                }
-
-                const setStrategy = await Controller.connect(timelockSigner).setStrategy(asset_addr,strategy_addr);
-                const tx_setStrategy = await setStrategy.wait(1);
-                if (!tx_setStrategy.status) {
-                    console.error("Error setting the strategy for: ",name);
-                    return;
-                }
-                console.log("Set Strategy in the Controller for: ",name);
-
-                const whitelist = await Strategy.connect(governanceSigner).whitelistHarvester(wallet_addr);
-                const tx_whitelist = await whitelist.wait(1);
-                if (!tx_whitelist.status) {
-                    console.error("Error whitelisting harvester for: ",name);
-                    return;
-                }
-                console.log('whitelisted the harvester for: ',name);
-
-                const keeper = await Strategy.connect(governanceSigner).addKeeper(wallet_addr);
-                const tx_keeper = await keeper.wait(1);
-                if (!tx_keeper.status) {
-                    console.error("Error adding keeper for: ",name);
-                    return;
-                }
-                console.log('added keeper for: ',name);
+                // Now we can deploy the new strategy
+                strategyContract = await stratFactory.deploy(governanceSigner.getAddress(), strategistSigner.getAddress(), controllerAddr, timelockSigner.getAddress());
+                strategyAddr = strategyContract.address;
+                // console.log("\tDeployed strategy address is: " + strategyAddr);
+                await controllerContract.connect(timelockSigner).approveStrategy(assetAddr, strategyAddr);
+                await controllerContract.connect(timelockSigner).setStrategy(assetAddr, strategyAddr);
             } else {            
                 Strategy = new ethers.Contract(strategy_addr, stratABI, governanceSigner);
                 let timelock_addr = await Strategy.timelock();
@@ -256,7 +223,7 @@ const doFoldingStrategyTest = (
         });
 
         it("Globe initialized with zero balance for user", async () => {
-            let BNBal = await SnowGlobe.balanceOf(walletSigner._address);
+            let BNBal = await globeContract.balanceOf(walletSigner.getAddress());
             expect(BNBal).to.be.equals(BigNumber.from("0x0"));
         });
 
@@ -278,8 +245,8 @@ const doFoldingStrategyTest = (
 
             await SnowGlobe.connect(walletSigner).withdrawAll();
 
-            userBal = await assetContract.connect(walletSigner).balanceOf(wallet_addr);
-            expect(userBal).to.be.gt(BigNumber.from("0x0"));
+            userBal = await assetContract.connect(walletSigner).balanceOf(walletAddr);
+            expect(userBal).to.be.gt(0);
         });
 
         it("Harvests should make some money!", async () => {

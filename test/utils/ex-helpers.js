@@ -31,6 +31,7 @@ const fastForwardAWeek = async () => {
   } while (i < 8);
 };
 
+/*
 const toWei = (amount, decimal = 18) => {
   return BN.from(amount).mul(BN.from(10).pow(decimal));
 };
@@ -42,6 +43,7 @@ const fromWei = (amount) => {
 const toGwei = (amount) => {
   return amount.div(1000000000).toString();
 };
+*/
 
 const overwriteTokenAmount = async (assetAddr, walletAddr, amount, slot = 0) => {
   const index = ethers.utils.solidityKeccak256(["uint256", "uint256"], [walletAddr, slot]);
@@ -88,9 +90,9 @@ const returnController = (controller => {
 
 
 module.exports = {
-  toWei,
-  fromWei,
-  toGwei,
+//  toWei,
+//  fromWei,
+//  toGwei,
   increaseBlock,
   increaseTime,
   overwriteTokenAmount,

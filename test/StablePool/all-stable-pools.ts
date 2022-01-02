@@ -10,7 +10,7 @@
  *      e.g. `npx hardhat test test/StablePool/all-stable-pools.js --network localhost`
  * 
  *  ***/
-const { doStablePoolTests } = require("../stable-pool-test");
+import { doStablePoolTests } from "./stable-pool-test";
 
 const tests = [
     {
@@ -25,11 +25,12 @@ const tests = [
     },
 ];
 
-for (const test of tests) {
-    describe(test.name, async () => {
+describe("Stable pool tests", function () {
+   for (const test of tests) {
         doStablePoolTests (
             test.name,
             test.addr,
-            test.tokens)
-    });
-}
+            test.tokens
+        )
+   }
+});

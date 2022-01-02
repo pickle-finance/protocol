@@ -4,7 +4,7 @@
  * 
  *  ***/
 
-const { doZapperTests } = require("../zapper-test");
+import { doZapperTests } from "./zapper-test";
 
 const tests = [
     {
@@ -34,8 +34,14 @@ const tests = [
 ];
 
 
+describe("Pangolin Zapper Tests", function () {
 for (const test of tests) {
-    describe(test.name, async () => {
-        doZapperTests(test.name, test.snowglobeAddress, "Pangolin", test.gaugeAddress, test.controller);
-    });
-}
+        doZapperTests(
+           test.name, 
+           test.snowglobeAddress, 
+           "Pangolin", 
+           test.gaugeAddress, 
+           test.controller
+        );
+   }
+});
