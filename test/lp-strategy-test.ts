@@ -97,7 +97,6 @@ export function doLPStrategyTest (
                governanceSigner,
                strategistSigner
             );
-            console.log(i++)
 
             asset_addr = await Strategy.want();
             assetContract = await ethers.getContractAt("ERC20", asset_addr, walletSigner);
@@ -112,7 +111,6 @@ export function doLPStrategyTest (
                timelockSigner, 
                governanceSigner
             ); 
-            console.log(i++)
             
             snowglobe_addr = SnowGlobe.address;
             strategy_addr = Strategy.address;
