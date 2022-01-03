@@ -4,11 +4,12 @@ import { TestableStrategy, LPTestDefault } from "./../strategy-test-case";
 const tests = [
     {
         name: "JoeAvaxEgg",
-        controller: "backup",
+        controller: "bankerJoe",
         lp_suffix: false,
         timelockIsStrategist: true,
-        slot: 1, // error due to wrong slot -- _i think_ 
+        slot: 1,
     },
+
 ];
 
 

@@ -164,6 +164,7 @@ export async function addGauge(name: string, SnowGlobe: Contract, governanceSign
     const gaugeGovernanceSigner = await returnSigner(gauge_governance_addr);
     const gauge = await GaugeProxy.getGauge(SnowGlobe.address);
     if (gauge == 0) {
+        await network.provider.send("hardhat_setBalance", [gauge_governance_addr, "0x10000000000000000000000",]);
         const addGauge = await GaugeProxy.connect(gaugeGovernanceSigner).addGauge(SnowGlobe.address);
         const tx_addGauge = await addGauge.wait(1);
         if (!tx_addGauge.status) {
