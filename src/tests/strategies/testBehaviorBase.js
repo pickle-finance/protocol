@@ -44,7 +44,7 @@ const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isP
 
       await increaseTime(60 * 60 * 24 * 15); //travel 15 days
       if (bIncreaseBlock) {
-        await increaseBlock(97443); //roughly 15 days
+        await increaseBlock(1000); 
       }
 
       console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
@@ -84,7 +84,7 @@ const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isP
 
       await increaseTime(60 * 60 * 24 * 15); //travel 15 days
       if (bIncreaseBlock) {
-        await increaseBlock(97443); //roughly 15 days
+        await increaseBlock(1000); 
       }
       const _before = await pickleJar.balance();
       let _treasuryBefore = await want.balanceOf(treasury.address);

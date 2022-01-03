@@ -35,14 +35,14 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://polygon-rpc.com/`,
+        url: `https://arb1.arbitrum.io/rpc/`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },
       hardfork: "london",
       gasPrice: "auto",
-      gas: 2500000
+      gas: 2500000,
     },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
@@ -56,10 +56,7 @@ module.exports = {
     },
     arbitrum: {
       url: `https://arb1.arbitrum.io/rpc/`,
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
-      accounts: [`0x${process.env.MNEMONIC}`]
+      accounts: [`0x${process.env.MNEMONIC}`],
     },
   },
   contractSizer: {
