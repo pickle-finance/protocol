@@ -11,6 +11,7 @@ contract PickleRebalancingKeeper is KeeperCompatibleInterface {
     int24 public threshold = 10;
 
     address public governance;
+    bool public disabled = false;
 
     constructor(address _governance) public {
         governance = _governance;
@@ -24,6 +25,11 @@ contract PickleRebalancingKeeper is KeeperCompatibleInterface {
     function setThreshold(int24 _threshold) external {
         require(msg.sender == governance, "!governance");
         threshold = _threshold;
+    }
+
+    function setDisabled(bool _disabled) external {
+        require(msg.sender == governance, "!governance");
+        disabled = _disabled;
     }
 
     function addStrategy(address _address) external {
@@ -53,6 +59,8 @@ contract PickleRebalancingKeeper is KeeperCompatibleInterface {
             bytes memory _memory
         )
     {
+      require(!disabled, "Disabled");
+
         for (uint256 i = 0; i < strategyArray.length; i++) {
             int24 _lowerTick = IStrategyV2(strategyArray[i]).tick_lower();
             int24 _upperTick = IStrategyV2(strategyArray[i]).tick_upper();
