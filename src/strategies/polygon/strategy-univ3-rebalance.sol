@@ -42,8 +42,7 @@ abstract contract StrategyRebalanceUniV3 {
     int24 public tick_upper;
     int24 private tickSpacing;
     int24 private tickRangeMultiplier;
-    int24 private maxDeviation = 500;
-    uint24 private twapTime = 10;
+    uint24 private twapTime = 60;
 
     IUniswapV3PositionsNFT public nftManager =
         IUniswapV3PositionsNFT(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
@@ -93,11 +92,6 @@ abstract contract StrategyRebalanceUniV3 {
                 msg.sender == governance ||
                 msg.sender == strategist
         );
-        _;
-    }
-
-    modifier checkDeviation() {
-        determineTicks();
         _;
     }
 
@@ -181,6 +175,11 @@ abstract contract StrategyRebalanceUniV3 {
         controller = _controller;
     }
 
+    function setTwapTime(uint24 _twapTime) public {
+      require(msg.sender == governance, "!governance");
+      twapTime = _twapTime;
+    }
+
     function amountsForLiquid() public view returns (uint256, uint256) {
         (uint256 a1, uint256 a2) = pool.amountsForLiquidity(
             1e18,
@@ -190,42 +189,19 @@ abstract contract StrategyRebalanceUniV3 {
         return (a1, a2);
     }
 
-    function getSqrtRatioAtTick(int24 _tick) public view returns (uint160) {
-        return TickMath.getSqrtRatioAtTick(_tick);
-    }
-
-    function getSqrtRatioAtRanges() public view returns (uint160, uint160) {
-        (int24 _tickLower, int24 _tickUpper) = determineTicks();
-        return (
-            TickMath.getSqrtRatioAtTick(_tickLower),
-            TickMath.getSqrtRatioAtTick(_tickUpper)
-        );
-    }
-
-    function getTickAtSqrtRatio(uint160 _sqrRtRatio)
-        public
-        view
-        returns (int24)
-    {
-        return TickMath.getTickAtSqrtRatio(_sqrRtRatio);
-    }
-
     function determineTicks() public view returns (int24, int24) {
-        (, int24 _currentTick, , , , , ) = pool.slot0();
         uint32[] memory _observeTime = new uint32[](2);
         _observeTime[0] = twapTime;
         _observeTime[1] = 0;
         (int56[] memory _cumulativeTicks, ) = pool.observe(_observeTime);
-        int24 _averageTick = int24(
-            (_cumulativeTicks[1] - _cumulativeTicks[0]) / twapTime
-        );
-        int24 _deviation = _currentTick > _averageTick
-            ? _currentTick - _averageTick
-            : _averageTick - _currentTick;
-        require(_deviation <= maxDeviation, "Flash Loan Protection");
+        int56 _averageTick = (_cumulativeTicks[1] - _cumulativeTicks[0]) / twapTime;
         int24 baseThreshold = tickSpacing * tickRangeMultiplier;
         return
-            PoolVariables.baseTicks(_currentTick, baseThreshold, tickSpacing);
+            PoolVariables.baseTicks(
+                int24(_averageTick),
+                baseThreshold,
+                tickSpacing
+            );
     }
 
     // **** State mutations **** //
@@ -361,7 +337,6 @@ abstract contract StrategyRebalanceUniV3 {
     function rebalance()
         external
         onlyBenevolent
-        checkDeviation
         returns (uint256 _tokenId)
     {
         if (tokenId != 0) {

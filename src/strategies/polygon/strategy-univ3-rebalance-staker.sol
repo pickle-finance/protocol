@@ -45,8 +45,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
     int24 public tick_upper;
     int24 private tickSpacing;
     int24 private tickRangeMultiplier;
-    int24 private maxDeviation = 500;
-    uint24 private twapTime = 10;
+    uint24 private twapTime = 60;
 
     address public rewardToken;
     IUniswapV3PositionsNFT public nftManager =
@@ -100,11 +99,6 @@ abstract contract StrategyRebalanceStakerUniV3 {
                 msg.sender == governance ||
                 msg.sender == strategist
         );
-        _;
-    }
-
-    modifier checkDeviation() {
-        determineTicks();
         _;
     }
 
@@ -211,6 +205,11 @@ abstract contract StrategyRebalanceStakerUniV3 {
         });
     }
 
+    function setTwapTime(uint24 _twapTime) public {
+      require(msg.sender == governance, "!governance");
+      twapTime = _twapTime;
+    }
+
     function amountsForLiquid() public view returns (uint256, uint256) {
         (uint256 a1, uint256 a2) = pool.amountsForLiquidity(
             1e18,
@@ -221,21 +220,18 @@ abstract contract StrategyRebalanceStakerUniV3 {
     }
 
     function determineTicks() public view returns (int24, int24) {
-        (, int24 _currentTick, , , , , ) = pool.slot0();
         uint32[] memory _observeTime = new uint32[](2);
         _observeTime[0] = twapTime;
         _observeTime[1] = 0;
         (int56[] memory _cumulativeTicks, ) = pool.observe(_observeTime);
-        int24 _averageTick = int24(
-            (_cumulativeTicks[1] - _cumulativeTicks[0]) / twapTime
-        );
-        int24 _deviation = _currentTick > _averageTick
-            ? _currentTick - _averageTick
-            : _averageTick - _currentTick;
-        require(_deviation <= maxDeviation, "Flash Loan Protection");
+        int56 _averageTick = (_cumulativeTicks[1] - _cumulativeTicks[0]) / twapTime;
         int24 baseThreshold = tickSpacing * tickRangeMultiplier;
         return
-            PoolVariables.baseTicks(_currentTick, baseThreshold, tickSpacing);
+            PoolVariables.baseTicks(
+                int24(_averageTick),
+                baseThreshold,
+                tickSpacing
+            );
     }
 
     // **** State mutations **** //
@@ -364,7 +360,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
         (a0, a1) = _withdrawSome(liquidityOfPool());
     }
 
-    function harvest() public onlyBenevolent checkDeviation {
+    function harvest() public onlyBenevolent {
         uint256 _initToken0 = token0.balanceOf(address(this));
         uint256 _initToken1 = token1.balanceOf(address(this));
 
@@ -458,7 +454,6 @@ abstract contract StrategyRebalanceStakerUniV3 {
     function rebalance()
         external
         onlyBenevolent
-        checkDeviation
         returns (uint256 _tokenId)
     {
         if (tokenId != 0) {
