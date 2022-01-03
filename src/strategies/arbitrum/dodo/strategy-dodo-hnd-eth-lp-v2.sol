@@ -5,11 +5,14 @@ pragma experimental ABIEncoderV2;
 
 import "../strategy-base.sol";
 import "../../../interfaces/dodo.sol";
-import "hardhat/console.sol";
 
 contract StrategyDodoHndEthLpV2 is StrategyBase {
     // Token addresses
     address public constant hnd = 0x10010078a54396F62c96dF8532dc2B4847d47ED3;
+
+    // How much HND tokens to keep?
+    uint256 public keepHND = 0;
+    uint256 public constant keepHNDMax = 10000;
 
     address public constant rewards =
         0x52C7B4aA3F67D3533aAf1153430758c702a3594b;
@@ -21,6 +24,12 @@ contract StrategyDodoHndEthLpV2 is StrategyBase {
         0x3B6067D4CAa8A14c63fdBE6318F27A0bBc9F9237;
     address public constant dodo_approve =
         0xA867241cDC8d3b0C07C85cC06F25a0cD3b5474d8;
+
+    address[] public dodoEthAdapters;
+    address[] public dodoEthPairs;
+    address[] public dodoEthSwapTo;
+
+    address[] public hndEthRoute = [dodo_hnd_eth_lp];
 
     constructor(
         address _governance,
@@ -39,8 +48,6 @@ contract StrategyDodoHndEthLpV2 is StrategyBase {
     {
         IERC20(hnd).approve(dodo_approve, uint256(-1));
         IERC20(weth).approve(dodo_approve, uint256(-1));
-        IERC20(want).approve(dodo_approve, uint256(-1));
-        IERC20(want).safeApprove(rewards, uint256(-1));
     }
 
     function balanceOfPool() public view override returns (uint256) {
@@ -58,9 +65,16 @@ contract StrategyDodoHndEthLpV2 is StrategyBase {
 
     // **** Setters ****
 
+    function setKeepHND(uint256 _keepHND) external {
+        require(msg.sender == timelock, "!timelock");
+        keepHND = _keepHND;
+    }
+
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
+            IERC20(want).safeApprove(rewards, 0);
+            IERC20(want).safeApprove(rewards, _want);
             IDodoMine(rewards).deposit(_want);
         }
     }
@@ -83,20 +97,22 @@ contract StrategyDodoHndEthLpV2 is StrategyBase {
         // i.e. will be be heavily frontrunned?
         //      if so, a new strategy will be deployed.
 
-        // Collects HND tokens
-        console.log(
-            "Pool balance is: %s, Harvestable balance is %s",
-            balanceOfPool(),
-            IDodoMine(rewards).getPendingReward(address(this), 0)
-        );
+        // Collects DODO tokens
         IDodoMine(rewards).claimAllRewards();
         uint256 _hnd = IERC20(hnd).balanceOf((address(this)));
-        console.log("HND balance is %s", _hnd);
+
+        uint256 _keepHND = _hnd.mul(keepHND).div(keepHNDMax);
+        if (_keepHND > 0) {
+            IERC20(hnd).safeTransfer(
+                IController(controller).treasury(),
+                _keepHND
+            );
+            _hnd = _hnd.sub(_keepHND);
+        }
         address[] memory path = new address[](1);
         path[0] = dodo_hnd_eth_lp;
 
         if (_hnd > 0) {
-            // Swap half HND for WETH
             IDodoSwap(dodoSwap).dodoSwapV2TokenToToken(
                 hnd,
                 weth,
@@ -112,13 +128,6 @@ contract StrategyDodoHndEthLpV2 is StrategyBase {
         // Adds in liquidity for WETH/HND
         _hnd = IERC20(hnd).balanceOf(address(this));
         uint256 _weth = IERC20(weth).balanceOf(address(this));
-
-        console.log(
-            "After swap... HND balance is %s, WETH balance is %s",
-            _hnd,
-            _weth
-        );
-
         if (_weth > 0 && _hnd > 0) {
             IDodoSwap(dodoSwap).addDVMLiquidity(
                 dodo_hnd_eth_lp,
@@ -129,23 +138,9 @@ contract StrategyDodoHndEthLpV2 is StrategyBase {
                 0,
                 now + 60
             );
-
-            // Donates DUST
-            IERC20(weth).transfer(
-                IController(controller).treasury(),
-                IERC20(weth).balanceOf(address(this))
-            );
-            IERC20(hnd).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(hnd).balanceOf(address(this))
-            );
         }
-        console.log(
-            "After add... want balance is %s",
-            IERC20(want).balanceOf(address(this))
-        );
 
-        _distributePerformanceFeesAndDeposit();
+        deposit();
     }
 
     // **** Views ****
