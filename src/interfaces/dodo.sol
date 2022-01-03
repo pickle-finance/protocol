@@ -8,6 +8,11 @@ interface IDodoMine {
         view
         returns (uint256);
 
+    function getPendingReward(address user, uint256 i)
+        external
+        view
+        returns (uint256);
+
     function balanceOf(address user) external view returns (uint256);
 
     function deposit(uint256 amount) external;
@@ -17,7 +22,7 @@ interface IDodoMine {
     function claimAllRewards() external;
 }
 
-interface IDodoPool { 
+interface IDodoPool {
     function _QUOTE_TOKEN_() external view returns (address);
 }
 
