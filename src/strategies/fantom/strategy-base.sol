@@ -34,7 +34,6 @@ abstract contract StrategyBase {
 
     // Tokens
     address public want;
-    address public constant weth = 0x74b23882a30290451A17c44f4F05243b6b58C76d;
     address public constant wftm = 0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83;
 
     // User accounts
