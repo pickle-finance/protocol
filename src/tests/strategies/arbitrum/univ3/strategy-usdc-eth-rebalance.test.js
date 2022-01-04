@@ -103,6 +103,7 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
 
     console.log("=============== Alice deposit ==============");
     await deposit(alice, depositA, depositB);
+    await strategy.setTickRangeMultiplier("50");
     await rebalance();
 
     console.log("=============== Bob deposit ==============");
@@ -110,7 +111,7 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
     await deposit(bob, depositA, depositB);
     //await simulateTrading();
     await deposit(charles, depositA, depositB);
-    await harvest();
+   // await harvest();
 
     aliceShare = await pickleJar.balanceOf(alice.address);
     console.log("Alice share amount => ", aliceShare.toString());

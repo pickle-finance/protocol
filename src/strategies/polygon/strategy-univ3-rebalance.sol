@@ -180,6 +180,11 @@ abstract contract StrategyRebalanceUniV3 {
       twapTime = _twapTime;
     }
 
+    function setTickRangeMultiplier(int24 _tickRangeMultiplier) public {
+      require(msg.sender ==  governance, "!governance");
+      tickRangeMultiplier = _tickRangeMultiplier;
+    }
+
     function amountsForLiquid() public view returns (uint256, uint256) {
         (uint256 a1, uint256 a2) = pool.amountsForLiquidity(
             1e18,
