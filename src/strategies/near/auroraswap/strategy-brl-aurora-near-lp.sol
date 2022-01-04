@@ -37,4 +37,3 @@ contract StrategyBrlAuroraNearLp is StrategyBrlFarmBase {
         return "StrategyBrlAuroraNearLp";
     }
 }
-f
