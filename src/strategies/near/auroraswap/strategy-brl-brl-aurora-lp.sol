@@ -16,7 +16,7 @@ contract StrategyBrlBrlAuroraLp is StrategyBrlFarmBase {
         address _timelock
     )
         public
-        StrategyNearPadFarmBase(
+        StrategyBrlFarmBase(
             brl,
             aurora,
             brl_aurora_poolid,

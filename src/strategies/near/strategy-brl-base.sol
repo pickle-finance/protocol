@@ -58,7 +58,7 @@ abstract contract StrategyBrlFarmBase is StrategyBase {
     }
 
     function getHarvestable() external view returns (uint256) {
-        uint256 _pendingBrl = IMiniChefBrl(miniChef).pendingBrl(
+        uint256 _pendingBrl = IMiniChefBrl(miniChef).pendingBRL(
             poolId,
             address(this)
         );
@@ -73,7 +73,7 @@ abstract contract StrategyBrlFarmBase is StrategyBase {
         if (_want > 0) {
             IERC20(want).safeApprove(miniChef, 0);
             IERC20(want).safeApprove(miniChef, _want);
-            IMiniChefBrl(miniChef).deposit(poolId, _want, address(0));
+            IMiniChefBrl(miniChef).deposit(poolId, _want);
         }
     }
 
@@ -102,8 +102,8 @@ abstract contract StrategyBrlFarmBase is StrategyBase {
     }
 
     function harvestOne() public onlyBenevolent {
-        // Collects TRI tokens
-        IMiniChefBrl(miniChef).deposit(poolId, 0, address(0));
+        // Collects BRL tokens
+        IMiniChefBrl(miniChef).deposit(poolId, 0);
         uint256 _brl = IERC20(brl).balanceOf(address(this));
         uint256 _keepBRL = _brl.mul(keepBRL).div(keepBRLMax);
 

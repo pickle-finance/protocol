@@ -16,7 +16,7 @@ contract StrategyBrlUsdcNearLp is StrategyBrlFarmBase {
         address _timelock
     )
         public
-        StrategyNearPadFarmBase(
+        StrategyBrlFarmBase(
             usdc,
             near,
             usdc_near_poolid,
