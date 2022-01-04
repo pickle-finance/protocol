@@ -17,7 +17,7 @@ contract StrategyBrlEthBtcLp is StrategyBrlFarmBase {
         address _timelock
     )
         public
-        StrategyNearPadFarmBase(
+        StrategyBrlFarmBase(
             eth,
             btc,
             eth_btc_poolid,

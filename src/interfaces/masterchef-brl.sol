@@ -4,17 +4,14 @@ pragma experimental ABIEncoderV2;
 
 import "./IRewarder.sol";
 
-interface IMasterChefBrl {
+interface IMiniChefBrl {
     struct PoolInfo {
         address lpToken;
         uint256 allocPoint;
-        uint256 lastRewardBlock; // actually last timestamp to be more stable
-        uint256 accBrlPerShare;
-        uint256 totalLp;
-        address rewarder; // bonus other tokens, ex: AURORA
+        uint256 lastRewardBlock; 
+        uint256 accBRLPerShare;
+        uint256 depositFeeBP;
     }
-
-    function rewarder(uint256 _pid) external view returns (IRewarder);
 
     function poolInfo(uint256 pid) external view returns (PoolInfo memory);
 
@@ -25,8 +22,7 @@ interface IMasterChefBrl {
 
     function deposit(
         uint256 _pid,
-        uint256 _amount,
-        address _ref
+        uint256 _amount
     ) external;
 
     function withdraw(uint256 pid, uint256 amount) external;
@@ -35,7 +31,7 @@ interface IMasterChefBrl {
 
     function brlPerBlock() external view returns (uint256);
 
-    function pendingBrl(uint256 _pid, address _user)
+    function pendingBRL(uint256 _pid, address _user)
         external
         view
         returns (uint256);

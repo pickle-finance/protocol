@@ -16,7 +16,7 @@ contract StrategyBrlNearBtcLp is StrategyBrlFarmBase {
         address _timelock
     )
         public
-        StrategyNearPadFarmBase(
+        StrategyBrlFarmBase(
             near,
             btc,
             near_btc_poolid,
