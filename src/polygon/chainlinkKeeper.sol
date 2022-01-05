@@ -80,6 +80,7 @@ contract PickleRebalancingKeeper is KeeperCompatibleInterface {
     }
 
     function performUpkeep(bytes memory _calldata) external override {
+        require(!disabled, "Disabled");
         address _strategy = abi.decode(_calldata, (address));
         IStrategyV2(_strategy).rebalance();
     }
