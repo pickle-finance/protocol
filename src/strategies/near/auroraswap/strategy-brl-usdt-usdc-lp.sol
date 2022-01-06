@@ -4,7 +4,7 @@ pragma solidity ^0.6.7;
 import "../strategy-brl-base.sol";
 
 contract StrategyBrlUsdtUsdcLp is StrategyBrlFarmBase {
-    uint256 public usdt_near_poolid = 2;
+    uint256 public usdt_usdc_poolid = 2;
     // Token addresses
     address public usdt_usdc_lp = 0xEc538fAfaFcBB625C394c35b11252cef732368cd;
     address public usdt = 0x4988a896b1227218e4A686fdE5EabdcAbd91571f;
