@@ -716,6 +716,26 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
+    //    {
+    //   name: "JoeAvaxCly",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
+    // {
+    //   name: "JoeAvaxH2O",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
+    // {
+    //   name: "JoeAvaxPtp",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
+    // {
+    //   name: "JoeUsdcEUsdc",
+    //   controllerAddress: "",
+    //   snowglobeAddress: "",
+    // },
     // {
     //   name: "AxialAvaxAxial",
     //   controllerAddress: "",
@@ -728,14 +748,18 @@ const tests = [
     //   slot: 51
     // },
     // {
-    //   name: "AxialAM3D",
+    //     name: "AxialAM3D",
+    //     controllerAddress: "",
+    //     snowglobeAddress: "",
+    //     slot: 51
+    //   },
+    // {
+    //   name: "JoeAvaxIme",
     //   controllerAddress: "",
     //   snowglobeAddress: "",
-    //   slot: 51
     // },
-    // 
   {
-    name: "JoeAvaxEgg",
+    name: "JoeAvaxPln",
     controllerAddress: "",
     snowglobeAddress: "",
   },

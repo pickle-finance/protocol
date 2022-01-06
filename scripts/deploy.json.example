@@ -1,5 +1,5 @@
 {
-  "BenqiQi": {
+  "BenqiQi": {  // contract name
     "controller": "Benqi", // only necessary if not the base controller
     "snowglobe_addr": "0x124F5991e1EAD696D3082139154dB787E52f4C87" // only necesary if the controller for the snowglobe is different
   },
