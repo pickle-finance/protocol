@@ -39,7 +39,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
 
     IERC20 public token0;
     IERC20 public token1;
-    uint256 private tokenId;
+    uint256 public tokenId;
 
     int24 public tick_lower;
     int24 public tick_upper;
