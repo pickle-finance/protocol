@@ -9,6 +9,7 @@ abstract contract StrategyCronaFarmBase is StrategyBase {
     address public constant crona = 0xadbd1231fb360047525BEdF962581F3eee7b49fe;
     address public constant cronaChef =
         0x77ea4a4cF9F77A034E4291E8f457Af7772c2B254;
+    address public sushiRouter = 0xcd7d16fB918511BF7269eC4f48d61D79Fb26f918;
 
     address public token0;
     address public token1;
