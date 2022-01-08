@@ -15,5 +15,5 @@ describe("StrategyBalancerBalWethLp", () => {
     await getWantFromWhale(bal_addr, toWei(100), alice, bal_whale_addr);
   });
 
-  doTestBalancerBehaviorBase("StrategyBalancerBalWethLp", want_addr, bal_addr, false);
+  doTestBalancerBehaviorBase("src/strategies/balancer/strategy-balancer-bal-weth.sol:StrategyBalancerBalWethLp", want_addr, bal_addr, false);
 });
