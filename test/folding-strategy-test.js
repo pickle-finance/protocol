@@ -52,6 +52,7 @@ const doFoldingStrategyTest = (
                 case "bankerJoe": controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
                 case "benqi": controller_addr = "0x252B5fD3B1Cb07A2109bF36D5bDE6a247c6f4B59"; break;
                 // case "benqi": controller_addr = "0x8bfBA506B442f0D93Da2aDFd1ab70b7cB6a77B76"; break; //old
+                case "optimizer": controller_addr = "0x2F0b4e7aC032d0708C082994Fb21Dd75DB514744"; break;
                 default : break;
             }
 
