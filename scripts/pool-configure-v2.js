@@ -3,7 +3,7 @@ const { ethers } = require("hardhat");
 require('dotenv').config();
 
 async function main() {
-  const poolsJSON = readFileSync("./scripts/deploy.json");//loded from files
+  const poolsJSON = readFileSync("./scripts/deploy.json");//loaded from files
   const pools = JSON.parse(poolsJSON);
 
   const [signer] = await ethers.getSigners();

@@ -9,20 +9,27 @@ const tests = [
   // {
   //   name: "BenqiLinkE",
   // },
-  {
-    name: "BenqiQi",
-    fold: false,
-    slot: 1
-  },
+  // {
+  //   name: "BenqiQi",
+  //   fold: false,
+  //   slot: 1
+  // },
   // {
   //   name: "BenqiWbtcE",
   // },
   // {
   //   name: "BenqiEthE",
   // },
-  // {
-  //   name: "BenqiWavax",
-  // },
+  {
+    name: "BenqiWavax",
+    slot: 1,
+    controller:"optimizer"
+  },
+  {
+    name: "BenqiDaiE",
+    controller:"optimizer"
+  },
+  
 ];
 
 for (const test of tests) {
