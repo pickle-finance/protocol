@@ -132,8 +132,8 @@ const doTestBalancerBehaviorBase = (strategyName, want_addr, reward_token_addr, 
       expect(_treasuryFund).to.be.eq(0, "treasury've stolen money!!!!");
 
       const _devFund = _devAfter.sub(_devBefore);
-      console.log("\nExpected Dev Fund: ", expectedDevFund);
-      console.log("\nDev Fund: ", _devFund);
+      console.log("\nExpected Dev Fund: ", expectedDevFund.toString());
+      console.log("\nDev Fund: ", _devFund.toString());
       expect(_devFund).to.be.eqApprox(expectedDevFund, "dev've stolen money!!!!");
     });
 
