@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-joe-farm-base.sol";
+import "../strategy-joe-rush-farm-base.sol";
 
-contract StrategyJoeAvaxFraxLp is StrategyJoeFarmBase {
+contract StrategyJoeAvaxFrax is StrategyJoeRushFarmBase {
 
-    uint256 public avax_frax_poolId = 46;
+    uint256 public avax_frax_poolId = 33;
 
-    address public joe_avax_frax_lp = 0x0d84595e8638dBc631076c51000B2d31120D8aa1;
-    address public frax = 0xDC42728B0eA910349ed3c6e1c9Dc06b5FB591f98;
+    address public joe_avax_frax_lp = 0x862905a82382Db9405a40DCAa8Ee9e8F4af52C89;
+    address public frax = 0xD24C2Ad096400B6FBcd2ad8B24E7acBc21A1da64;
+    address public fxs = 0x214DB107654fF987AD859F34125307783fC8e387; 
 
     constructor(
         address _governance,
@@ -17,7 +18,7 @@ contract StrategyJoeAvaxFraxLp is StrategyJoeFarmBase {
         address _timelock
     )
         public
-        StrategyJoeFarmBase(
+        StrategyJoeRushFarmBase(
             avax_frax_poolId,
             joe_avax_frax_lp,
             _governance,
@@ -27,50 +28,140 @@ contract StrategyJoeAvaxFraxLp is StrategyJoeFarmBase {
         )
     {}
 
+    function _takeFeeFraxToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = frax;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(frax).safeApprove(joeRouter, 0);
+        IERC20(frax).safeApprove(joeRouter, _keep);
+        _swapTraderJoeWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
+    function _takeFeeFxsToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = fxs;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(fxs).safeApprove(joeRouter, 0);
+        IERC20(fxs).safeApprove(joeRouter, _keep);
+        _swapTraderJoeWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But AVAX is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
         // Collects Joe tokens
-        IMasterChefJoeV2(masterChefJoeV2).deposit(poolId, 0);
+        IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
+
+        // Take Avax Rewards    
+        uint256 _avax = address(this).balance;              // get balance of native AVAX
+        if (_avax > 0) {                                    // wrap AVAX into ERC20
+            WAVAX(wavax).deposit{value: _avax}();
+        }
+
+        uint256 _frax = IERC20(frax).balanceOf(address(this));        // get balance of FRAX Tokens
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));      //get balance of WAVAX Tokens
+        // In the case of WAVAX Rewards, swap WAVAX for FRAX
+        if (_wavax > 0) {
+            uint256 _keep1 = _wavax.mul(keep).div(keepMax);
+            if (_keep1 > 0){
+                _takeFeeWavaxToSnob(_keep1);
+            }
+            
+            _wavax = IERC20(wavax).balanceOf(address(this));
+
+            IERC20(wavax).safeApprove(joeRouter, 0);
+            IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
+            _swapTraderJoe(wavax, frax, _wavax.div(2)); 
+
+        }
+      
+        // In the case of FRAX Rewards, swap FRAX for WAVAX 
+        if (_frax > 0) {
+            uint256 _keep2 = _frax.mul(keep).div(keepMax);
+            if (_keep2 > 0){
+                _takeFeeFraxToSnob(_keep2);
+            }
+            
+            _frax = IERC20(frax).balanceOf(address(this));
+
+            IERC20(frax).safeApprove(joeRouter, 0);
+            IERC20(frax).safeApprove(joeRouter, _frax.div(2));   
+            _swapTraderJoe(frax, wavax, _frax.div(2));
+          
+        }
 
         uint256 _joe = IERC20(joe).balanceOf(address(this));
         if (_joe > 0) {
             // 10% is sent to treasury
             uint256 _keep = _joe.mul(keep).div(keepMax);
-            uint256 _amount = _joe.sub(_keep).div(2);
             if (_keep > 0) {
                 _takeFeeJoeToSnob(_keep);
             }
-            IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keep));
 
-            _swapTraderJoe(joe, wavax, _amount);
-            _swapTraderJoe(joe, frax, _amount);
+            _joe = IERC20(joe).balanceOf(address(this));
+
+            IERC20(joe).safeApprove(joeRouter, 0);
+            IERC20(joe).safeApprove(joeRouter, _joe);
+
+            _swapTraderJoe(joe, wavax, _joe.div(2));
+            _swapTraderJoe(joe, frax, _joe.div(2));
         }
 
-        // Adds in liquidity for AVAX/WBTC
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        uint256 _fxs = IERC20(fxs).balanceOf(address(this));
+        if (_fxs > 0) {
+            // 10% is sent to treasury
+            uint256 _keep = _fxs.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeeFxsToSnob(_keep);
+            }
 
-        uint256 _frax = IERC20(frax).balanceOf(address(this));
+            _fxs = IERC20(fxs).balanceOf(address(this));
 
-        if (_wavax > 0 && _frax > 0) {
-            IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax);
+            IERC20(fxs).safeApprove(joeRouter, 0);
+            IERC20(fxs).safeApprove(joeRouter, _fxs);
 
+            _swapTraderJoe(fxs, wavax, _fxs.div(2));
+            _swapTraderJoe(fxs, frax, _fxs.div(2));
+        }
+
+        // Adds in liquidity for AVAX/FRAX
+        _frax = IERC20(frax).balanceOf(address(this));
+        _wavax = IERC20(wavax).balanceOf(address(this));
+
+        if (_frax > 0 && _wavax > 0) {
             IERC20(frax).safeApprove(joeRouter, 0);
             IERC20(frax).safeApprove(joeRouter, _frax);
 
+            IERC20(wavax).safeApprove(joeRouter, 0);
+            IERC20(wavax).safeApprove(joeRouter, _wavax);
+
             IJoeRouter(joeRouter).addLiquidity(
-                wavax,
                 frax,
-                _wavax,
+                wavax,
                 _frax,
+                _wavax,
                 0,
                 0,
                 address(this),
@@ -78,14 +169,37 @@ contract StrategyJoeAvaxFraxLp is StrategyJoeFarmBase {
             );
 
             // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(frax).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(frax).balanceOf(address(this))
-            );
+            _frax = IERC20(frax).balanceOf(address(this));
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _joe = IERC20(joe).balanceOf(address(this));
+            _fxs = IERC20(fxs).balanceOf(address(this));
+            if (_frax > 0){
+                IERC20(frax).transfer(
+                    IController(controller).treasury(),
+                    _frax
+                );
+            }
+            
+            if (_wavax > 0){
+                IERC20(wavax).safeTransfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            } 
+
+            if (_joe > 0){
+                IERC20(joe).transfer(
+                    IController(controller).treasury(),
+                    _joe
+                );
+            }
+
+            if (_fxs > 0){
+                IERC20(fxs).transfer(
+                    IController(controller).treasury(),
+                    _fxs
+                );
+            }
         }
 
         _distributePerformanceFeesAndDeposit();
@@ -94,6 +208,6 @@ contract StrategyJoeAvaxFraxLp is StrategyJoeFarmBase {
     // **** Views ****
 
     function getName() external override pure returns (string memory) {
-        return "StrategyJoeAvaxFraxLp";
+        return "StrategyJoeAvaxFrax";
     }
 }

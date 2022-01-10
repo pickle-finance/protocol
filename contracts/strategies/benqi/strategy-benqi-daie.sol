@@ -3,7 +3,7 @@ pragma solidity ^0.6.2;
 
 import "../strategy-qi-farm-base.sol";
 
-contract StrategyBenqiDai is StrategyQiFarmBase {
+contract StrategyBenqiDaiE is StrategyQiFarmBase {
     
         address public constant dai = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70; //qideposit token	
         address public constant qidai = 0x835866d37AFB8CB8F8334dCCdaf66cf01832Ff5D; //lending receipt token	
@@ -68,6 +68,6 @@ contract StrategyBenqiDai is StrategyQiFarmBase {
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {
-        return "StrategyBenqiDai";
+        return "StrategyBenqiDaiE";
     }
 }

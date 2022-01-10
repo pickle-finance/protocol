@@ -36,7 +36,6 @@ contract StrategyAxialAC4DLp is StrategyAxial4PoolBase {
         _strategist,
         _controller,
         _timelock
-
     ){}
 
     // **** State Mutations ****

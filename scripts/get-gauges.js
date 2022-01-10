@@ -3,7 +3,7 @@ require('dotenv').config();
 
 async function main() {
   const globes = [ 
-    { name: "SnowGlobeJoeUsdceEthe", address: "0x5586630339C015dF34EAB3Ae0343D37BE89671f9" },
+    { name: "SnowGlobeBenqiQi", address: "0x124F5991e1EAD696D3082139154dB787E52f4C87" },
     // { name: "SnowGlobeJoeAvaxBifi", address: "0xb58fA0e89b5a32E3bEeCf6B16704cabF8471F0E1" },
     // { name: "SnowGlobeJoeAvaxBnb", address: "0xc33b19c3d166CcD844aeDC475A989F5C0FC79E43" },
     // { name: "SnowGlobeJoeAvaxChart", address: "0x916aEbEE43E2bE7ed126A21208db4092392d80AD" },

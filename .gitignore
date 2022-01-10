@@ -108,7 +108,9 @@ solc-input.json
 build
 artifacts
 
+
 SnowballWallets.json
 .DS_Store
 cache/
 contracts/snowglobes/pangolin/snowglobe-png-tusd-png
+scripts/deploy.json
