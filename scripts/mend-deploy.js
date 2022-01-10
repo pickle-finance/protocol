@@ -4,60 +4,13 @@ require('dotenv').config();
 async function main() {
   const verify = false;
   const pools = [
-    // {  
-    //   name: "JoeDai",
-    //   // harvest: true,
-    //   earn: true,
-    //   deleverage: true,
-    //   keeper: true,
-    // },
-    // {  
-    //   name: "JoeEth", //fail to redeem
-    //   // harvest: true,
-    //   earn: true,
-    //   deleverage: true,
-    //   keeper: true,
-    //   // strategy_addr: "0x7c57937dD753B47fcb17c3DC49E05888e07425FE",
-    //   // approveStrategy: true,
-    //   leverage: true
-    // },
-    // {  
-    //   name: "JoeLink",  //fail to redeem
-    //   // harvest: true,
-    //   earn: true,
-    //   deleverage: true,
-    //   keeper: true,
-    //   leverage: true,
-    // },
-    // {  
-    //   name: "JoeUsdc", //fail to redeem
-    //   // harvest: true,
-    //   earn: true,
-    //   deleverage: true,
-    //   keeper: true,
-    //   leverage: true,
-    // },
-    // {  
-    //   name: "JoeUsdt", // fail to redeem
-    //   // harvest: true,
-    //   earn: true,
-    //   deleverage: true,
-    //   keeper: true,
-    //   leverage: true,
-    // },
-    // {  
-    //   name: "JoeWbtc", // fail to redeem
-    //   // harvest: true,
-    //   earn: true,
-    //   deleverage: true,
-    //   keeper: true,
-    //   leverage: true,
-    // },
-    {  
-      name: "BenqiWavax",
-    },
-    {  
-      name: "BenqiDaiE",
+    {
+      name: "AxialAC4D",
+      harvest: false,
+      earn: true,
+      strategy_addr: "0x92794b4789173dc06304238B1c4A2572a95EaE5d",
+      approveStrategy: true,
+
     },
   ];
 
@@ -66,8 +19,7 @@ async function main() {
   // const controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; // bankerJoe
   // const controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; // Old bankerJoe
   // const controller_addr = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; //Aave
-  // const controller_addr = "0xc7D536a04ECC43269B6B95aC1ce0a06E0000D095"; //Axial
-  const controller_addr = "0x2F0b4e7aC032d0708C082994Fb21Dd75DB514744"; //Optimizer
+  const controller_addr = "0xc7D536a04ECC43269B6B95aC1ce0a06E0000D095"; //Axial
 
   const [deployer] = await ethers.getSigners();
   console.log("Mending deployment with the account:", deployer.address);

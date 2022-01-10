@@ -397,7 +397,7 @@ const tests = [
   //     snowglobeAddress: "",
   //   },      
   // {
-  //   name: "PngUsdtESkill",
+  //   name: "PngUsdteSkill",
   //   controllerAddress: "",
   //   snowglobeAddress: "",
   // },
@@ -741,6 +741,11 @@ const tests = [
     //   controllerAddress: "",
     //   snowglobeAddress: "",
     // },
+    {
+      name: "AxialAC4D",
+      controllerAddress: "0xc7D536a04ECC43269B6B95aC1ce0a06E0000D095",
+      slot: 51,
+    },
     // {
     //   name: "AxialAA3D",
     //   controllerAddress: "",

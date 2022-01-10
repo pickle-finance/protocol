@@ -21,6 +21,7 @@ const doLPStrategyTest = (name, _snowglobe_addr, _controller_addr, globeABI, str
 
     const txnAmt = "25000000000000000000000";
     const slot = _slot ? _slot : 1;
+    console.log('slot: ',slot);
 
     describe("LP Strategy tests for: "+name, async () => {
 
@@ -92,10 +93,11 @@ const doLPStrategyTest = (name, _snowglobe_addr, _controller_addr, globeABI, str
             }
             console.log("Called earn in the Snowglobe for: ",name);
 
-            await overwriteTokenAmount(asset_addr,wallet_addr,txnAmt,slot);
-            assetContract = await ethers.getContractAt("ERC20",asset_addr,walletSigner);
+            assetContract = await ethers.getContractAt("ERC20",assetAddr,walletSigner);
             
-            await strategyContract.connect(governanceSigner).whitelistHarvester(wallet_addr);
+            await overwriteTokenAmount(assetAddr,walletAddr,txnAmt,slot);
+            
+            await strategyContract.connect(governanceSigner).whitelistHarvester(walletAddr);
         });
 
         const harvester = async () => {
