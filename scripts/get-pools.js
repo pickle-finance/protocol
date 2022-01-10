@@ -1,15 +1,19 @@
 
 /*
-  This script fetches all pool data for all pools in the GaugeProxyV2 contract, and updates the `poolsData.json` file.
+  This script fetches all pool data for all pools from the GaugeProxyV2 contract, and updates the `pools.json` file and `error-pools.json` file.
 
-  This includes:
-  - SnowGlobe Address
-  - Strategy Address
-  - Gauge Address
-  - Controller Address
-  - Underlying Token Addresses
-  - Underlying Token Symbols
-  - Platform Name
+  This includes the following for each pool:
+  - Name
+  - Platform
+  - Type
+  - Globe
+  - Strategy
+  - Gauge
+  - Controller
+  - Token Symbol
+  - Token Address
+  - Underlying Token Symbols (If Applicable)
+  - Underlying Token Address (If Applicable)
 
   To run the script, simply use the following command after installing all dependencies with `npm i`:
 
@@ -18,24 +22,29 @@
 
 // Imports:
 const { ethers } = require('ethers');
+const axios = require('axios');
 const fs = require('fs');
+
+// Setting Up RPCs:
+const avax = new ethers.providers.JsonRpcProvider('https://api.avax.network/ext/bc/C/rpc');
+const avax_backup = new ethers.providers.JsonRpcProvider('https://avax-mainnet.gateway.pokt.network/v1/lb/605238bf6b986eea7cf36d5e/ext/bc/C/rpc');
 
 // Initializations:
 const gaugeProxy = '0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27';
-const rpcs = [
-  'https://api.avax.network/ext/bc/C/rpc',
-  'https://avax-mainnet.gateway.pokt.network/v1/lb/605238bf6b986eea7cf36d5e/ext/bc/C/rpc'
-];
 const ignoreAddresses = [
   '0xb91124ecef333f17354add2a8b944c76979fe3ec', // StableVault
   '0x53b37b9a6631c462d74d65d61e1c056ea9daa637'  // Weird PNG-ETH LP Token
 ];
+const singleTraderJoeStrats = [
+  '0x8c06828a1707b0322baaa46e3b0f4d1d55f6c3e6'  // xJOE
+];
 const lpSymbols = ['PGL', 'JLP'];
-const lpAxialSymbols = ['AS4D', 'AC4D', 'AM3D', 'AA3D'];
+const axialSymbols = ['AS4D', 'AC4D', 'AM3D', 'AA3D'];
 const zero = '0x0000000000000000000000000000000000000000';
-const batchSize = 10; // Use 5-10 for spotty internet connections. 50-100 can be used for good connections.
+const batchSize = 20;
 let progress = 0;
 let maxProgress = 0;
+let erroredPools = [];
 
 // ABIs:
 const gaugeProxyABI = [
@@ -64,32 +73,82 @@ const strategyABI = [
 
 // Function to make blockchain queries:
 const query = async (address, abi, method, args) => {
-  try {
-    let ethers_provider = new ethers.providers.JsonRpcProvider(rpcs[0]);
-    let contract = new ethers.Contract(address, abi, ethers_provider);
-    let result = await contract[method](...args);
-    return result;
-  } catch {
+  let result;
+  let errors = 0;
+  while(!result) {
     try {
-      let ethers_provider = new ethers.providers.JsonRpcProvider(rpcs[1]);
-      let contract = new ethers.Contract(address, abi, ethers_provider);
-      let result = await contract[method](...args);
-      return result;
+      let contract = new ethers.Contract(address, abi, avax);
+      result = await contract[method](...args);
     } catch {
-      console.error(`\n  > Error calling ${method}(${args}) on ${address}`);
-      console.warn(`  > Execution was stopped due to errors. Try again or check script.`);
-      process.exit(1);
+      try {
+        let contract = new ethers.Contract(address, abi, avax_backup);
+        result = await contract[method](...args);
+      } catch {
+        if(++errors === 5) {
+          console.error(`\n  > Error calling ${method}(${args}) on ${address}`);
+          console.warn(`  > Execution was stopped due to errors. Check script or try again.`);
+          process.exit(1);
+        }
+      }
     }
   }
+  return result;
 }
 
 /* ========================================================================================================================================================================= */
 
+// Function to communicate script progress to user:
+const updateProgress = () => {
+  process.stdout.clearLine();
+  process.stdout.cursorTo(0);
+  if(++progress < maxProgress) {
+    process.stdout.write(`  > Pools Loaded: ${progress}/${maxProgress}`);
+  } else {
+    process.stdout.write(`  > All ${maxProgress} Pools Loaded.\n`);
+  }
+}
+
+/* ====================================================================================================================================================== */
+
+// Function to write data to JSON file:
+const writeJSON = (data, file) => {
+  fs.writeFile(`./scripts/${file}.json`, JSON.stringify(data, null, ' '), 'utf8', (err) => {
+    if(err) {
+      console.error(err);
+    } else {
+      console.info(`  > Successfully updated ${file}.json.`);
+    }
+  });
+}
+
+/* ====================================================================================================================================================== */
+
+// Function to fetch pool data from API:
+const fetchAPI = async () => {
+  console.info(`  > Fetching API data...`);
+  let url = 'https://api.snowapi.net/graphql';
+  let method = 'post';
+  let data = {query: 'query { SnowglobeContracts { pair, snowglobeAddress, gaugeAddress }}'};
+  try {
+    let pools = (await axios({url, method, data})).data.data.SnowglobeContracts;
+    return pools;
+  } catch {
+    console.error(`  > Error fetching API data.`);
+    console.warn(`  > Execution was stopped due to errors. Check script or try again.`);
+    process.exit(1);
+  }
+}
+
+/* ====================================================================================================================================================== */
+
 // Function to fetch all SnowGlobe addresses:
 const fetchGlobes = async () => {
+  console.info(`  > Starting blockchain calls...`);
   let globes = await query(gaugeProxy, gaugeProxyABI, 'tokens', []);
   return globes;
 }
+
+/* ====================================================================================================================================================== */
 
 // Function to fetch gauge address for a SnowGlobe:
 const fetchGauge = async (globe) => {
@@ -97,11 +156,15 @@ const fetchGauge = async (globe) => {
   return strategy;
 }
 
+/* ====================================================================================================================================================== */
+
 // Function to fetch controller address for a SnowGlobe:
 const fetchController = async (globe) => {
   let controller = await query(globe, snowGlobeABI, 'controller', []);
   return controller;
 }
+
+/* ====================================================================================================================================================== */
 
 // Function to fetch token address and symbol for a SnowGlobe:
 const fetchToken = async (globe) => {
@@ -110,11 +173,15 @@ const fetchToken = async (globe) => {
   return {symbol, address};
 }
 
+/* ====================================================================================================================================================== */
+
 // Function to fetch strategy address for a SnowGlobe:
 const fetchStrategy = async (controller, address) => {
   let strategy = await query(controller, controllerABI, 'strategies', [address]);
   return strategy;
 }
+
+/* ====================================================================================================================================================== */
 
 // Function to fetch underlying token symbols and addresses for a SnowGlobe:
 const fetchUnderlyingTokens = async (address) => {
@@ -125,16 +192,16 @@ const fetchUnderlyingTokens = async (address) => {
   return {token0: {symbol: symbol0, address: token0}, token1: {symbol: symbol1, address: token1}};
 }
 
-/* ========================================================================================================================================================================= */
+/* ====================================================================================================================================================== */
 
 // Function to fetch pool platform:
 const fetchPlatform = async (token, strategy, globe) => {
   let platform = null;
   if(token.symbol === 'PGL') {
     platform = 'Pangolin';
-  } else if(token.symbol === 'JLP' || globe.toLowerCase() === '0x6a52e6b23700a63ea4a0db313ebd386fb510ee3c') {
+  } else if(token.symbol === 'JLP' || singleTraderJoeStrats.includes(globe.toLowerCase())) {
     platform = 'Trader Joe';
-  } else if(lpAxialSymbols.includes(token.symbol)) {
+  } else if(axialSymbols.includes(token.symbol)) {
     platform = 'Axial';
   } else {
     let name = (await query(strategy, strategyABI, 'getName', [])).slice(8);
@@ -153,71 +220,121 @@ const fetchPlatform = async (token, strategy, globe) => {
   return platform;
 }
 
-/* ========================================================================================================================================================================= */
+/* ====================================================================================================================================================== */
 
-// Function to communicate script progress to user:
-const updateProgress = () => {
-  process.stdout.clearLine();
-  process.stdout.cursorTo(0);
-  if(++progress < maxProgress) {
-    process.stdout.write(`  > Pools Loaded: ${progress}/${maxProgress}`);
-  } else {
-    process.stdout.write(`  > All ${maxProgress} Pools Loaded.\n`);
-  }
+// Function to fetch batch of data:
+const fetchBatch = async (globes, apiPools) => {
+  let data = [];
+  let promises = globes.map(globe => (async () => {
+    if(!ignoreAddresses.includes(globe.toLowerCase())) {
+      let gauge = await fetchGauge(globe);
+      if(gauge != zero) {
+        let controller = await fetchController(globe);
+        let token = await fetchToken(globe);
+        let strategy = await fetchStrategy(controller, token.address);
+        if(strategy != zero) {
+          let apiPool = apiPools.find(pool => pool.snowglobeAddress.toLowerCase() === globe.toLowerCase());
+          if(apiPool) {
+            if(apiPool.gaugeAddress.toLowerCase() === gauge.toLowerCase()) {
+              let platform = await fetchPlatform(token, strategy, globe);
+              let type = lpSymbols.includes(token.symbol) ? 'lp' : 'single';
+              if(type === 'lp') {
+                let underlyingTokens = await fetchUnderlyingTokens(token.address);
+                let name = '';
+                if(underlyingTokens.token0.symbol === 'WAVAX') {
+                  name = `AVAX-${underlyingTokens.token1.symbol}`;
+                } else if(underlyingTokens.token1.symbol === 'WAVAX') {
+                  name = `AVAX-${underlyingTokens.token0.symbol}`;
+                } else {
+                  name = `${underlyingTokens.token0.symbol}-${underlyingTokens.token1.symbol}`;
+                }
+                data.push({name, platform, type, globe, strategy, gauge, controller, token, underlyingTokens});
+              } else {
+                let name = token.symbol;
+                data.push({name, platform, type, globe, strategy, gauge, controller, token});
+              }
+            } else {
+              let error = 'Wrong Gauge on API';
+              erroredPools.push({globe, strategy, gauge, controller, token, error});
+            }
+          } else {
+            let error = 'Not on API (Should Probably be Deprecated)';
+            erroredPools.push({globe, strategy, gauge, controller, token, error});
+          }
+        } else {
+          let error = 'No Strategy';
+          erroredPools.push({globe, strategy, gauge, controller, token, error});
+        }
+      }
+    }
+    updateProgress();
+  })());
+  await Promise.all(promises);
+  return data;
 }
 
-/* ========================================================================================================================================================================= */
+/* ====================================================================================================================================================== */
 
-// Function to get all pool data:
-const getPoolData = async () => {
+// Function to fetch all data:
+const fetch = async () => {
 
   // Initializations:
   let data = [];
+  let apiData = [];
   let startBatch = 0;
   let endBatch = batchSize;
 
-  // Fetching All SnowGlobes:
-  console.info(`\n  > Starting script calls...`);
+  // Fetching API Data:
+  apiData.push(...(await fetchAPI()));
+
+  // Fetching SnowGlobes:
   let globes = await fetchGlobes();
   maxProgress = globes.length;
 
-  // Fetching SnowGlobe Data:
+  // Fetching Data:
   while(progress < maxProgress) {
-    let promises = globes.slice(startBatch, endBatch).map(globe => (async () => {
-      if(!ignoreAddresses.includes(globe.toLowerCase())) {
-        let gauge = await fetchGauge(globe);
-        if(gauge != zero) {
-          let controller = await fetchController(globe);
-          let token = await fetchToken(globe);
-          let strategy = await fetchStrategy(controller, token.address);
-          let platform = await fetchPlatform(token, strategy, globe);
-          if(lpSymbols.includes(token.symbol)) {
-            let underlyingTokens = await fetchUnderlyingTokens(token.address);
-            data.push({platform, globe, strategy, gauge, controller, token, underlyingTokens});
-          } else {
-            data.push({platform, globe, strategy, gauge, controller, token});
-          }
-        }
-      }
-      updateProgress();
-    })());
-    await Promise.all(promises);
+    data.push(...(await fetchBatch(globes.slice(startBatch, endBatch), apiData)));
     startBatch += batchSize;
     endBatch += batchSize;
   }
 
-  // Writing JSON:
-  fs.writeFile('./scripts/poolsData.json', JSON.stringify(data, null, ' '), 'utf8', (err) => {
-    if(err) {
-      console.error(err);
+  // Sorting Data:
+  data.sort((a, b) => {
+    if(a.type === 'lp') {
+      if(b.type === 'lp') {
+        let nameSort = a.name.localeCompare(b.name);
+        if(nameSort === 0) {
+          return a.globe.localeCompare(b.globe);
+        } else {
+          return nameSort;
+        }
+      } else {
+        return -1;
+      }
+    } else if(b.type === 'lp') {
+      return 1;
     } else {
-      console.info(`  > Successfully updated JSON file.`);
+      let nameSort = a.name.localeCompare(b.name);
+      if(nameSort === 0) {
+        return a.globe.localeCompare(b.globe);
+      } else {
+        return nameSort;
+      }
     }
   });
+
+  // JSON Output:
+  writeJSON(data, 'pools');
+
+  // Sorting Error Data:
+  erroredPools.sort((a, b) => a.globe.localeCompare(b.globe));
+
+  // Logging Errored Pools:
+  writeJSON(erroredPools, 'error-pools');
+
 }
 
+/* ====================================================================================================================================================== */
 
-/* ========================================================================================================================================================================= */
-
-// Fetching pools:
-getPoolData();
+// Fetching Data:
+fetch();
