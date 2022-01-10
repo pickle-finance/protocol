@@ -1,7 +1,7 @@
 pragma solidity ^0.6.7;
 
 import "./strategy-base.sol";
-import "../../interfaces/tethys-chef.sol";
+import "../../interfaces/netswap-chef.sol";
 
 abstract contract StrategyNettFarmLPBase is StrategyBase {
     address public nettRouter = 0x1E876cCe41B7b844FDe09E38Fa1cf00f213bFf56;
