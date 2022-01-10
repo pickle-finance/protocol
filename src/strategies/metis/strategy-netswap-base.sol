@@ -1,56 +1,49 @@
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
 import "./strategy-base.sol";
-import "../../interfaces/minichef-nettswap.sol";
-import "../../interfaces/IRewarder.sol";
+import "../../interfaces/tethys-chef.sol";
 
-abstract contract StrategyNettSwapFarmBase is StrategyBase {
-    // Token addresses
-    address public constant nett = 0x90fE084F877C65e1b577c7b2eA64B8D8dd1AB278;
-    address public constant miniChef =
-        0x9d1dbB49b2744A1555EDbF1708D64dC71B0CB052;
-    address public constant nettRouter =
-        0x1E876cCe41B7b844FDe09E38Fa1cf00f213bFf56;
+abstract contract StrategyNettFarmLPBase is StrategyBase {
+    address public nettRouter = 0x1E876cCe41B7b844FDe09E38Fa1cf00f213bFf56;
+    address public nett = 0x90fE084F877C65e1b577c7b2eA64B8D8dd1AB278;
+    address public masterchef = 0x9d1dbB49b2744A1555EDbF1708D64dC71B0CB052;
+    address public token0;
+    address public token1;
 
     // How much NETT tokens to keep?
     uint256 public keepNETT = 1000;
     uint256 public constant keepNETTMax = 10000;
 
-    // WETH/<token1> pair
-    address public token0;
-    address public token1;
-    address rewardToken;
+    mapping(address => address[]) public uniswapRoutes;
 
     uint256 public poolId;
-    mapping(address => address[]) public swapRoutes;
 
+    // **** Getters ****
     constructor(
         address _token0,
         address _token1,
+        address _want,
         uint256 _poolId,
-        address _lp,
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
     )
         public
-        StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
+        StrategyBase(_want, _governance, _strategist, _controller, _timelock)
     {
-        poolId = _poolId;
-        token0 = _token0;
-        token1 = _token1;
         sushiRouter = nettRouter;
+        IUniswapV2Pair pair = IUniswapV2Pair(_want);
+        token0 = pair.token0();
+        token1 = pair.token1();
+        poolId = _poolId;
 
         IERC20(token0).approve(sushiRouter, uint256(-1));
         IERC20(token1).approve(sushiRouter, uint256(-1));
-        IERC20(nett).approve(sushiRouter, uint256(-1));
-        IERC20(want).approve(miniChef, uint256(-1));
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        (uint256 amount, ) = IMiniChefNettSwap(miniChef).userInfo(
+        (uint256 amount, , ) = INettChef(masterchef).userInfo(
             poolId,
             address(this)
         );
@@ -58,22 +51,22 @@ abstract contract StrategyNettSwapFarmBase is StrategyBase {
     }
 
     function getHarvestable() external view returns (uint256) {
-        uint256 _pendingNett = IMiniChefNettSwap(miniChef).pendingNett(
-            poolId,
-            address(this)
-        );
-
-        return _pendingNett;
+        return INettChef(masterchef).pendingNett(poolId, address(this));
     }
 
     // **** Setters ****
 
+    function setKeepNETT(uint256 _keepNETT) external {
+        require(msg.sender == timelock, "!timelock");
+        keepNETT = _keepNETT;
+    }
+
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(miniChef, 0);
-            IERC20(want).safeApprove(miniChef, _want);
-            IMiniChefNettSwap(miniChef).deposit(poolId, _want);
+            IERC20(want).safeApprove(masterchef, 0);
+            IERC20(want).safeApprove(masterchef, _want);
+            INettChef(masterchef).deposit(poolId, _want);
         }
     }
 
@@ -82,82 +75,36 @@ abstract contract StrategyNettSwapFarmBase is StrategyBase {
         override
         returns (uint256)
     {
-        IMiniChefNettSwap(miniChef).withdraw(poolId, _amount);
+        INettChef(masterchef).withdraw(poolId, _amount);
         return _amount;
     }
 
-    // **** State Mutations ****
-
-    function setKeepNETT(uint256 _keepNETT) external {
-        require(msg.sender == timelock, "!timelock");
-        keepNETT = _keepNETT;
-    }
-
     function harvest() public override {
-        harvestOne();
-        harvestTwo();
-        harvestThree();
-        harvestFour();
-        harvestFive();
-    }
-
-    function harvestOne() public {
-        // Collects NETT tokens
-        IMiniChefNettSwap(miniChef).deposit(poolId, 0);
+        INettChef(masterchef).deposit(poolId, 0);
         uint256 _nett = IERC20(nett).balanceOf(address(this));
-        uint256 _keepNETT = _nett.mul(keepNETT).div(keepNETTMax);
 
-        IERC20(nett).safeTransfer(
-            IController(controller).treasury(),
-            _keepNETT
-        );
-    }
-
-    function harvestTwo() public {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But ETH is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
-        uint256 _nett = IERC20(nett).balanceOf(address(this));
         if (_nett > 0) {
+            uint256 _keepNETT = _nett.mul(keepNETT).div(keepNETTMax);
+            IERC20(nett).safeTransfer(
+                IController(controller).treasury(),
+                _keepNETT
+            );
+
+            _nett = _nett.sub(_keepNETT);
             uint256 toToken0 = _nett.div(2);
+            uint256 toToken1 = _nett.sub(toToken0);
 
-            if (swapRoutes[token0].length > 1) {
-                UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-                    toToken0,
-                    0,
-                    swapRoutes[token0],
-                    address(this),
-                    now + 60
-                );
+            if (uniswapRoutes[token0].length > 1) {
+                _swapSushiswapWithPath(uniswapRoutes[token0], toToken0);
+            }
+            if (uniswapRoutes[token1].length > 1) {
+                _swapSushiswapWithPath(uniswapRoutes[token1], toToken1);
             }
         }
-    }
-
-    function harvestThree() public {
-        uint256 _nett = IERC20(nett).balanceOf(address(this));
-        if (_nett > 0) {
-            if (swapRoutes[token1].length > 1) {
-                uint256 swapAmount = swapRoutes[token0].length > 1
-                    ? _nett
-                    : _nett.div(2);
-                UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-                    swapAmount, // Swap the remainder of NETT
-                    0,
-                    swapRoutes[token1],
-                    address(this),
-                    now + 60
-                );
-            }
-        }
-    }
-
-    function harvestFour() public {
         // Adds in liquidity for token0/token1
         uint256 _token0 = IERC20(token0).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
+
         if (_token0 > 0 && _token1 > 0) {
             UniswapRouterV2(sushiRouter).addLiquidity(
                 token0,
@@ -180,10 +127,7 @@ abstract contract StrategyNettSwapFarmBase is StrategyBase {
                 IERC20(token1).balanceOf(address(this))
             );
         }
-    }
 
-    function harvestFive() public {
-        // We want to get back NETT LP tokens
         _distributePerformanceFeesAndDeposit();
     }
 }

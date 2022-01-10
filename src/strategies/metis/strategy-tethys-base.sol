@@ -20,6 +20,8 @@ abstract contract StrategyTethysFarmLPBase is StrategyBase {
 
     // **** Getters ****
     constructor(
+        address _token0,
+        address _token1,
         address _want,
         uint256 _poolId,
         address _governance,

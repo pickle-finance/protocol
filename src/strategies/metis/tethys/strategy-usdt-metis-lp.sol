@@ -17,6 +17,8 @@ contract StrategyTethysUsdtMetisLp is StrategyTethysFarmLPBase {
     )
         public
         StrategyTethysFarmLPBase(
+            usdt,
+            metis,
             usdt_metis_lp,
             usdt_metis_poolId,
             _governance,

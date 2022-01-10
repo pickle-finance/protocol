@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-netswap-base.sol";
 
-contract StrategyNettNettUsdcLp is StrategyNettSwapBase {
+contract StrategyNettNettUsdcLp is StrategyNettFarmLPBase {
     uint256 public nett_usdc_poolid = 1;
     // Token addresses
     address public nett_usdc_lp = 0x7D02ab940d7dD2B771e59633bBC1ed6EC2b99Af1;

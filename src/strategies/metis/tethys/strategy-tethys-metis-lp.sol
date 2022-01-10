@@ -16,6 +16,8 @@ contract StrategyTethysMetisLp is StrategyTethysFarmLPBase {
     )
         public
         StrategyTethysFarmLPBase(
+            tethys,
+            metis,
             tethys_metis_lp,
             tethys_metis_poolId,
             _governance,
@@ -29,7 +31,7 @@ contract StrategyTethysMetisLp is StrategyTethysFarmLPBase {
 
     // **** Views ****
 
-    function getName() external override pure returns (string memory) {
+    function getName() external pure override returns (string memory) {
         return "StrategyTethysMetisLp";
     }
 }

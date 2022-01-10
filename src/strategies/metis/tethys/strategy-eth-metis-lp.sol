@@ -17,6 +17,8 @@ contract StrategyTethysEthMetisLp is StrategyTethysFarmLPBase {
     )
         public
         StrategyTethysFarmLPBase(
+            eth,
+            metis,
             eth_metis_lp,
             eth_metis_poolId,
             _governance,
