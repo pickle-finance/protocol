@@ -14,8 +14,8 @@ abstract contract StrategyBase {
     using Address for address;
     using SafeMath for uint256;
 
-    // Perfomance fees - start with 20%
-    uint256 public performanceTreasuryFee = 2000;
+    // Perfomance fees - start with 0% (we now collect reward tokens)
+    uint256 public performanceTreasuryFee = 0;
     uint256 public constant performanceTreasuryMax = 10000;
 
     uint256 public performanceDevFee = 0;
