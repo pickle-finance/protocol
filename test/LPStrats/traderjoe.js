@@ -9,33 +9,53 @@ const tests = [
   //   controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
   //   snowglobeAddress: "",
   // },
+  // {
+  //   name: "JoeUsdcEUsdc",
+  //   controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "JoeAvaxPtp",
+  //   controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "JoeAvaxPln",
+  //   controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "JoeAvaxIme",
+  //   controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "JoeAvaxH2O",
+  //   controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "JoeAvaxCly",
+  //   controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "JoeFraxgOhm",
+  //   controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "JoeAvaxFrax",
+  //   controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
+  //   snowglobeAddress: "",
+  // },
+  // {
+  //   name: "JoeAvaxJgn",
+  //   controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
+  //   snowglobeAddress: "",
+  // },
   {
-    name: "JoeUsdcEUsdc",
-    controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
-    snowglobeAddress: "",
-  },
-  {
-    name: "JoeAvaxPtp",
-    controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
-    snowglobeAddress: "",
-  },
-  {
-    name: "JoeAvaxPln",
-    controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
-    snowglobeAddress: "",
-  },
-  {
-    name: "JoeAvaxIme",
-    controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
-    snowglobeAddress: "",
-  },
-  {
-    name: "JoeAvaxH2O",
-    controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
-    snowglobeAddress: "",
-  },
-  {
-    name: "JoeAvaxCly",
+    name: "JoeAvaxIsa",
     controllerAddress: "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046",
     snowglobeAddress: "",
   },
