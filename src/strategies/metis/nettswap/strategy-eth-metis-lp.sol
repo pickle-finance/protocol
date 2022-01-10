@@ -16,7 +16,7 @@ contract StrategyNettEthMetisLp is StrategyNettFarmLPBase {
         address _timelock
     )
         public
-        StrategyNettSwapFarmBase(
+        StrategyNettFarmLPBase(
             eth,
             metis,
             eth_metis_poolid,

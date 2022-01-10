@@ -16,7 +16,7 @@ contract StrategyNettBnbNettLp is StrategyNettFarmLPBase {
         address _timelock
     )
         public
-        StrategyNettSwapFarmBase(
+        StrategyNettFarmLPBase(
             bnb,
             nett,
             bnb_nett_poolid,

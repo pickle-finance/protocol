@@ -16,7 +16,7 @@ contract StrategyNettNettUsdtLp is StrategyNettFarmLPBase {
         address _timelock
     )
         public
-        StrategyNettSwapFarmBase(
+        StrategyNettFarmLPBase(
             nett,
             usdt,
             nett_usdt_poolid,
