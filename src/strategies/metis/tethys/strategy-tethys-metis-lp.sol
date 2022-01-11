@@ -16,8 +16,6 @@ contract StrategyTethysMetisLp is StrategyTethysFarmLPBase {
     )
         public
         StrategyTethysFarmLPBase(
-            tethys,
-            metis,
             tethys_metis_lp,
             tethys_metis_poolId,
             _governance,
@@ -26,7 +24,7 @@ contract StrategyTethysMetisLp is StrategyTethysFarmLPBase {
             _timelock
         )
     {
-        uniswapRoutes[metis] = [tethys, metis];
+        swapRoutes[metis] = [tethys, metis];
     }
 
     // **** Views ****

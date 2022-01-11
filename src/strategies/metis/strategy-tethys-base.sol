@@ -4,7 +4,6 @@ import "./strategy-base.sol";
 import "../../interfaces/tethys-chef.sol";
 
 abstract contract StrategyTethysFarmLPBase is StrategyBase {
-    address public tethysRouter = 0x81b9FA50D5f5155Ee17817C21702C3AE4780AD09;
     address public tethys = 0x69fdb77064ec5c84FA2F21072973eB28441F43F3;
     address public masterchef = 0x54A8fB8c634dED694D270b78Cb931cA6bF241E21;
     address public token0;
@@ -14,14 +13,12 @@ abstract contract StrategyTethysFarmLPBase is StrategyBase {
     uint256 public keepTETHYS = 1000;
     uint256 public constant keepTETHYSMax = 10000;
 
-    mapping(address => address[]) public uniswapRoutes;
+    mapping(address => address[]) public swapRoutes;
 
     uint256 public poolId;
 
     // **** Getters ****
     constructor(
-        address _token0,
-        address _token1,
         address _want,
         uint256 _poolId,
         address _governance,
@@ -32,7 +29,7 @@ abstract contract StrategyTethysFarmLPBase is StrategyBase {
         public
         StrategyBase(_want, _governance, _strategist, _controller, _timelock)
     {
-        sushiRouter = tethysRouter;
+        sushiRouter = 0x81b9FA50D5f5155Ee17817C21702C3AE4780AD09;
         IUniswapV2Pair pair = IUniswapV2Pair(_want);
         token0 = pair.token0();
         token1 = pair.token1();
@@ -40,6 +37,7 @@ abstract contract StrategyTethysFarmLPBase is StrategyBase {
 
         IERC20(token0).approve(sushiRouter, uint256(-1));
         IERC20(token1).approve(sushiRouter, uint256(-1));
+        IERC20(tethys).approve(sushiRouter, uint256(-1));
     }
 
     function balanceOfPool() public view override returns (uint256) {
@@ -94,11 +92,11 @@ abstract contract StrategyTethysFarmLPBase is StrategyBase {
             uint256 toToken0 = _tethys.div(2);
             uint256 toToken1 = _tethys.sub(toToken0);
 
-            if (uniswapRoutes[token0].length > 1) {
-                _swapSushiswapWithPath(uniswapRoutes[token0], toToken0);
+            if (swapRoutes[token0].length > 1) {
+                _swapSushiswapWithPath(swapRoutes[token0], toToken0);
             }
-            if (uniswapRoutes[token1].length > 1) {
-                _swapSushiswapWithPath(uniswapRoutes[token1], toToken1);
+            if (swapRoutes[token1].length > 1) {
+                _swapSushiswapWithPath(swapRoutes[token1], toToken1);
             }
         }
         // Adds in liquidity for token0/token1

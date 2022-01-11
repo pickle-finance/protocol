@@ -4,7 +4,6 @@ import "./strategy-base.sol";
 import "../../interfaces/netswap-chef.sol";
 
 abstract contract StrategyNettFarmLPBase is StrategyBase {
-    address public nettRouter = 0x1E876cCe41B7b844FDe09E38Fa1cf00f213bFf56;
     address public nett = 0x90fE084F877C65e1b577c7b2eA64B8D8dd1AB278;
     address public masterchef = 0x9d1dbB49b2744A1555EDbF1708D64dC71B0CB052;
     address public token0;
@@ -14,14 +13,12 @@ abstract contract StrategyNettFarmLPBase is StrategyBase {
     uint256 public keepNETT = 1000;
     uint256 public constant keepNETTMax = 10000;
 
-    mapping(address => address[]) public uniswapRoutes;
+    mapping(address => address[]) public swapRoutes;
 
     uint256 public poolId;
 
     // **** Getters ****
     constructor(
-        address _token0,
-        address _token1,
         address _want,
         uint256 _poolId,
         address _governance,
@@ -32,7 +29,7 @@ abstract contract StrategyNettFarmLPBase is StrategyBase {
         public
         StrategyBase(_want, _governance, _strategist, _controller, _timelock)
     {
-        sushiRouter = nettRouter;
+        sushiRouter = 0x1E876cCe41B7b844FDe09E38Fa1cf00f213bFf56;
         IUniswapV2Pair pair = IUniswapV2Pair(_want);
         token0 = pair.token0();
         token1 = pair.token1();
@@ -40,10 +37,11 @@ abstract contract StrategyNettFarmLPBase is StrategyBase {
 
         IERC20(token0).approve(sushiRouter, uint256(-1));
         IERC20(token1).approve(sushiRouter, uint256(-1));
+        IERC20(nett).approve(sushiRouter, uint256(-1));
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        (uint256 amount, , ) = INettChef(masterchef).userInfo(
+        (uint256 amount, ) = INettChef(masterchef).userInfo(
             poolId,
             address(this)
         );
@@ -51,7 +49,11 @@ abstract contract StrategyNettFarmLPBase is StrategyBase {
     }
 
     function getHarvestable() external view returns (uint256) {
-        return INettChef(masterchef).pendingNett(poolId, address(this));
+        (uint256 pendingNETT, , , ) = INettChef(masterchef).pendingTokens(
+            poolId,
+            address(this)
+        );
+        return pendingNETT;
     }
 
     // **** Setters ****
@@ -94,11 +96,11 @@ abstract contract StrategyNettFarmLPBase is StrategyBase {
             uint256 toToken0 = _nett.div(2);
             uint256 toToken1 = _nett.sub(toToken0);
 
-            if (uniswapRoutes[token0].length > 1) {
-                _swapSushiswapWithPath(uniswapRoutes[token0], toToken0);
+            if (swapRoutes[token0].length > 1) {
+                _swapSushiswapWithPath(swapRoutes[token0], toToken0);
             }
-            if (uniswapRoutes[token1].length > 1) {
-                _swapSushiswapWithPath(uniswapRoutes[token1], toToken1);
+            if (swapRoutes[token1].length > 1) {
+                _swapSushiswapWithPath(swapRoutes[token1], toToken1);
             }
         }
         // Adds in liquidity for token0/token1

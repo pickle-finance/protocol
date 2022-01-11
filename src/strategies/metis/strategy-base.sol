@@ -35,14 +35,13 @@ abstract contract StrategyBase {
     address public want;
     address public constant metis = 0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000;
 
+    address public sushiRouter;
+
     // User accounts
     address public governance;
     address public controller;
     address public strategist;
     address public timelock;
-
-    // Dex
-    address public sushiRouter = 0x2CB45Edb4517d5947aFdE3BEAbF95A582506858B;
 
     mapping(address => bool) public harvesters;
 
@@ -275,9 +274,6 @@ abstract contract StrategyBase {
         internal
     {
         require(path[1] != address(0));
-
-        IERC20(path[0]).safeApprove(sushiRouter, 0);
-        IERC20(path[0]).safeApprove(sushiRouter, _amount);
         UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
             _amount,
             0,

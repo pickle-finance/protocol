@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-netswap-base.sol";
 
-contract StrategyNettNettMetisLp is StrategyNettFarmLPBase {
+contract StrategyNettMetisLp is StrategyNettFarmLPBase {
     uint256 public nett_metis_poolid = 2;
     // Token addresses
     address public nett_metis_lp = 0x60312d4EbBF3617d3D33841906b5868A86931Cbd;
@@ -16,10 +16,8 @@ contract StrategyNettNettMetisLp is StrategyNettFarmLPBase {
     )
         public
         StrategyNettFarmLPBase(
-            nett,
-            metis,
-            nett_metis_poolid,
             nett_metis_lp,
+            nett_metis_poolid,
             _governance,
             _strategist,
             _controller,
@@ -32,6 +30,6 @@ contract StrategyNettNettMetisLp is StrategyNettFarmLPBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyNettNettMetisLp";
+        return "StrategyNettMetisLp";
     }
 }
