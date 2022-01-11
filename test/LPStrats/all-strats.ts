@@ -727,6 +727,11 @@ const tests = [
     //   slot: 51
     // },
     {
+      name: "AxialAC4D",
+      controllerAddress: "0xc7D536a04ECC43269B6B95aC1ce0a06E0000D095",
+      slot: 51,
+    },
+    {
         name: "AxialAM3D",
         controller: "main",
         timelockIsStrategist: false,
@@ -739,6 +744,12 @@ const tests = [
         lp_suffix: false,
         timelockIsStrategist: true,
     },
+    {
+        name: "JoeAvaxPln",
+        controllerAddress: "",
+        snowglobeAddress: "",
+    },
+
 ];
 
 describe("All LP test", function() {

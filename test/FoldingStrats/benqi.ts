@@ -29,6 +29,16 @@ const tests = [
     //   name: "BenqiWavax",
     //   controller: "benqi",
     // },
+    {
+        name: "BenqiWavax",
+        slot: 1,
+        controller:"optimizer"
+    },
+    {
+        name: "BenqiDaiE",
+        controller:"optimizer"
+    },
+ 
 ];
 
 describe("Benqi Folding Strategy Tests", function() {
