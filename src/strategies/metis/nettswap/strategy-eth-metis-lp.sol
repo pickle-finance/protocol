@@ -6,7 +6,7 @@ import "../strategy-netswap-base.sol";
 contract StrategyNettEthMetisLp is StrategyNettFarmLPBase {
     uint256 public eth_metis_poolid = 5;
     // Token addresses
-    address public eth_metis_lp = 0x59051b5f5172b69e66869048dc69d35db0b3610d;
+    address public eth_metis_lp = 0x59051B5F5172b69E66869048Dc69D35dB0B3610d;
     address public eth = 0x420000000000000000000000000000000000000A;
 
     constructor(
