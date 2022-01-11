@@ -112,7 +112,7 @@ const updateProgress = () => {
 
 // Function to write data to JSON file:
 const writeJSON = (data, file) => {
-  fs.writeFile(`./scripts/${file}.json`, JSON.stringify(data, null, ' '), 'utf8', (err) => {
+  fs.writeFile(`./scripts/pool_results/${file}.json`, JSON.stringify(data, null, ' '), 'utf8', (err) => {
     if(err) {
       console.error(err);
     } else {
