@@ -26,8 +26,8 @@ import {
 import {
     userWalletAssetBalance, globeHasBalance, controllerGlobeConfigure,
     controllerStrategyConfigure, harvestsMakeMoney, globeDepositWithdraw,
-    strategyLoadedWithBalance, usersEarnMoney, takeNoFees,
-    takeSomeFees,
+    strategyLoadedWithBalance, usersEarnMoney, takeNoFees, changeKeepAmountForFees, 
+    changeFeeDistributor, takeSomeFees
 } from "./utils/its";
 
 import { TestableStrategy } from "./strategy-test-case";
@@ -65,8 +65,9 @@ export function doStrategyTest(test_case: TestableStrategy) {
 
     let txnAmt: string = "25000000000000000000000";
 
-    describe("Folding Strategy tests for: " + name, async () => {
-
+    describe( "Tests for: " + name, async () => {
+        
+        // These reset the state after each test is executed 
         beforeEach(async () => {
             snapshotId = await ethers.provider.send('evm_snapshot');
         });
@@ -79,20 +80,19 @@ export function doStrategyTest(test_case: TestableStrategy) {
 
             const strategyName = lp_suffix ? `Strategy${name}Lp` : `Strategy${name}`;
             const snowglobeName = `SnowGlobe${name}`;
-
             await network.provider.send('hardhat_impersonateAccount', [wallet_addr]);
             log(`impersonating account: ${wallet_addr}`);
             walletSigner = await returnSigner(wallet_addr);
             [timelockSigner, strategistSigner, governanceSigner] = await setupSigners(timelockIsStrategist);
 
-            //Add a new case here when including a new family of folding strategies
+            // Add a new case here when including a new family of folding strategies
             controller_addr = returnController(controller);
             Controller = await ethers.getContractAt("ControllerV4", controller_addr, governanceSigner);
             log(`using controller: ${controller_addr}`);
 
             timelock_addr = await timelockSigner.getAddress();
-            governance_addr = await governanceSigner.getAddress()
-            strategist_addr = await strategistSigner.getAddress()
+            governance_addr = await governanceSigner.getAddress();
+            strategist_addr = await strategistSigner.getAddress();
 
             /** Strategy Mock **/
             Strategy = await setupMockStrategy(
@@ -150,23 +150,25 @@ export function doStrategyTest(test_case: TestableStrategy) {
             let balBefore = await assetContract.connect(walletSigner).balanceOf(snowglobe_addr);
 
             await assetContract.connect(walletSigner).approve(snowglobe_addr, amt);
-            await SnowGlobe.connect(walletSigner).deposit(amt);
-            await SnowGlobe.connect(walletSigner).earn();
+            await SnowGlobe.connect(walletSigner).depositAll();
+            
 
             let userBal = await assetContract.connect(walletSigner).balanceOf(wallet_addr);
-            //expect(userBal).to.be.equals(BigNumber.from("0x0"));
+            expect(userBal).to.be.equals(BigNumber.from("0x0"));
+
             let balAfter = await assetContract.connect(walletSigner).balanceOf(snowglobe_addr);
-            //expect(balBefore).to.be.lt(balAfter);
+            expect(balBefore).to.be.lt(balAfter);
+            await SnowGlobe.connect(walletSigner).earn();
 
             await fastForwardAWeek();
 
-            //let harvestable = await Strategy.getHarvestable();
-            //log(`\tHarvestable, pre harvest: ${harvestable.toString()}`);
+            let harvestable = await Strategy.getHarvestable();
+            console.log(`\tHarvestable, pre harvest: ${harvestable.toString()}`);
             let initialBalance = await Strategy.balanceOf();
             await Strategy.connect(walletSigner).harvest();
             await increaseBlock(2);
-            //harvestable = await Strategy.getHarvestable();
-            //log(`\tHarvestable, post harvest: ${harvestable.toString()}`);
+            harvestable = await Strategy.getHarvestable();
+            console.log(`\tHarvestable, post harvest: ${harvestable.toString()}`);
 
             return [amt, initialBalance];
         };
@@ -187,6 +189,14 @@ export function doStrategyTest(test_case: TestableStrategy) {
             it("Controller strategy to be configured correctly", async () => {
                 await controllerStrategyConfigure(Controller, asset_addr, strategy_addr)
             });
+
+            it("should be be able change keep amount for fees", async function() {
+                await changeKeepAmountForFees(Strategy, timelockSigner)
+            });
+
+            it("should be be able change fee distributor", async function () {
+                await changeFeeDistributor(Strategy, governanceSigner, wallet_addr)
+            })
         }
 
         it("Should be able to deposit/withdraw money into globe", async function() {
