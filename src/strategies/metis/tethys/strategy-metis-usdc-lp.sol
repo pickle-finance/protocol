@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-tethys-base.sol";
 
-contract StrategyTethysMetisLp is StrategyTethysFarmLPBase {
+contract StrategyTethysMetisUsdcLp is StrategyTethysFarmLPBase {
     // Token addresses
     uint256 public metis_usdc_poolId = 2;
     address public metis_usdc_lp = 0xDd7dF3522a49e6e1127bf1A1d3bAEa3bc100583B;
@@ -32,6 +32,6 @@ contract StrategyTethysMetisLp is StrategyTethysFarmLPBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyTethysMetisLp";
+        return "StrategyTethysMetisUsdcLp";
     }
 }
