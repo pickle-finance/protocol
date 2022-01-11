@@ -6,13 +6,14 @@ import "hardhat/console.sol";
 
 contract StrategyAxialAA3DLp is StrategyAxial3PoolBase {
     // stablecoins
-    address public avai = 0x346A59146b9b4a77100D369a3d18E8007A9F46a6;
-    address public mim = 0x130966628846BFd36ff31a822705796e8cb8C18D;
-    address public usdcE = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
+    address public constant avai = 0x346A59146b9b4a77100D369a3d18E8007A9F46a6;
+    address public constant mim = 0x130966628846BFd36ff31a822705796e8cb8C18D;
+    address public constant usdcE = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
+    address public constant orca = 0x8B1d98A91F853218ddbb066F20b8c63E782e2430;
 
-    uint256 public am3d_poolId = 4; 
-    address public lp = 0xaD556e7dc377d9089C6564f9E8d275f5EE4da22d;
-    address public swapLoan = 0x6EfbC734D91b229BE29137cf9fE531C1D3bf4Da6;
+    uint256 public constant am3d_poolId = 4; 
+    address public constant lp = 0xaD556e7dc377d9089C6564f9E8d275f5EE4da22d;
+    address public constant swapLoan = 0x6EfbC734D91b229BE29137cf9fE531C1D3bf4Da6;
     
     constructor(
         address _governance,
