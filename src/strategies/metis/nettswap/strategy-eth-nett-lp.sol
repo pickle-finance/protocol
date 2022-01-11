@@ -17,8 +17,8 @@ contract StrategyNettEthNettLp is StrategyNettFarmLPBase {
     )
         public
         StrategyNettFarmLPBase(
-            eth_nett_poolid,
             eth_nett_lp,
+            eth_nett_poolid,
             _governance,
             _strategist,
             _controller,

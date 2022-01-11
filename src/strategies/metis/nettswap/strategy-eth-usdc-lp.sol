@@ -18,8 +18,8 @@ contract StrategyNettEthUsdcLp is StrategyNettFarmLPBase {
     )
         public
         StrategyNettFarmLPBase(
-            eth_usdc_poolid,
             eth_usdc_lp,
+            eth_usdc_poolid,
             _governance,
             _strategist,
             _controller,

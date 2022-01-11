@@ -17,8 +17,8 @@ contract StrategyNettMetisUsdcLp is StrategyNettFarmLPBase {
     )
         public
         StrategyNettFarmLPBase(
-            metis_usdc_poolid,
             metis_usdc_lp,
+            metis_usdc_poolid,
             _governance,
             _strategist,
             _controller,

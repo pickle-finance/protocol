@@ -17,8 +17,8 @@ contract StrategyNettBnbNettLp is StrategyNettFarmLPBase {
     )
         public
         StrategyNettFarmLPBase(
-            bnb_nett_poolid,
             bnb_nett_lp,
+            bnb_nett_poolid,
             _governance,
             _strategist,
             _controller,
