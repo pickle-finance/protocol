@@ -17,8 +17,6 @@ contract StrategyNettNettUsdtLp is StrategyNettFarmLPBase {
     )
         public
         StrategyNettFarmLPBase(
-            nett,
-            usdt,
             nett_usdt_poolid,
             nett_usdt_lp,
             _governance,
