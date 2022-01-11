@@ -6,7 +6,7 @@ import "../strategy-netswap-base.sol";
 contract StrategyNettUsdtUsdcLp is StrategyNettFarmLPBase {
     uint256 public usdt_usdc_poolid = 10;
     // Token addresses
-    address public usdt_usdc_lp = 0x7D02ab940d7dD2B771e59633bBC1ed6EC2b99Af1;
+    address public usdt_usdc_lp = 0x1caD5f8f5D4C0AD49646B2565CC0cA725E4280EA;
     address public usdc = 0xEA32A96608495e54156Ae48931A7c20f0dcc1a21;
     address public usdt = 0xbB06DCA3AE6887fAbF931640f67cab3e3a16F4dC;
 
