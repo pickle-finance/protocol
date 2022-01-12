@@ -25,7 +25,7 @@ contract StrategyNettEthMetisLp is StrategyNettFarmLPBase {
             _timelock
         )
     {
-        swapRoutes[metis] = [eth, metis];
+        swapRoutes[metis] = [nett, metis];
         swapRoutes[eth] = [nett, eth];
     }
 
