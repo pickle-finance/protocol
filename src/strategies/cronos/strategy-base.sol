@@ -39,6 +39,9 @@ abstract contract StrategyBase {
     address public strategist;
     address public timelock;
 
+    // Dex - vvs
+    address public sushiRouter;
+
     mapping(address => bool) public harvesters;
 
     constructor(
