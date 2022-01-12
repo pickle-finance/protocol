@@ -9,7 +9,6 @@ abstract contract StrategyVVSFarmBase is StrategyBase {
     address public constant vvs = 0x2D03bECE6747ADC00E1a131BBA1469C15fD11e03;
     address public constant vvsChef =
         0xDccd6455AE04b03d785F12196B492b18129564bc;
-    address public sushiRouter = 0x145863Eb42Cf62847A6Ca784e6416C1682b1b2Ae;
 
     address public token0;
     address public token1;
@@ -34,6 +33,7 @@ abstract contract StrategyVVSFarmBase is StrategyBase {
         public
         StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
     {
+        sushiRouter = 0x145863Eb42Cf62847A6Ca784e6416C1682b1b2Ae;
         poolId = _poolId;
         token0 = _token0;
         token1 = _token1;
