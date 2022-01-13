@@ -67,7 +67,9 @@ const deployPickleJar = async () => {
   const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
   const timelock = "0xD92c7fAa0Ca0e6AE4918f3a83d9832d9CAEAA0d3";
 
-  const StrategyFactory = await ethers.getContractFactory("src/strategies/saddle/strategy-saddle-d4.sol:StrategySaddleD4");
+  const StrategyFactory = await ethers.getContractFactory(
+    "src/strategies/saddle/strategy-saddle-d4.sol:StrategySaddleD4"
+  );
   const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
 
   console.log("Strategy deployed at ", strategy.address);
@@ -79,22 +81,28 @@ const setJar = async () => {
   const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
   const timelock = "0xD92c7fAa0Ca0e6AE4918f3a83d9832d9CAEAA0d3";
 
-  const want = "0x3A283D9c08E8b55966afb64C515f5143cf907611";
+  const want = "0xDC00bA87Cc2D99468f7f34BC04CBf72E111A32f7";
 
-  const StrategyFactory = await ethers.getContractFactory("src/strategies/convex/strategy-convex-cvx-eth-lp.sol:StrategyCvxEth");
+  const StrategyFactory = await ethers.getContractFactory(
+    "src/strategies/looksrare/strategy-looks-eth-lp.sol:StrategyLooksEthLp"
+  );
 
-  console.log("deploying strtegy....")
+  console.log("deploying strtegy....");
   const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
-  await strategy.deployed()
-  console.log("strategy deployed at: ", strategy.address)
+  await strategy.deployed();
+  console.log("strategy deployed at: ", strategy.address);
 
-  console.log("deplying le jar")
+  console.log("deplying le jar");
   const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
   const PickleJar = await PickleJarFactory.deploy(want, governance, timelock, controller);
 
   await PickleJar.deployed();
-  console.log("Jar deployed at: ", PickleJar.address)
-  
+  console.log("Jar deployed at: ", PickleJar.address);
+
+  await hre.run("verify:verify", {
+    address: strategy.address,
+    constructorArguments: [governance, strategist, controller, timelock],
+  });
 };
 
 const approveBal = async () => {
@@ -103,9 +111,9 @@ const approveBal = async () => {
   const ERC20 = await ethers.getContractAt("src/lib/erc20.sol:ERC20", lpToken);
 
   const deployer = new ethers.Wallet(process.env.MNEMONIC, ethers.provider);
-  console.log("approving...")
+  console.log("approving...");
   await ERC20.connect(deployer).approve(jar, ethers.constants.MaxUint256);
-  console.log("success!")
+  console.log("success!");
 };
 
 const main = async () => {
