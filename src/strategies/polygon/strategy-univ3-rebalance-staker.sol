@@ -410,10 +410,15 @@ abstract contract StrategyRebalanceStakerUniV3 {
     }
 
     //This assumes rewardToken == token0
-    function getHarvestable() public view returns (uint256, uint256) {
-        //This will only update when someone mint/burn/pokes the pool.
-        (, , , , , , , , , , uint128 _owed0, uint128 _owed1) = nftManager
-        .positions(tokenId);
+    function getHarvestable() public onlyBenevolent returns (uint256, uint256) {
+       (uint256 _owed0, uint256 _owed1) = nftManager.collect(
+            IUniswapV3PositionsNFT.CollectParams({
+                tokenId: tokenId,
+                recipient: address(this),
+                amount0Max: type(uint128).max,
+                amount1Max: type(uint128).max
+            })
+        );
 
         uint256 _stakingRewards;
         if (isStakingActive()) {
