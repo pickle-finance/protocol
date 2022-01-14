@@ -16,8 +16,8 @@ contract StrategyNettNettMetisLp is StrategyNettFarmLPBase {
     )
         public
         StrategyNettFarmLPBase(
-            nett_metis_poolid,
             nett_metis_lp,
+            nett_metis_poolid,
             _governance,
             _strategist,
             _controller,

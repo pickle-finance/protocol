@@ -39,24 +39,41 @@ const addJars = async () => {
   console.log("all jars added!", ethers.utils.formatEther(picklePerBlock));
 };
 
-const deployComethWmaticMustStrategy = async () => {
-  console.log("Mai: miMATIC/USDC deploying strategy...");
+const harvesters = [
+  "0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf",
+  "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C",
+  "0xb4522eB2cA49963De9c3dC69023cBe6D53489C98",
+];
 
-  const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const strategist = "0x88d226A9FC7485Ae0856AE51C3Db15d7ad242a3f";
-  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
-  const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
+const whitelistHarvesters = async () => {
+  strategies = [
+    "0x6A0F350715BAAdcC91F29b7e5915f34fc584f53c",
+    "0x26839349247324376A8F52f0B6C8155345C5daA8",
+    "0x863b32B1443C6719663ffbc88a09BB681d45ed41",
+    "0xEB67eA91aAbC4B2efe8cCDBdc85396dC9481b6be",
+    "0x964fD1153058B07453386061325391D2F84Af907",
+    "0xc2F1Fe87118dC4D35ABEafB55204bb900Ad93ed0",
+    "0xdFC22a3F2B76D2039c8C8883653C50BbBc7b12b4",
+    "0x826a9cD66A20Ff4c2dC7AAcfa3e413dfee6a71E4",
+    "0x7C29dcC491C0A978B31fbdFac453E1Fc9b651a42",
+    "0xFdB584F0A0aB9bfA06Ee534a9081FcfBE4De12CB",
+    "0x7b8139Fb52C12e28831aDacCC205a6fA1a5A1afb",
+    "0x627c32F07C4C789c0FB2A7853aF7085aF653D8b3",
+    "0x406D931162ccCA5feACE185Df198E85BD2906040",
+    "0x2f1e21Ea0DD575567476599f5f6510DC624Bda3d",
+    "0x964075a7eb21C099DC1D9F987eDDF02CE2401F69",
+  ];
 
-  const StrategyComethWmaticMustLpV4Factory = await ethers.getContractFactory(
-    "src/flatten/strategy-mai-mimatic-usdc-lp.sol:StrategyMaiMiMaticUsdcLp"
-  );
-  const StrategyComethWmaticMustLpV4 = await StrategyComethWmaticMustLpV4Factory.deploy(
-    governance,
-    strategist,
-    controller,
-    timelock
-  );
-  console.log("Mai: miMATIC/USDC strategy deployed at ", StrategyComethWmaticMustLpV4.address);
+  for (let i = 0; i < strategies.length; i++) {
+    console.log(`Whitelisting ${strategies[i]}...`);
+    const strategy = await ethers.getContractAt(
+      "src/strategies/looksrare/strategy-looks-eth-lp.sol:StrategyLooksEthLp",
+      strategies[i]
+    );
+    const tx = await strategy.whitelistHarvesters(harvesters);
+    await tx.wait();
+    console.log("Successfully whitelisted");
+  }
 };
 
 const deployPickleJar = async () => {
@@ -124,7 +141,8 @@ const main = async () => {
   // await deployControllerV4();
   // await deployComethWmaticMustStrategy();
   // await deployPickleJar();
-  await setJar();
+  await whitelistHarvesters();
+  // await setJar();
   // await approveBal();
 };
 
