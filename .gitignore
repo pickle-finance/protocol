@@ -114,3 +114,4 @@ SnowballWallets.json
 cache/
 contracts/snowglobes/pangolin/snowglobe-png-tusd-png
 scripts/deploy.json
+.vscode

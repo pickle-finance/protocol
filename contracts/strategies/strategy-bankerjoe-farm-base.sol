@@ -356,23 +356,6 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
     
     // allow Native Avax
     receive() external payable {}
-
-    function _takeFeeWavaxToSnob(uint256 _keep) internal {
-        IERC20(wavax).safeApprove(joeRouter, 0);
-        IERC20(wavax).safeApprove(joeRouter, _keep);
-        _swapTraderJoe(wavax, snob, _keep);
-        uint _snob = IERC20(snob).balanceOf(address(this));
-        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
-        IERC20(snob).safeTransfer(
-            feeDistributor,
-            _share
-        );
-        IERC20(snob).safeTransfer(
-            IController(controller).treasury(),
-            _snob.sub(_share)
-        );
-    }
-
     
     function harvest() public override onlyBenevolent {
         address[] memory jTokens = new address[](1);
