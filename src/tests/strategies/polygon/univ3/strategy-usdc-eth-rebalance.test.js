@@ -46,7 +46,7 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
 
     strategy = await deployContract(
       "StrategyUsdcEthUniV3StakerPoly",
-      50,
+      100,
       governance.address,
       strategist.address,
       controller.address,
@@ -89,7 +89,7 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
 
     // Initial deposit to create NFT
     const amountWeth = "100000000";
-    const amountUsdc = "100000";
+    const amountUsdc = "10000";
 
     await usdc.connect(alice).transfer(strategy.address, amountUsdc);
     await weth.connect(alice).transfer(strategy.address, amountWeth);
@@ -111,7 +111,7 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
     await deposit(bob, depositA, depositB);
     //await simulateTrading();
     await deposit(charles, depositA, depositB);
-   // await harvest();
+    // await harvest();
 
     aliceShare = await pickleJar.balanceOf(alice.address);
     console.log("Alice share amount => ", aliceShare.toString());
@@ -121,6 +121,8 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
 
     charlesShare = await pickleJar.balanceOf(charles.address);
     console.log("Charles share amount => ", charlesShare.toString());
+
+    await deposit(alice, "9962990000", "0");
 
     console.log("===============Alice partial withdraw==============");
     console.log("Alice usdc balance before withdrawal => ", (await usdc.balanceOf(alice.address)).toString());
@@ -142,8 +144,8 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
     console.log("Bob usdc balance after withdrawal => ", (await usdc.balanceOf(bob.address)).toString());
     console.log("Bob weth balance after withdrawal => ", (await weth.balanceOf(bob.address)).toString());
 
-    await harvest();
-    //await trade(WETH_TOKEN, USDC_TOKEN);
+    //await harvest();
+
     await rebalance();
     console.log("=============== Controller withdraw ===============");
     console.log("PickleJar usdc balance before withdrawal => ", (await usdc.balanceOf(pickleJar.address)).toString());
@@ -183,8 +185,8 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
   });
 
   const deposit = async (user, depositA, depositB) => {
-    await usdc.connect(user).approve(pickleJar.address, depositA);
-    await weth.connect(user).approve(pickleJar.address, depositB);
+    if (depositA != "0") await usdc.connect(user).approve(pickleJar.address, depositA);
+    if (depositB != "0") await weth.connect(user).approve(pickleJar.address, depositB);
     console.log("depositA => ", depositA.toString());
     console.log("depositB => ", depositB.toString());
     console.log("Strategy USDC Before Deposit: ", (await usdc.balanceOf(strategy.address)).toString());
@@ -222,10 +224,14 @@ describe("StrategyUsdcEthUniV3Rebalance", () => {
     console.log("Ratio before rebalance => ", (await pickleJar.getRatio()).toString());
     console.log("TickLower before rebalance => ", (await pickleJar.getLowerTick()).toString());
     console.log("TickUpper before rebalance => ", (await pickleJar.getUpperTick()).toString());
+    console.log("Strategy USDC Before Rebalance: ", (await usdc.balanceOf(strategy.address)).toString());
+    console.log("Strategy ETH Before Rebalance: ", (await weth.balanceOf(strategy.address)).toString());
     await strategy.rebalance();
     console.log("Ratio after rebalance => ", (await pickleJar.getRatio()).toString());
     console.log("TickLower after rebalance => ", (await pickleJar.getLowerTick()).toString());
     console.log("TickUpper after rebalance => ", (await pickleJar.getUpperTick()).toString());
+    console.log("Strategy USDC After Rebalance: ", (await usdc.balanceOf(strategy.address)).toString());
+    console.log("Strategy ETH After Rebalance: ", (await weth.balanceOf(strategy.address)).toString());
     console.log("============ Rebalance Ended ==============");
   };
 
