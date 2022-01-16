@@ -135,14 +135,15 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
         nonReentrant
         whenNotPaused
     {
-        (token0Amount, token1Amount) = _convertMatic(
+        bool _maticUsed;
+        (token0Amount, token1Amount, _maticUsed) = _convertMatic(
             token0Amount,
             token1Amount
         );
 
         _deposit(token0Amount, token1Amount);
 
-        uint256 _liquidity = _refundUnused();
+        uint256 _liquidity = _refundUnused(_maticUsed);
 
         uint256 shares = 0;
         if (totalSupply() == 0) {
@@ -221,19 +222,26 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
 
     function _convertMatic(uint256 token0Amount, uint256 token1Amount)
         internal
-        returns (uint256, uint256)
+        returns (
+            uint256,
+            uint256,
+            bool
+        )
     {
+        bool _maticUsed = false;
         uint256 _matic = address(this).balance;
         if (_matic > 0) {
             WETH(wmatic).deposit{value: _matic}();
 
             if (address(token0) == wmatic) {
                 token0Amount = _matic;
+                _maticUsed = true;
             } else if (address(token1) == wmatic) {
                 token1Amount = _matic;
+                _maticUsed = true;
             }
         }
-        return (token0Amount, token1Amount);
+        return (token0Amount, token1Amount, _maticUsed);
     }
 
     function _refundMatic(uint256 tokenAmount) internal {
@@ -245,7 +253,7 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
         require(sent, "Failed to refund Matic");
     }
 
-    function _refundUnused() internal returns (uint256) {
+    function _refundUnused(bool _maticUsed) internal returns (uint256) {
         PoolVariables.Info memory _cache;
         _cache.amount0Desired = token0.balanceOf(address(this));
         _cache.amount1Desired = token1.balanceOf(address(this));
@@ -266,7 +274,7 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
         );
 
         if (_cache.amount0Desired > _cache.amount0)
-            if (address(token0) == address(wmatic))
+            if ((address(token0) == address(wmatic)) && _maticUsed)
                 _refundMatic(_cache.amount0Desired.sub(_cache.amount0));
             else {
                 token0.safeTransfer(
@@ -276,7 +284,7 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
             }
 
         if (_cache.amount1Desired > _cache.amount1)
-            if (address(token1) == address(wmatic))
+            if ((address(token1) == address(wmatic)) && _maticUsed)
                 _refundMatic(_cache.amount1Desired.sub(_cache.amount1));
             else {
                 token1.safeTransfer(
