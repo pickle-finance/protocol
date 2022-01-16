@@ -167,25 +167,6 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
         return (a2 * (10**18)) / a1;
     }
 
-    function _getCorrectAmounts(uint256 _token0Amount, uint256 _token1Amount)
-        internal
-        returns (uint256, uint256)
-    {
-        uint256 amount0ForAmount1 = _token1Amount.mul(1e18).div(
-            getProportion()
-        );
-        uint256 amount1ForAmount0 = _token0Amount.mul(getProportion()).div(
-            1e18
-        );
-
-        if (_token0Amount > amount0ForAmount1) {
-            _token0Amount = amount0ForAmount1;
-        } else {
-            _token1Amount = amount1ForAmount0;
-        }
-        return (_token0Amount, _token1Amount);
-    }
-
     function withdrawAll() external {
         withdraw(balanceOf(msg.sender));
     }
