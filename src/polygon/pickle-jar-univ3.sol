@@ -208,12 +208,12 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
 
     function _deposit(uint256 token0Amount, uint256 token1Amount) internal {
         if (
-            !(token0.balanceOf(address(this)) > token0Amount) &&
+            !(token0.balanceOf(address(this)) >= token0Amount) &&
             (token0Amount != 0)
         ) token0.safeTransferFrom(msg.sender, address(this), token0Amount);
 
         if (
-            !(token1.balanceOf(address(this)) > token1Amount) &&
+            !(token1.balanceOf(address(this)) >= token1Amount) &&
             (token1Amount != 0)
         ) token1.safeTransferFrom(msg.sender, address(this), token1Amount);
 
@@ -229,7 +229,7 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
         )
     {
         bool _maticUsed = false;
-        uint256 _matic = address(this).balance;
+        uint256 _matic = msg.value;
         if (_matic > 0) {
             WETH(wmatic).deposit{value: _matic}();
 
