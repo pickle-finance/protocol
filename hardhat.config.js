@@ -35,7 +35,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://polygon-rpc.com/`,
+        url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,

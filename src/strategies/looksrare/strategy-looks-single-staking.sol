@@ -73,9 +73,10 @@ contract StrategyLooksStaking is StrategyBase {
 
         // Get withdrawal amount in terms of shares
         uint256 _withdrawalShares = _amount.mul(1e18).div(sharePrice);
+        
         ILooksStaking(looksStaking).withdraw(_withdrawalShares, false);
 
-        return _withdrawalShares.mul(1e18).div(sharePrice);
+        return _withdrawalShares.mul(sharePrice).div(1e18);
     }
 
     function setKeepWETH(uint256 _keepWETH) external {

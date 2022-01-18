@@ -84,12 +84,25 @@ const deployPickleJar = async () => {
   const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
   const timelock = "0xD92c7fAa0Ca0e6AE4918f3a83d9832d9CAEAA0d3";
 
+  const want = "0xf4d2888d29D722226FafA5d9B24F9164c092421E";
+
   const StrategyFactory = await ethers.getContractFactory(
-    "src/strategies/saddle/strategy-saddle-d4.sol:StrategySaddleD4"
+    "src/strategies/looksrare/strategy-looks-single-staking.sol:StrategyLooksStaking"
   );
   const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
 
   console.log("Strategy deployed at ", strategy.address);
+
+  console.log("Deploying Jar...")
+
+  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
+  const jar = await PickleJarFactory.deploy(want, governance, timelock, controller);
+
+  console.log("Jar deployed at ", jar.address)
+  await hre.run("verify:verify", {
+    address: strategy.address,
+    constructorArguments: [governance, strategist, controller, timelock],
+  });
 };
 
 const setJar = async () => {
@@ -151,7 +164,7 @@ const main = async () => {
   // await deployControllerV4();
   // await deployComethWmaticMustStrategy();
   // await deployPickleJar();
-  await whitelistHarvesters();
+  await deployPickleJar();
   // await setJar();
   // await approveBal();
 };

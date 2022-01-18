@@ -14,7 +14,7 @@ abstract contract StrategyBase {
     using Address for address;
     using SafeMath for uint256;
 
-    // Perfomance fees - start with 20%
+    // Perfomance fees
     uint256 public performanceTreasuryFee = 0;
     uint256 public constant performanceTreasuryMax = 10000;
 
