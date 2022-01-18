@@ -81,6 +81,7 @@ const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isP
       await pickleJar.deposit(_want);
       console.log("Alice pTokenBalance after deposit: %s\n", (await pickleJar.balanceOf(alice.address)).toString());
       await pickleJar.earn();
+      console.log("\nRatio after deposit: ", (await pickleJar.getRatio()).toString());
 
       await increaseTime(60 * 60 * 24 * 15); //travel 15 days
       if (bIncreaseBlock) {
