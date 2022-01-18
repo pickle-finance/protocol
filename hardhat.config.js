@@ -56,6 +56,10 @@ module.exports = {
       url: `https://arb1.arbitrum.io/rpc/`,
       accounts: [`0x${process.env.MNEMONIC}`],
     },
+    metis: {
+      url: `https://andromeda.metis.io/?owner=1088`,
+      accounts: [`0x${process.env.MNEMONIC}`],
+    },
   },
   contractSizer: {
     alphaSort: true,

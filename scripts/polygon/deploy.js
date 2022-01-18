@@ -39,6 +39,59 @@ const addJars = async () => {
   console.log("all jars added!", ethers.utils.formatEther(picklePerBlock));
 };
 
+const harvesters = [
+  "0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf",
+  "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C",
+  "0xb4522eB2cA49963De9c3dC69023cBe6D53489C98",
+];
+
+const whitelistHarvesters = async () => {
+  strategies = [
+    "0x6A0F350715BAAdcC91F29b7e5915f34fc584f53c",
+    "0x26839349247324376A8F52f0B6C8155345C5daA8",
+    "0x863b32B1443C6719663ffbc88a09BB681d45ed41",
+    "0xEB67eA91aAbC4B2efe8cCDBdc85396dC9481b6be",
+    "0x964fD1153058B07453386061325391D2F84Af907",
+    "0xc2F1Fe87118dC4D35ABEafB55204bb900Ad93ed0",
+    "0xdFC22a3F2B76D2039c8C8883653C50BbBc7b12b4",
+    "0x826a9cD66A20Ff4c2dC7AAcfa3e413dfee6a71E4",
+    "0x7C29dcC491C0A978B31fbdFac453E1Fc9b651a42",
+    "0xFdB584F0A0aB9bfA06Ee534a9081FcfBE4De12CB",
+    "0x7b8139Fb52C12e28831aDacCC205a6fA1a5A1afb",
+    "0x627c32F07C4C789c0FB2A7853aF7085aF653D8b3",
+    "0x406D931162ccCA5feACE185Df198E85BD2906040",
+    "0x2f1e21Ea0DD575567476599f5f6510DC624Bda3d",
+    "0x964075a7eb21C099DC1D9F987eDDF02CE2401F69",
+  ];
+
+  for (let i = 0; i < strategies.length; i++) {
+    console.log(`Whitelisting ${strategies[i]}...`);
+    const strategy = await ethers.getContractAt(
+      "src/strategies/looksrare/strategy-looks-eth-lp.sol:StrategyLooksEthLp",
+      strategies[i]
+    );
+    const tx = await strategy.whitelistHarvesters(harvesters);
+    await tx.wait();
+    console.log("Successfully whitelisted");
+  }
+};
+
+const deployPickleJar = async () => {
+  console.log("deploying Strategy...");
+
+  const governance = "0x9d074E37d408542FD38be78848e8814AFB38db17";
+  const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+  const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
+  const timelock = "0xD92c7fAa0Ca0e6AE4918f3a83d9832d9CAEAA0d3";
+
+  const StrategyFactory = await ethers.getContractFactory(
+    "src/strategies/saddle/strategy-saddle-d4.sol:StrategySaddleD4"
+  );
+  const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
+
+  console.log("Strategy deployed at ", strategy.address);
+};
+
 const setJar = async () => {
   const governance = "0xEae55893cC8637c16CF93D43B38aa022d689Fa62";
   const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
@@ -98,7 +151,8 @@ const main = async () => {
   // await deployControllerV4();
   // await deployComethWmaticMustStrategy();
   // await deployPickleJar();
-  await setJar();
+  await whitelistHarvesters();
+  // await setJar();
   // await approveBal();
 };
 
