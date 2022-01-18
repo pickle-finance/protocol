@@ -17,7 +17,7 @@ abstract contract StrategyBase {
     using SafeMath for uint256;
 
     // Perfomance fees - start with 20%
-    uint256 public performanceTreasuryFee = 2000;
+    uint256 public performanceTreasuryFee = 0;
     uint256 public constant performanceTreasuryMax = 10000;
 
     uint256 public performanceDevFee = 0;
@@ -326,14 +326,14 @@ abstract contract StrategyBase {
 
         address[] memory path;
 
-        if (_from == weth || _to == weth) {
+        if (_from == wmatic || _to == wmatic) {
             path = new address[](2);
             path[0] = _from;
             path[1] = _to;
         } else {
             path = new address[](3);
             path[0] = _from;
-            path[1] = weth;
+            path[1] = wmatic;
             path[2] = _to;
         }
         

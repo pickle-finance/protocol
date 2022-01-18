@@ -93,33 +93,43 @@ const deployPickleJar = async () => {
 };
 
 const setJar = async () => {
-  const governance = "0x9d074E37d408542FD38be78848e8814AFB38db17";
+  const governance = "0xEae55893cC8637c16CF93D43B38aa022d689Fa62";
   const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
-  const timelock = "0xD92c7fAa0Ca0e6AE4918f3a83d9832d9CAEAA0d3";
+  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
+  const timelock = "0xEae55893cC8637c16CF93D43B38aa022d689Fa62";
 
-  const want = "0xDC00bA87Cc2D99468f7f34BC04CBf72E111A32f7";
+  const wants = [
+    "0x91670a2A69554c61d814CD7f406D7793387E68Ef",
+    "0x2E7d6490526C7d7e2FDEa5c6Ec4b0d1b9F8b25B7",
+    "0x426a56F6923c2B8A488407fc1B38007317ECaFB1",
+    "0xaBEE7668a96C49D27886D1a8914a54a5F9805041",
+  ];
 
-  const StrategyFactory = await ethers.getContractFactory(
-    "src/strategies/looksrare/strategy-looks-eth-lp.sol:StrategyLooksEthLp"
-  );
+  const factories = [
+    "src/strategies/polygon/raider/strategy-aurum-matic-lp.sol:StrategyAurumMaticLp",
+    "src/strategies/polygon/raider/strategy-raider-matic-lp.sol:StrategyRaiderMaticLp",
+    "src/strategies/polygon/raider/strategy-raider-weth-lp.sol:StrategyRaiderWethLp",
+    "src/strategies/polygon/raider/stratgy-aurum-usdc-lp.sol:StrategyAurumUsdcLp",
+  ];
+  for (let i = 0; i < wants.length; i++) {
+    const StrategyFactory = await ethers.getContractFactory(factories[i]);
+    console.log(`deploying strategy for want: ${wants[i]} ....`);
+    const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
+    await strategy.deployed();
+    console.log("strategy deployed at: ", strategy.address);
 
-  console.log("deploying strtegy....");
-  const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
-  await strategy.deployed();
-  console.log("strategy deployed at: ", strategy.address);
+    console.log("deploying le jar");
+    const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
+    const PickleJar = await PickleJarFactory.deploy(wants[i], governance, timelock, controller);
 
-  console.log("deplying le jar");
-  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
-  const PickleJar = await PickleJarFactory.deploy(want, governance, timelock, controller);
+    await PickleJar.deployed();
+    console.log("Jar deployed at: ", PickleJar.address);
 
-  await PickleJar.deployed();
-  console.log("Jar deployed at: ", PickleJar.address);
-
-  await hre.run("verify:verify", {
-    address: strategy.address,
-    constructorArguments: [governance, strategist, controller, timelock],
-  });
+    await hre.run("verify:verify", {
+      address: strategy.address,
+      constructorArguments: [governance, strategist, controller, timelock],
+    });
+  }
 };
 
 const approveBal = async () => {
