@@ -3,13 +3,13 @@ pragma solidity ^0.6.7;
 
 import "../strategy-platypus-farm-base.sol";
 
-contract StrategyPlatypusDaiE is StrategyPlatypusFarmBase {
+contract StrategyPlatypusMim is StrategyPlatypusFarmBase {
     // stablecoins
-      address public daiE = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
-    
-  // UPDATE POOLID
-    uint256 public _poolId = 2; 
-    address public lp = 0xc1Daa16E6979C2D1229cB1fd0823491eA44555Be;
+    address public mim = 0x130966628846BFd36ff31a822705796e8cb8C18D;
+
+  
+    uint256 public _poolId = 3; 
+    address public lp = 0x6220BaAd9D08Dee465BefAE4f82ee251cF7c8b82;
     
     constructor(
         address _governance,
@@ -60,7 +60,7 @@ contract StrategyPlatypusDaiE is StrategyPlatypusFarmBase {
         address[] memory path = new address[](3);
         path[0] = platypus;
         path[1] = wavax;
-        path[2] = daiE;
+        path[2] = mim;
 
         //swap with path
         _swapTraderJoeWithPath(path, _amount);
@@ -85,14 +85,14 @@ contract StrategyPlatypusDaiE is StrategyPlatypusFarmBase {
             //convert Avax Rewards
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);   
-            _swapTraderJoe(wavax, daiE, _wavax);
+            _swapTraderJoe(wavax, mim, _wavax);
         }
 
 
         // Adds liquidity to Platypus
-        uint256 _daiE = IERC20(daiE).balanceOf(address(this));
-        IERC20(daiE).safeApprove(platypusRouter, _daiE);  
-        IPlatypusPools(platypusRouter).deposit(daiE, _daiE, address(this), block.timestamp + 120);
+        uint256 _mim = IERC20(mim).balanceOf(address(this));
+        IERC20(mim).safeApprove(platypusRouter, _mim);  
+        IPlatypusPools(platypusRouter).deposit(mim, _mim, address(this), block.timestamp + 120);
        
 
         // We want to get back sCRV
@@ -100,6 +100,6 @@ contract StrategyPlatypusDaiE is StrategyPlatypusFarmBase {
     }
 
     function getName() external override pure returns (string memory) {
-        return "StrategyPlatypusDaiE";
+        return "StrategyPlatypusMim";
     }
 }

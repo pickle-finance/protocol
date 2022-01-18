@@ -77,6 +77,7 @@ export function findSlot(address: string): number {
         case "0x1c20e891bab6b1727d14da358fae2984ed9b59eb": slot = 14; break; //TUSD
         case "0xB91124eCEF333f17354ADD2A8b944C76979fE3EC": slot = 51; break; //s4D
         case "0x60781C2586D68229fde47564546784ab3fACA982": slot = 1; break; //PNG
+        case "0x0D26D103c91F63052Fbca88aAF01d5304Ae40015": slot = 101; break;
         default: slot = 0; break;
     }
     return slot;

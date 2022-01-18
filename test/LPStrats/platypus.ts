@@ -8,7 +8,25 @@ const tests = [
         name: "PlatypusUsdtE",
         controller: "axial",
         timelockIsStrategist: false,
-        slot: 0
+        slot: 101
+    },
+    {
+        name: "PlatypusUsdcE",
+        controller: "axial",
+        timelockIsStrategist: false,
+        slot: 101
+    },
+    {
+        name: "PlatypusDaiE",
+        controller: "axial",
+        timelockIsStrategist: false,
+        slot: 101
+    },
+    {
+        name: "PlatypusMim",
+        controller: "axial",
+        timelockIsStrategist: false,
+        slot: 101
     },
 ];
 

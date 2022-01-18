@@ -3,13 +3,13 @@ pragma solidity ^0.6.7;
 
 import "../strategy-platypus-farm-base.sol";
 
-contract StrategyPlatypusDaiE is StrategyPlatypusFarmBase {
+contract StrategyPlatypusUsdcE is StrategyPlatypusFarmBase {
     // stablecoins
-      address public daiE = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
-    
-  // UPDATE POOLID
-    uint256 public _poolId = 2; 
-    address public lp = 0xc1Daa16E6979C2D1229cB1fd0823491eA44555Be;
+    address public usdce = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
+
+  
+    uint256 public _poolId = 1; 
+    address public lp = 0x909B0ce4FaC1A0dCa78F8Ca7430bBAfeEcA12871;
     
     constructor(
         address _governance,
@@ -60,7 +60,7 @@ contract StrategyPlatypusDaiE is StrategyPlatypusFarmBase {
         address[] memory path = new address[](3);
         path[0] = platypus;
         path[1] = wavax;
-        path[2] = daiE;
+        path[2] = usdce;
 
         //swap with path
         _swapTraderJoeWithPath(path, _amount);
@@ -85,14 +85,14 @@ contract StrategyPlatypusDaiE is StrategyPlatypusFarmBase {
             //convert Avax Rewards
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);   
-            _swapTraderJoe(wavax, daiE, _wavax);
+            _swapTraderJoe(wavax, usdce, _wavax);
         }
 
 
         // Adds liquidity to Platypus
-        uint256 _daiE = IERC20(daiE).balanceOf(address(this));
-        IERC20(daiE).safeApprove(platypusRouter, _daiE);  
-        IPlatypusPools(platypusRouter).deposit(daiE, _daiE, address(this), block.timestamp + 120);
+        uint256 _usdce = IERC20(usdce).balanceOf(address(this));
+        IERC20(usdce).safeApprove(platypusRouter, _usdce);  
+        IPlatypusPools(platypusRouter).deposit(usdce, _usdce, address(this), block.timestamp + 120);
        
 
         // We want to get back sCRV
@@ -100,6 +100,6 @@ contract StrategyPlatypusDaiE is StrategyPlatypusFarmBase {
     }
 
     function getName() external override pure returns (string memory) {
-        return "StrategyPlatypusDaiE";
+        return "StrategyPlatypusUsdce";
     }
 }
