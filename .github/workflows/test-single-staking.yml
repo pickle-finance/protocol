@@ -1,0 +1,21 @@
+name: Single Staking Tests 
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  singlestaking:
+    runs-on: ubuntu-latest 
+    env:
+      PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }} 
+      WALLET_ADDR: ${{ secrets.WALLET_ADDR }} 
+      SNOWTRACE_KEY: ${{ secrets.SNOWTRACE_KEY }} 
+      NODE_OPTIONS: "--max_old_space_size=32184"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - run: npm i
+      - run: npx hardhat test test/SingleStaking/* 
