@@ -3,7 +3,7 @@ require("@nomiclabs/hardhat-waffle");
 require('dotenv').config();
 
 async function main() {
-  const platform = "Optimizer";
+  const platform = "Platypus";
   const controller_name = platform+"ControllerV4";
   
   const [deployer] = await ethers.getSigners();

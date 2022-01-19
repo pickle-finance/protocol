@@ -35,6 +35,7 @@ async function main() {
       case "TraderJoe": controller_addr = "0xCEB829a0881350689dAe8CBD77D0E012cf7a6a3f"; break;
       case "Optimizer": controller_addr = "0x2F0b4e7aC032d0708C082994Fb21Dd75DB514744"; break;
       // case "Benqi": controller_addr = "0x8bfBA506B442f0D93Da2aDFd1ab70b7cB6a77B76"; break;
+      case "Platypus": controller_addr = "0x14559fb4d15Cf8DCbc35b7EDd1215d56c0468202"; break; 
       default: controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; break; //Base
     }
 
