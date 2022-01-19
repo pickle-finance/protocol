@@ -111,11 +111,11 @@ abstract contract StrategyTriDualFarmBase is StrategyBase {
         harvestSix();
     }
 
-    function harvestOne() public onlyBenevolent {
+    function harvestOne() public {
         IMiniChefTri(miniChef).harvest(poolId, address(this));
     }
 
-    function harvestTwo() public onlyBenevolent {
+    function harvestTwo() public {
         uint256 _aurora = IERC20(aurora).balanceOf(address(this));
         if (_aurora > 0) {
             // swap all Aurora to TRI
@@ -137,7 +137,7 @@ abstract contract StrategyTriDualFarmBase is StrategyBase {
         IERC20(tri).safeTransfer(IController(controller).treasury(), _keepTRI);
     }
 
-    function harvestThree() public onlyBenevolent {
+    function harvestThree() public {
         // Anyone can harvest it at any given time.
         // I understand the possibility of being frontrun
         // But ETH is a dark forest, and I wanna see how this plays out
@@ -160,7 +160,7 @@ abstract contract StrategyTriDualFarmBase is StrategyBase {
         }
     }
 
-    function harvestFour() public onlyBenevolent {
+    function harvestFour() public {
         uint256 _tri = IERC20(tri).balanceOf(address(this));
         if (_tri > 0) {
             if (swapRoutes[token1].length > 1) {
@@ -181,7 +181,7 @@ abstract contract StrategyTriDualFarmBase is StrategyBase {
         }
     }
 
-    function harvestFive() public onlyBenevolent {
+    function harvestFive() public {
         // Adds in liquidity for token0/token1
         uint256 _token0 = IERC20(token0).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
@@ -209,7 +209,7 @@ abstract contract StrategyTriDualFarmBase is StrategyBase {
         }
     }
 
-    function harvestSix() public onlyBenevolent {
+    function harvestSix() public {
         // We want to get back Tri LP tokens
         _distributePerformanceFeesAndDeposit();
     }
