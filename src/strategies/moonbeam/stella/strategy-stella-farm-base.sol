@@ -6,7 +6,7 @@ import "../../../interfaces/stella-chef.sol";
 
 abstract contract StrategyStellaFarmBase is StrategyBase {
     // Token addresses
-    address public constant stella = 0x7F5Ac0FC127bcf1eAf54E3cd01b00300a0861a62;
+    address public constant stella = 0x0E358838ce72d5e61E0018a2ffaC4bEC5F4c88d2;
     address public constant stellaChef =
         0xEDFB330F5FA216C9D2039B99C8cE9dA85Ea91c1E;
 
