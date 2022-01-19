@@ -28,43 +28,34 @@ contract StrategyPlatypusUsdcE is StrategyPlatypusFarmBase {
 
     ){}
 
+    function _swapPlatypusToWant(uint256 _amount) internal {
+        address[] memory path = new address[](3);
+        path[0] = platypus;
+        path[1] = wavax;
+        path[2] = usdce;
+        IERC20(platypus).safeApprove(joeRouter, 0);
+        IERC20(platypus).safeApprove(joeRouter, _amount);
+
+        _swapTraderJoeWithPath(path, _amount);
+    }
+
     // **** State Mutations ****
 
     function harvest() public onlyBenevolent override {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But AVAX is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
-        // stablecoin we want to convert to
-
-         // Collects Platypus  tokens 
+        // Collects Platypus  tokens 
         IMasterChefPlatypus(masterChefPlatypus).deposit(poolId, 0);
         uint256 _platypus = IERC20(platypus).balanceOf(address(this));
         if (_platypus > 0) {
             // 10% is sent back to the rewards holder
             uint256 _keep = _platypus.mul(keep).div(keepMax);
-            uint256 _amount = _platypus.sub(_keep);
             if (_keep > 0) {
                 _takeFeePlatypusToSnob(_keep);
             }
-        //reset amount to latest balance
-        _amount = IERC20(platypus).balanceOf(address(this));
+            //reset amount to latest balance
+            _platypus = IERC20(platypus).balanceOf(address(this));
 
-        //approve the balance for swapping
-        IERC20(platypus).safeApprove(joeRouter, 0);
-        IERC20(platypus).safeApprove(joeRouter, _amount);
-
-        //create a path for the swap
-        address[] memory path = new address[](3);
-        path[0] = platypus;
-        path[1] = wavax;
-        path[2] = usdce;
-
-        //swap with path
-        _swapTraderJoeWithPath(path, _amount);
-
+            //swap with path
+            _swapPlatypusToWant(_platypus);
         }
 
         // Take Avax Rewards    
@@ -79,8 +70,8 @@ contract StrategyPlatypusUsdcE is StrategyPlatypusFarmBase {
             if (_keep2 > 0){
                 _takeFeeWavaxToSnob(_keep2);
             }
-        //update balance
-        _wavax = IERC20(wavax).balanceOf(address(this));
+            //update balance
+            _wavax = IERC20(wavax).balanceOf(address(this));
 
             //convert Avax Rewards
             IERC20(wavax).safeApprove(joeRouter, 0);
@@ -88,12 +79,36 @@ contract StrategyPlatypusUsdcE is StrategyPlatypusFarmBase {
             _swapTraderJoe(wavax, usdce, _wavax);
         }
 
-
         // Adds liquidity to Platypus
         uint256 _usdce = IERC20(usdce).balanceOf(address(this));
-        IERC20(usdce).safeApprove(platypusRouter, _usdce);  
-        IPlatypusPools(platypusRouter).deposit(usdce, _usdce, address(this), block.timestamp + 120);
-       
+        if (_usdce > 0){
+            IERC20(usdce).safeApprove(platypusRouter, 0); 
+            IERC20(usdce).safeApprove(platypusRouter, _usdce);  
+
+            IPlatypusPools(platypusRouter).deposit(
+                usdce, 
+                _usdce, 
+                address(this), 
+                block.timestamp + 120
+            );
+        }
+
+        // Donates DUST
+        _wavax = IERC20(wavax).balanceOf(address(this));
+        if (_wavax > 0){
+            IERC20(wavax).transfer(
+                IController(controller).treasury(),
+                _wavax
+            );
+        }
+
+        _platypus = IERC20(platypus).balanceOf(address(this));
+        if (_platypus > 0){
+            IERC20(platypus).transfer(
+                IController(controller).treasury(),
+                _platypus
+            );
+        }
 
         // We want to get back sCRV
         _distributePerformanceFeesAndDeposit();

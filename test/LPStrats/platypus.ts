@@ -3,7 +3,6 @@ import { TestableStrategy, LPTestDefault } from "./../strategy-test-case";
 
 
 const tests = [
-   
     {
         name: "PlatypusUsdtE",
         controller: "axial",
