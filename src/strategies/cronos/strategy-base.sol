@@ -4,8 +4,6 @@ import "../../lib/erc20.sol";
 import "../../lib/safe-math.sol";
 
 import "../../interfaces/jar.sol";
-import "../../interfaces/staking-rewards.sol";
-import "../../interfaces/masterchef.sol";
 import "../../interfaces/uniswapv2.sol";
 import "../../interfaces/controller.sol";
 
@@ -16,7 +14,6 @@ abstract contract StrategyBase {
     using Address for address;
     using SafeMath for uint256;
 
-    // Perfomance fees
     uint256 public performanceTreasuryFee = 0;
     uint256 public constant performanceTreasuryMax = 10000;
 
@@ -34,7 +31,7 @@ abstract contract StrategyBase {
 
     // Tokens
     address public want;
-    address public constant weth = 0x4200000000000000000000000000000000000006;
+    address public constant cro = 0x5C7F8A570d578ED84E63fdFA7b1eE72dEae1AE23;
 
     // User accounts
     address public governance;
@@ -42,7 +39,7 @@ abstract contract StrategyBase {
     address public strategist;
     address public timelock;
 
-    // Dex
+    // Dex - vvs
     address public sushiRouter;
 
     mapping(address => bool) public harvesters;
@@ -73,7 +70,8 @@ abstract contract StrategyBase {
         require(
             harvesters[msg.sender] ||
                 msg.sender == governance ||
-                msg.sender == strategist
+                msg.sender == strategist ||
+                msg.sender == address(this)
         );
         _;
     }
@@ -273,6 +271,7 @@ abstract contract StrategyBase {
     }
 
     // **** Internal functions ****
+
     function _swapSushiswap(
         address _from,
         address _to,
@@ -282,17 +281,19 @@ abstract contract StrategyBase {
 
         address[] memory path;
 
-        if (_from == weth || _to == weth) {
+        if (_from == cro || _to == cro) {
             path = new address[](2);
             path[0] = _from;
             path[1] = _to;
         } else {
             path = new address[](3);
             path[0] = _from;
-            path[1] = weth;
+            path[1] = cro;
             path[2] = _to;
         }
 
+        IERC20(_from).safeApprove(sushiRouter, 0);
+        IERC20(_from).safeApprove(sushiRouter, _amount);
         UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
             _amount,
             0,
@@ -307,12 +308,14 @@ abstract contract StrategyBase {
     {
         require(path[1] != address(0));
 
+        IERC20(path[0]).safeApprove(sushiRouter, 0);
+        IERC20(path[0]).safeApprove(sushiRouter, _amount);
         UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
             _amount,
-            1,
+            0,
             path,
             address(this),
-            block.timestamp
+            now.add(60)
         );
     }
 
