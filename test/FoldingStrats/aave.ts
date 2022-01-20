@@ -56,6 +56,12 @@ const tests = [
         fold: true,
         controller: "aave",
     },
+    {
+        name: "AaveWavax",
+        controller:"optimizer",
+        slot: 3
+    },
+
 ];
 
 describe("Aave Folding Strategies", function() {

@@ -13,7 +13,7 @@ import "../../interfaces/aave.sol";
 import "../strategy-base.sol";
 import "../strategy-joe-farm-base.sol";
 
-contract StrategyAaveDai is StrategyBase, Exponential {
+contract StrategyAaveDaiE is StrategyBase, Exponential {
     address public constant avdai = 0x47AFa96Cdc9fAb46904A55a6ad4bf6660B53c38a;
     address public constant dai = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
     address public constant variableDebtDai =
