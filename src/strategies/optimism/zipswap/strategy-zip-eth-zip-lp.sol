@@ -7,7 +7,7 @@ contract StrategyZipEthZipLp is StrategyZipFarmBase {
     uint256 public constant eth_zip_poolid = 3;
     // Token addresses
     address public constant eth_zip_lp =
-        0x53790B6C7023786659D11ed82eE03079F3bD6976;
+        0xD7F6ECF4371eddBd60C1080BfAEc3d1d60D415d0;
 
     constructor(
         address _governance,
