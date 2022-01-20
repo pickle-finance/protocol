@@ -160,10 +160,10 @@ const tests = [
     // {
     //     name: "PngUsdtESkill",
     // },
-    {
-        name: "PngAvaxLoot",
-        controller: "main"
-    },
+    // {
+    //     name: "PngAvaxLoot",
+    //     controller: "main"
+    // },
     {
         name: "PngAvaxDcau",
         controller: "main"

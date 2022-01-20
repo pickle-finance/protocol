@@ -79,12 +79,14 @@ contract StrategyPngAvaxMage is StrategyPngMiniChefFarmBase {
             _mage = IERC20(mage).balanceOf(address(this));
         }
 
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         // In the case of PNG Rewards, swap PNG for WAVAX and MAGE
         if(_png > 0){
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);   
-            _swapPangolin(png, wavax, _png.div(2));
-            _swapPangolin(png, mage, _png.div(2));
+            _swapPangolin(png, wavax, _png);
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _swapPangolin(wavax, mage, _wavax.div(2));
         }
 
         // In the case of MAGE Rewards, swap MAGE for WAVAX
@@ -97,7 +99,7 @@ contract StrategyPngAvaxMage is StrategyPngMiniChefFarmBase {
         
 
         // Adds in liquidity for AVAX/MAGE
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        _wavax = IERC20(wavax).balanceOf(address(this));
         _mage = IERC20(mage).balanceOf(address(this));
 
         if (_wavax > 0 && _mage > 0) {

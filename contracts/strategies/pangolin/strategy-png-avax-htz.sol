@@ -79,12 +79,14 @@ contract StrategyPngAvaxHtz is StrategyPngMiniChefFarmBase {
             _htz = IERC20(htz).balanceOf(address(this));
         }
 
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         // In the case of PNG Rewards, swap PNG for WAVAX and HTZ
         if(_png > 0){
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);   
-            _swapPangolin(png, wavax, _png.div(2));
-            _swapPangolin(png, htz, _png.div(2));
+            _swapPangolin(png, wavax, _png);
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _swapPangolin(wavax, htz, _wavax.div(2));
         }
 
         // In the case of HTZ Rewards, swap HTZ for WAVAX
@@ -97,7 +99,7 @@ contract StrategyPngAvaxHtz is StrategyPngMiniChefFarmBase {
         
 
         // Adds in liquidity for AVAX/HTZ
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        _wavax = IERC20(wavax).balanceOf(address(this));
         _htz = IERC20(htz).balanceOf(address(this));
 
         if (_wavax > 0 && _htz > 0) {
