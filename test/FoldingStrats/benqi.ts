@@ -5,40 +5,41 @@ import { TestableStrategy, FoldTestDefault } from "./../strategy-test-case";
 const tests = [
     // {
     //   name: "BenqiUsdcE",
-    //   controller: "benqi",
-    // },
-    // {
-    //   name: "BenqiLinkE",
-    //   controller: "benqi",
+    //   controller: "main"
     // },
     {
-        name: "BenqiQi",
-        fold: false,
-        controller: "benqi",
-        slot: 1
+      name: "BenqiLinkE",
+      controller: "main",
+      fold: false
     },
     // {
+    //     name: "BenqiQi",
+    //     fold: false,
+    //     controller: "benqi",
+    //     slot: 1
+    // },
+    // {
     //   name: "BenqiWbtcE",
-    //   controller: "benqi",
+    //   controller: "main",
     // },
     // {
     //   name: "BenqiEthE",
-    //   controller: "benqi",
+    //   controller: "main"
     // },
     // {
     //   name: "BenqiWavax",
-    //   controller: "benqi",
+    //   controller: "oldBenqi",
+    //   timelockIsStrategist: true,
+    //   slot: 3
     // },
-    {
-        name: "BenqiWavax",
-        slot: 1,
-        controller:"optimizer"
-    },
-    {
-        name: "BenqiDaiE",
-        controller:"optimizer"
-    },
- 
+    // {
+    //     name: "BenqiDaiE",
+    //     controller:"main"
+    // },
+    // {
+    // name: "BenqiUsdtE", 
+    // controller:"benqi",
+    // },
 ];
 
 describe("Benqi Folding Strategy Tests", function() {

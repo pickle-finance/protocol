@@ -92,7 +92,9 @@ export function returnController(controller: string): string {
         case "aave": address = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; break;
         case "bankerJoe": address = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
         case "benqi": address = "0x252B5fD3B1Cb07A2109bF36D5bDE6a247c6f4B59"; break;
+        case "oldBenqi": address = "0x8Ffa3c1547479B77D9524316D5192777bedA40a1"; break;
         case "traderJoe": address = "0xCEB829a0881350689dAe8CBD77D0E012cf7a6a3f"; break;
+        case "optimizer": address = "0x2F0b4e7aC032d0708C082994Fb21Dd75DB514744"; break;
         default: address = ""; break;
     }
     return address

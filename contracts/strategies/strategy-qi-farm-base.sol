@@ -284,8 +284,8 @@ abstract contract StrategyQiFarmBase is StrategyBase, Exponential {
         // Supplied = borrowed
         uint256 _borrowAndSupply;
         uint256 supplied = getSupplied();
+        _borrowAndSupply = getBorrowable();
         while (supplied < _supplyAmount) {
-            _borrowAndSupply = getBorrowable();
 
             if (supplied.add(_borrowAndSupply) > _supplyAmount) {
                 _borrowAndSupply = _supplyAmount.sub(supplied);
@@ -295,6 +295,8 @@ abstract contract StrategyQiFarmBase is StrategyBase, Exponential {
             deposit();
 
             supplied = supplied.add(_borrowAndSupply);
+            (, uint256 colFactor) = IComptroller(comptroller).markets(qiToken);
+            _borrowAndSupply =  supplied.mul(colFactor).div(1e18).sub(_borrowAndSupply).mul(9999).div(10000);
         }
     }
 
@@ -306,7 +308,7 @@ abstract contract StrategyQiFarmBase is StrategyBase, Exponential {
     // Deleverages until we're supplying <x> amount
     // 1. Redeem <x> want
     // 2. Repay <x> want
-    function deleverageUntil(uint256 _supplyAmount) public onlyKeepers {
+    function deleverageUntil(uint256 _supplyAmount) public virtual onlyKeepers {
         uint256 unleveragedSupply = getSuppliedUnleveraged();
         uint256 supplied = getSupplied();
         require(
@@ -383,12 +385,9 @@ abstract contract StrategyQiFarmBase is StrategyBase, Exponential {
             if (_keep > 0) {
                 _takeFeeWavaxToSnob(_keep);
             }
-
-            
         }
 
         IComptroller(comptroller).claimReward(0, address(this));        //Claim Qi
-        
         uint256 _benqi = IERC20(benqi).balanceOf(address(this));
         if (_benqi > 0) {
             _keep = _benqi.mul(keep).div(keepMax);

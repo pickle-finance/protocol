@@ -10,6 +10,7 @@ export const treasury_addr: string = "0x028933a66dd0ccc239a3d5c2243b2d96672f11f5
 export const dev_addr: string = "0x0aa5cb6f365259524f7ece8e09cce9a7b394077a";
 export const MAX_UINT256: BigNumber = ethers.constants.MaxUint256;
 export const WAVAX_ADDR = "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7";
+export const BENQI_ADDR = "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5"; 
 
 /***
  * NOTE: Single Staking expects the timelock signer to have the address of the strategist.

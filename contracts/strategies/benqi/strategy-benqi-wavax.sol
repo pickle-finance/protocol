@@ -95,7 +95,44 @@ contract StrategyBenqiWavax is StrategyQiFarmBase {
         }
         return _amount;
     }
+        // Deleverages until we're supplying <x> amount
+    // 1. Redeem <x> want
+    // 2. Repay <x> want
+    function deleverageUntil(uint256 _supplyAmount) public override onlyKeepers {
+        uint256 unleveragedSupply = getSuppliedUnleveraged();
+        uint256 supplied = getSupplied();
+        require(
+            _supplyAmount >= unleveragedSupply && _supplyAmount <= supplied,
+            "!deleverage"
+        );
 
+        // Market collateral factor
+        uint256 marketColFactor = getMarketColFactor();
+
+        // How much can we redeem
+        uint256 _redeemAndRepay = getRedeemable();
+        do {
+            // If the amount we're redeeming is exceeding the
+            // target supplyAmount, adjust accordingly
+            if (supplied.sub(_redeemAndRepay) < _supplyAmount) {
+                _redeemAndRepay = supplied.sub(_supplyAmount);
+            }
+
+            require(
+                IQiAvax(qiToken).redeemUnderlying(_redeemAndRepay) == 0,
+                "!redeem"
+            );
+            IERC20(want).safeApprove(qiToken, 0);
+            IERC20(want).safeApprove(qiToken, _redeemAndRepay);
+            IQiAvax(qiToken).repayBorrow{value: _redeemAndRepay}();
+
+            supplied = supplied.sub(_redeemAndRepay);
+
+            // After each deleverage we can redeem more (the colFactor)
+            _redeemAndRepay = _redeemAndRepay.mul(1e18).div(marketColFactor);
+        } while (supplied > _supplyAmount);
+    }
+    
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {

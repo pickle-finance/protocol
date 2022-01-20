@@ -54,7 +54,7 @@ module.exports = {
     artifacts: "./artifacts"
   },
   mocha: {
-    timeout: 120000
+    timeout: 240000
   },
   paths: { 
     sources: "./contracts", 

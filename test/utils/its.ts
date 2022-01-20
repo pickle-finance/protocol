@@ -26,10 +26,10 @@ import {
 
 export async function userWalletAssetBalance(txnAmt: string, assetContract: Contract, walletSigner: Signer) {
     let BNBal = await assetContract.balanceOf(await walletSigner.getAddress());
-    console.log(`The balance of BNBal is ${BNBal}`);
+    log(`The balance of BNBal is ${BNBal}`);
 
     const BN = ethers.BigNumber.from(txnAmt)._hex.toString();
-    console.log(`The balance of BN is ${BN}`);
+    log(`The balance of BN is ${BN}`);
 
     expect(BNBal).to.be.equals(BN);
 }
@@ -52,8 +52,8 @@ export async function harvestsMakeMoney(Strategy: Contract, harvester: Function)
     [, initialBalance] = await harvester();
 
     let newBalance = await Strategy.balanceOf();
-    console.log(`initial balance: ${initialBalance}`);
-    console.log(`new balance: ${newBalance}`);
+    log(`initial balance: ${initialBalance}`);
+    log(`new balance: ${newBalance}`);
     expect(newBalance).to.be.gt(initialBalance);
 }
 
@@ -157,7 +157,7 @@ export async function takeNoFees(assetContract: Contract, SnowGlobe: Contract, S
     const earnt = globeAfter.sub(globeBefore);
     const earntTTreasury = treasuryAfter.sub(treasuryBefore);
     const snobAccrued = snobAfter.sub(snobBefore);
-    console.log(`\t💸Snowglobe profit after harvest: ${earnt.toString()}`);
+    log(`\t💸Snowglobe profit after harvest: ${earnt.toString()}`);
     log(`\t💸Treasury profit after harvest:  ${earntTTreasury.toString()}`);
     log(`\t💸Snowball token accrued : ${snobAccrued}`);
     expect(snobAccrued).to.be.lt(1);
@@ -179,25 +179,25 @@ export async function takeSomeFees(harvester: Function, assetContract: Contract,
     const globeBefore = await SnowGlobe.balance();
     const treasuryBefore = await assetContract.connect(walletSigner).balanceOf(treasury_addr);
     const snobBefore = await snobContract.balanceOf(treasury_addr);
-    console.log(`snobBefore: ${snobBefore.toString()}`);
+    log(`snobBefore: ${snobBefore.toString()}`);
 
     let initialBalance;
     [, initialBalance] = await harvester();
 
     let newBalance = await Strategy.balanceOf();
-    console.log(`initial balance: ${initialBalance}`);
-    console.log(`new balance: ${newBalance}`);
+    log(`initial balance: ${initialBalance}`);
+    log(`new balance: ${newBalance}`);
 
     const globeAfter = await SnowGlobe.balance();
     const treasuryAfter = await assetContract.connect(walletSigner).balanceOf(treasury_addr);
     const snobAfter = await snobContract.balanceOf(treasury_addr);
-    console.log(`snobAfter: ${snobAfter.toString()}`);
+    log(`snobAfter: ${snobAfter.toString()}`);
     const earnt = globeAfter.sub(globeBefore);
     const earntTTreasury = treasuryAfter.sub(treasuryBefore);
     const snobAccrued = snobAfter.sub(snobBefore);
-    console.log(`\t💸Snowglobe profit after harvest: ${earnt.toString()}`);
+    log(`\t💸Snowglobe profit after harvest: ${earnt.toString()}`);
     log(`\t💸Treasury profit after harvest:  ${earntTTreasury.toString()}`);
-    console.log(`\t💸Snowball token accrued : ${snobAccrued}`);
+    log(`\t💸Snowball token accrued : ${snobAccrued}`);
     expect(snobAccrued).to.be.gt(1);
     // expect(earntTTreasury).to.be.gt(BigNumber.from(1));
 }
