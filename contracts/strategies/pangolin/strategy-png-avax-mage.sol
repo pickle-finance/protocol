@@ -2,12 +2,12 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-minichef-farm-base.sol";
 
-contract StrategyPngAvaxDcau is StrategyPngMiniChefFarmBase {
-    uint256 public _poolId = 71;
+contract StrategyPngAvaxMage is StrategyPngMiniChefFarmBase {
+    uint256 public _poolId = 68;
 
     // Token addresses
-    address public png_avax_dcau_lp = 0x4ec2d6d37Bc8F47fdc995E0F311CeB60D9b12f51;
-    address public dcau = 0x100Cc3a819Dd3e8573fD2E46D1E66ee866068f30;
+    address public png_avax_mage_lp = 0x902c65C90327285BB1d8BdC07B59Cd199410A71b;
+    address public mage = 0x921f99719Eb6C01b4B8f0BA7973A7C24891e740A;
 
     constructor(
         address _governance,
@@ -18,7 +18,7 @@ contract StrategyPngAvaxDcau is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            png_avax_dcau_lp,
+            png_avax_mage_lp,
             _governance,
             _strategist,
             _controller,
@@ -26,13 +26,13 @@ contract StrategyPngAvaxDcau is StrategyPngMiniChefFarmBase {
         )
     {}
 
-    function _takeFeeDcauToSnob(uint256 _keep) internal {
+    function _takeFeeMageToSnob(uint256 _keep) internal {
         address[] memory path = new address[](3);
-        path[0] = dcau;
+        path[0] = mage;
         path[1] = wavax;
         path[2] = snob;
-        IERC20(dcau).safeApprove(pangolinRouter, 0);
-        IERC20(dcau).safeApprove(pangolinRouter, _keep);
+        IERC20(mage).safeApprove(pangolinRouter, 0);
+        IERC20(mage).safeApprove(pangolinRouter, _keep);
         _swapPangolinWithPath(path, _keep);
         uint256 _snob = IERC20(snob).balanceOf(address(this));
         uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
@@ -59,55 +59,59 @@ contract StrategyPngAvaxDcau is StrategyPngMiniChefFarmBase {
         }
 
         uint256 _png = IERC20(png).balanceOf(address(this));
-        uint256 _dcau = IERC20(dcau).balanceOf(address(this));
+        uint256 _mage = IERC20(mage).balanceOf(address(this));
         if (_png > 0) {
             // 10% is sent to treasury
             uint256 _keep = _png.mul(keep).div(keepMax);
             if (_keep > 0) {
                 _takeFeePngToSnob(_keep);
             }
+
             _png = IERC20(png).balanceOf(address(this));  
         }
 
-        if (_dcau > 0) {
-            uint256 _keep2 = _dcau.mul(keep).div(keepMax);
+        if (_mage > 0) {
+            uint256 _keep2 = _mage.mul(keep).div(keepMax);
             if (_keep2 > 0){
-                _takeFeeDcauToSnob(_keep2);
+                _takeFeeMageToSnob(_keep2);
             }
-            _dcau = IERC20(dcau).balanceOf(address(this));
+            
+            _mage = IERC20(mage).balanceOf(address(this));
         }
 
-        // In the case of PNG Rewards, swap PNG for WAVAX and DCAU
+        // In the case of PNG Rewards, swap PNG for WAVAX and MAGE
         if(_png > 0){
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);   
             _swapPangolin(png, wavax, _png.div(2));
-            _swapPangolin(png, dcau, _png.div(2));
+            _swapPangolin(png, mage, _png.div(2));
         }
 
-        // In the case of DCAU Rewards, swap DCAU for WAVAX
-        if(_dcau > 0){
-            IERC20(dcau).safeApprove(pangolinRouter, 0);
-            IERC20(dcau).safeApprove(pangolinRouter, _dcau.div(2));   
-            _swapPangolin(dcau, wavax, _dcau.div(2)); 
+        // In the case of MAGE Rewards, swap MAGE for WAVAX
+        if(_mage > 0){
+            IERC20(mage).safeApprove(pangolinRouter, 0);
+            IERC20(mage).safeApprove(pangolinRouter, _mage.div(2));   
+            _swapPangolin(mage, wavax, _mage.div(2)); 
         }
 
-        // Adds in liquidity for AVAX/DCAU
+        
+
+        // Adds in liquidity for AVAX/MAGE
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        _dcau = IERC20(dcau).balanceOf(address(this));
+        _mage = IERC20(mage).balanceOf(address(this));
 
-        if (_wavax > 0 && _dcau > 0) {
+        if (_wavax > 0 && _mage > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
 
-            IERC20(dcau).safeApprove(pangolinRouter, 0);
-            IERC20(dcau).safeApprove(pangolinRouter, _dcau);
+            IERC20(mage).safeApprove(pangolinRouter, 0);
+            IERC20(mage).safeApprove(pangolinRouter, _mage);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
                 wavax,
-                dcau,
+                mage,
                 _wavax,
-                _dcau,
+                _mage,
                 0,
                 0,
                 address(this),
@@ -115,7 +119,7 @@ contract StrategyPngAvaxDcau is StrategyPngMiniChefFarmBase {
             );
 
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _dcau = IERC20(dcau).balanceOf(address(this));
+            _mage = IERC20(mage).balanceOf(address(this));
             _png = IERC20(png).balanceOf(address(this));
             
             // Donates DUST
@@ -125,10 +129,10 @@ contract StrategyPngAvaxDcau is StrategyPngMiniChefFarmBase {
                     _wavax
                 );
             }
-            if (_dcau > 0){
-                IERC20(dcau).safeTransfer(
+            if (_mage > 0){
+                IERC20(mage).safeTransfer(
                     IController(controller).treasury(),
-                    _dcau
+                    _mage
                 );
             }
             if (_png > 0){
@@ -144,6 +148,6 @@ contract StrategyPngAvaxDcau is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAvaxDcau";
+        return "StrategyPngAvaxMage";
     }
 }

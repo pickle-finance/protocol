@@ -135,12 +135,6 @@ contract StrategyPngAvaxLoot is StrategyPngMiniChefFarmBase {
                     _loot
                 );
             }
-             if (_loot > 0){
-                IERC20(loot).safeTransfer(
-                    IController(controller).treasury(),
-                    _loot
-                );
-            }
             if (_png > 0){
                 IERC20(png).safeTransfer(
                     IController(controller).treasury(),
