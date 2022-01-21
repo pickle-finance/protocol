@@ -17,6 +17,7 @@ import {
     setupSigners,
     MAX_UINT256
 } from "./utils/static";
+import { log } from "./utils/log";
 
 const txnAmt = "35000000000000000000000";
 
@@ -78,7 +79,6 @@ export function doStablePoolTests(
             }
 
             if (StableVaultAddr == "") {
-                console.log("here")
                 //TODO: Make this part of the IF statement work
                 // Use this for testing new stablevaults
                 /*
@@ -115,15 +115,15 @@ export function doStablePoolTests(
                 StablePool = await ethers.getContractAt(PoolABI, StableVaultAddr, deployer);
                 let owner = await StablePool.owner();
                 deployer = await returnSigner(owner);
-                console.log(`\tDeployer Address is ${deployer.getAddress()}`)
+                log(`\tDeployer Address is ${deployer.getAddress()}`)
 
                 const response = await StablePool.swapStorage();
                 StableVaultTokenAddr = response[6];
-                console.log(`\tLP Token Address is : ${StableVaultTokenAddr}`);
+                log(`\tLP Token Address is : ${StableVaultTokenAddr}`);
                 StablePoolToken = await ethers.getContractAt(PoolTokenABI, StableVaultTokenAddr, deployer);
 
             }
-            console.log(`\tStablePool Address is : ${StablePool.address}`);
+            log(`\tStablePool Address is : ${StablePool.address}`);
 
             let slot = findSlot(StableVaultTokenAddr);
             await overwriteTokenAmount(StableVaultTokenAddr, walletAddr, txnAmt, slot);
@@ -234,10 +234,10 @@ export function doStablePoolTests(
                 let total = 0;
                 for (let item of diffs) {
                     total += Number(item);
-                    //console.log(`item is ${item}`);
+                    //log(`item is ${item}`);
                 }
-                //console.log(`total is ${total}`);
-                console.log(`\tLiquidity withdrawn is ${liquidity} compared to balance increased by ${total}`);
+                //log(`total is ${total}`);
+                log(`\tLiquidity withdrawn is ${liquidity} compared to balance increased by ${total}`);
                 let ratio = Number(total) / Number(liquidity);
                 // TODO: Investigate why there's so much slippage, as in why we get hardly any TUSD back
                 expect(ratio, "User receives less balance than liquidity withdrawn").to.be.greaterThan(0.80);
@@ -416,7 +416,7 @@ export function doStablePoolTests(
             balances.push(bal);
             string.push(num + " " + await contract.symbol())
         };
-        console.log(`\tBalances of user are: ${string}`);
+        log(`\tBalances of user are: ${string}`);
 
         return balances
     }
