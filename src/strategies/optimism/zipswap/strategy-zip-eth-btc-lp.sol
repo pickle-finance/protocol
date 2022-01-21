@@ -4,9 +4,9 @@ pragma solidity ^0.6.7;
 import "../strategy-zip-farm-base.sol";
 
 contract StrategyZipEthBtcLp is StrategyZipFarmBase {
-    uint256 public constant eth_btc_poolid = 2;
+    uint256 public constant weth_btc_poolid = 2;
     // Token addresses
-    address public constant eth_btc_lp =
+    address public constant weth_btc_lp =
         0x251de0f0368c472Bba2E1C8f5Db5aC7582B5f847;
     address public constant btc = 0x68f180fcCe6836688e9084f035309E29Bf0A2095;
 
@@ -18,8 +18,8 @@ contract StrategyZipEthBtcLp is StrategyZipFarmBase {
     )
         public
         StrategyZipFarmBase(
-            eth_btc_lp,
-            eth_btc_poolid,
+            weth_btc_lp,
+            weth_btc_poolid,
             _governance,
             _strategist,
             _controller,

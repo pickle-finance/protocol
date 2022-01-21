@@ -37,10 +37,10 @@ abstract contract StrategyZipFarmBase is StrategyBase {
         token0 = IUniswapV2Pair(_lp).token0();
         token1 = IUniswapV2Pair(_lp).token1();
 
-        IERC20(token0).safeApprove(sushiRouter, uint256(-1));
-        IERC20(token1).safeApprove(sushiRouter, uint256(-1));
-        IERC20(zip).safeApprove(sushiRouter, uint256(-1));
-        IERC20(want).safeApprove(zipChef, uint256(-1));
+        IERC20(token0).approve(sushiRouter, uint256(-1));
+        IERC20(token1).approve(sushiRouter, uint256(-1));
+        IERC20(zip).approve(sushiRouter, uint256(-1));
+        IERC20(want).approve(zipChef, uint256(-1));
     }
 
     function balanceOfPool() public view override returns (uint256) {
