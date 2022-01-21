@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "./strategy-stella-farm-base.sol";
+import "./strategy-beam-farm-base.sol";
 
-contract StrategyGlintGlintGlmrLp is StrategyGlintFarmBase {
+contract StrategyGlintGlmrLp is StrategyBeamFarmBase {
     uint256 public glint_glmr_poolId = 0;
 
     // Token addresses
     address public glint_glmr_lp = 0x99588867e817023162F4d4829995299054a5fC57;
-    address public glint = 0xcd3B51D98478D53F4515A306bE565c6EebeF1D58;
 
     constructor(
         address _governance,
@@ -17,7 +16,7 @@ contract StrategyGlintGlintGlmrLp is StrategyGlintFarmBase {
         address _timelock
     )
         public
-        StrategyGlintFarmBase(
+        StrategyBeamFarmBase(
             glint_glmr_lp,
             glint_glmr_poolId,
             _governance,
@@ -32,6 +31,6 @@ contract StrategyGlintGlintGlmrLp is StrategyGlintFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyGlintGlintGlmrLp";
+        return "StrategyGlintGlmrLp";
     }
 }
