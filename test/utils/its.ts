@@ -1,11 +1,11 @@
 const { ethers, network } = require("hardhat");
 import chai from "chai";
 import { expect } from "chai";
-import { BigNumber } from "@ethersproject/bignumber";
 import {
     Contract,
     ContractFactory,
-    Signer
+    Signer,
+    BigNumber
 } from "ethers";
 import {
     snowball_addr, treasury_addr,

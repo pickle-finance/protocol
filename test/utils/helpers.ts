@@ -1,9 +1,9 @@
 const hre = require("hardhat");
 const { ethers, network } = require("hardhat");
-import { BigNumber } from "@ethersproject/bignumber";
 import {
     Signer,
-    Contract
+    Contract,
+    BigNumber
 } from "ethers";
 import { BLACKHOLE } from "./static";
 import { log } from "./log"

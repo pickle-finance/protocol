@@ -1,7 +1,6 @@
 /** NOTES ABOUT THIS TEST FILE
 -- Only designed for testing against LPs ***/
 const { ethers } = require("hardhat");
-import { BigNumber } from "@ethersproject/bignumber";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import chaiRoughly from 'chai-roughly';
@@ -26,7 +25,8 @@ import { setupMockGauge } from "./mocks/Gauge";
 import { setupMockZapper } from "./mocks/Zapper";
 import {
     Contract,
-    Signer
+    Signer,
+    BigNumber
 } from "ethers";
 import {
     zapInToken, zapOutToken
