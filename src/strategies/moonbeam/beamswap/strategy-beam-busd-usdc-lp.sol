@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "./strategy-stella-farm-base.sol";
+import "./strategy-beam-farm-base.sol";
 
 contract StrategyGlintUsdcBusdLp is StrategyGlintFarmBase {
     uint256 public usdc_busd_poolId = 2;
