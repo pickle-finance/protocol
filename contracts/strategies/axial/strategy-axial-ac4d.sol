@@ -2,8 +2,9 @@
 pragma solidity ^0.6.7;
 
 import "../strategy-axial-4pool-base.sol";
+import "hardhat/console.sol";
 
-contract StrategyAxialAC4DLp is StrategyAxial4PoolBase {
+contract StrategyAxialAC4D is StrategyAxial4PoolBase {
     // stablecoins
     address public constant tsd = 0x4fbf0429599460D327BD5F55625E30E4fC066095;
     address public constant mim = 0x130966628846BFd36ff31a822705796e8cb8C18D;
@@ -88,20 +89,11 @@ contract StrategyAxialAC4DLp is StrategyAxial4PoolBase {
             }
 
             _axial = IERC20(axial).balanceOf(address(this));
+         
+            IERC20(axial).safeApprove(joeRouter, 0);
+            IERC20(axial).safeApprove(joeRouter, _axial);
 
-            // if the stablecoin we need is frax, then swap with pangolin
-            if( to == 0xD24C2Ad096400B6FBcd2ad8B24E7acBc21A1da64){
-                IERC20(axial).safeApprove(pangolinRouter, 0);
-                IERC20(axial).safeApprove(pangolinRouter, _axial);
-
-                _swapPangolin(axial, to, _axial);
-
-            }else{
-                IERC20(axial).safeApprove(joeRouter, 0);
-                IERC20(axial).safeApprove(joeRouter, _axial);
-                
-                _swapTraderJoe(axial, to, _axial); 
-            }
+            _swapTraderJoe(axial, to, _axial);
         }
 
         uint256 _teddy = IERC20(teddy).balanceOf(address(this));
@@ -114,19 +106,10 @@ contract StrategyAxialAC4DLp is StrategyAxial4PoolBase {
 
             _teddy = IERC20(teddy).balanceOf(address(this));
 
-            // if the stablecoin we need is frax, then swap with pangolin
-            if( to == 0xD24C2Ad096400B6FBcd2ad8B24E7acBc21A1da64){
-                IERC20(teddy).safeApprove(pangolinRouter, 0);
-                IERC20(teddy).safeApprove(pangolinRouter, _teddy);
-
-                _swapPangolin(teddy, to, _teddy);
-
-            }else{
-                IERC20(teddy).safeApprove(joeRouter, 0);
-                IERC20(teddy).safeApprove(joeRouter, _teddy);
+            IERC20(teddy).safeApprove(joeRouter, 0);
+            IERC20(teddy).safeApprove(joeRouter, _teddy);
                 
-                _swapTraderJoe(teddy, to, _teddy); 
-            }
+            _swapTraderJoe(teddy, to, _teddy); 
         }
 
         uint256 _fxs = IERC20(fxs).balanceOf(address(this));
@@ -139,10 +122,10 @@ contract StrategyAxialAC4DLp is StrategyAxial4PoolBase {
 
             _fxs = IERC20(fxs).balanceOf(address(this));
 
-            IERC20(fxs).safeApprove(pangolinRouter, 0);
-            IERC20(fxs).safeApprove(pangolinRouter, _fxs);
+            IERC20(fxs).safeApprove(joeRouter, 0);
+            IERC20(fxs).safeApprove(joeRouter, _fxs);
 
-            _swapPangolin(fxs, to, _fxs);
+            _swapTraderJoe(fxs, to, _fxs);
         }
 
         // Take Avax Rewards    
@@ -217,6 +200,6 @@ contract StrategyAxialAC4DLp is StrategyAxial4PoolBase {
     }
 
     function getName() external override pure returns (string memory) {
-        return "StrategyAxialAC4DLp";
+        return "StrategyAxialAC4D";
     }
 }

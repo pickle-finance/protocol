@@ -3,8 +3,15 @@ import { TestableStrategy, LPTestDefault } from "./../strategy-test-case";
 
 
 const tests = [
+    // {
+    //     name: "AxialAM3D",
+    //     controller: "axial",
+    //     timelockIsStrategist: false,
+    //     slot: 51
+    // },
     {
-        name: "AxialAM3D",
+        name: "AxialAC4D",
+        lp_suffix: false,
         controller: "axial",
         timelockIsStrategist: false,
         slot: 51

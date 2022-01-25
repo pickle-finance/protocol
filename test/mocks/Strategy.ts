@@ -51,6 +51,9 @@ export async function setupMockStrategy(
         /* Handle old strategy */
         const oldStrategy_addr = await Controller.strategies(asset_addr);
         if (oldStrategy_addr != 0) {
+            /// NB When funds are stuck because of a harvesting issue, we need a way to 
+            /// retrieve them and withdraw it into the new strategy.
+            // The logic below runs for old strategies that don't present a major harvesting issue. 
             log(`old strategy address:, ${oldStrategy_addr}`);
             const oldStrategy = new ethers.Contract(oldStrategy_addr, stratABI, governanceSigner);
             const harvest = await oldStrategy.connect(governanceSigner).harvest();

@@ -62,13 +62,15 @@ abstract contract StrategyAxial4PoolBase is StrategyAxialBase {
         if (
             balances[0] < balances[1] &&
             balances[0] < balances[2] &&
-            balances[0] < balances[3] && pair1 != 0x1C20E891Bab6b1727d14Da358FAe2984Ed9B59EB
+            balances[0] < balances[3] && 
+            pair1 != 0x1C20E891Bab6b1727d14Da358FAe2984Ed9B59EB
         ) {
             return (pair1);
         }else if (
             balances[0] < balances[1] &&
             balances[0] < balances[2] &&
-            balances[0] < balances[3] && pair1 == 0x1C20E891Bab6b1727d14Da358FAe2984Ed9B59EB
+            balances[0] < balances[3] && 
+            pair1 == 0x1C20E891Bab6b1727d14Da358FAe2984Ed9B59EB
         ){
             return (pair2);
         }
