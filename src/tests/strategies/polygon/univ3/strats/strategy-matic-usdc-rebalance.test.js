@@ -19,6 +19,8 @@ describe("StrategyMaticUsdcUniV3StakerPoly", () => {
     token0Whale,
     token1Whale,
     poolAddr,
-    isPolygon
+    isPolygon,
+    true,
+    false
   );
 });

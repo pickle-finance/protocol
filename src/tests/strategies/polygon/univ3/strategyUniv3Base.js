@@ -18,7 +18,9 @@ const doUniV3TestBehaviorBase = (
   token0Whale,
   token1Whale,
   poolAddr,
-  isPolygon = false
+  isPolygon = false,
+  depositNative = false,
+  depositNativeTokenIs1 = false
 ) => {
   describe(`${strategyName}`, () => {
     let poolContract = isPolygon
@@ -121,7 +123,15 @@ const doUniV3TestBehaviorBase = (
       let aliceShare, bobShare, charlesShare;
 
       console.log("=============== Alice deposit ==============");
-      await deposit(alice, depositA, depositB);
+
+      if (depositNative) {
+        depositNativeTokenIs1
+          ? depositWithEthToken1(alice, depositA, depositB)
+          : depositWithEthToken0(alice, depositA, depositB);
+      } else {
+        await deposit(alice, depositA, depositB);
+      }
+
       await strategy.setTickRangeMultiplier("50");
       await rebalance();
 
@@ -230,12 +240,24 @@ const doUniV3TestBehaviorBase = (
       console.log("Strategy token1 After Deposit: ", (await token1.balanceOf(strategy.address)).toString());
     };
 
-    const depositWithEth = async (user, depositA, depositB) => {
-      await token0.connect(user).approve(pickleJar.address, depositB);
+    const depositWithEthToken1 = async (user, depositA, depositB) => {
+      await token0.connect(user).approve(pickleJar.address, depositA);
       console.log("depositA => ", depositA.toString());
       console.log("depositB => ", depositB.toString());
+      console.log("User Balance before => ", (await hre.network.provider.getBalance(user)).toString());
+      await pickleJar.connect(user).deposit(depositA, 0, {value: depositB});
+      console.log("User Balance after => ", (await hre.network.provider.getBalance(user)).toString());
 
-      await pickleJar.connect(user).deposit(depositB, 0, {value: depositA});
+      console.log("");
+    };
+
+    const depositWithEthToken0 = async (user, depositA, depositB) => {
+      await token1.connect(user).approve(pickleJar.address, depositB);
+      console.log("depositA => ", depositA.toString());
+      console.log("depositB => ", depositB.toString());
+      console.log("User Balance before => ", (await ethers.provider.getBalance(user.address)).toString());
+      await pickleJar.connect(user).deposit(0, depositB, {value: depositA});
+      console.log("User Balance after => ", (await ethers.provider.getBalance(user.address)).toString());
     };
 
     const harvest = async () => {
