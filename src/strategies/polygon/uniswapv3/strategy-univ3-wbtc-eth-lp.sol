@@ -4,8 +4,8 @@ pragma experimental ABIEncoderV2;
 
 import "../strategy-univ3-rebalance-staker.sol";
 
-contract StrategyMaticEthUniV3StakerPoly is StrategyRebalanceStakerUniV3 {
-    address private priv_pool = 0x167384319B41F7094e62f7506409Eb38079AbfF8;
+contract StrategyWbtcEthUniV3StakerPoly is StrategyRebalanceStakerUniV3 {
+    address private priv_pool = 0x50eaEDB835021E4A108B7290636d62E9765cc6d7;
 
     constructor(
         int24 _tickRangeMultiplier,
@@ -37,6 +37,6 @@ contract StrategyMaticEthUniV3StakerPoly is StrategyRebalanceStakerUniV3 {
     }
 
     function getName() external pure override returns (string memory) {
-        return "StrategyMaticEthUniV3Poly";
+        return "StrategyWbtcEthUniV3Poly";
     }
 }
