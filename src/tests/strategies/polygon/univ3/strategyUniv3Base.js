@@ -96,18 +96,15 @@ const doUniV3TestBehaviorBase = (
 
       await getWantFromWhale(token0Address, "10000000000", alice, token0Whale);
 
-      console.log("✅ Jar Setup Complete ");
-
-      await getWantFromWhale(token1Address, toWei(50), alice, token1Whale);
-      console.log("✅ Jar Setup Complete ");
+      await getWantFromWhale(token1Address, "10000000000", alice, token1Whale);
 
       await getWantFromWhale(token0Address, "10000000000", bob, token0Whale);
 
-      await getWantFromWhale(token1Address, toWei(50), bob, token1Whale);
+      await getWantFromWhale(token1Address, "10000000000", bob, token1Whale);
 
       await getWantFromWhale(token0Address, "10000000000", charles, token0Whale);
 
-      await getWantFromWhale(token1Address, toWei(50), charles, token1Whale);
+      await getWantFromWhale(token1Address, "10000000000", charles, token1Whale);
 
       // Initial deposit to create NFT
       const amountToken1 = "100000000";
@@ -119,8 +116,8 @@ const doUniV3TestBehaviorBase = (
     });
 
     it("should rebalance correctly", async () => {
-      depositA = "37000000"; //await token0.balanceOf(alice.address);
-      depositB = "10000000000000000000";
+      depositA = "9000000000"; //await token0.balanceOf(alice.address);
+      depositB = "9000000000";
       let aliceShare, bobShare, charlesShare;
 
       console.log("=============== Alice deposit ==============");
@@ -143,8 +140,6 @@ const doUniV3TestBehaviorBase = (
 
       charlesShare = await pickleJar.balanceOf(charles.address);
       console.log("Charles share amount => ", charlesShare.toString());
-
-      await deposit(alice, "9962990000", "0");
 
       console.log("===============Alice partial withdraw==============");
       console.log("Alice token0 balance before withdrawal => ", (await token0.balanceOf(alice.address)).toString());
