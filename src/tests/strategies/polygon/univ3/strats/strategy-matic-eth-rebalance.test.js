@@ -1,5 +1,5 @@
 const {doUniV3TestBehaviorBase} = require("../strategyUniv3Base");
-describe("StrategyDinoWorkUsdcLp", () => {
+describe("StrategyMaticEthUniV3StakerPoly", () => {
   let strategyName = "StrategyMaticEthUniV3StakerPoly";
   let poolAddr = "0x167384319B41F7094e62f7506409Eb38079AbfF8";
   let token0Name = "MATIC";
