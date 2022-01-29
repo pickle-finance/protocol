@@ -21,6 +21,7 @@ describe("StrategyMaticEthUniV3StakerPoly", () => {
     poolAddr,
     isPolygon,
     true,
-    false
+    false,
+    500
   );
 });

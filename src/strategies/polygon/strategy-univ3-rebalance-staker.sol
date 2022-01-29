@@ -45,6 +45,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
     int24 public tick_upper;
     int24 private tickSpacing;
     int24 private tickRangeMultiplier;
+    uint24 public swapPoolFee;
     uint24 private twapTime = 60;
 
     address public rewardToken;
@@ -79,6 +80,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
         timelock = _timelock;
 
         pool = IUniswapV3Pool(_pool);
+        swapPoolFee = pool.fee();
 
         token0 = IERC20(pool.token0());
         token1 = IERC20(pool.token1());
@@ -169,6 +171,11 @@ abstract contract StrategyRebalanceStakerUniV3 {
         performanceTreasuryFee = _performanceTreasuryFee;
     }
 
+    function setSwapPoolFee(uint24 _swapPoolFee) external {
+        require(msg.sender == governance, "!governance");
+        swapPoolFee = _swapPoolFee;
+    }
+
     function setStrategist(address _strategist) external {
         require(msg.sender == governance, "!governance");
         strategist = _strategist;
@@ -206,13 +213,13 @@ abstract contract StrategyRebalanceStakerUniV3 {
     }
 
     function setTwapTime(uint24 _twapTime) public {
-      require(msg.sender == governance, "!governance");
-      twapTime = _twapTime;
+        require(msg.sender == governance, "!governance");
+        twapTime = _twapTime;
     }
 
     function setTickRangeMultiplier(int24 _tickRangeMultiplier) public {
-      require(msg.sender == governance, "!governance");
-      tickRangeMultiplier = _tickRangeMultiplier;
+        require(msg.sender == governance, "!governance");
+        tickRangeMultiplier = _tickRangeMultiplier;
     }
 
     function amountsForLiquid() public view returns (uint256, uint256) {
@@ -229,7 +236,8 @@ abstract contract StrategyRebalanceStakerUniV3 {
         _observeTime[0] = twapTime;
         _observeTime[1] = 0;
         (int56[] memory _cumulativeTicks, ) = pool.observe(_observeTime);
-        int56 _averageTick = (_cumulativeTicks[1] - _cumulativeTicks[0]) / twapTime;
+        int56 _averageTick = (_cumulativeTicks[1] - _cumulativeTicks[0]) /
+            twapTime;
         int24 baseThreshold = tickSpacing * tickRangeMultiplier;
         return
             PoolVariables.baseTicks(
@@ -411,7 +419,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
 
     //This assumes rewardToken == token0
     function getHarvestable() public onlyBenevolent returns (uint256, uint256) {
-       (uint256 _owed0, uint256 _owed1) = nftManager.collect(
+        (uint256 _owed0, uint256 _owed1) = nftManager.collect(
             IUniswapV3PositionsNFT.CollectParams({
                 tokenId: tokenId,
                 recipient: address(this),
@@ -461,11 +469,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
     }
 
     //This assumes rewardToken == (token0 || token1)
-    function rebalance()
-        external
-        onlyBenevolent
-        returns (uint256 _tokenId)
-    {
+    function rebalance() external onlyBenevolent returns (uint256 _tokenId) {
         if (tokenId != 0) {
             uint256 _initToken0 = token0.balanceOf(address(this));
             uint256 _initToken1 = token1.balanceOf(address(this));
@@ -677,7 +681,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
                 ISwapRouter.ExactInputSingleParams({
                     tokenIn: _inputToken,
                     tokenOut: _zeroForOne ? address(token1) : address(token0),
-                    fee: pool.fee(),
+                    fee: swapPoolFee,
                     recipient: address(this),
                     amountIn: _amountSpecified,
                     amountOutMinimum: 0,

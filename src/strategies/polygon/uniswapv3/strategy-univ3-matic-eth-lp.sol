@@ -9,6 +9,7 @@ contract StrategyMaticEthUniV3StakerPoly is StrategyRebalanceStakerUniV3 {
 
     constructor(
         int24 _tickRangeMultiplier,
+        uint24 _swapPoolFee,
         address _governance,
         address _strategist,
         address _controller,
@@ -34,6 +35,8 @@ contract StrategyMaticEthUniV3StakerPoly is StrategyRebalanceStakerUniV3 {
             endTime: 1,
             refundee: 0x0000000000000000000000000000000000000000
         });
+
+        swapPoolFee = (_swapPoolFee != 0) ? _swapPoolFee : pool.fee();
     }
 
     function getName() external pure override returns (string memory) {

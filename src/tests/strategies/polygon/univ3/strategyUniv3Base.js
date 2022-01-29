@@ -20,7 +20,8 @@ const doUniV3TestBehaviorBase = (
   poolAddr,
   isPolygon = false,
   depositNative = false,
-  depositNativeTokenIs1 = false
+  depositNativeTokenIs1 = false,
+  swapFee = 0
 ) => {
   describe(`${strategyName}`, () => {
     let poolContract = isPolygon
@@ -55,18 +56,29 @@ const doUniV3TestBehaviorBase = (
       );
 
       console.log("✅ Controller is deployed at ", controller.address);
-
-      strategy = await deployContract(
-        `${strategyName}`,
-        100,
-        governance.address,
-        strategist.address,
-        controller.address,
-        timelock.address
-      );
+      if (swapFee != 0) {
+        strategy = await deployContract(
+          `${strategyName}`,
+          100,
+          swapFee,
+          governance.address,
+          strategist.address,
+          controller.address,
+          timelock.address
+        );
+      } else {
+        strategy = await deployContract(
+          `${strategyName}`,
+          100,
+          governance.address,
+          strategist.address,
+          controller.address,
+          timelock.address
+        );
+      }
 
       console.log("✅ Strategy is deployed at ", strategy.address);
-
+      console.log("✅ Strategy Swap Fee: ", await strategy.swapPoolFee());
       let jarContract = isPolygon
         ? "src/polygon/pickle-jar-univ3.sol:PickleJarUniV3Poly"
         : "src/pickle-jar-univ3.sol:PickleJarUniV3";
@@ -126,8 +138,8 @@ const doUniV3TestBehaviorBase = (
 
       if (depositNative) {
         depositNativeTokenIs1
-          ? depositWithEthToken1(alice, depositA, depositB)
-          : depositWithEthToken0(alice, depositA, depositB);
+          ? await depositWithEthToken1(alice, depositA, depositB)
+          : await depositWithEthToken0(alice, depositA, depositB);
       } else {
         await deposit(alice, depositA, depositB);
       }
