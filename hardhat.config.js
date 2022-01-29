@@ -51,11 +51,6 @@ module.exports = {
     matic: {
       url: "https://polygon-rpc.com/",
       accounts: [`0x${process.env.MNEMONIC}`],
-<<<<<<< HEAD
-      gasPrice: 30000000000,
-      gas: 50000000
-=======
->>>>>>> master
     },
     arbitrum: {
       url: `https://arb1.arbitrum.io/rpc/`,
