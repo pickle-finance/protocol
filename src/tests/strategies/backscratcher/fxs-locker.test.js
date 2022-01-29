@@ -18,7 +18,7 @@ describe("FXSLocker test", () => {
   const FXSToken = "0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0";
   const SMARTCHECKER = "0x53c13BA8834a1567474b19822aAD85c6F90D9f9F";
   const FXS_DISTRIBUTOR = "0xed2647Bbf875b2936AAF95a3F5bbc82819e3d3FE";
-  const FXS_WHALE = "0xC30A8c89B02180f8c184c1B8e8f76AF2B9d8f54D";
+  const FXS_WHALE = "0xF977814e90dA44bFA03b6295A0616a897441aceC";
 
   let alice, bob;
   let frax, dai, fxs, fraxDeployer, escrow;
@@ -109,8 +109,8 @@ describe("FXSLocker test", () => {
     dai = await getContractAt("ERC20", DAIToken);
     fxs = await getContractAt("ERC20", FXSToken);
 
-    await getWantFromWhale(FXSToken, toWei(100000), alice, FXS_WHALE);
-    await getWantFromWhale(FXSToken, toWei(5000), bob, FXS_WHALE);
+    await getWantFromWhale(FXSToken, toWei(490000), alice, FXS_WHALE);
+    await getWantFromWhale(FXSToken, toWei(1000000), bob, FXS_WHALE);
 
     fraxDeployer = await unlockAccount("0xB1748C79709f4Ba2Dd82834B8c82D4a505003f27");
     smartChecker = await getContractAt("ISmartWalletChecker", SMARTCHECKER);
@@ -126,18 +126,18 @@ describe("FXSLocker test", () => {
     await locker.connect(governance).createLock(toWei(1), now + MAXTIME);
 
     // transfer FXS to gauge distributor
-    await fxs.connect(alice).transfer("0x278dc748eda1d8efef1adfb518542612b49fcd34", toWei(10));
+    await fxs.connect(alice).transfer("0x278dc748eda1d8efef1adfb518542612b49fcd34", toWei(100000));
     // transfer FXS to gauge
-    await fxs.connect(alice).transfer("0xF22471AC2156B489CC4a59092c56713F813ff53e", toWei(10));
+    await fxs.connect(alice).transfer("0xF22471AC2156B489CC4a59092c56713F813ff53e", toWei(100000));
 
     // Make a deposit into veFXSVault
-    await fxs.connect(alice).approve(veFxsVault.address, toWei(10000));
-    await veFxsVault.connect(alice).deposit(toWei(10000));
+    await fxs.connect(alice).approve(veFxsVault.address, toWei(90000));
+    await veFxsVault.connect(alice).deposit(toWei(90000));
 
-    await fxs.connect(alice).transfer(FXS_DISTRIBUTOR, toWei(20000));
+    await fxs.connect(alice).transfer(FXS_DISTRIBUTOR, toWei(190000));
     fxsBefore = await fxs.balanceOf(alice.address);
 
-    await increaseTime(60 * 60 * 24 * 30); //travel 15 days
+    await increaseTime(60 * 60 * 24 * 30); //travel 30 days
     await increaseBlock(100);
   });
 
@@ -225,7 +225,7 @@ describe("FXSLocker test", () => {
     console.log("Alice pToken balance: ", (await veFxsVault.balanceOf(alice.address)).toString());
     console.log("Bob pToken balance: ", (await veFxsVault.balanceOf(bob.address)).toString());
 
-    await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+    await increaseTime(60 * 60 * 24 * 360); //travel 15 days
     await increaseBlock(100);
 
     const aliceFXSBefore = (await fxs.balanceOf(alice.address)).toString();
