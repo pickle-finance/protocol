@@ -5,8 +5,8 @@ const {
   increaseTime,
   increaseBlock,
   unlockAccount,
-} = require("../../../utils/testHelper");
-const {getWantFromWhale} = require("../../../utils/setupHelper");
+} = require("../../../../utils/testHelper");
+const {getWantFromWhale} = require("../../../../utils/setupHelper");
 const {BigNumber: BN} = require("ethers");
 
 describe("StrategyUsdcEthUniV3Rebalance", () => {
