@@ -116,12 +116,12 @@ describe("StrategyFraxDAI", () => {
 
     await getWantFromWhale(DAIToken, toWei(100000), charles, "0x921760e71fb58dcc8de902ce81453e9e3d7fe253");
 
-    await getWantFromWhale(FXSToken, toWei(400000), alice, "0x1e84614543ab707089cebb022122503462ac51b3");
+    await getWantFromWhale(FXSToken, toWei(100000), alice, "0xC30A8c89B02180f8c184c1B8e8f76AF2B9d8f54D");
 
     // transfer FXS to distributor
-    fxs.connect(alice).transfer("0x278dc748eda1d8efef1adfb518542612b49fcd34", toWei(100000))
+    fxs.connect(alice).transfer("0x278dc748eda1d8efef1adfb518542612b49fcd34", toWei(10000));
     // transfer FXS to gauge
-    fxs.connect(alice).transfer("0xF22471AC2156B489CC4a59092c56713F813ff53e", toWei(100000))
+    fxs.connect(alice).transfer("0xF22471AC2156B489CC4a59092c56713F813ff53e", toWei(10000));
   });
 
   it("should harvest correctly", async () => {
