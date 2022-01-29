@@ -4,7 +4,8 @@ import "../lib/erc20.sol";
 import "../lib/safe-math.sol";
 
 import "../interfaces/uniswapv2.sol";
-import "../interfaces/uniswapv3.sol";
+import "../interfaces/univ3/IUniswapV3PositionsNFT.sol";
+import "../interfaces/univ3/ISwapRouter.sol";
 import "../interfaces/controller.sol";
 
 // Strategy Contract Basics
