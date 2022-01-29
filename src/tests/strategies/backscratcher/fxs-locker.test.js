@@ -122,10 +122,9 @@ describe("FXSLocker test", () => {
     const now = Math.round(new Date().getTime() / 1000);
     const MAXTIME = 60 * 60 * 24 * 360 * 2;
 
-    console.log("✅ Here1");
     // Initially lock for 2 years
     await locker.connect(governance).createLock(toWei(1), now + MAXTIME);
-    console.log("✅ Here2");
+
     // transfer FXS to gauge distributor
     await fxs.connect(alice).transfer("0x278dc748eda1d8efef1adfb518542612b49fcd34", toWei(10));
     // transfer FXS to gauge
