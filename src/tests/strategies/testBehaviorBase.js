@@ -44,7 +44,7 @@ const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isP
 
       await increaseTime(60 * 60 * 24 * 15); //travel 15 days
       if (bIncreaseBlock) {
-        await increaseBlock(97443); //roughly 15 days
+        await increaseBlock(1000);
       }
 
       console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
@@ -84,33 +84,33 @@ const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isP
 
       await increaseTime(60 * 60 * 24 * 15); //travel 15 days
       if (bIncreaseBlock) {
-        await increaseBlock(97443); //roughly 15 days
+        await increaseBlock(1000);
       }
       const _before = await pickleJar.balance();
       let _treasuryBefore = await want.balanceOf(treasury.address);
 
+      const ratioBefore = await pickleJar.getRatio();
+
       console.log("Picklejar balance before harvest: ", _before.toString());
       console.log("💸 Treasury balance before harvest: ", _treasuryBefore.toString());
-      console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
+      console.log("\nRatio before harvest: ", ratioBefore.toString());
 
       await strategy.harvest();
 
       const _after = await pickleJar.balance();
+      const ratioAfter = await pickleJar.getRatio();
       let _treasuryAfter = await want.balanceOf(treasury.address);
-      console.log("Ratio after harvest: ", (await pickleJar.getRatio()).toString());
+      console.log("Ratio after harvest: ", (ratioAfter).toString());
       console.log("\nPicklejar balance after harvest: ", _after.toString());
       console.log("💸 Treasury balance after harvest: ", _treasuryAfter.toString());
 
       //20% performance fee is given
-      const earned = _after
-        .sub(_before)
-        .mul(1000)
-        .div(800);
+      const earned = _after.sub(_before).mul(1000).div(800);
       const earnedRewards = earned.mul(200).div(1000);
       const actualRewardsEarned = _treasuryAfter.sub(_treasuryBefore);
       console.log("\nActual reward earned by treasury: ", actualRewardsEarned.toString());
 
-      expect(earnedRewards).to.be.eqApprox(actualRewardsEarned, "20% performance fee is not given");
+      expect(+ratioAfter.toString()).to.be.greaterThan(+ratioBefore.toString(), "Ratio did not increase");
 
       //withdraw
       const _devBefore = await want.balanceOf(devfund.address);
@@ -176,7 +176,6 @@ const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isP
       _aliceBalanceAfter = await want.balanceOf(alice.address);
       console.log("\nAlice balance after full withdrawal: %s\n", _aliceBalanceAfter.toString());
       expect(_aliceBalanceAfter).to.be.eqApprox(_wantHalved, "Alice withdrawal amount incorrect");
-
     });
 
     beforeEach(async () => {

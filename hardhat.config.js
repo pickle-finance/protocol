@@ -42,7 +42,7 @@ module.exports = {
       },
       hardfork: "london",
       gasPrice: "auto",
-      gas: 2500000
+      gas: 2500000,
     },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
@@ -51,15 +51,19 @@ module.exports = {
     matic: {
       url: "https://polygon-rpc.com/",
       accounts: [`0x${process.env.MNEMONIC}`],
+<<<<<<< HEAD
       gasPrice: 30000000000,
       gas: 50000000
+=======
+>>>>>>> master
     },
     arbitrum: {
       url: `https://arb1.arbitrum.io/rpc/`,
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
-      accounts: [`0x${process.env.MNEMONIC}`]
+      accounts: [`0x${process.env.MNEMONIC}`],
+    },
+    metis: {
+      url: `https://andromeda.metis.io/?owner=1088`,
+      accounts: [`0x${process.env.MNEMONIC}`],
     },
   },
   contractSizer: {
