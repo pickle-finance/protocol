@@ -26,12 +26,7 @@ const config: HardhatUserConfig = {
             url: "https://api.avax-test.network/ext/bc/C/rpc",
             accounts: [process.env.PRIVATE_KEY ?? '']
         },
-        mainnet: {
-            chainId: 43114,
-            url: "https://api.avax.network/ext/bc/C/rpc",
-            accounts: [process.env.PRIVATE_KEY ?? '']
-        },
-        AVALANCHE: {
+        avalanche: {
             chainId: 43114,
             url: "https://api.avax.network/ext/bc/C/rpc",
             accounts: [process.env.PRIVATE_KEY ?? '']
