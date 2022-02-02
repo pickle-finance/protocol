@@ -9,7 +9,7 @@ import {
     TraderJoeControllerV4__factory,
 } from '../../typechain';
 
-const addresses = require('../utils/addresses.json');
+import * as addresses from '../utils/addresses.json';
 const GOVERNANCE = "governance"
 const STRATEGIST = "strategist"
 const TIMELOCK = "timelock"
