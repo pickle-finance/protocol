@@ -59,16 +59,31 @@ const tests = [
     //     controller: "backup",
     //     lp_suffix: false,
     // },
+    // {
+    //     name: "JoeAvaxCook",
+    //     controller: "traderJoe",
+    //     slot: 1
+    // },
+    // {
+    //     name: "JoeAvaxFxs",
+    //     controller: "traderJoe",
+    //     slot: 1
+    // }
+    // {
+    //     name: "JoeAvaxMore",
+    //     controller: "traderJoe",
+    //     slot: 1
+    // }
     {
-        name: "JoeAvaxCook",
-        controller: "traderJoe",
-        slot: 1
-    },
-    {
-        name: "JoeAvaxFxs",
+        name: "JoeAvaxUst",
         controller: "traderJoe",
         slot: 1
     }
+    // {
+    //     name: "JoeAvaxMore",
+    //     controller: "traderJoe",
+    //     slot: 1
+    // }
 ];
 
 describe("TraderJoe LP test", function() {

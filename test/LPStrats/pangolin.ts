@@ -164,27 +164,40 @@ const tests = [
     //     name: "PngAvaxLoot",
     //     controller: "main"
     // },
+    // {
+    //     name: "PngAvaxDcau",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxMage",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxPln",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxHtz",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxAgEUR",
+    //     controller: "main",
+    //     slot: 3
+    // },
+    // {
+    //     name: "PngAvaxUst",
+    //     controller: "main"
+    // },
     {
-        name: "PngAvaxDcau",
+        name: "PngAvaxLuna",
         controller: "main"
     },
-    {
-        name: "PngAvaxMage",
-        controller: "main"
-    },
-    {
-        name: "PngAvaxPln",
-        controller: "main"
-    },
-    {
-        name: "PngAvaxHtz",
-        controller: "main"
-    },
-    {
-        name: "PngAvaxAgEUR",
-        controller: "main",
-        slot: 3
-    },
+    // {
+    //     name: "PngUsdcUst",
+    //     controller: "main",
+    //     slot: 1
+    // },
 ];
 
 describe("Pangolin LP test", function() {

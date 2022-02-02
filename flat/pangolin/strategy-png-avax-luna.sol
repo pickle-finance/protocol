@@ -1,4 +1,4 @@
-// Sources flattened with hardhat v2.4.1 https://hardhat.org
+// Sources flattened with hardhat v2.8.0 https://hardhat.org
 
 // File contracts/lib/safe-math.sol
 
@@ -198,6 +198,8 @@ abstract contract Context {
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.0;
+
+
 // File: contracts/token/ERC20/IERC20.sol
 
 
@@ -786,449 +788,11 @@ library SafeERC20 {
 }
 
 
-// File contracts/lib/careful-math.sol
-
-pragma solidity ^0.6.0;
-
-/**
-  * @title Careful Math
-  * @author Compound
-  * @notice Derived from OpenZeppelin's SafeMath library
-  *         https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/math/SafeMath.sol
-  */
-contract CarefulMath {
-
-    /**
-     * @dev Possible error codes that we can return
-     */
-    enum MathError {
-        NO_ERROR,
-        DIVISION_BY_ZERO,
-        INTEGER_OVERFLOW,
-        INTEGER_UNDERFLOW
-    }
-
-    /**
-    * @dev Multiplies two numbers, returns an error on overflow.
-    */
-    function mulUInt(uint a, uint b) internal pure returns (MathError, uint) {
-        if (a == 0) {
-            return (MathError.NO_ERROR, 0);
-        }
-
-        uint c = a * b;
-
-        if (c / a != b) {
-            return (MathError.INTEGER_OVERFLOW, 0);
-        } else {
-            return (MathError.NO_ERROR, c);
-        }
-    }
-
-    /**
-    * @dev Integer division of two numbers, truncating the quotient.
-    */
-    function divUInt(uint a, uint b) internal pure returns (MathError, uint) {
-        if (b == 0) {
-            return (MathError.DIVISION_BY_ZERO, 0);
-        }
-
-        return (MathError.NO_ERROR, a / b);
-    }
-
-    /**
-    * @dev Subtracts two numbers, returns an error on overflow (i.e. if subtrahend is greater than minuend).
-    */
-    function subUInt(uint a, uint b) internal pure returns (MathError, uint) {
-        if (b <= a) {
-            return (MathError.NO_ERROR, a - b);
-        } else {
-            return (MathError.INTEGER_UNDERFLOW, 0);
-        }
-    }
-
-    /**
-    * @dev Adds two numbers, returns an error on overflow.
-    */
-    function addUInt(uint a, uint b) internal pure returns (MathError, uint) {
-        uint c = a + b;
-
-        if (c >= a) {
-            return (MathError.NO_ERROR, c);
-        } else {
-            return (MathError.INTEGER_OVERFLOW, 0);
-        }
-    }
-
-    /**
-    * @dev add a and b and then subtract c
-    */
-    function addThenSubUInt(uint a, uint b, uint c) internal pure returns (MathError, uint) {
-        (MathError err0, uint sum) = addUInt(a, b);
-
-        if (err0 != MathError.NO_ERROR) {
-            return (err0, 0);
-        }
-
-        return subUInt(sum, c);
-    }
-}
-
-
-// File contracts/lib/exponential.sol
-
-pragma solidity ^0.6.0;
-/**
- * @title Exponential module for storing fixed-precision decimals
- * @author Compound
- * @notice Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
- *         Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
- *         `Exp({mantissa: 5100000000000000000})`.
- */
-contract Exponential is CarefulMath {
-    uint constant expScale = 1e18;
-    uint constant doubleScale = 1e36;
-    uint constant halfExpScale = expScale/2;
-    uint constant mantissaOne = expScale;
-
-    struct Exp {
-        uint mantissa;
-    }
-
-    struct Double {
-        uint mantissa;
-    }
-
-    /**
-     * @dev Creates an exponential from numerator and denominator values.
-     *      Note: Returns an error if (`num` * 10e18) > MAX_INT,
-     *            or if `denom` is zero.
-     */
-    function getExp(uint num, uint denom) pure internal returns (MathError, Exp memory) {
-        (MathError err0, uint scaledNumerator) = mulUInt(num, expScale);
-        if (err0 != MathError.NO_ERROR) {
-            return (err0, Exp({mantissa: 0}));
-        }
-
-        (MathError err1, uint rational) = divUInt(scaledNumerator, denom);
-        if (err1 != MathError.NO_ERROR) {
-            return (err1, Exp({mantissa: 0}));
-        }
-
-        return (MathError.NO_ERROR, Exp({mantissa: rational}));
-    }
-
-    /**
-     * @dev Adds two exponentials, returning a new exponential.
-     */
-    function addExp(Exp memory a, Exp memory b) pure internal returns (MathError, Exp memory) {
-        (MathError error, uint result) = addUInt(a.mantissa, b.mantissa);
-
-        return (error, Exp({mantissa: result}));
-    }
-
-    /**
-     * @dev Subtracts two exponentials, returning a new exponential.
-     */
-    function subExp(Exp memory a, Exp memory b) pure internal returns (MathError, Exp memory) {
-        (MathError error, uint result) = subUInt(a.mantissa, b.mantissa);
-
-        return (error, Exp({mantissa: result}));
-    }
-
-    /**
-     * @dev Multiply an Exp by a scalar, returning a new Exp.
-     */
-    function mulScalar(Exp memory a, uint scalar) pure internal returns (MathError, Exp memory) {
-        (MathError err0, uint scaledMantissa) = mulUInt(a.mantissa, scalar);
-        if (err0 != MathError.NO_ERROR) {
-            return (err0, Exp({mantissa: 0}));
-        }
-
-        return (MathError.NO_ERROR, Exp({mantissa: scaledMantissa}));
-    }
-
-    /**
-     * @dev Multiply an Exp by a scalar, then truncate to return an unsigned integer.
-     */
-    function mulScalarTruncate(Exp memory a, uint scalar) pure internal returns (MathError, uint) {
-        (MathError err, Exp memory product) = mulScalar(a, scalar);
-        if (err != MathError.NO_ERROR) {
-            return (err, 0);
-        }
-
-        return (MathError.NO_ERROR, truncate(product));
-    }
-
-    /**
-     * @dev Multiply an Exp by a scalar, truncate, then add an to an unsigned integer, returning an unsigned integer.
-     */
-    function mulScalarTruncateAddUInt(Exp memory a, uint scalar, uint addend) pure internal returns (MathError, uint) {
-        (MathError err, Exp memory product) = mulScalar(a, scalar);
-        if (err != MathError.NO_ERROR) {
-            return (err, 0);
-        }
-
-        return addUInt(truncate(product), addend);
-    }
-
-    /**
-     * @dev Divide an Exp by a scalar, returning a new Exp.
-     */
-    function divScalar(Exp memory a, uint scalar) pure internal returns (MathError, Exp memory) {
-        (MathError err0, uint descaledMantissa) = divUInt(a.mantissa, scalar);
-        if (err0 != MathError.NO_ERROR) {
-            return (err0, Exp({mantissa: 0}));
-        }
-
-        return (MathError.NO_ERROR, Exp({mantissa: descaledMantissa}));
-    }
-
-    /**
-     * @dev Divide a scalar by an Exp, returning a new Exp.
-     */
-    function divScalarByExp(uint scalar, Exp memory divisor) pure internal returns (MathError, Exp memory) {
-        /*
-          We are doing this as:
-          getExp(mulUInt(expScale, scalar), divisor.mantissa)
-          How it works:
-          Exp = a / b;
-          Scalar = s;
-          `s / (a / b)` = `b * s / a` and since for an Exp `a = mantissa, b = expScale`
-        */
-        (MathError err0, uint numerator) = mulUInt(expScale, scalar);
-        if (err0 != MathError.NO_ERROR) {
-            return (err0, Exp({mantissa: 0}));
-        }
-        return getExp(numerator, divisor.mantissa);
-    }
-
-    /**
-     * @dev Divide a scalar by an Exp, then truncate to return an unsigned integer.
-     */
-    function divScalarByExpTruncate(uint scalar, Exp memory divisor) pure internal returns (MathError, uint) {
-        (MathError err, Exp memory fraction) = divScalarByExp(scalar, divisor);
-        if (err != MathError.NO_ERROR) {
-            return (err, 0);
-        }
-
-        return (MathError.NO_ERROR, truncate(fraction));
-    }
-
-    /**
-     * @dev Multiplies two exponentials, returning a new exponential.
-     */
-    function mulExp(Exp memory a, Exp memory b) pure internal returns (MathError, Exp memory) {
-
-        (MathError err0, uint doubleScaledProduct) = mulUInt(a.mantissa, b.mantissa);
-        if (err0 != MathError.NO_ERROR) {
-            return (err0, Exp({mantissa: 0}));
-        }
-
-        // We add half the scale before dividing so that we get rounding instead of truncation.
-        //  See "Listing 6" and text above it at https://accu.org/index.php/journals/1717
-        // Without this change, a result like 6.6...e-19 will be truncated to 0 instead of being rounded to 1e-18.
-        (MathError err1, uint doubleScaledProductWithHalfScale) = addUInt(halfExpScale, doubleScaledProduct);
-        if (err1 != MathError.NO_ERROR) {
-            return (err1, Exp({mantissa: 0}));
-        }
-
-        (MathError err2, uint product) = divUInt(doubleScaledProductWithHalfScale, expScale);
-        // The only error `div` can return is MathError.DIVISION_BY_ZERO but we control `expScale` and it is not zero.
-        assert(err2 == MathError.NO_ERROR);
-
-        return (MathError.NO_ERROR, Exp({mantissa: product}));
-    }
-
-    /**
-     * @dev Multiplies two exponentials given their mantissas, returning a new exponential.
-     */
-    function mulExp(uint a, uint b) pure internal returns (MathError, Exp memory) {
-        return mulExp(Exp({mantissa: a}), Exp({mantissa: b}));
-    }
-
-    /**
-     * @dev Multiplies three exponentials, returning a new exponential.
-     */
-    function mulExp3(Exp memory a, Exp memory b, Exp memory c) pure internal returns (MathError, Exp memory) {
-        (MathError err, Exp memory ab) = mulExp(a, b);
-        if (err != MathError.NO_ERROR) {
-            return (err, ab);
-        }
-        return mulExp(ab, c);
-    }
-
-    /**
-     * @dev Divides two exponentials, returning a new exponential.
-     *     (a/scale) / (b/scale) = (a/scale) * (scale/b) = a/b,
-     *  which we can scale as an Exp by calling getExp(a.mantissa, b.mantissa)
-     */
-    function divExp(Exp memory a, Exp memory b) pure internal returns (MathError, Exp memory) {
-        return getExp(a.mantissa, b.mantissa);
-    }
-
-    /**
-     * @dev Truncates the given exp to a whole number value.
-     *      For example, truncate(Exp{mantissa: 15 * expScale}) = 15
-     */
-    function truncate(Exp memory exp) pure internal returns (uint) {
-        // Note: We are not using careful math here as we're performing a division that cannot fail
-        return exp.mantissa / expScale;
-    }
-
-    /**
-     * @dev Checks if first Exp is less than second Exp.
-     */
-    function lessThanExp(Exp memory left, Exp memory right) pure internal returns (bool) {
-        return left.mantissa < right.mantissa;
-    }
-
-    /**
-     * @dev Checks if left Exp <= right Exp.
-     */
-    function lessThanOrEqualExp(Exp memory left, Exp memory right) pure internal returns (bool) {
-        return left.mantissa <= right.mantissa;
-    }
-
-    /**
-     * @dev Checks if left Exp > right Exp.
-     */
-    function greaterThanExp(Exp memory left, Exp memory right) pure internal returns (bool) {
-        return left.mantissa > right.mantissa;
-    }
-
-    /**
-     * @dev returns true if Exp is exactly zero
-     */
-    function isZeroExp(Exp memory value) pure internal returns (bool) {
-        return value.mantissa == 0;
-    }
-
-    function safe224(uint n, string memory errorMessage) pure internal returns (uint224) {
-        require(n < 2**224, errorMessage);
-        return uint224(n);
-    }
-
-    function safe32(uint n, string memory errorMessage) pure internal returns (uint32) {
-        require(n < 2**32, errorMessage);
-        return uint32(n);
-    }
-
-    function add_(Exp memory a, Exp memory b) pure internal returns (Exp memory) {
-        return Exp({mantissa: add_(a.mantissa, b.mantissa)});
-    }
-
-    function add_(Double memory a, Double memory b) pure internal returns (Double memory) {
-        return Double({mantissa: add_(a.mantissa, b.mantissa)});
-    }
-
-    function add_(uint a, uint b) pure internal returns (uint) {
-        return add_(a, b, "addition overflow");
-    }
-
-    function add_(uint a, uint b, string memory errorMessage) pure internal returns (uint) {
-        uint c = a + b;
-        require(c >= a, errorMessage);
-        return c;
-    }
-
-    function sub_(Exp memory a, Exp memory b) pure internal returns (Exp memory) {
-        return Exp({mantissa: sub_(a.mantissa, b.mantissa)});
-    }
-
-    function sub_(Double memory a, Double memory b) pure internal returns (Double memory) {
-        return Double({mantissa: sub_(a.mantissa, b.mantissa)});
-    }
-
-    function sub_(uint a, uint b) pure internal returns (uint) {
-        return sub_(a, b, "subtraction underflow");
-    }
-
-    function sub_(uint a, uint b, string memory errorMessage) pure internal returns (uint) {
-        require(b <= a, errorMessage);
-        return a - b;
-    }
-
-    function mul_(Exp memory a, Exp memory b) pure internal returns (Exp memory) {
-        return Exp({mantissa: mul_(a.mantissa, b.mantissa) / expScale});
-    }
-
-    function mul_(Exp memory a, uint b) pure internal returns (Exp memory) {
-        return Exp({mantissa: mul_(a.mantissa, b)});
-    }
-
-    function mul_(uint a, Exp memory b) pure internal returns (uint) {
-        return mul_(a, b.mantissa) / expScale;
-    }
-
-    function mul_(Double memory a, Double memory b) pure internal returns (Double memory) {
-        return Double({mantissa: mul_(a.mantissa, b.mantissa) / doubleScale});
-    }
-
-    function mul_(Double memory a, uint b) pure internal returns (Double memory) {
-        return Double({mantissa: mul_(a.mantissa, b)});
-    }
-
-    function mul_(uint a, Double memory b) pure internal returns (uint) {
-        return mul_(a, b.mantissa) / doubleScale;
-    }
-
-    function mul_(uint a, uint b) pure internal returns (uint) {
-        return mul_(a, b, "multiplication overflow");
-    }
-
-    function mul_(uint a, uint b, string memory errorMessage) pure internal returns (uint) {
-        if (a == 0 || b == 0) {
-            return 0;
-        }
-        uint c = a * b;
-        require(c / a == b, errorMessage);
-        return c;
-    }
-
-    function div_(Exp memory a, Exp memory b) pure internal returns (Exp memory) {
-        return Exp({mantissa: div_(mul_(a.mantissa, expScale), b.mantissa)});
-    }
-
-    function div_(Exp memory a, uint b) pure internal returns (Exp memory) {
-        return Exp({mantissa: div_(a.mantissa, b)});
-    }
-
-    function div_(uint a, Exp memory b) pure internal returns (uint) {
-        return div_(mul_(a, expScale), b.mantissa);
-    }
-
-    function div_(Double memory a, Double memory b) pure internal returns (Double memory) {
-        return Double({mantissa: div_(mul_(a.mantissa, doubleScale), b.mantissa)});
-    }
-
-    function div_(Double memory a, uint b) pure internal returns (Double memory) {
-        return Double({mantissa: div_(a.mantissa, b)});
-    }
-
-    function div_(uint a, Double memory b) pure internal returns (uint) {
-        return div_(mul_(a, doubleScale), b.mantissa);
-    }
-
-    function div_(uint a, uint b) pure internal returns (uint) {
-        return div_(a, b, "divide by zero");
-    }
-
-    function div_(uint a, uint b, string memory errorMessage) pure internal returns (uint) {
-        require(b > 0, errorMessage);
-        return a / b;
-    }
-
-    function fraction(uint a, uint b) pure internal returns (Double memory) {
-        return Double({mantissa: div_(mul_(a, doubleScale), b)});
-    }
-}
-
-
 // File contracts/interfaces/globe.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.2;
+
 interface IGlobe is IERC20 {
     function token() external view returns (address);
 
@@ -1481,6 +1045,18 @@ interface IPangolinRouter {
         uint256 deadline
     ) external returns (uint256 amountA, uint256 amountB);
 
+    function quote(
+        uint256 amountA,
+        uint256 reserveA,
+        uint256 reserveB
+    ) external pure returns (uint256 amountB);
+
+    function getAmountOut(
+        uint256 amountIn,
+        uint256 reserveIn,
+        uint256 reserveOut
+    ) external pure returns (uint256 amountOut);
+
     function getAmountsOut(uint256 amountIn, address[] calldata path)
         external
         view
@@ -1660,12 +1236,35 @@ interface IController {
     function withdraw(address, uint256) external;
 
     function earn(address, uint256) external;
+
+    // For Big Green Button:
+
+    function setGlobe(address _token, address _globe) external;
+
+    function approveStrategy(address _token, address _strategy) external;
+
+    function revokeStrategy(address _token, address _strategy) external;
+
+    function setStrategy(address _token, address _strategy) external;
+
+    function setStrategist(address _strategist) external;
+
+    function setGovernance(address _governance) external;
+
+    function setTimelock(address _timelock) external;
 }
 
 
 // File contracts/strategies/strategy-base.sol
 
+// SPDX-License-Identifier: MIT	
 pragma solidity ^0.6.7;
+
+
+
+
+
+
 // Strategy Contract Basics
 
 abstract contract StrategyBase {
@@ -1677,17 +1276,27 @@ abstract contract StrategyBase {
     address public want;
     address public constant wavax = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
     address public constant png = 0x60781C2586D68229fde47564546784ab3fACA982;
+    address public constant snob = 0xC38f41A296A4493Ff429F1238e030924A1542e50;
 
     // Dex
     address public pangolinRouter = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
-    // Move ^^
+    
+    address public feeDistributor = 0xAd86ef5fD2eBc25bb9Db41A1FE8d0f2a322c7839;
 
     // Perfomance fees - start with 10%
-    uint256 public performanceTreasuryFee = 1000;
+    uint256 public performanceTreasuryFee = 0;
     uint256 public constant performanceTreasuryMax = 10000;
 
     uint256 public performanceDevFee = 0;
     uint256 public constant performanceDevMax = 10000;
+
+    // How many rewards tokens to keep?
+    uint256 public keep = 1000;
+    uint256 public constant keepMax = 10000;
+
+    uint256 public revenueShare = 3000;
+    uint256 public constant revenueShareMax = 10000;
+
 
     // Withdrawal fee 0%
     // - 0% to treasury
@@ -1731,8 +1340,8 @@ abstract contract StrategyBase {
     modifier onlyBenevolent {
         require(
             harvesters[msg.sender] ||
-                msg.sender == governance ||
-                msg.sender == strategist
+            msg.sender == governance ||
+            msg.sender == strategist
         );
         _;
     }
@@ -1753,6 +1362,16 @@ abstract contract StrategyBase {
 
     // **** Setters **** //
 
+    function setKeep(uint256 _keep) external {
+        require(msg.sender == timelock, "!timelock");
+        keep = _keep;
+    }
+
+    function setRevenueShare(uint256 _share) external {
+        require(msg.sender == timelock, "!timelock");
+        revenueShare = _share;
+    }
+
     function whitelistHarvester(address _harvester) external {
         require(msg.sender == governance ||
              msg.sender == strategist, "not authorized");
@@ -1763,6 +1382,11 @@ abstract contract StrategyBase {
         require(msg.sender == governance ||
              msg.sender == strategist, "not authorized");
         harvesters[_harvester] = false;
+    }
+
+    function setFeeDistributor(address _feeDistributor) external {
+        require(msg.sender == governance, "not authorized");
+        feeDistributor = _feeDistributor;
     }
 
     function setWithdrawalDevFundFee(uint256 _withdrawalDevFundFee) external {
@@ -1926,13 +1550,10 @@ abstract contract StrategyBase {
         uint256 _amount
     ) internal {
         require(_to != address(0));
-
         // Swap with Pangolin
         IERC20(_from).safeApprove(pangolinRouter, 0);
         IERC20(_from).safeApprove(pangolinRouter, _amount);
-
         address[] memory path;
-
         if (_from == png || _to == png) {
             path = new address[](2);
             path[0] = _from;
@@ -1949,7 +1570,6 @@ abstract contract StrategyBase {
             path[1] = png;
             path[2] = _to;
         }
-        
         IPangolinRouter(pangolinRouter).swapExactTokensForTokens(
             _amount,
             0,
@@ -1993,309 +1613,116 @@ abstract contract StrategyBase {
             deposit();
         }
     }
+
+    function _takeFeeWavaxToSnob(uint256 _keep) internal {
+        IERC20(wavax).safeApprove(pangolinRouter, 0);
+        IERC20(wavax).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(wavax, snob, _keep);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
 }
 
 
-// File contracts/interfaces/benqi.sol
+// File contracts/interfaces/minichef-rewarder.sol
 
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.6.7;
 
-pragma solidity ^0.6.0;
+// interface for Axial Rewarder contract
+interface IMiniChefRewarder {
+    using SafeERC20 for IERC20;
 
-interface IQiToken {
-    function totalSupply() external view returns (uint256);
+    function onReward(uint256 pid, address user, address recipient, uint256 rewardAmount, uint256 newLpAmount) external;
 
-    function totalBorrows() external returns (uint256);
+    function pendingTokens(uint256 pid, address user, uint256 rewardAmount) external view returns (IERC20[] memory, uint256[] memory);
 
-    function borrowIndex() external returns (uint256);
+    function rewardToken() external view returns (address);
+}
 
-    function repayBorrow(uint256 repayAmount) external returns (uint256);
 
-    function redeemUnderlying(uint256 redeemAmount) external returns (uint256);
+// File contracts/interfaces/minichefpangolin.sol
 
-    function borrow(uint256 borrowAmount) external returns (uint256);
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.7;
 
-    function mint(uint256 mintAmount) external returns (uint256);
+// interface for MiniChef contract
+interface IMiniChef {
 
-    function transfer(address dst, uint256 amount) external returns (bool);
+    /* Reads */
+    function userInfo(uint256, address) external view returns (
+        uint256 amount,
+        uint256 rewardDebt
 
-    function transferFrom(
-        address src,
-        address dst,
-        uint256 amount
-    ) external returns (bool);
+    );
 
-    function approve(address spender, uint256 amount) external returns (bool);
+    function poolInfo(uint256 pid) external view returns (
+        IERC20 lpToken, // Address of LP token contract.
+        uint256 allocPoint, // How many allocation points assigned to this poolInfo. SUSHI to distribute per block.
+        uint256 lastRewardTimestamp, // Last block timestamp that SUSHI distribution occurs.
+        uint256 accJoePerShare, // Accumulated SUSHI per share, times 1e12. See below.
+        address rewarder
+    );
 
-    function allowance(address owner, address spender)
-        external
-        view
-        returns (uint256);
+    function totalAllocPoint() external view returns (uint256);
 
-    function balanceOf(address owner) external view returns (uint256);
+    function poolLength() external view returns (uint256);
 
-    function balanceOfUnderlying(address owner) external returns (uint256);
 
-    function getAccountSnapshot(address account)
+    function pendingReward(uint256 _pid, address _user)
         external
         view
         returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256
+            uint256 pending
         );
 
-    function borrowRatePerBlock() external view returns (uint256);
+    /* Writes */
 
-    function supplyRatePerBlock() external view returns (uint256);
-
-    function totalBorrowsCurrent() external returns (uint256);
-
-    function borrowBalanceCurrent(address account) external returns (uint256);
-
-    function borrowBalanceStored(address account)
-        external
-        view
-        returns (uint256);
-
-    function exchangeRateCurrent() external returns (uint256);
-
-    function exchangeRateStored() external view returns (uint256);
-
-    function getCash() external view returns (uint256);
-
-    function accrueInterest() external returns (uint256);
-
-    function seize(
-        address liquidator,
-        address borrower,
-        uint256 seizeTokens
-    ) external returns (uint256);
-}
-
-interface IQiAvax {
-    function mint() external payable;
-
-    /**
-     * @notice Sender redeems qiTokens in exchange for the underlying asset
-     * @dev Accrues interest whether or not the operation succeeds, unless reverted
-     * @param redeemTokens The number of qiTokens to redeem into underlying
-     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
-     */
-    function redeem(uint256 redeemTokens) external returns (uint256);
-
-    /**
-     * @notice Sender redeems qiTokens in exchange for a specified amount of underlying asset
-     * @dev Accrues interest whether or not the operation succeeds, unless reverted
-     * @param redeemAmount The amount of underlying to redeem
-     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
-     */
-    function redeemUnderlying(uint256 redeemAmount) external returns (uint256);
-
-    /**
-     * @notice Sender borrows assets from the protocol to their own address
-     * @param borrowAmount The amount of the underlying asset to borrow
-     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
-     */
-    function borrow(uint256 borrowAmount) external returns (uint256);
-
-    /**
-     * @notice Sender repays their own borrow
-     * @dev Reverts upon any failure
-     */
-    function repayBorrow() external payable;
-
-    /**
-     * @notice Sender repays a borrow belonging to borrower
-     * @dev Reverts upon any failure
-     * @param borrower the account with the debt being payed off
-     */
-    function repayBorrowBehalf(address borrower) external payable;
-
-    /**
-     * @notice The sender liquidates the borrowers collateral.
-     *  The collateral seized is transferred to the liquidator.
-     * @dev Reverts upon any failure
-     * @param borrower The borrower of this qiToken to be liquidated
-     * @param qiTokenCollateral The market in which to seize collateral from the borrower
-     */
-    function liquidateBorrow(address borrower, address qiTokenCollateral)
-        external
-        payable;
-}
-
-interface IComptroller {
-    function compAccrued(address) external view returns (uint256);
-
-    function compSupplierIndex(address, address)
-        external
-        view
-        returns (uint256);
-
-    function compBorrowerIndex(address, address)
-        external
-        view
-        returns (uint256);
-
-    function compSpeeds(address) external view returns (uint256);
-
-    function compBorrowState(address) external view returns (uint224, uint32);
-
-    function compSupplyState(address) external view returns (uint224, uint32);
-
-    /*** Assets You Are In ***/
-
-    function enterMarkets(address[] calldata qiTokens)
-        external
-        returns (uint256[] memory);
-
-    function exitMarket(address qiToken) external returns (uint256);
-
-    /*** Policy Hooks ***/
-
-    function mintAllowed(
-        address qiToken,
-        address minter,
-        uint256 mintAmount
-    ) external returns (uint256);
-
-    function mintVerify(
-        address qiToken,
-        address minter,
-        uint256 mintAmount,
-        uint256 mintTokens
+    function add(
+        uint256 _allocPoint,
+        address _lpToken,
+        address _rewarder
     ) external;
 
-    function redeemAllowed(
-        address qiToken,
-        address redeemer,
-        uint256 redeemTokens
-    ) external returns (uint256);
-
-    function redeemVerify(
-        address qiToken,
-        address redeemer,
-        uint256 redeemAmount,
-        uint256 redeemTokens
+    function set(
+        uint256 _pid,
+        uint256 _allocPoint,
+        IMiniChefRewarder _rewarder,
+        bool overwrite
     ) external;
 
-    function borrowAllowed(
-        address qiToken,
-        address borrower,
-        uint256 borrowAmount
-    ) external returns (uint256);
+    function updatePool(uint256 _pid) external;
 
-    function borrowVerify(
-        address qiToken,
-        address borrower,
-        uint256 borrowAmount
+    function deposit(
+        uint256 _pid,
+        uint256 _amount,
+        address to
     ) external;
 
-    function repayBorrowAllowed(
-        address qiToken,
-        address payer,
-        address borrower,
-        uint256 repayAmount
-    ) external returns (uint256);
-
-    function repayBorrowVerify(
-        address qiToken,
-        address payer,
-        address borrower,
-        uint256 repayAmount,
-        uint256 borrowerIndex
+    function withdraw(
+        uint256 _pid,
+        uint256 _amount,
+        address to
     ) external;
 
-    function liquidateBorrowAllowed(
-        address qiTokenBorrowed,
-        address qiTokenCollateral,
-        address liquidator,
-        address borrower,
-        uint256 repayAmount
-    ) external returns (uint256);
-
-    function liquidateBorrowVerify(
-        address qiTokenBorrowed,
-        address qiTokenCollateral,
-        address liquidator,
-        address borrower,
-        uint256 repayAmount,
-        uint256 seizeTokens
+    function withdrawAndHarvest(
+        uint256 _pid,
+        uint256 _amount,
+        address to
     ) external;
 
-    function seizeAllowed(
-        address qiTokenCollateral,
-        address qiTokenBorrowed,
-        address liquidator,
-        address borrower,
-        uint256 seizeTokens
-    ) external returns (uint256);
-
-    function seizeVerify(
-        address qiTokenCollateral,
-        address qiTokenBorrowed,
-        address liquidator,
-        address borrower,
-        uint256 seizeTokens
+     function harvest(
+        uint256 _pid,
+        address to
     ) external;
-
-    function transferAllowed(
-        address qiToken,
-        address src,
-        address dst,
-        uint256 transferTokens
-    ) external returns (uint256);
-
-    function transferVerify(
-        address qiToken,
-        address src,
-        address dst,
-        uint256 transferTokens
-    ) external;
-
-    /*** Liquidity/Liquidation Calculations ***/
-
-    function liquidateCalculateSeizeTokens(
-        address qiTokenBorrowed,
-        address qiTokenCollateral,
-        uint256 repayAmount
-    ) external view returns (uint256, uint256);
-
-    // Claim all the Qi accrued by holder in all markets
-    function claimReward(uint8 rewardId, address holder) external;
-
-    // Claim all the Qi accrued by holder in specific markets
-    function claimReward(uint8 rewardId, address holder, address[] calldata qiTokens) external;
-
-    // Claim all the Qi accrued by specific holders in specific markets for their supplies and/or borrows
-    function claimReward(uint8 rewardId,
-        address[] calldata holders,
-        address[] calldata qiTokens,
-        bool borrowers,
-        bool suppliers
-    ) external;
-	
-
-    function markets(address qiTokenAddress)
-        external
-        view
-        returns (bool, uint256);
-}
-
-interface IBenqiLens {
-    function getQiBalanceMetadataExt(
-        address qi,
-        address comptroller,
-        address account
-    )
-        external
-        returns (
-            uint256 balance,
-            uint256 votes,
-            address delegate,
-            uint256 allocated
-        );
 }
 
 
@@ -2334,373 +1761,60 @@ interface WAVAX {
 }
 
 
-// File contracts/strategies/benqi/strategy-benqi-daie.sol
+// File contracts/strategies/strategy-png-minichef-farm-base.sol
 
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.2;
-contract StrategyBenqiDai is StrategyBase, Exponential {
-    address public constant comptroller = 0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4; // Through UniTroller Address
-    address public constant dai = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70; //qideposit token
-    address public constant benqi = 0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5; //Qi Token  
-    address public constant qidai = 0x835866d37AFB8CB8F8334dCCdaf66cf01832Ff5D; //lending receipt token
+pragma solidity ^0.6.7;
 
-    // Require a 0.04 buffer between
-    // market collateral factor and strategy's collateral factor
-    // when leveraging.
-    uint256 colFactorLeverageBuffer = 40;
-    uint256 colFactorLeverageBufferMax = 1000;
 
-    // Allow a 0.03 buffer
-    // between market collateral factor and strategy's collateral factor
-    // until we have to deleverage
-    // This is so we can hit max leverage and keep accruing interest
-    uint256 colFactorSyncBuffer = 30;
-    uint256 colFactorSyncBufferMax = 1000;
 
-    // Keeper bots
-    // Maintain leverage within buffer
-    mapping(address => bool) keepers;
+
+abstract contract StrategyPngMiniChefFarmBase is StrategyBase {
+    // Token addresses
+    address public constant miniChef = 0x1f806f7C8dED893fd3caE279191ad7Aa3798E928 ;
+
+    uint256 public poolId;
 
     constructor(
+        uint256 _poolId,
+        address _lp,
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
     )
         public
-        StrategyBase(dai, _governance, _strategist, _controller, _timelock)
+        StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
     {
-        // Enter qiDAI Market
-        address[] memory qitokens = new address[](1);
-        qitokens[0] = qidai;
-        IComptroller(comptroller).enterMarkets(qitokens);
+        poolId = _poolId;
     }
 
-    // **** Modifiers **** //
-
-    modifier onlyKeepers {
-        require(
-            keepers[msg.sender] ||
-                msg.sender == address(this) ||
-                msg.sender == strategist ||
-                msg.sender == governance,
-            "!keepers"
+    function balanceOfPool() public view override returns (uint256) {
+        (uint256 amount, ) = IMiniChef(miniChef).userInfo(
+            poolId,
+            address(this)
         );
-        _;
+        return amount;
     }
 
-    // **** Views **** //
+     receive() external payable {}
 
-    function getName() external override pure returns (string memory) {
-        return "StrategyBenqiDai";
+    // Updated based on cryptofish's recommendation
+    function getHarvestable() external view returns (uint256) {
+        (uint256 pending) = IMiniChef(
+            miniChef
+        ).pendingReward(poolId, address(this));
+        return (pending);
     }
 
-    function getSuppliedView() public view returns (uint256) {
-        (, uint256 qiTokenBal, , uint256 exchangeRate) = IQiToken(qidai)
-            .getAccountSnapshot(address(this));
+    // **** Setters ****
 
-        (, uint256 bal) = mulScalarTruncate(
-            Exp({mantissa: exchangeRate}),
-            qiTokenBal
-        );
-
-        return bal;
-    }
-
-    function getBorrowedView() public view returns (uint256) {
-        return IQiToken(qidai).borrowBalanceStored(address(this));
-    }
-
-    function balanceOfPool() public override view returns (uint256) {
-        uint256 supplied = getSuppliedView();
-        uint256 borrowed = getBorrowedView();
-        return supplied.sub(borrowed);
-    }
-
-    // Given an unleveraged supply balance, return the target
-    // leveraged supply balance which is still within the safety buffer
-    function getLeveragedSupplyTarget(uint256 supplyBalance)
-        public
-        view
-        returns (uint256)
-    {
-        uint256 leverage = getMaxLeverage();
-        return supplyBalance.mul(leverage).div(1e18);
-    }
-
-    function getSafeLeverageColFactor() public view returns (uint256) {
-        uint256 colFactor = getMarketColFactor();
-
-        // Collateral factor within the buffer
-        uint256 safeColFactor = colFactor.sub(
-            colFactorLeverageBuffer.mul(1e18).div(colFactorLeverageBufferMax)
-        );
-
-        return safeColFactor;
-    }
-
-    function getSafeSyncColFactor() public view returns (uint256) {
-        uint256 colFactor = getMarketColFactor();
-
-        // Collateral factor within the buffer
-        uint256 safeColFactor = colFactor.sub(
-            colFactorSyncBuffer.mul(1e18).div(colFactorSyncBufferMax)
-        );
-
-        return safeColFactor;
-    }
-
-    function getMarketColFactor() public view returns (uint256) {
-        (, uint256 colFactor) = IComptroller(comptroller).markets(qidai);
-
-        return colFactor;
-    }
-
-    // Max leverage we can go up to, w.r.t safe buffer
-    function getMaxLeverage() public view returns (uint256) {
-        uint256 safeLeverageColFactor = getSafeLeverageColFactor();
-
-        // Infinite geometric series
-        uint256 leverage = uint256(1e36).div(1e18 - safeLeverageColFactor);
-        return leverage;
-    }
-
-    // **** Pseudo-view functions (use `callStatic` on these) **** //
-    /* The reason why these exists is because of the nature of the
-       interest accruing supply + borrow balance. The "view" methods
-       are technically snapshots and don't represent the real value.
-       As such there are pseudo view methods where you can retrieve the
-       results by calling `callStatic`.
-    */
-
-
-    function getColFactor() public returns (uint256) {
-        uint256 supplied = getSupplied();
-        uint256 borrowed = getBorrowed();
-
-        return borrowed.mul(1e18).div(supplied);
-    }
-
-    function getSuppliedUnleveraged() public returns (uint256) {
-        uint256 supplied = getSupplied();
-        uint256 borrowed = getBorrowed();
-
-        return supplied.sub(borrowed);
-    }
-
-    function getSupplied() public returns (uint256) {
-        return IQiToken(qidai).balanceOfUnderlying(address(this));
-    }
-
-    function getBorrowed() public returns (uint256) {
-        return IQiToken(qidai).borrowBalanceCurrent(address(this));
-    }
-
-    function getBorrowable() public returns (uint256) {
-        uint256 supplied = getSupplied();
-        uint256 borrowed = getBorrowed();
-
-        (, uint256 colFactor) = IComptroller(comptroller).markets(qidai);
-
-        // 99.99% just in case some dust accumulates
-        return
-            supplied.mul(colFactor).div(1e18).sub(borrowed).mul(9999).div(
-                10000
-            );
-    }
-
-    function getRedeemable() public returns (uint256) {
-        uint256 supplied = getSupplied();
-        uint256 borrowed = getBorrowed();
-
-        (, uint256 colFactor) = IComptroller(comptroller).markets(qidai);
-
-        // Return 99.99% of the time just incase
-        return
-            supplied.sub(borrowed.mul(1e18).div(colFactor)).mul(9999).div(
-                10000
-            );
-    }
-
-    function getCurrentLeverage() public returns (uint256) {
-        uint256 supplied = getSupplied();
-        uint256 borrowed = getBorrowed();
-
-        return supplied.mul(1e18).div(supplied.sub(borrowed));
-    }
-
-    // **** Setters **** //
-
-    function addKeeper(address _keeper) public {
-        require(
-            msg.sender == governance || msg.sender == strategist,
-            "!governance"
-        );
-        keepers[_keeper] = true;
-    }
-
-    function removeKeeper(address _keeper) public {
-        require(
-            msg.sender == governance || msg.sender == strategist,
-            "!governance"
-        );
-        keepers[_keeper] = false;
-    }
-
-    function setColFactorLeverageBuffer(uint256 _colFactorLeverageBuffer)
-        public
-    {
-        require(
-            msg.sender == governance || msg.sender == strategist,
-            "!governance"
-        );
-        colFactorLeverageBuffer = _colFactorLeverageBuffer;
-    }
-
-    function setColFactorSyncBuffer(uint256 _colFactorSyncBuffer) public {
-        require(
-            msg.sender == governance || msg.sender == strategist,
-            "!governance"
-        );
-        colFactorSyncBuffer = _colFactorSyncBuffer;
-    }
-
-    // **** State mutations **** //
-
-    // Do a `callStatic` on this.
-    // If it returns true then run it for realz. (i.e. eth_signedTx, not eth_call)
-    function sync() public returns (bool) {
-        uint256 colFactor = getColFactor();
-        uint256 safeSyncColFactor = getSafeSyncColFactor();
-
-        // If we're not safe
-        if (colFactor > safeSyncColFactor) {
-            uint256 unleveragedSupply = getSuppliedUnleveraged();
-            uint256 idealSupply = getLeveragedSupplyTarget(unleveragedSupply);
-
-            deleverageUntil(idealSupply);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    function leverageToMax() public {
-        uint256 unleveragedSupply = getSuppliedUnleveraged();
-        uint256 idealSupply = getLeveragedSupplyTarget(unleveragedSupply);
-        leverageUntil(idealSupply);
-    }
-
-    // Leverages until we're supplying <x> amount
-    // 1. Redeem <x> DAI
-    // 2. Repay <x> DAI
-    function leverageUntil(uint256 _supplyAmount) public onlyKeepers {
-        // 1. Borrow out <X> DAI
-        // 2. Supply <X> DAI
-
-        uint256 leverage = getMaxLeverage();
-        uint256 unleveragedSupply = getSuppliedUnleveraged();
-        require(
-            _supplyAmount >= unleveragedSupply &&
-                _supplyAmount <= unleveragedSupply.mul(leverage).div(1e18),
-            "!leverage"
-        );
-
-        // Since we're only leveraging one asset
-        // Supplied = borrowed
-        uint256 _borrowAndSupply;
-        uint256 supplied = getSupplied();
-        while (supplied < _supplyAmount) {
-            _borrowAndSupply = getBorrowable();
-
-            if (supplied.add(_borrowAndSupply) > _supplyAmount) {
-                _borrowAndSupply = _supplyAmount.sub(supplied);
-            }
-
-            IQiToken(qidai).borrow(_borrowAndSupply);
-            deposit();
-
-            supplied = supplied.add(_borrowAndSupply);
-        }
-    }
-
-    function deleverageToMin() public {
-        uint256 unleveragedSupply = getSuppliedUnleveraged();
-        deleverageUntil(unleveragedSupply);
-    }
-
-    // Deleverages until we're supplying <x> amount
-    // 1. Redeem <x> DAI
-    // 2. Repay <x> DAI
-    function deleverageUntil(uint256 _supplyAmount) public onlyKeepers {
-        uint256 unleveragedSupply = getSuppliedUnleveraged();
-        uint256 supplied = getSupplied();
-        require(
-            _supplyAmount >= unleveragedSupply && _supplyAmount <= supplied,
-            "!deleverage"
-        );
-
-        // Market collateral factor
-        uint256 marketColFactor = getMarketColFactor();
-
-        // How much can we redeem
-        uint256 _redeemAndRepay = getRedeemable();
-        do {
-            // If the amount we're redeeming is exceeding the
-            // target supplyAmount, adjust accordingly
-            if (supplied.sub(_redeemAndRepay) < _supplyAmount) {
-                _redeemAndRepay = supplied.sub(_supplyAmount);
-            }
-
-            require(
-                IQiToken(qidai).redeemUnderlying(_redeemAndRepay) == 0,
-                "!redeem"
-            );
-            IERC20(dai).safeApprove(qidai, 0);
-            IERC20(dai).safeApprove(qidai, _redeemAndRepay);
-            require(IQiToken(qidai).repayBorrow(_redeemAndRepay) == 0, "!repay");
-
-            supplied = supplied.sub(_redeemAndRepay);
-
-            // After each deleverage we can redeem more (the colFactor)
-            _redeemAndRepay = _redeemAndRepay.mul(1e18).div(marketColFactor);
-        } while (supplied > _supplyAmount);
-    }
-	
-	// allow Native Avax
-	receive() external payable {}
-
-    function harvest() public override onlyBenevolent {
-        address[] memory qitokens = new address[](1);
-        qitokens[0] = qidai;
-
-        IComptroller(comptroller).claimReward(0, address(this)); //ClaimQi
-        uint256 _benqi = IERC20(benqi).balanceOf(address(this));
-        if (_benqi > 0) {
-            _swapPangolin(benqi, want, _benqi);
-        }
-				
-		IComptroller(comptroller).claimReward(1, address(this)); //ClaimAvax
-		uint256 _avax = address(this).balance;            //get balance of native Avax
-        if (_avax > 0) {                                 //wrap avax into ERC20
-            WAVAX(wavax).deposit{value: _avax}();
-        }
-		
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0) {
-            _swapPangolin(wavax, want, _wavax);
-        }
-
-        _distributePerformanceFeesAndDeposit();
-    }
-	
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(qidai, 0);
-            IERC20(want).safeApprove(qidai, _want);
-            require(IQiToken(qidai).mint(_want) == 0, "!deposit");
+            IERC20(want).safeApprove(miniChef, 0);
+            IERC20(want).safeApprove(miniChef, _want);
+            IMiniChef(miniChef).deposit(poolId,_want, address(this));
         }
     }
 
@@ -2709,33 +1823,209 @@ contract StrategyBenqiDai is StrategyBase, Exponential {
         override
         returns (uint256)
     {
-        uint256 _want = balanceOfWant();
-        if (_want < _amount) {
-            uint256 _redeem = _amount.sub(_want);
+        IMiniChef(miniChef).withdraw(poolId, _amount, address(this));
+        return _amount;
+    }
 
-            // Make sure market can cover liquidity
-            require(IQiToken(qidai).getCash() >= _redeem, "!cash-liquidity");
 
-            // How much borrowed amount do we need to free?
-            uint256 borrowed = getBorrowed();
-            uint256 supplied = getSupplied();
-            uint256 curLeverage = getCurrentLeverage();
-            uint256 borrowedToBeFree = _redeem.mul(curLeverage).div(1e18);
+    function _takeFeePngToSnob(uint256 _keep) internal {
+        IERC20(png).safeApprove(pangolinRouter, 0);
+        IERC20(png).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(png, snob, _keep);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
 
-            // If the amount we need to free is > borrowed
-            // Just free up all the borrowed amount
-            if (borrowedToBeFree > borrowed) {
-                this.deleverageToMin();
-            } else {
-                // Otherwise just keep freeing up borrowed amounts until
-                // we hit a safe number to redeem our underlying
-                this.deleverageUntil(supplied.sub(borrowedToBeFree));
-            }
+}
 
-            // Redeems underlying
-            require(IQiToken(qidai).redeemUnderlying(_redeem) == 0, "!redeem");
+
+// File contracts/strategies/pangolin/strategy-png-avax-luna.sol
+
+pragma solidity ^0.6.7;
+
+contract StrategyPngAvaxLuna is StrategyPngMiniChefFarmBase {
+    uint256 public _poolId = 76;
+
+    // Token addresses
+    address public png_avax_luna_lp = 0x40e747f27E6398b1f7C017c5ff5c31a2Ab69261c;
+    address public luna = 0x120AD3e5A7c796349e591F1570D9f7980F4eA9cb;
+
+    constructor(
+        address _governance,
+        address _strategist,
+        address _controller,
+        address _timelock
+    )
+        public
+        StrategyPngMiniChefFarmBase(
+            _poolId,
+            png_avax_luna_lp,
+            _governance,
+            _strategist,
+            _controller,
+            _timelock
+        )
+    {}
+
+    function _takeFeeLunaToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = luna;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(luna).safeApprove(pangolinRouter, 0);
+        IERC20(luna).safeApprove(pangolinRouter, _keep);
+        _swapPangolinWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
+    function _swapBaseToToken(uint256 _amount, address token1, address token2) internal {
+        address[] memory path = new address[](3);
+        path[0] = token1;
+        path[1] = wavax;
+        path[2] = token2;
+        IERC20(token1).safeApprove(pangolinRouter, 0);
+        IERC20(token1).safeApprove(pangolinRouter, _amount);
+        _swapPangolinWithPath(path, _amount);
+    }
+
+    // **** State Mutations ****
+
+    function harvest() public override onlyBenevolent {
+        // Collects Token Fees
+        IMiniChef(miniChef).harvest(poolId, address(this));
+
+        // Take AVAX Rewards    
+        uint256 _avax = address(this).balance;              // get balance of native AVAX
+        if (_avax > 0) {                                    // wrap AVAX into ERC20
+            WAVAX(wavax).deposit{value: _avax}();
         }
 
-        return _amount;
+        // 10% is sent to treasury
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        uint256 _luna = IERC20(luna).balanceOf(address(this));
+        uint256 _png = IERC20(png).balanceOf(address(this));
+        
+        if (_wavax > 0) {
+            uint256 _keep = _wavax.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeeWavaxToSnob(_keep);
+            }  
+
+            _wavax = IERC20(wavax).balanceOf(address(this));
+        }
+
+        if (_luna > 0) {
+            uint256 _keep = _luna.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeeLunaToSnob(_keep);
+            }
+
+            _luna = IERC20(luna).balanceOf(address(this));  
+        }       
+
+        if (_png > 0) {
+            uint256 _keep = _png.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeePngToSnob(_keep);
+            }
+
+            _png = IERC20(png).balanceOf(address(this));  
+        }
+
+        // In the case of AVAX Rewards, swap half WAVAX for LUNA
+        if(_wavax > 0){
+            IERC20(wavax).safeApprove(pangolinRouter, 0);
+            IERC20(wavax).safeApprove(pangolinRouter, _wavax.div(2));   
+            _swapPangolin(wavax, luna, _wavax.div(2)); 
+        }      
+
+        // In the case of LUNA Rewards, swap half LUNA for WAVAX and luna
+        if(_luna > 0){
+            IERC20(luna).safeApprove(pangolinRouter, 0);
+            IERC20(luna).safeApprove(pangolinRouter, _luna.div(2));   
+            _swapPangolin(luna, wavax, _luna.div(2)); 
+        } 
+
+        // In the case of PNG Rewards, swap PNG for WAVAX and LUNA
+        if(_png > 0){
+            IERC20(png).safeApprove(pangolinRouter, 0);
+            IERC20(png).safeApprove(pangolinRouter, _png);   
+            _swapPangolin(png, wavax, _png.div(2));
+            _swapBaseToToken(_png.div(2), png, luna); 
+        }
+
+        // Adds in liquidity for AVAX/LUNA
+        _wavax = IERC20(wavax).balanceOf(address(this));
+        _luna = IERC20(luna).balanceOf(address(this));
+
+        if (_wavax > 0 && _luna > 0) {
+            IERC20(wavax).safeApprove(pangolinRouter, 0);
+            IERC20(wavax).safeApprove(pangolinRouter, _wavax);
+
+            IERC20(luna).safeApprove(pangolinRouter, 0);
+            IERC20(luna).safeApprove(pangolinRouter, _luna);
+
+            IPangolinRouter(pangolinRouter).addLiquidity(
+                wavax,
+                luna,
+                _wavax,
+                _luna,
+                0,
+                0,
+                address(this),
+                now + 60
+            );
+
+            // Donates DUST
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _luna = IERC20(luna).balanceOf(address(this));
+            _png = IERC20(png).balanceOf(address(this));
+            
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }          
+            
+            if (_luna > 0){
+                IERC20(luna).safeTransfer(
+                    IController(controller).treasury(),
+                    _luna
+                );
+            }
+
+            if (_png > 0){
+                IERC20(png).safeTransfer(
+                    IController(controller).treasury(),
+                    _png
+                );
+            }
+        }
+    
+        _distributePerformanceFeesAndDeposit();
+    }
+
+    // **** Views ****
+
+    function getName() external pure override returns (string memory) {
+        return "StrategyPngAvaxLuna";
     }
 }

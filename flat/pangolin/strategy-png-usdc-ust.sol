@@ -1,4 +1,6 @@
-// File: contracts/lib/safe-math.sol
+// Sources flattened with hardhat v2.8.0 https://hardhat.org
+
+// File contracts/lib/safe-math.sol
 
 // SPDX-License-Identifier: MIT
 
@@ -160,7 +162,8 @@ library SafeMath {
     }
 }
 
-// File: contracts/lib/context.sol
+
+// File contracts/lib/context.sol
 
 // SPDX-License-Identifier: MIT
 
@@ -187,14 +190,14 @@ abstract contract Context {
     }
 }
 
-// File: contracts/lib/erc20.sol
+
+// File contracts/lib/erc20.sol
 
 // File: contracts/GSN/Context.sol
 
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.0;
-
 
 
 // File: contracts/token/ERC20/IERC20.sol
@@ -784,11 +787,11 @@ library SafeERC20 {
     }
 }
 
-// File: contracts/interfaces/globe.sol
+
+// File contracts/interfaces/globe.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.2;
-
 
 interface IGlobe is IERC20 {
     function token() external view returns (address);
@@ -810,7 +813,8 @@ interface IGlobe is IERC20 {
     function decimals() external view returns (uint8);
 }
 
-// File: contracts/interfaces/staking-rewards.sol
+
+// File contracts/interfaces/staking-rewards.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.2;
@@ -894,7 +898,8 @@ interface IStakingRewardsFactory {
     function transferOwnership(address newOwner) external;
 }
 
-// File: contracts/interfaces/icequeen.sol
+
+// File contracts/interfaces/icequeen.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
@@ -980,7 +985,8 @@ interface IIcequeen {
     function withdraw(uint256 _pid, uint256 _amount) external;
 }
 
-// File: contracts/interfaces/pangolin.sol
+
+// File contracts/interfaces/pangolin.sol
 
 // SPDX-License-Identifier: MIT
 
@@ -1038,6 +1044,18 @@ interface IPangolinRouter {
         address to,
         uint256 deadline
     ) external returns (uint256 amountA, uint256 amountB);
+
+    function quote(
+        uint256 amountA,
+        uint256 reserveA,
+        uint256 reserveB
+    ) external pure returns (uint256 amountB);
+
+    function getAmountOut(
+        uint256 amountIn,
+        uint256 reserveIn,
+        uint256 reserveOut
+    ) external pure returns (uint256 amountOut);
 
     function getAmountsOut(uint256 amountIn, address[] calldata path)
         external
@@ -1197,7 +1215,8 @@ interface IPangolinFactory {
         returns (address pair);
 }
 
-// File: contracts/interfaces/controller.sol
+
+// File contracts/interfaces/controller.sol
 
 // SPDX-License-Identifier: MIT
 
@@ -1217,13 +1236,29 @@ interface IController {
     function withdraw(address, uint256) external;
 
     function earn(address, uint256) external;
+
+    // For Big Green Button:
+
+    function setGlobe(address _token, address _globe) external;
+
+    function approveStrategy(address _token, address _strategy) external;
+
+    function revokeStrategy(address _token, address _strategy) external;
+
+    function setStrategy(address _token, address _strategy) external;
+
+    function setStrategist(address _strategist) external;
+
+    function setGovernance(address _governance) external;
+
+    function setTimelock(address _timelock) external;
 }
 
-// File: contracts/strategies/strategy-base.sol
 
+// File contracts/strategies/strategy-base.sol
+
+// SPDX-License-Identifier: MIT	
 pragma solidity ^0.6.7;
-
-
 
 
 
@@ -1240,17 +1275,28 @@ abstract contract StrategyBase {
     // Tokens
     address public want;
     address public constant wavax = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
+    address public constant png = 0x60781C2586D68229fde47564546784ab3fACA982;
+    address public constant snob = 0xC38f41A296A4493Ff429F1238e030924A1542e50;
 
     // Dex
     address public pangolinRouter = 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106;
-    // Move ^^
+    
+    address public feeDistributor = 0xAd86ef5fD2eBc25bb9Db41A1FE8d0f2a322c7839;
 
-    // Perfomance fees - start with 20%
-    uint256 public performanceTreasuryFee = 2000;
+    // Perfomance fees - start with 10%
+    uint256 public performanceTreasuryFee = 0;
     uint256 public constant performanceTreasuryMax = 10000;
 
     uint256 public performanceDevFee = 0;
     uint256 public constant performanceDevMax = 10000;
+
+    // How many rewards tokens to keep?
+    uint256 public keep = 1000;
+    uint256 public constant keepMax = 10000;
+
+    uint256 public revenueShare = 3000;
+    uint256 public constant revenueShareMax = 10000;
+
 
     // Withdrawal fee 0%
     // - 0% to treasury
@@ -1294,8 +1340,8 @@ abstract contract StrategyBase {
     modifier onlyBenevolent {
         require(
             harvesters[msg.sender] ||
-                msg.sender == governance ||
-                msg.sender == strategist
+            msg.sender == governance ||
+            msg.sender == strategist
         );
         _;
     }
@@ -1316,6 +1362,16 @@ abstract contract StrategyBase {
 
     // **** Setters **** //
 
+    function setKeep(uint256 _keep) external {
+        require(msg.sender == timelock, "!timelock");
+        keep = _keep;
+    }
+
+    function setRevenueShare(uint256 _share) external {
+        require(msg.sender == timelock, "!timelock");
+        revenueShare = _share;
+    }
+
     function whitelistHarvester(address _harvester) external {
         require(msg.sender == governance ||
              msg.sender == strategist, "not authorized");
@@ -1326,6 +1382,11 @@ abstract contract StrategyBase {
         require(msg.sender == governance ||
              msg.sender == strategist, "not authorized");
         harvesters[_harvester] = false;
+    }
+
+    function setFeeDistributor(address _feeDistributor) external {
+        require(msg.sender == governance, "not authorized");
+        feeDistributor = _feeDistributor;
     }
 
     function setWithdrawalDevFundFee(uint256 _withdrawalDevFundFee) external {
@@ -1489,20 +1550,26 @@ abstract contract StrategyBase {
         uint256 _amount
     ) internal {
         require(_to != address(0));
-
+        // Swap with Pangolin
+        IERC20(_from).safeApprove(pangolinRouter, 0);
+        IERC20(_from).safeApprove(pangolinRouter, _amount);
         address[] memory path;
-
-        if (_from == wavax || _to == wavax) {
+        if (_from == png || _to == png) {
             path = new address[](2);
             path[0] = _from;
             path[1] = _to;
-        } else {
+        } 
+        else if (_from == wavax || _to == wavax) {
+            path = new address[](2);
+            path[0] = _from;
+            path[1] = _to;
+        } 
+        else {
             path = new address[](3);
             path[0] = _from;
-            path[1] = wavax;
+            path[1] = png;
             path[2] = _to;
         }
-
         IPangolinRouter(pangolinRouter).swapExactTokensForTokens(
             _amount,
             0,
@@ -1546,42 +1613,55 @@ abstract contract StrategyBase {
             deposit();
         }
     }
+
+    function _takeFeeWavaxToSnob(uint256 _keep) internal {
+        IERC20(wavax).safeApprove(pangolinRouter, 0);
+        IERC20(wavax).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(wavax, snob, _keep);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
 }
 
-// File: contracts/interfaces/joe-rewarder.sol
+
+// File contracts/interfaces/minichef-rewarder.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-
-// interface for Trader Joe Rewarder contract
-interface IJoeRewarder {
+// interface for Axial Rewarder contract
+interface IMiniChefRewarder {
     using SafeERC20 for IERC20;
 
-    function onJoeReward(address user, uint256 newLpAmount) external;
+    function onReward(uint256 pid, address user, address recipient, uint256 rewardAmount, uint256 newLpAmount) external;
 
-    function pendingTokens(address user)
-        external
-        view
-        returns (uint256 pending);
+    function pendingTokens(uint256 pid, address user, uint256 rewardAmount) external view returns (IERC20[] memory, uint256[] memory);
 
     function rewardToken() external view returns (address);
 }
 
-// File: contracts/interfaces/masterchefjoev2.sol
+
+// File contracts/interfaces/minichefpangolin.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-
-// interface for MasterChefJoeV2 contract
-interface IMasterChefJoeV2 {
-
+// interface for MiniChef contract
+interface IMiniChef {
 
     /* Reads */
     function userInfo(uint256, address) external view returns (
         uint256 amount,
         uint256 rewardDebt
+
     );
 
     function poolInfo(uint256 pid) external view returns (
@@ -1597,14 +1677,11 @@ interface IMasterChefJoeV2 {
     function poolLength() external view returns (uint256);
 
 
-    function pendingTokens(uint256 _pid, address _user)
+    function pendingReward(uint256 _pid, address _user)
         external
         view
         returns (
-            uint256 pendingJoe,
-            address bonusTokenAddress,
-            string memory bonusTokenSymbol,
-            uint256 pendingBonusToken
+            uint256 pending
         );
 
     /* Writes */
@@ -1618,7 +1695,7 @@ interface IMasterChefJoeV2 {
     function set(
         uint256 _pid,
         uint256 _allocPoint,
-        IJoeRewarder _rewarder,
+        IMiniChefRewarder _rewarder,
         bool overwrite
     ) external;
 
@@ -1626,232 +1703,65 @@ interface IMasterChefJoeV2 {
 
     function deposit(
         uint256 _pid,
-        uint256 _amount
+        uint256 _amount,
+        address to
     ) external;
 
     function withdraw(
         uint256 _pid,
-        uint256 _amount
+        uint256 _amount,
+        address to
+    ) external;
+
+    function withdrawAndHarvest(
+        uint256 _pid,
+        uint256 _amount,
+        address to
+    ) external;
+
+     function harvest(
+        uint256 _pid,
+        address to
     ) external;
 }
 
-// File: contracts/interfaces/joe.sol
+
+// File contracts/interfaces/wavax.sol
 
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.2;
 
-interface IJoeRouter {
+pragma solidity ^0.6.0;
 
-    function addLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 amountADesired,
-        uint256 amountBDesired,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to,
-        uint256 deadline
-    )
-        external
-        returns (
-            uint256 amountA,
-            uint256 amountB,
-            uint256 liquidity
-        );
+interface WAVAX {
+    function name() external view returns (string memory);
 
-    function addLiquidityAVAX(
-        address token,
-        uint256 amountTokenDesired,
-        uint256 amountTokenMin,
-        uint256 amountAVAXMin,
-        address to,
-        uint256 deadline
-    )
-        external
-        payable
-        returns (
-            uint256 amountToken,
-            uint256 amountAVAX,
-            uint256 liquidity
-        );
-
-    function removeLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 liquidity,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to,
-        uint256 deadline
-    ) external returns (uint256 amountA, uint256 amountB);
-
-    function swapExactTokensForTokens(
-        uint256 amountIn,
-        uint256 amountOutMin,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external returns (uint256[] memory amounts);
-
-    function swapExactAVAXForTokens(
-        uint256 amountOutMin,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external payable returns (uint256[] memory amounts);
-
-    function swapAVAXForExactTokens(
-        uint256 amountOut,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external payable returns (uint256[] memory amounts);
-
-    function getAmountsOut(uint256 amountIn, address[] calldata path)
-        external
-        view
-        returns (uint256[] memory amounts);
-
-    function getAmountsIn(uint256 amountOut, address[] calldata path)
-        external
-        view
-        returns (uint256[] memory amounts);
-}
-
-interface IJoePair {
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
-    function name() external pure returns (string memory);
-
-    function symbol() external pure returns (string memory);
-
-    function decimals() external pure returns (uint8);
+    function approve(address guy, uint256 wad) external returns (bool);
 
     function totalSupply() external view returns (uint256);
 
-    function balanceOf(address owner) external view returns (uint256);
-
-    function allowance(address owner, address spender)
-        external
-        view
-        returns (uint256);
-
-    function approve(address spender, uint256 value) external returns (bool);
-
-    function transfer(address to, uint256 value) external returns (bool);
-
     function transferFrom(
-        address from,
-        address to,
-        uint256 value
+        address src,
+        address dst,
+        uint256 wad
     ) external returns (bool);
 
-    function DOMAIN_SEPARATOR() external view returns (bytes32);
+    function withdraw(uint256 wad) external;
 
-    function PERMIT_TYPEHASH() external pure returns (bytes32);
+    function decimals() external view returns (uint8);
 
-    function nonces(address owner) external view returns (uint256);
+    function balanceOf(address) external view returns (uint256);
 
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external;
+    function symbol() external view returns (string memory);
 
-    event Mint(address indexed sender, uint256 amount0, uint256 amount1);
-    event Burn(
-        address indexed sender,
-        uint256 amount0,
-        uint256 amount1,
-        address indexed to
-    );
-    event Swap(
-        address indexed sender,
-        uint256 amount0In,
-        uint256 amount1In,
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address indexed to
-    );
-    event Sync(uint112 reserve0, uint112 reserve1);
+    function transfer(address dst, uint256 wad) external returns (bool);
 
-    function MINIMUM_LIQUIDITY() external pure returns (uint256);
+    function deposit() external payable;
 
-    function factory() external view returns (address);
-
-    function token0() external view returns (address);
-
-    function token1() external view returns (address);
-
-    function getReserves()
-        external
-        view
-        returns (
-            uint112 reserve0,
-            uint112 reserve1,
-            uint32 blockTimestampLast
-        );
-
-    function price0CumulativeLast() external view returns (uint256);
-
-    function price1CumulativeLast() external view returns (uint256);
-
-    function kLast() external view returns (uint256);
-
-    function mint(address to) external returns (uint256 liquidity);
-
-    function burn(address to)
-        external
-        returns (uint256 amount0, uint256 amount1);
-
-    function swap(
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address to,
-        bytes calldata data
-    ) external;
-
-    function skim(address to) external;
-
-    function sync() external;
+    function allowance(address, address) external view returns (uint256);
 }
 
-interface IJoeFactory {
-    event PairCreated(
-        address indexed token0,
-        address indexed token1,
-        address pair,
-        uint256
-    );
 
-    function getPair(address tokenA, address tokenB)
-        external
-        view
-        returns (address pair);
-
-    function allPairs(uint256) external view returns (address pair);
-
-    function allPairsLength() external view returns (uint256);
-
-    function feeTo() external view returns (address);
-
-    function feeToSetter() external view returns (address);
-
-    function createPair(address tokenA, address tokenB)
-        external
-        returns (address pair);
-}
-
-// File: contracts/strategies/strategy-joe-farm-base.sol
+// File contracts/strategies/strategy-png-minichef-farm-base.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
@@ -1859,19 +1769,11 @@ pragma solidity ^0.6.7;
 
 
 
-
-abstract contract StrategyJoeFarmBase is StrategyBase {
+abstract contract StrategyPngMiniChefFarmBase is StrategyBase {
     // Token addresses
-    address public constant joe = 0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd;
-    address public constant joeRouter = 0x60aE616a2155Ee3d9A68541Ba4544862310933d4;
-
-    address public constant masterChefJoeV2 = 0xd6a4F121CA35509aF06A0Be99093d08462f53052;
+    address public constant miniChef = 0x1f806f7C8dED893fd3caE279191ad7Aa3798E928 ;
 
     uint256 public poolId;
-
-    // How much PNG tokens to keep?
-    uint256 public keepJOE = 0;
-    uint256 public constant keepJOEMax = 10000;
 
     constructor(
         uint256 _poolId,
@@ -1888,26 +1790,31 @@ abstract contract StrategyJoeFarmBase is StrategyBase {
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        (uint256 amount, ) =
-            IMasterChefJoeV2(masterChefJoeV2).userInfo(poolId, address(this));
+        (uint256 amount, ) = IMiniChef(miniChef).userInfo(
+            poolId,
+            address(this)
+        );
         return amount;
     }
 
-    function getHarvestable() external view returns (uint256, uint256) {
-      (uint256 _pendingTokens, , ,) = IMasterChefJoeV2(masterChefJoeV2).pendingTokens(poolId, address(this));
-      (,,,,address rewarder) = IMasterChefJoeV2(masterChefJoeV2).poolInfo(poolId);
-      (uint256 pendingReward) = IJoeRewarder(rewarder).pendingTokens(address(this));
+     receive() external payable {}
 
-      return (_pendingTokens, pendingReward);
+    // Updated based on cryptofish's recommendation
+    function getHarvestable() external view returns (uint256) {
+        (uint256 pending) = IMiniChef(
+            miniChef
+        ).pendingReward(poolId, address(this));
+        return (pending);
     }
 
     // **** Setters ****
+
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(masterChefJoeV2, 0);
-            IERC20(want).safeApprove(masterChefJoeV2, _want);
-            IMasterChefJoeV2(masterChefJoeV2).deposit(poolId, _want);
+            IERC20(want).safeApprove(miniChef, 0);
+            IERC20(want).safeApprove(miniChef, _want);
+            IMiniChef(miniChef).deposit(poolId,_want, address(this));
         }
     }
 
@@ -1916,67 +1823,42 @@ abstract contract StrategyJoeFarmBase is StrategyBase {
         override
         returns (uint256)
     {
-        IMasterChefJoeV2(masterChefJoeV2).withdraw(poolId, _amount);
+        IMiniChef(miniChef).withdraw(poolId, _amount, address(this));
         return _amount;
     }
 
-    function _swapTraderJoe(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal {
-        require(_to != address(0));
 
-        address[] memory path;
-
-        if (_from == wavax || _to == wavax) {
-            path = new address[](2);
-            path[0] = _from;
-            path[1] = _to;
-        } else {
-            path = new address[](3);
-            path[0] = _from;
-            path[1] = wavax;
-            path[2] = _to;
-        }
-
-        IJoeRouter(joeRouter).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            now.add(60)
+    function _takeFeePngToSnob(uint256 _keep) internal {
+        IERC20(png).safeApprove(pangolinRouter, 0);
+        IERC20(png).safeApprove(pangolinRouter, _keep);
+        _swapPangolin(png, snob, _keep);
+        uint _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
         );
     }
 
-    function _swapTraderJoeWithPath(
-        address[] memory path,
-        uint256 _amount
-    ) internal {
-        require(path[1] != address(0));
-
-        IJoeRouter(joeRouter).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            now.add(60)
-        );
-    }
 }
 
-// File: contracts/strategies/traderJoe/strategy-joe-avax-pefi.sol
 
-// SPDX-License-Identifier: MIT
+// File contracts/strategies/pangolin/strategy-png-usdc-ust.sol
+
 pragma solidity ^0.6.7;
 
+contract StrategyPngUsdcUst is StrategyPngMiniChefFarmBase {
+    uint256 public _poolId = 75;
 
-contract StrategyJoeAvaxPefiLp is StrategyJoeFarmBase {
-
-    uint256 public avax_pefi_poolId = 9;
-
-    address public joe_avax_pefi_lp = 0xb78c8238bD907c42BE45AeBdB4A8C8a5D7B49755;
-    address public pefi = 0xe896CDeaAC9615145c0cA09C8Cd5C25bced6384c;
+    // Token addresses
+    address public png_usdc_ust_lp = 0x3c0ECf5F430bbE6B16A8911CB25d898Ef20805cF;
+    address public usdc = 0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E;
+    address public ust = 0x260Bbf5698121EB85e7a74f2E45E16Ce762EbE11;
+    address public luna = 0x120AD3e5A7c796349e591F1570D9f7980F4eA9cb;
 
     constructor(
         address _governance,
@@ -1985,9 +1867,9 @@ contract StrategyJoeAvaxPefiLp is StrategyJoeFarmBase {
         address _timelock
     )
         public
-        StrategyJoeFarmBase(
-            avax_pefi_poolId,
-            joe_avax_pefi_lp,
+        StrategyPngMiniChefFarmBase(
+            _poolId,
+            png_usdc_ust_lp,
             _governance,
             _strategist,
             _controller,
@@ -1995,51 +1877,179 @@ contract StrategyJoeAvaxPefiLp is StrategyJoeFarmBase {
         )
     {}
 
+    function _takeFeeUsdcToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = usdc;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(usdc).safeApprove(pangolinRouter, 0);
+        IERC20(usdc).safeApprove(pangolinRouter, _keep);
+        _swapPangolinWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
+    function _takeFeeUstToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = ust;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(ust).safeApprove(pangolinRouter, 0);
+        IERC20(ust).safeApprove(pangolinRouter, _keep);
+        _swapPangolinWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
+    function _takeFeeLunaToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](3);
+        path[0] = luna;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(luna).safeApprove(pangolinRouter, 0);
+        IERC20(luna).safeApprove(pangolinRouter, _keep);
+        _swapPangolinWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
+
+    function _swapBaseToToken(uint256 _amount, address token1, address token2) internal {
+        address[] memory path = new address[](3);
+        path[0] = token1;
+        path[1] = wavax;
+        path[2] = token2;
+        IERC20(token1).safeApprove(pangolinRouter, 0);
+        IERC20(token1).safeApprove(pangolinRouter, _amount);
+        _swapPangolinWithPath(path, _amount);
+    }
+
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But AVAX is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
-        // Collects Joe tokens
-        IMasterChefJoeV2(masterChefJoeV2).deposit(poolId, 0);
-
-        uint256 _joe = IERC20(joe).balanceOf(address(this));
-        if (_joe > 0) {
-            // 10% is sent to treasury
-            uint256 _keepJOE = _joe.mul(keepJOE).div(keepJOEMax);
-            IERC20(joe).safeTransfer(
-                IController(controller).treasury(),
-                _keepJOE
-            );
-            uint256 _amount = _joe.sub(_keepJOE).div(2);
-            IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keepJOE));
-
-            _swapTraderJoe(joe, wavax, _amount);
-            _swapTraderJoe(joe, pefi, _amount);
+        // Collects Token Fees
+        IMiniChef(miniChef).harvest(poolId, address(this));
+   
+        uint256 _avax = address(this).balance;              // get balance of native AVAX
+        if (_avax > 0) {                                    // wrap AVAX into ERC20
+            WAVAX(wavax).deposit{value: _avax}();
         }
 
-        // Adds in liquidity for AVAX/PEFI
+        // 10% is sent to treasury
+        uint256 _usdc = IERC20(usdc).balanceOf(address(this));
+        uint256 _ust = IERC20(ust).balanceOf(address(this));
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        uint256 _png = IERC20(png).balanceOf(address(this));
+        uint256 _luna = IERC20(luna).balanceOf(address(this));
+        
+        if (_usdc > 0) {
+            uint256 _keep = _usdc.mul(keep).div(keepMax);
+            if (_keep > 0){
+                _takeFeeUsdcToSnob(_keep);
+            }
+            
+            _usdc = IERC20(usdc).balanceOf(address(this));
+        }
 
-        uint256 _pefi = IERC20(pefi).balanceOf(address(this));
+        if (_ust > 0) {
+            uint256 _keep = _ust.mul(keep).div(keepMax);
+            if (_keep > 0){
+                _takeFeeUstToSnob(_keep);
+            }
+            
+            _ust = IERC20(ust).balanceOf(address(this));
+        }
 
-        if (_wavax > 0 && _pefi > 0) {
-            IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax);
+        if (_wavax > 0) {
+            uint256 _keep = _wavax.mul(keep).div(keepMax);
+            if (_keep > 0){
+                _takeFeeWavaxToSnob(_keep);
+            }
+            
+            _wavax = IERC20(wavax).balanceOf(address(this));
+        }
 
-            IERC20(pefi).safeApprove(joeRouter, 0);
-            IERC20(pefi).safeApprove(joeRouter, _pefi);
+        if (_png > 0) {
+            uint256 _keep = _png.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeePngToSnob(_keep);
+            }
 
-            IJoeRouter(joeRouter).addLiquidity(
-                wavax,
-                pefi,
-                _wavax,
-                _pefi,
+            _png = IERC20(png).balanceOf(address(this));  
+        }       
+
+        if (_luna > 0) {
+            uint256 _keep = _luna.mul(keep).div(keepMax);
+            if (_keep > 0){
+                _takeFeeLunaToSnob(_keep);
+            }
+            
+            _luna = IERC20(luna).balanceOf(address(this));
+        }
+
+        // In the case of WAVAX Rewards, swap WAVAX for USDC and UST
+        if (_wavax > 0){
+            IERC20(wavax).safeApprove(pangolinRouter, 0);
+            IERC20(wavax).safeApprove(pangolinRouter, _wavax);   
+            _swapPangolin(wavax, usdc, _wavax.div(2));
+            _swapPangolin(wavax, ust, _wavax.div(2));
+        }  
+
+        // In the case of PNG Rewards, swap PNG for USDC and UST
+        if (_png > 0){
+            IERC20(png).safeApprove(pangolinRouter, 0);
+            IERC20(png).safeApprove(pangolinRouter, _png);   
+            _swapBaseToToken(_png.div(2), png, usdc); 
+            _swapBaseToToken(_png.div(2), png, ust); 
+        }        
+
+        // In the case of LUNA Rewards, swap LUNA for USDC and UST
+        if (_luna > 0){
+            IERC20(luna).safeApprove(pangolinRouter, 0);
+            IERC20(luna).safeApprove(pangolinRouter, _luna);  
+            _swapBaseToToken(_luna.div(2), luna, usdc);
+            _swapBaseToToken(_luna.div(2), luna, ust); 
+        }  
+
+        // Adds in liquidity for USDC/UST
+        _usdc = IERC20(usdc).balanceOf(address(this));
+        _ust = IERC20(ust).balanceOf(address(this));
+
+        if (_usdc > 0 && _ust > 0) {
+            IERC20(usdc).safeApprove(pangolinRouter, 0);
+            IERC20(usdc).safeApprove(pangolinRouter, _usdc);
+
+            IERC20(ust).safeApprove(pangolinRouter, 0);
+            IERC20(ust).safeApprove(pangolinRouter, _ust);
+
+            IPangolinRouter(pangolinRouter).addLiquidity(
+                usdc,
+                ust,
+                _usdc,
+                _ust,
                 0,
                 0,
                 address(this),
@@ -2047,22 +2057,54 @@ contract StrategyJoeAvaxPefiLp is StrategyJoeFarmBase {
             );
 
             // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(pefi).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(pefi).balanceOf(address(this))
-            );
-        }
+            _usdc = IERC20(usdc).balanceOf(address(this));
+            _ust = IERC20(ust).balanceOf(address(this));
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _png = IERC20(png).balanceOf(address(this));
+            _luna = IERC20(luna).balanceOf(address(this));
+            
+            if (_usdc > 0){
+                IERC20(usdc).transfer(
+                    IController(controller).treasury(),
+                    _usdc
+                );
+            }
 
+            if (_ust > 0){
+                IERC20(ust).safeTransfer(
+                    IController(controller).treasury(),
+                    _ust
+                );
+            }
+            
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
+            
+            if (_png > 0){
+                IERC20(png).safeTransfer(
+                    IController(controller).treasury(),
+                    _png
+                );
+            }
+
+            if (_luna > 0){
+                IERC20(luna).safeTransfer(
+                    IController(controller).treasury(),
+                    _luna
+                );
+            }
+        }
+        
         _distributePerformanceFeesAndDeposit();
     }
 
     // **** Views ****
 
-    function getName() external override pure returns (string memory) {
-        return "StrategyJoeAvaxPefiLp";
+    function getName() external pure override returns (string memory) {
+        return "StrategyPngUsdcUst";
     }
 }

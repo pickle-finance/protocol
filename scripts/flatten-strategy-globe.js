@@ -1,9 +1,11 @@
 const {exec} = require('child_process');
 
 async function main() {
-  const platform = "axial";
+  const platform = "pangolin";
   const names = [
-    "axial-ac4d",
+    "png-avax-ust",
+    "png-avax-luna",
+    "png-usdc-ust"
   ];
 
   const flatten = name => {

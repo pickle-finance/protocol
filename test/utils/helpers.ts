@@ -71,12 +71,13 @@ export async function returnSigner(address: string): Promise<Signer> {
 export function findSlot(address: string): number {
     let slot;
     switch (address) {
-        case "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7": slot = 3; break; //WAVAX
         case "0x8729438eb15e2c8b576fcc6aecda6a148776c0f5": slot = 1; break; //QI
+        case "0x60781C2586D68229fde47564546784ab3fACA982": slot = 1; break; //PNG & JOE
         case "0xdc42728b0ea910349ed3c6e1c9dc06b5fb591f98": slot = 2; break; //FRAX
+        case "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7": slot = 3; break; //WAVAX
         case "0x1c20e891bab6b1727d14da358fae2984ed9b59eb": slot = 14; break; //TUSD
         case "0xB91124eCEF333f17354ADD2A8b944C76979fE3EC": slot = 51; break; //s4D
-        case "0x60781C2586D68229fde47564546784ab3fACA982": slot = 1; break; //PNG
+        
         case "0x0D26D103c91F63052Fbca88aAF01d5304Ae40015": slot = 101; break;
         default: slot = 0; break;
     }
@@ -86,12 +87,12 @@ export function findSlot(address: string): number {
 export function returnController(controller: string): string {
     let address;
     switch (controller) {
-        case "main": address = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; break;
+        case "aave": address = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; break;
         case "axial": address = "0xc7D536a04ECC43269B6B95aC1ce0a06E0000D095"; break;
         case "backup": address = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; break;
-        case "aave": address = "0x425A863762BBf24A986d8EaE2A367cb514591C6F"; break;
         case "bankerJoe": address = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
         case "benqi": address = "0x252B5fD3B1Cb07A2109bF36D5bDE6a247c6f4B59"; break;
+        case "main": address = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; break;
         case "oldBenqi": address = "0x8Ffa3c1547479B77D9524316D5192777bedA40a1"; break;
         case "traderJoe": address = "0xCEB829a0881350689dAe8CBD77D0E012cf7a6a3f"; break;
         case "optimizer": address = "0x2F0b4e7aC032d0708C082994Fb21Dd75DB514744"; break;

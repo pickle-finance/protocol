@@ -1,4 +1,6 @@
-// File: contracts/interfaces/controller.sol
+// Sources flattened with hardhat v2.8.0 https://hardhat.org
+
+// File contracts/interfaces/controller.sol
 
 // SPDX-License-Identifier: MIT
 
@@ -18,9 +20,26 @@ interface IController {
     function withdraw(address, uint256) external;
 
     function earn(address, uint256) external;
+
+    // For Big Green Button:
+
+    function setGlobe(address _token, address _globe) external;
+
+    function approveStrategy(address _token, address _strategy) external;
+
+    function revokeStrategy(address _token, address _strategy) external;
+
+    function setStrategy(address _token, address _strategy) external;
+
+    function setStrategist(address _strategist) external;
+
+    function setGovernance(address _governance) external;
+
+    function setTimelock(address _timelock) external;
 }
 
-// File: contracts/lib/safe-math.sol
+
+// File contracts/lib/safe-math.sol
 
 // SPDX-License-Identifier: MIT
 
@@ -182,7 +201,8 @@ library SafeMath {
     }
 }
 
-// File: contracts/lib/context.sol
+
+// File contracts/lib/context.sol
 
 // SPDX-License-Identifier: MIT
 
@@ -209,14 +229,14 @@ abstract contract Context {
     }
 }
 
-// File: contracts/lib/erc20.sol
+
+// File contracts/lib/erc20.sol
 
 // File: contracts/GSN/Context.sol
 
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.0;
-
 
 
 // File: contracts/token/ERC20/IERC20.sol
@@ -806,16 +826,15 @@ library SafeERC20 {
     }
 }
 
-// File: contracts/snow-globe.sol
+
+// File contracts/snowglobes/pangolin/snowglobe-png-avax-luna.sol
 
 // https://github.com/iearn-finance/vaults/blob/master/contracts/vaults/yVault.sol
 
 pragma solidity ^0.6.7;
 
 
-
-
-contract SnowGlobeJoeAvaxPefi is ERC20 {
+contract SnowGlobePngAvaxLuna is ERC20 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
