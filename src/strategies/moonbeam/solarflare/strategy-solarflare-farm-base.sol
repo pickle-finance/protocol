@@ -2,20 +2,20 @@
 pragma solidity ^0.6.7;
 
 import "../strategy-base.sol";
-import "../../../interfaces/stella-chef.sol";
+import "../../../interfaces/flare-chef.sol";
 
-abstract contract StrategySolarflareFarmBase is StrategyBase {
+abstract contract StrategyFlareFarmBase is StrategyBase {
     // Token addresses
-    address public constant stella = 0x0E358838ce72d5e61E0018a2ffaC4bEC5F4c88d2;
-    address public constant stellaChef =
-        0xEDFB330F5FA216C9D2039B99C8cE9dA85Ea91c1E;
+    address public constant flare = 0xE3e43888fa7803cDC7BEA478aB327cF1A0dc11a7;
+    address public constant flareChef =
+        0x995da7dfB96B4dd1e2bd954bE384A1e66cBB4b8c;
 
     address public token0;
     address public token1;
 
-    // How much STELLA tokens to keep?
-    uint256 public keepSTELLA = 1000;
-    uint256 public constant keepSTELLAMax = 10000;
+    // How much FLARE tokens to keep?
+    uint256 public keepFLARE = 1000;
+    uint256 public constant keepFLAREMax = 10000;
 
     uint256 public poolId;
     mapping(address => address[]) public swapRoutes;
@@ -31,15 +31,15 @@ abstract contract StrategySolarflareFarmBase is StrategyBase {
         public
         StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
     {
-        // Stellaswap router
-        sushiRouter = 0xd0A01ec574D1fC6652eDF79cb2F880fd47D34Ab1;
+        // Flareswap router
+        sushiRouter = 0xd3B02Ff30c218c7f7756BA14bcA075Bf7C2C951e;
         poolId = _poolId;
         token0 = IUniswapV2Pair(_lp).token0();
         token1 = IUniswapV2Pair(_lp).token1();
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        (uint256 amount, , , ) = IStellaChef(stellaChef).userInfo(
+        (uint256 amount, , , ) = IFlareChef(flareChef).userInfo(
             poolId,
             address(this)
         );
@@ -47,7 +47,7 @@ abstract contract StrategySolarflareFarmBase is StrategyBase {
     }
 
     function getHarvestable() external view returns (uint256) {
-        return IStellaChef(stellaChef).pendingStella(poolId, address(this));
+        return IFlareChef(flareChef).pendingTokens(poolId, address(this));
     }
 
     // **** Setters ****
@@ -55,9 +55,9 @@ abstract contract StrategySolarflareFarmBase is StrategyBase {
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(stellaChef, 0);
-            IERC20(want).safeApprove(stellaChef, _want);
-            IStellaChef(stellaChef).deposit(poolId, _want);
+            IERC20(want).safeApprove(flareChef, 0);
+            IERC20(want).safeApprove(flareChef, _want);
+            IFlareChef(flareChef).deposit(poolId, _want);
         }
     }
 
@@ -66,31 +66,31 @@ abstract contract StrategySolarflareFarmBase is StrategyBase {
         override
         returns (uint256)
     {
-        IStellaChef(stellaChef).withdraw(poolId, _amount);
+        IFlareChef(flareChef).withdraw(poolId, _amount);
         return _amount;
     }
 
-    function setKeepSTELLA(uint256 _keepSTELLA) external {
+    function setKeepFLARE(uint256 _keepFLARE) external {
         require(msg.sender == timelock, "!timelock");
-        keepSTELLA = _keepSTELLA;
+        keepFLARE = _keepFLARE;
     }
 
     // **** State Mutations ****
 
     function harvest() public override {
-        // Collects STELLA tokens
-        IStellaChef(stellaChef).deposit(poolId, 0);
-        uint256 _stella = IERC20(stella).balanceOf(address(this));
+        // Collects FLARE tokens
+        IFlareChef(flareChef).deposit(poolId, 0);
+        uint256 _flare = IERC20(flare).balanceOf(address(this));
 
-        if (_stella > 0) {
-            uint256 _keepSTELLA = _stella.mul(keepSTELLA).div(keepSTELLAMax);
-            IERC20(stella).safeTransfer(
+        if (_flare > 0) {
+            uint256 _keepFLARE = _flare.mul(keepFLARE).div(keepFLAREMax);
+            IERC20(flare).safeTransfer(
                 IController(controller).treasury(),
-                _keepSTELLA
+                _keepFLARE
             );
-            _stella = _stella.sub(_keepSTELLA);
-            uint256 toToken0 = _stella.div(2);
-            uint256 toToken1 = _stella.sub(toToken0);
+            _flare = _flare.sub(_keepFLARE);
+            uint256 toToken0 = _flare.div(2);
+            uint256 toToken1 = _flare.sub(toToken0);
 
             if (swapRoutes[token0].length > 1) {
                 _swapSushiswapWithPath(swapRoutes[token0], toToken0);
