@@ -79,13 +79,13 @@ const whitelistHarvesters = async () => {
 const deployPickleJar = async () => {
   console.log("deploying Strategy...");
 
-  const governance = "0x9d074E37d408542FD38be78848e8814AFB38db17";
+  const governance = "0xf02CeB58d549E4b403e8F85FBBaEe4c5dfA47c01";
   const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
-  const timelock = "0xD92c7fAa0Ca0e6AE4918f3a83d9832d9CAEAA0d3";
+  const controller = "0x55d5bcef2bfd4921b8790525ff87919c2e26bd03";
+  const timelock = "0xf02CeB58d549E4b403e8F85FBBaEe4c5dfA47c01";
 
   const StrategyFactory = await ethers.getContractFactory(
-    "src/strategies/saddle/strategy-saddle-d4.sol:StrategySaddleD4"
+    "src/strategies/arbitrum/dodo/strategy-dodo-hnd-eth-lp-v3.sol:StrategyDodoHndEthLpV3"
   );
   const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
 
@@ -138,7 +138,7 @@ const main = async () => {
   // await deployControllerV4();
   // await deployComethWmaticMustStrategy();
   // await deployPickleJar();
-  await whitelistHarvesters();
+  await deployPickleJar();
   // await setJar();
   // await approveBal();
 };
