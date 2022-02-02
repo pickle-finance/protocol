@@ -5,7 +5,6 @@ const { expect } = require('chai');
 
 import chaiAsPromised from 'chai-as-promised'
 chai.use(chaiAsPromised)
-import { BigNumber } from "@ethersproject/bignumber";
 import {
     Contract,
     Signer

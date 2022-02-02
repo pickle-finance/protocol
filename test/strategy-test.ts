@@ -1,7 +1,6 @@
 /* eslint-disable no-undef */
 const { ethers, network } = require("hardhat");
 const hre = "hardhat";
-import { BigNumber } from "@ethersproject/bignumber";
 import chai from "chai";
 import { expect } from "chai";
 import { log } from "./utils/log";
@@ -10,7 +9,8 @@ import { setupMockSnowGlobe } from "./mocks/SnowGlobe";
 import {
     Contract,
     ContractFactory,
-    Signer
+    Signer,
+    BigNumber
 } from "ethers";
 import {
     setupSigners,

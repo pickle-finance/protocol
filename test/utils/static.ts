@@ -1,7 +1,6 @@
 const hre = "hardhat";
 const { ethers, network } = require("hardhat");
-import { BigNumber } from "@ethersproject/bignumber";
-import { Signer } from "ethers";
+import { Signer, BigNumber } from "ethers";
 
 
 export const BLACKHOLE = "0x0000000000000000000000000000000000000000"
