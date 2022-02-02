@@ -1,19 +1,11 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { BenqiControllerV4__factory } from '../../typechain';
-import { getControllerArgs } from './args';
+import { deployController } from './../utils/deployController';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-    const {deployments, getNamedAccounts} = hre;
-    const {deploy} = deployments;
-    const {deployer} = await getNamedAccounts();
     const contract_name = (new BenqiControllerV4__factory()).contractName;
-    const deployed = await deploy(contract_name, {
-        from: deployer,
-        args: getControllerArgs(contract_name),
-        contract: contract_name,
-        log: true
-    }); 
+    await deployController(hre, contract_name);
 };
 
 func.tags = ['controllers', 'benqi']
