@@ -44,8 +44,14 @@ jspm_packages/
 # TypeScript v1 declaration files
 typings/
 
+# Typechain generations
+typechain/
+
 # TypeScript cache
 *.tsbuildinfo
+
+# ignore hardhat deployments for hardhat network
+deployments/hardhat
 
 # Optional npm cache directory
 .npm
