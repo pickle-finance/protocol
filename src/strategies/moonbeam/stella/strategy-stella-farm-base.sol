@@ -4,7 +4,7 @@ pragma solidity ^0.6.7;
 import "../strategy-base.sol";
 import "../../../interfaces/stella-chef.sol";
 
-abstract contract StrategySolarflareFarmBase is StrategyBase {
+abstract contract StrategyStellaFarmBase is StrategyBase {
     // Token addresses
     address public constant stella = 0x0E358838ce72d5e61E0018a2ffaC4bEC5F4c88d2;
     address public constant stellaChef =

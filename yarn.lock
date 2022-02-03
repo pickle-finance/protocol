@@ -985,10 +985,10 @@
   resolved "https://registry.npmjs.org/@nomiclabs/hardhat-ethers/-/hardhat-ethers-2.0.2.tgz"
   integrity sha512-6quxWe8wwS4X5v3Au8q1jOvXYEPkS1Fh+cME5u6AwNdnI4uERvPlVjlgRWzpnb+Rrt1l/cEqiNRH9GlsBMSDQg==
 
-"@nomiclabs/hardhat-etherscan@^2.1.1":
-  version "2.1.4"
-  resolved "https://registry.npmjs.org/@nomiclabs/hardhat-etherscan/-/hardhat-etherscan-2.1.4.tgz"
-  integrity sha512-KgFNTQv9gpioiTpQ9UlTysCAFfkcBonmEn9rVPTT22A7DRENFM1VTsVeGWF3AzRhd0mrASBF+o0gvbH30pSe0Q==
+"@nomiclabs/hardhat-etherscan@^3.0.1-rc.0":
+  version "3.0.1-rc.0"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-etherscan/-/hardhat-etherscan-3.0.1-rc.0.tgz#541c19fd1e1d7744e769f5b6e7dd098bb9e6d739"
+  integrity sha512-k9lzXf4n3qPux8dmOgxuDPtE18As8JliIpC6FBzwdrP2kDpEqpFtepP8k6EF8r2j7oyTfvE/hLvRJPGVc32P0g==
   dependencies:
     "@ethersproject/abi" "^5.1.2"
     "@ethersproject/address" "^5.0.2"

@@ -60,6 +60,10 @@ module.exports = {
       url: `https://andromeda.metis.io/?owner=1088`,
       accounts: [`0x${process.env.MNEMONIC}`],
     },
+    moonbeam: {
+      url: `https://rpc.api.moonbeam.network`,
+      accounts: [`0x${process.env.MNEMONIC}`]
+    }
   },
   contractSizer: {
     alphaSort: true,
