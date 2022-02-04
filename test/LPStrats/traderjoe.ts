@@ -77,6 +77,7 @@ const tests = [
     {
         name: "JoeAvaxUst",
         controller: "traderJoe",
+        lp_suffix: false,
         slot: 1
     }
     // {

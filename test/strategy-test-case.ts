@@ -35,7 +35,7 @@ export const SingleStakeTestDefault: TestableStrategy = {
 export const LPTestDefault: TestableStrategy = {
     type: "LP",
     name: "",
-    lp_suffix: false,
+    lp_suffix: true,
     controller: "main",
     snowglobeAddress: "",
     strategyAddress: "",
