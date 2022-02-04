@@ -2,12 +2,13 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-minichef-farm-base.sol";
 
-contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
-    uint256 public _poolId = 78;
+contract StrategyPngAvaxMoney is StrategyPngMiniChefFarmBase {
+    uint256 public _poolId = 81;
 
     // Token addresses
-    address public png_avax_bnb_lp = 0xF776Ef63c2E7A81d03e2c67673fd5dcf53231A3f;
-    address public bnb = 0x264c1383EA520f73dd837F915ef3a732e204a493;
+    address public png_avax_money_lp = 0x3e58e8D1c403c353f6cFe8b9582bB17bD7f433f3;
+    address public money = 0x0f577433Bf59560Ef2a79c124E9Ff99fCa258948;
+    address public more = 0xd9D90f882CDdD6063959A9d837B05Cb748718A05;
 
     constructor(
         address _governance,
@@ -18,14 +19,14 @@ contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            png_avax_bnb_lp,
+            png_avax_money_lp,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {}
-    
+
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
@@ -41,6 +42,7 @@ contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
         // 10% is sent to treasury
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         uint256 _png = IERC20(png).balanceOf(address(this));
+        uint256 _more = IERC20(more).balanceOf(address(this));
         
         if (_wavax > 0) {
             uint256 _keep = _wavax.mul(keep).div(keepMax);
@@ -51,7 +53,6 @@ contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
             _wavax = IERC20(wavax).balanceOf(address(this));
         }
 
-
         if (_png > 0) {
             uint256 _keep = _png.mul(keep).div(keepMax);
             if (_keep > 0) {
@@ -61,38 +62,54 @@ contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
             _png = IERC20(png).balanceOf(address(this));  
         }
 
-        // In the case of AVAX Rewards, swap half WAVAX for BNB
+        if (_more > 0) {
+            uint256 _keep = _more.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeeRewardToSnob(_keep, more);
+            }
+
+            _more = IERC20(more).balanceOf(address(this));  
+        }
+
+        // In the case of AVAX Rewards, swap half WAVAX for MONEY
         if(_wavax > 0){
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax.div(2));   
-            _swapPangolin(wavax, bnb, _wavax.div(2)); 
+            _swapPangolin(wavax, money, _wavax.div(2)); 
         }      
-
     
-        // In the case of PNG Rewards, swap PNG for WAVAX and BNB
+        // In the case of PNG Rewards, swap PNG for WAVAX and MONEY
         if(_png > 0){
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);   
             _swapPangolin(png, wavax, _png.div(2));
-            _swapBaseToToken(_png.div(2), png, bnb); 
+            _swapBaseToToken(_png.div(2), png, money); 
         }
 
-        // Adds in liquidity for AVAX/BNB
-        _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _bnb = IERC20(bnb).balanceOf(address(this));
+        // In the case of MORE Rewards, swap MORE for WAVAX and MONEY
+        if(_more > 0){
+            IERC20(more).safeApprove(pangolinRouter, 0);
+            IERC20(more).safeApprove(pangolinRouter, _more);   
+            _swapPangolin(more, wavax, _more.div(2));
+            _swapBaseToToken(_more.div(2), more, money); 
+        }
 
-        if (_wavax > 0 && _bnb > 0) {
+        // Adds in liquidity for AVAX/MONEY
+        _wavax = IERC20(wavax).balanceOf(address(this));
+        uint256 _money = IERC20(money).balanceOf(address(this));
+
+        if (_wavax > 0 && _money > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
 
-            IERC20(bnb).safeApprove(pangolinRouter, 0);
-            IERC20(bnb).safeApprove(pangolinRouter, _bnb);
+            IERC20(money).safeApprove(pangolinRouter, 0);
+            IERC20(money).safeApprove(pangolinRouter, _money);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
                 wavax,
-                bnb,
+                money,
                 _wavax,
-                _bnb,
+                _money,
                 0,
                 0,
                 address(this),
@@ -101,8 +118,9 @@ contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
 
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _bnb = IERC20(bnb).balanceOf(address(this));
+            _money = IERC20(money).balanceOf(address(this));
             _png = IERC20(png).balanceOf(address(this));
+            _more = IERC20(more).balanceOf(address(this));
             
             if (_wavax > 0){
                 IERC20(wavax).transfer(
@@ -111,10 +129,10 @@ contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
                 );
             }          
             
-            if (_bnb > 0){
-                IERC20(bnb).safeTransfer(
+            if (_money > 0){
+                IERC20(money).safeTransfer(
                     IController(controller).treasury(),
-                    _bnb
+                    _money
                 );
             }
 
@@ -122,6 +140,13 @@ contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
                 IERC20(png).safeTransfer(
                     IController(controller).treasury(),
                     _png
+                );
+            }
+
+            if (_more > 0){
+                IERC20(more).safeTransfer(
+                    IController(controller).treasury(),
+                    _more
                 );
             }
         }
@@ -132,6 +157,6 @@ contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAvaxBnb";
+        return "StrategyPngAvaxMoney";
     }
 }

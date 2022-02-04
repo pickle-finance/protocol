@@ -88,16 +88,6 @@ contract StrategyPngUsdcUst is StrategyPngMiniChefFarmBase {
         );
     }
 
-    function _swapBaseToToken(uint256 _amount, address token1, address token2) internal {
-        address[] memory path = new address[](3);
-        path[0] = token1;
-        path[1] = wavax;
-        path[2] = token2;
-        IERC20(token1).safeApprove(pangolinRouter, 0);
-        IERC20(token1).safeApprove(pangolinRouter, _amount);
-        _swapPangolinWithPath(path, _amount);
-    }
-
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {

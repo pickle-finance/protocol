@@ -189,15 +189,39 @@ const tests = [
     //     name: "PngAvaxUst",
     //     controller: "main"
     // },
-    {
-        name: "PngAvaxLuna",
-        controller: "main"
-    },
+    // {
+    //     name: "PngAvaxLuna",
+    //     controller: "main"
+    // },
     // {
     //     name: "PngUsdcUst",
     //     controller: "main",
     //     slot: 1
     // },
+    {
+        name: "PngAvaxAaveE",
+        controller: "main"
+    },
+    {
+        name: "PngAvaxBnb",
+        controller: "main"
+    },
+    {
+        name: "PngAvaxIme",
+        controller: "main"
+    },
+    {
+        name: "PngAvaxAvxt",
+        controller: "main"
+    },
+    {
+        name: "PngAvaxMoney",
+        controller: "main"
+    },
+    {
+        name: "PngAvaxYdr",
+        controller: "main"
+    },
 ];
 
 describe("Pangolin LP test", function() {

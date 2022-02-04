@@ -2,12 +2,12 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-minichef-farm-base.sol";
 
-contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
-    uint256 public _poolId = 78;
+contract StrategyPngAvaxIme is StrategyPngMiniChefFarmBase {
+    uint256 public _poolId = 79;
 
     // Token addresses
-    address public png_avax_bnb_lp = 0xF776Ef63c2E7A81d03e2c67673fd5dcf53231A3f;
-    address public bnb = 0x264c1383EA520f73dd837F915ef3a732e204a493;
+    address public png_avax_ime_lp = 0xB6eE4A02F1fa523559B9Abb54C50dF3011911fe9;
+    address public ime = 0xF891214fdcF9cDaa5fdC42369eE4F27F226AdaD6;
 
     constructor(
         address _governance,
@@ -18,14 +18,14 @@ contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            png_avax_bnb_lp,
+            png_avax_ime_lp,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {}
-    
+
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
@@ -61,38 +61,38 @@ contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
             _png = IERC20(png).balanceOf(address(this));  
         }
 
-        // In the case of AVAX Rewards, swap half WAVAX for BNB
+        // In the case of AVAX Rewards, swap half WAVAX for IME
         if(_wavax > 0){
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax.div(2));   
-            _swapPangolin(wavax, bnb, _wavax.div(2)); 
+            _swapPangolin(wavax, ime, _wavax.div(2)); 
         }      
 
     
-        // In the case of PNG Rewards, swap PNG for WAVAX and BNB
+        // In the case of PNG Rewards, swap PNG for WAVAX and IME
         if(_png > 0){
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);   
             _swapPangolin(png, wavax, _png.div(2));
-            _swapBaseToToken(_png.div(2), png, bnb); 
+            _swapBaseToToken(_png.div(2), png, ime); 
         }
 
-        // Adds in liquidity for AVAX/BNB
+        // Adds in liquidity for AVAX/IME
         _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _bnb = IERC20(bnb).balanceOf(address(this));
+        uint256 _ime = IERC20(ime).balanceOf(address(this));
 
-        if (_wavax > 0 && _bnb > 0) {
+        if (_wavax > 0 && _ime > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
 
-            IERC20(bnb).safeApprove(pangolinRouter, 0);
-            IERC20(bnb).safeApprove(pangolinRouter, _bnb);
+            IERC20(ime).safeApprove(pangolinRouter, 0);
+            IERC20(ime).safeApprove(pangolinRouter, _ime);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
                 wavax,
-                bnb,
+                ime,
                 _wavax,
-                _bnb,
+                _ime,
                 0,
                 0,
                 address(this),
@@ -101,7 +101,7 @@ contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
 
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _bnb = IERC20(bnb).balanceOf(address(this));
+            _ime = IERC20(ime).balanceOf(address(this));
             _png = IERC20(png).balanceOf(address(this));
             
             if (_wavax > 0){
@@ -111,10 +111,10 @@ contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
                 );
             }          
             
-            if (_bnb > 0){
-                IERC20(bnb).safeTransfer(
+            if (_ime > 0){
+                IERC20(ime).safeTransfer(
                     IController(controller).treasury(),
-                    _bnb
+                    _ime
                 );
             }
 
@@ -132,6 +132,6 @@ contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAvaxBnb";
+        return "StrategyPngAvaxIme";
     }
 }

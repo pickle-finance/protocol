@@ -1877,16 +1877,17 @@ abstract contract StrategyPngMiniChefFarmBase is StrategyBase {
 }
 
 
-// File contracts/strategies/pangolin/strategy-png-avax-aavee.sol
+// File contracts/strategies/pangolin/strategy-png-avax-avxt.sol
 
 pragma solidity ^0.6.7;
 
-contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
-    uint256 public _poolId = 77;
+contract StrategyPngAvaxAvxt is StrategyPngMiniChefFarmBase {
+    uint256 public _poolId = 80;
 
     // Token addresses
-    address public png_avax_aavee_lp = 0x5944f135e4F1E3fA2E5550d4B5170783868cc4fE;
-    address public aavee = 0x63a72806098Bd3D9520cC43356dD78afe5D386D9;
+    address public png_avax_avxt_lp = 0x792055e49a6421F7544c5479eCC380bad62Bc7EE;
+    address public avxt = 0x397bBd6A0E41bdF4C3F971731E180Db8Ad06eBc1;
+    address public enxt = 0x164334Ed9E63FbEdC8B52E6dbD408Af4F051419f;
 
     constructor(
         address _governance,
@@ -1897,7 +1898,7 @@ contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            png_avax_aavee_lp,
+            png_avax_avxt_lp,
             _governance,
             _strategist,
             _controller,
@@ -1920,6 +1921,7 @@ contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
         // 10% is sent to treasury
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         uint256 _png = IERC20(png).balanceOf(address(this));
+        uint256 _enxt = IERC20(enxt).balanceOf(address(this));
         
         if (_wavax > 0) {
             uint256 _keep = _wavax.mul(keep).div(keepMax);
@@ -1930,7 +1932,6 @@ contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
             _wavax = IERC20(wavax).balanceOf(address(this));
         }
 
-
         if (_png > 0) {
             uint256 _keep = _png.mul(keep).div(keepMax);
             if (_keep > 0) {
@@ -1940,38 +1941,54 @@ contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
             _png = IERC20(png).balanceOf(address(this));  
         }
 
-        // In the case of AVAX Rewards, swap half WAVAX for AAVEe
+        if (_enxt > 0) {
+            uint256 _keep = _enxt.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeeRewardToSnob(_keep, enxt);
+            }
+
+            _enxt = IERC20(enxt).balanceOf(address(this));  
+        }
+
+        // In the case of AVAX Rewards, swap half WAVAX for AVXT
         if(_wavax > 0){
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax.div(2));   
-            _swapPangolin(wavax, aavee, _wavax.div(2)); 
+            _swapPangolin(wavax, avxt, _wavax.div(2)); 
         }      
-
     
-        // In the case of PNG Rewards, swap PNG for WAVAX and AAVEe
+        // In the case of PNG Rewards, swap PNG for WAVAX and AVXT
         if(_png > 0){
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);   
             _swapPangolin(png, wavax, _png.div(2));
-            _swapBaseToToken(_png.div(2), png, aavee); 
+            _swapBaseToToken(_png.div(2), png, avxt); 
         }
 
-        // Adds in liquidity for AVAX/AAVEe
-        _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _aavee = IERC20(aavee).balanceOf(address(this));
+        // In the case of ENXT Rewards, swap ENXT for WAVAX and AVXT
+        if(_enxt > 0){
+            IERC20(enxt).safeApprove(pangolinRouter, 0);
+            IERC20(enxt).safeApprove(pangolinRouter, _enxt);   
+            _swapPangolin(enxt, wavax, _enxt.div(2));
+            _swapBaseToToken(_enxt.div(2), enxt, avxt); 
+        }
 
-        if (_wavax > 0 && _aavee > 0) {
+        // Adds in liquidity for AVAX/AVXT
+        _wavax = IERC20(wavax).balanceOf(address(this));
+        uint256 _avxt = IERC20(avxt).balanceOf(address(this));
+
+        if (_wavax > 0 && _avxt > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
 
-            IERC20(aavee).safeApprove(pangolinRouter, 0);
-            IERC20(aavee).safeApprove(pangolinRouter, _aavee);
+            IERC20(avxt).safeApprove(pangolinRouter, 0);
+            IERC20(avxt).safeApprove(pangolinRouter, _avxt);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
                 wavax,
-                aavee,
+                avxt,
                 _wavax,
-                _aavee,
+                _avxt,
                 0,
                 0,
                 address(this),
@@ -1980,8 +1997,9 @@ contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
 
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _aavee = IERC20(aavee).balanceOf(address(this));
+            _avxt = IERC20(avxt).balanceOf(address(this));
             _png = IERC20(png).balanceOf(address(this));
+            _enxt = IERC20(enxt).balanceOf(address(this));
             
             if (_wavax > 0){
                 IERC20(wavax).transfer(
@@ -1990,10 +2008,10 @@ contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
                 );
             }          
             
-            if (_aavee > 0){
-                IERC20(aavee).safeTransfer(
+            if (_avxt > 0){
+                IERC20(avxt).safeTransfer(
                     IController(controller).treasury(),
-                    _aavee
+                    _avxt
                 );
             }
 
@@ -2001,6 +2019,13 @@ contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
                 IERC20(png).safeTransfer(
                     IController(controller).treasury(),
                     _png
+                );
+            }
+
+            if (_enxt > 0){
+                IERC20(enxt).safeTransfer(
+                    IController(controller).treasury(),
+                    _enxt
                 );
             }
         }
@@ -2011,6 +2036,6 @@ contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAvaxAaveE";
+        return "StrategyPngAvaxAvxt";
     }
 }

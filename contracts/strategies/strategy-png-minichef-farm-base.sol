@@ -80,5 +80,35 @@ abstract contract StrategyPngMiniChefFarmBase is StrategyBase {
             _snob.sub(_share)
         );
     }
+    
+    function _swapBaseToToken(uint256 _amount, address token1, address token2) internal {
+        address[] memory path = new address[](3);
+        path[0] = token1;
+        path[1] = wavax;
+        path[2] = token2;
+        IERC20(token1).safeApprove(pangolinRouter, 0);
+        IERC20(token1).safeApprove(pangolinRouter, _amount);
+        _swapPangolinWithPath(path, _amount);
+    }
+
+    function _takeFeeRewardToSnob(uint256 _keep, address reward) internal {
+        address[] memory path = new address[](3);
+        path[0] = reward;
+        path[1] = wavax;
+        path[2] = snob;
+        IERC20(reward).safeApprove(pangolinRouter, 0);
+        IERC20(reward).safeApprove(pangolinRouter, _keep);
+        _swapPangolinWithPath(path, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(
+            feeDistributor,
+            _share
+        );
+        IERC20(snob).safeTransfer(
+            IController(controller).treasury(),
+            _snob.sub(_share)
+        );
+    }
 
 }

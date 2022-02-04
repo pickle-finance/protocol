@@ -1877,16 +1877,16 @@ abstract contract StrategyPngMiniChefFarmBase is StrategyBase {
 }
 
 
-// File contracts/strategies/pangolin/strategy-png-avax-aavee.sol
+// File contracts/strategies/pangolin/strategy-png-avax-bnb.sol
 
 pragma solidity ^0.6.7;
 
-contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
-    uint256 public _poolId = 77;
+contract StrategyPngAvaxBnb is StrategyPngMiniChefFarmBase {
+    uint256 public _poolId = 78;
 
     // Token addresses
-    address public png_avax_aavee_lp = 0x5944f135e4F1E3fA2E5550d4B5170783868cc4fE;
-    address public aavee = 0x63a72806098Bd3D9520cC43356dD78afe5D386D9;
+    address public png_avax_bnb_lp = 0xF776Ef63c2E7A81d03e2c67673fd5dcf53231A3f;
+    address public bnb = 0x264c1383EA520f73dd837F915ef3a732e204a493;
 
     constructor(
         address _governance,
@@ -1897,14 +1897,14 @@ contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
         public
         StrategyPngMiniChefFarmBase(
             _poolId,
-            png_avax_aavee_lp,
+            png_avax_bnb_lp,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {}
-
+    
     // **** State Mutations ****
 
     function harvest() public override onlyBenevolent {
@@ -1940,38 +1940,38 @@ contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
             _png = IERC20(png).balanceOf(address(this));  
         }
 
-        // In the case of AVAX Rewards, swap half WAVAX for AAVEe
+        // In the case of AVAX Rewards, swap half WAVAX for BNB
         if(_wavax > 0){
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax.div(2));   
-            _swapPangolin(wavax, aavee, _wavax.div(2)); 
+            _swapPangolin(wavax, bnb, _wavax.div(2)); 
         }      
 
     
-        // In the case of PNG Rewards, swap PNG for WAVAX and AAVEe
+        // In the case of PNG Rewards, swap PNG for WAVAX and BNB
         if(_png > 0){
             IERC20(png).safeApprove(pangolinRouter, 0);
             IERC20(png).safeApprove(pangolinRouter, _png);   
             _swapPangolin(png, wavax, _png.div(2));
-            _swapBaseToToken(_png.div(2), png, aavee); 
+            _swapBaseToToken(_png.div(2), png, bnb); 
         }
 
-        // Adds in liquidity for AVAX/AAVEe
+        // Adds in liquidity for AVAX/BNB
         _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _aavee = IERC20(aavee).balanceOf(address(this));
+        uint256 _bnb = IERC20(bnb).balanceOf(address(this));
 
-        if (_wavax > 0 && _aavee > 0) {
+        if (_wavax > 0 && _bnb > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
             IERC20(wavax).safeApprove(pangolinRouter, _wavax);
 
-            IERC20(aavee).safeApprove(pangolinRouter, 0);
-            IERC20(aavee).safeApprove(pangolinRouter, _aavee);
+            IERC20(bnb).safeApprove(pangolinRouter, 0);
+            IERC20(bnb).safeApprove(pangolinRouter, _bnb);
 
             IPangolinRouter(pangolinRouter).addLiquidity(
                 wavax,
-                aavee,
+                bnb,
                 _wavax,
-                _aavee,
+                _bnb,
                 0,
                 0,
                 address(this),
@@ -1980,7 +1980,7 @@ contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
 
             // Donates DUST
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _aavee = IERC20(aavee).balanceOf(address(this));
+            _bnb = IERC20(bnb).balanceOf(address(this));
             _png = IERC20(png).balanceOf(address(this));
             
             if (_wavax > 0){
@@ -1990,10 +1990,10 @@ contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
                 );
             }          
             
-            if (_aavee > 0){
-                IERC20(aavee).safeTransfer(
+            if (_bnb > 0){
+                IERC20(bnb).safeTransfer(
                     IController(controller).treasury(),
-                    _aavee
+                    _bnb
                 );
             }
 
@@ -2011,6 +2011,6 @@ contract StrategyPngAvaxAaveE is StrategyPngMiniChefFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPngAvaxAaveE";
+        return "StrategyPngAvaxBnb";
     }
 }
