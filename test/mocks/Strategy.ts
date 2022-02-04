@@ -13,6 +13,11 @@ export async function setupMockStrategy(
     Controller: Contract, walletSigner: Signer, timelockSigner: Signer,
     governanceSigner: Signer, strategistSigner: Signer) {
 
+    await hre.network.provider.send("hardhat_setBalance", [
+        await walletSigner.getAddress(), 
+        "0x10000000000000000000000",]
+    );
+
     let Strategy: Contract
     let asset_addr: string
     let stratABI = (await ethers.getContractFactory(contract_name)).interface;
@@ -27,7 +32,7 @@ export async function setupMockStrategy(
         const stratFactory = await ethers.getContractFactory(contract_name);
 
         // Now we can deploy the new strategy
-        log(`${governanceSigner.getAddress()}, ${strategistSigner.getAddress()}, ${Controller.address}, ${timelock_addr}`);
+        log(`${await governanceSigner.getAddress()}, ${await strategistSigner.getAddress()}, ${Controller.address}, ${timelock_addr}`);
         Strategy = await stratFactory.connect(walletSigner).deploy(
             governance_addr,
             strategist_addr,
