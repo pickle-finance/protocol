@@ -244,10 +244,7 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
         return (token0Amount, token1Amount, _maticUsed);
     }
 
-    function _refundMatic(uint256 tokenAmount) internal {
-        uint256 _refund = WETH(wmatic).balanceOf(address(this)).sub(
-            tokenAmount
-        );
+    function _refundMatic(uint256 _refund) internal {
         WETH(wmatic).withdraw(_refund);
         (bool sent, bytes memory data) = (msg.sender).call{value: _refund}("");
         require(sent, "Failed to refund Matic");
