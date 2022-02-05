@@ -46,9 +46,9 @@ contract StrategyProxy {
         IUniswapV3PositionsNFT(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
 
     address public constant fxs = address(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
-    address public constant gauge = address(0x44ade9AA409B0C29463fF7fcf07c9d3c939166ce);
+    address public constant gauge = address(0x3669C421b77340B2979d1A00a792CC2ee0FcE737);
     address public constant rewards = address(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
-    address public constant feeDistribution = 0xed2647Bbf875b2936AAF95a3F5bbc82819e3d3FE;
+    address public constant feeDistribution = 0xc6764e58b36e26b08Fd1d2AeD4538c02171fA872;
 
     // gauge => strategies
     mapping(address => address) public strategies;
