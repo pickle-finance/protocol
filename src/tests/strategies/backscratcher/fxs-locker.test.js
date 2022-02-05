@@ -17,7 +17,7 @@ describe("FXSLocker test", () => {
   const DAIToken = "0x6b175474e89094c44da98b954eedeac495271d0f";
   const FXSToken = "0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0";
   const SMARTCHECKER = "0x53c13BA8834a1567474b19822aAD85c6F90D9f9F";
-  const FXS_DISTRIBUTOR = "0xed2647Bbf875b2936AAF95a3F5bbc82819e3d3FE";
+  const FXS_DISTRIBUTOR = "0xc6764e58b36e26b08Fd1d2AeD4538c02171fA872";
   const FXS_WHALE = "0xF977814e90dA44bFA03b6295A0616a897441aceC";
 
   let alice, bob;
@@ -109,21 +109,24 @@ describe("FXSLocker test", () => {
     dai = await getContractAt("ERC20", DAIToken);
     fxs = await getContractAt("ERC20", FXSToken);
 
-    await getWantFromWhale(FXSToken, toWei(490000), alice, FXS_WHALE);
-    await getWantFromWhale(FXSToken, toWei(1000000), bob, FXS_WHALE);
-
     fraxDeployer = await unlockAccount("0xB1748C79709f4Ba2Dd82834B8c82D4a505003f27");
     smartChecker = await getContractAt("ISmartWalletChecker", SMARTCHECKER);
+    veFXSFeeDistributor = await getContractAt("veFXSYieldDistributorV4", FXS_DISTRIBUTOR);
+
+    await getWantFromWhale(FXSToken, toWei(490000), alice, FXS_WHALE);
+    await getWantFromWhale(FXSToken, toWei(1000000), bob, FXS_WHALE);
+    const whale = await unlockAccount(FXS_WHALE);
+    await fxs.connect(whale).transfer("0xB1748C79709f4Ba2Dd82834B8c82D4a505003f27", toWei(490000));
 
     // Create FXS lock
     await smartChecker.connect(fraxDeployer).approveWallet(locker.address);
     await fxs.connect(alice).transfer(locker.address, toWei(1));
 
     const now = Math.round(new Date().getTime() / 1000);
-    const MAXTIME = 60 * 60 * 24 * 360 * 2;
+    const ONEYEAR = 60 * 60 * 24 * 365;
 
     // Initially lock for 2 years
-    await locker.connect(governance).createLock(toWei(1), now + MAXTIME);
+    await locker.connect(governance).createLock(toWei(1), now + ONEYEAR);
 
     // transfer FXS to gauge distributor
     await fxs.connect(alice).transfer("0x278dc748eda1d8efef1adfb518542612b49fcd34", toWei(100000));
@@ -133,16 +136,23 @@ describe("FXSLocker test", () => {
     // Make a deposit into veFXSVault
     await fxs.connect(alice).approve(veFxsVault.address, toWei(90000));
     await veFxsVault.connect(alice).deposit(toWei(90000));
+    await veFXSFeeDistributor.connect(alice).checkpoint();
+    // Increase lock time by 6 months
+    await locker.execute("0xc6764e58b36e26b08Fd1d2AeD4538c02171fA872", 0, "0xc2c4c5c1");
 
-    await fxs.connect(alice).transfer(FXS_DISTRIBUTOR, toWei(190000));
     fxsBefore = await fxs.balanceOf(alice.address);
 
+    await veFXSFeeDistributor.connect(fraxDeployer).toggleRewardNotifier("0xB1748C79709f4Ba2Dd82834B8c82D4a505003f27");
+    await fxs.connect(fraxDeployer).approve(veFXSFeeDistributor.address, toWei(190000));
+    await veFXSFeeDistributor.connect(fraxDeployer).notifyRewardAmount(toWei(190000));
+
     await increaseTime(60 * 60 * 24 * 30); //travel 30 days
-    await increaseBlock(100);
+    await increaseBlock(2000);
   });
 
   it("Should extend lock time and claim FXS", async () => {
     // Initial lock end date
+
     const locked_end = await escrow.locked__end(locker.address);
     console.log("locked_end => ", locked_end.toString());
 
@@ -150,11 +160,10 @@ describe("FXSLocker test", () => {
     await locker.execute(
       "0xc8418aF6358FFddA74e09Ca9CC3Fe03Ca6aDC5b0",
       0,
-      "0xeff7a6120000000000000000000000000000000000000000000000000000000063372264"
+      "0xeff7a6120000000000000000000000000000000000000000000000000000000065B9C58C"
     );
     const locked_end_extended = await escrow.locked__end(locker.address);
     console.log("locked_end_extended => ", locked_end_extended.toString());
-
     await veFxsVault.connect(alice).claim();
 
     fxsAfter = await fxs.balanceOf(alice.address);
@@ -214,6 +223,7 @@ describe("FXSLocker test", () => {
     // Make a deposit into veFXSVault
     await fxs.connect(bob).approve(veFxsVault.address, toWei(5000));
     await veFxsVault.connect(bob).deposit(toWei(5000));
+    await locker.execute("0xc6764e58b36e26b08Fd1d2AeD4538c02171fA872", 0, "0xc2c4c5c1");
 
     const lockedAfter = await escrow.balanceOf(locker.address);
 
