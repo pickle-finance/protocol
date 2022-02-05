@@ -134,8 +134,8 @@ describe("FXSLocker test", () => {
     await fxs.connect(alice).transfer("0xF22471AC2156B489CC4a59092c56713F813ff53e", toWei(100000));
 
     // Make a deposit into veFXSVault
-    await fxs.connect(alice).approve(veFxsVault.address, toWei(90000));
-    await veFxsVault.connect(alice).deposit(toWei(90000));
+    await fxs.connect(alice).approve(veFxsVault.address, toWei(9000));
+    await veFxsVault.connect(alice).deposit(toWei(9000));
     await veFXSFeeDistributor.connect(alice).checkpoint();
     // Increase lock time by 6 months
     await locker.execute("0xc6764e58b36e26b08Fd1d2AeD4538c02171fA872", 0, "0xc2c4c5c1");
@@ -143,11 +143,11 @@ describe("FXSLocker test", () => {
     fxsBefore = await fxs.balanceOf(alice.address);
 
     await veFXSFeeDistributor.connect(fraxDeployer).toggleRewardNotifier("0xB1748C79709f4Ba2Dd82834B8c82D4a505003f27");
-    await fxs.connect(fraxDeployer).approve(veFXSFeeDistributor.address, toWei(190000));
-    await veFXSFeeDistributor.connect(fraxDeployer).notifyRewardAmount(toWei(190000));
+    await fxs.connect(fraxDeployer).approve(veFXSFeeDistributor.address, toWei(100000));
+    await veFXSFeeDistributor.connect(fraxDeployer).notifyRewardAmount(toWei(100000));
 
-    await increaseTime(60 * 60 * 24 * 30); //travel 30 days
-    await increaseBlock(2000);
+    await increaseTime(60 * 60 * 24 * 8); //travel 30 days
+    await increaseBlock(100);
   });
 
   it("Should extend lock time and claim FXS", async () => {
@@ -212,6 +212,9 @@ describe("FXSLocker test", () => {
   it("Should facilitate multiple users locking", async () => {
     const lockedBefore = await escrow.balanceOf(locker.address);
 
+    await fxs.connect(fraxDeployer).approve(veFXSFeeDistributor.address, toWei(100000));
+    await veFXSFeeDistributor.connect(fraxDeployer).notifyRewardAmount(toWei(100000));
+
     console.log("FXS locked BEFORE additional lock: ", lockedBefore.toString());
     console.log(
       "FXS balance of locker before lock (should be ZERO): ",
@@ -235,7 +238,7 @@ describe("FXSLocker test", () => {
     console.log("Alice pToken balance: ", (await veFxsVault.balanceOf(alice.address)).toString());
     console.log("Bob pToken balance: ", (await veFxsVault.balanceOf(bob.address)).toString());
 
-    await increaseTime(60 * 60 * 24 * 360); //travel 15 days
+    await increaseTime(60 * 60 * 24 * 8); //travel 15 days
     await increaseBlock(100);
 
     const aliceFXSBefore = (await fxs.balanceOf(alice.address)).toString();
@@ -258,7 +261,7 @@ describe("FXSLocker test", () => {
     console.log("============ Harvest Started ==============");
 
     console.log("Ratio before harvest => ", (await pickleJar.getRatio()).toString());
-    await increaseTime(60 * 60 * 24 * 14); //travel 14 days
+    await increaseTime(60 * 60 * 24 * 8); //travel 14 days
     await increaseBlock(100);
     await strategy.harvest();
     console.log("Ratio after harvest => ", (await pickleJar.getRatio()).toString());

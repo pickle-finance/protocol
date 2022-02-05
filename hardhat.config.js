@@ -50,7 +50,6 @@ module.exports = {
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/hryDcEe1YR3iSfKm1pZWyi5RwiUUznMX`,
       },
-      block: 	13629908,
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },
