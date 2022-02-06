@@ -46,9 +46,9 @@ contract StrategyProxy {
         IUniswapV3PositionsNFT(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
 
     address public constant fxs = address(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
-    address public constant gauge = address(0x3669C421b77340B2979d1A00a792CC2ee0FcE737);
     address public constant rewards = address(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
-    address public constant feeDistribution = 0xc6764e58b36e26b08Fd1d2AeD4538c02171fA872;
+    address public gauge = address(0x3669C421b77340B2979d1A00a792CC2ee0FcE737);
+    address public feeDistribution = 0xc6764e58b36e26b08Fd1d2AeD4538c02171fA872;
 
     // gauge => strategies
     mapping(address => address) public strategies;
@@ -72,6 +72,16 @@ contract StrategyProxy {
     function setLocker(address _proxy) external {
         require(msg.sender == governance, "!governance");
         proxy = IProxy(_proxy);
+    }
+
+    function setGauge(address _gauge) external {
+        require(msg.sender == governance, "!governance");
+        gauge = _gauge;
+    }
+
+    function setFeeDistribution(address _feeDistribution) external {
+        require(msg.sender == governance, "!governance");
+        feeDistribution = _feeDistribution;
     }
 
     function approveStrategy(address _gauge, address _strategy) external {
