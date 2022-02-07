@@ -31,6 +31,7 @@ async function main() {
       case "Axial": controller_addr = "0xc7D536a04ECC43269B6B95aC1ce0a06E0000D095"; break;
       case "Backup": controller_addr = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; break;
       case "BankerJoe": controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
+      case "BankerJoe1": controller_addr = "0xF2FA11Fc9247C23b3B622C41992d8555f6D01D8f"; break;
       case "Benqi": controller_addr = "0x252B5fD3B1Cb07A2109bF36D5bDE6a247c6f4B59"; break;    
       case "TraderJoe": controller_addr = "0xCEB829a0881350689dAe8CBD77D0E012cf7a6a3f"; break;
       case "OldBenqi": controller_addr = "0x8Ffa3c1547479B77D9524316D5192777bedA40a1"; break;

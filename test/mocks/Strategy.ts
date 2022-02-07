@@ -55,14 +55,18 @@ export async function setupMockStrategy(
             /// retrieve them and withdraw it into the new strategy.
             // The logic below runs for old strategies that don't present a major harvesting issue. 
             log(`old strategy address:, ${oldStrategy_addr}`);
+            
             const oldStrategy = new ethers.Contract(oldStrategy_addr, stratABI, governanceSigner);
-            const harvest = await oldStrategy.connect(governanceSigner).harvest();
-            const tx_harvest = await harvest.wait(1);
-            if (!tx_harvest.status) {
-                console.error(`Error harvesting the old strategy for: ${contract_name}`);
-                return Strategy;
+
+            if (oldStrategy.functions['harvest']) {
+                const harvest = await oldStrategy.connect(governanceSigner).harvest();
+                const tx_harvest = await harvest.wait(1);
+                if (!tx_harvest.status) {
+                    console.error(`Error harvesting the old strategy for: ${contract_name}`);
+                    return Strategy;
+                 }
+                 log(`Harvested the old strategy for: ${contract_name}`);
             }
-            log(`Harvested the old strategy for: ${contract_name}`);
             if (fold) {
 
                 log("folding")

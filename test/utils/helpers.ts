@@ -91,6 +91,7 @@ export function returnController(controller: string): string {
         case "axial": address = "0xc7D536a04ECC43269B6B95aC1ce0a06E0000D095"; break;
         case "backup": address = "0xACc69DEeF119AB5bBf14e6Aaf0536eAFB3D6e046"; break;
         case "bankerJoe": address = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
+        case "bankerJoe1": address = "0xF2FA11Fc9247C23b3B622C41992d8555f6D01D8f"; break;
         case "benqi": address = "0x252B5fD3B1Cb07A2109bF36D5bDE6a247c6f4B59"; break;
         case "main": address = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; break;
         case "oldBenqi": address = "0x8Ffa3c1547479B77D9524316D5192777bedA40a1"; break;

@@ -362,6 +362,7 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
         jTokens[0] = jToken;
         uint256 _keep;
         IRewardDistributor(rewardDistributor).claimReward(0, address(this));    // Claim
+
         if (want != joe) {
             uint256 _joe = IERC20(joe).balanceOf(address(this));
             if (_joe > 0) {
@@ -369,17 +370,27 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
                 if (_keep > 0){
                     _takeFeeJoeToSnob(_keep);
                 }
-                address[] memory path = new address[](3);
-                path[0] = joe;
-                path[1] = wavax;
-                path[2] = want;
 
-                _joe = IERC20(joe).balanceOf(address(this));
+                if (want != wavax){
+                    address[] memory path = new address[](3);
+                    path[0] = joe;
+                    path[1] = wavax;
+                    path[2] = want;
 
-                IERC20(joe).safeApprove(joeRouter, 0);
-                IERC20(joe).safeApprove(joeRouter, _joe);
+                    _joe = IERC20(joe).balanceOf(address(this));
 
-                _swapTraderJoeWithPath(path, _joe);
+                    IERC20(joe).safeApprove(joeRouter, 0);
+                    IERC20(joe).safeApprove(joeRouter, _joe);
+
+                    _swapTraderJoeWithPath(path, _joe);
+                } else{
+                    _joe = IERC20(joe).balanceOf(address(this));
+
+                    IERC20(joe).safeApprove(joeRouter, 0);
+                    IERC20(joe).safeApprove(joeRouter, _joe);
+
+                    _swapTraderJoe(joe, wavax, _joe);
+                }
             }
         }
         IRewardDistributor(rewardDistributor).claimReward(1, address(this));    // Claim Avax
@@ -395,12 +406,14 @@ abstract contract StrategyBankerJoeFarmBase is StrategyJoeBase, Exponential {
                 _takeFeeWavaxToSnob(_keep);
             }
 
-            _wavax = IERC20(wavax).balanceOf(address(this));
+            if(want != wavax){
+                _wavax = IERC20(wavax).balanceOf(address(this));
 
-            IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax);
+                IERC20(wavax).safeApprove(joeRouter, 0);
+                IERC20(wavax).safeApprove(joeRouter, _wavax);
 
-            _swapTraderJoe(wavax, want, _wavax);
+                _swapTraderJoe(wavax, want, _wavax);
+            }
 
         }
 
