@@ -136,7 +136,7 @@ describe("FXSLocker test", () => {
     // Make a deposit into veFXSVault
     await fxs.connect(alice).approve(veFxsVault.address, toWei(9000));
     await veFxsVault.connect(alice).deposit(toWei(9000));
-    await veFXSFeeDistributor.connect(alice).checkpoint();
+
     // Increase lock time by 6 months
     await locker.execute("0xc6764e58b36e26b08Fd1d2AeD4538c02171fA872", 0, "0xc2c4c5c1");
 
@@ -191,7 +191,6 @@ describe("FXSLocker test", () => {
     console.log("FXS balance in backscratcher after harvest: ", (await fxs.balanceOf(veFxsVault.address)).toString());
     await veFxsVault.connect(alice).claim();
     console.log("FXS balance for Alice intermediate: ", (await fxs.balanceOf(alice.address)).toString());
-    await veFxsVault.connect(alice).claim();
 
     fxsAfterFlywheel = await fxs.balanceOf(alice.address);
     console.log("FXS balance before claim: ", fxsBefore.toString());
@@ -217,7 +216,7 @@ describe("FXSLocker test", () => {
 
     console.log("FXS locked BEFORE additional lock: ", lockedBefore.toString());
     console.log(
-      "FXS balance of locker before lock (should be ZERO): ",
+      "FXS balance of FxsVault before lock (should be ZERO): ",
       (await fxs.balanceOf(veFxsVault.address)).toString()
     );
 
@@ -226,14 +225,10 @@ describe("FXSLocker test", () => {
     // Make a deposit into veFXSVault
     await fxs.connect(bob).approve(veFxsVault.address, toWei(5000));
     await veFxsVault.connect(bob).deposit(toWei(5000));
-    await locker.execute("0xc6764e58b36e26b08Fd1d2AeD4538c02171fA872", 0, "0xc2c4c5c1");
 
     const lockedAfter = await escrow.balanceOf(locker.address);
 
-    console.log(
-      "FXS balance of locker after lock (should be ZERO): ",
-      (await fxs.balanceOf(veFxsVault.address)).toString()
-    );
+    console.log("FXS balance of FxsVault after lock: ", (await fxs.balanceOf(veFxsVault.address)).toString());
     console.log("FXS locked AFTER additional lock: ", lockedAfter.toString());
     console.log("Alice pToken balance: ", (await veFxsVault.balanceOf(alice.address)).toString());
     console.log("Bob pToken balance: ", (await veFxsVault.balanceOf(bob.address)).toString());
@@ -246,8 +241,6 @@ describe("FXSLocker test", () => {
     console.log("Alice FXS balance before claim: ", aliceFXSBefore);
     console.log("Bob FXS balance before claim: ", bobFXSBefore);
     await veFxsVault.connect(alice).claim();
-    await veFxsVault.connect(alice).claim();
-    await veFxsVault.connect(bob).claim();
     await veFxsVault.connect(bob).claim();
     const aliceFXSAfter = (await fxs.balanceOf(alice.address)).toString();
     const bobFXSAfter = (await fxs.balanceOf(bob.address)).toString();
