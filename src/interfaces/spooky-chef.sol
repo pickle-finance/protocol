@@ -16,7 +16,6 @@ interface IBooChef {
         returns (
             uint256 amount,
             uint256 rewardDebt,
-            uint256 withdrawalTime
         );
 
     function withdraw(uint256 _pid, uint256 _amount) external;
