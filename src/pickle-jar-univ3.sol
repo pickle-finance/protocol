@@ -119,6 +119,8 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     }
 
     function deposit(uint256 token0Amount, uint256 token1Amount) external nonReentrant whenNotPaused {
+        require(IERC20(token0).allowance(msg.sender, address(this)) >= token0Amount, "!Token0Approval");
+        require(IERC20(token1).allowance(msg.sender, address(this)) >= token1Amount, "!Token1Approval");
         // account for imperfect deposit ratios
         uint256 amount0ForAmount1 = token1Amount.mul(1e18).div(getProportion());
         uint256 amount1ForAmount0 = token0Amount.mul(getProportion()).div(1e18);
@@ -184,11 +186,6 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     function getRatio() public view returns (uint256) {
         if (totalSupply() == 0) return 0;
         return totalLiquidity().mul(1e18).div(totalSupply());
-    }
-
-    modifier checkRatio(uint256 amount0, uint256 amount1) {
-        require(amount1 == amount0.mul(getProportion()).div(1e18), "proportion amount is required");
-        _;
     }
 
     modifier whenNotPaused() {
