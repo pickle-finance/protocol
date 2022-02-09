@@ -17,10 +17,6 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
 
     address[] public rewardTokens = [FXS, DAI, FRAX];
 
-    // How much FXS tokens to give to backscratcher?
-    uint256 public keepFXS = 1000;
-    uint256 public constant keepFXSMax = 10000;
-
     address public fxs_backscratcher;
 
     constructor(
@@ -42,11 +38,6 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
 
     // **** State Mutations ****
 
-    function setKeepFXS(uint256 _keepFXS) external {
-        require(msg.sender == timelock || msg.sender == governance, "!governance");
-        keepFXS = _keepFXS;
-    }
-
     function setBackscratcher(address _backscratcher) external {
         require(msg.sender == timelock, "!timelock");
         fxs_backscratcher = _backscratcher;
@@ -56,13 +47,6 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
         IStrategyProxy(strategyProxy).harvest(frax_dai_gauge, rewardTokens);
 
         uint256 _fxs = IERC20(FXS).balanceOf(address(this));
-
-        // Send tokens to backscratcher
-        if (fxs_backscratcher != address(0)) {
-            uint256 _keepFXS = _fxs.mul(keepFXS).div(keepFXSMax);
-            IERC20(FXS).safeTransfer(fxs_backscratcher, _keepFXS);
-            _fxs = _fxs.sub(_keepFXS);
-        }
 
         IERC20(FXS).safeApprove(univ2Router2, 0);
         IERC20(FXS).safeApprove(univ2Router2, _fxs);

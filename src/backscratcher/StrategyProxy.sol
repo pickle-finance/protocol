@@ -55,6 +55,10 @@ contract StrategyProxy {
     mapping(address => bool) public voters;
     address public governance;
 
+    // TODO How much FXS tokens to give to backscratcher?
+    uint256 public keepFXS = 1000;
+    uint256 public constant keepFXSMax = 10000;
+
     constructor() public {
         governance = msg.sender;
     }
@@ -62,6 +66,11 @@ contract StrategyProxy {
     function setGovernance(address _governance) external {
         require(msg.sender == governance, "!governance");
         governance = _governance;
+    }
+
+    function setKeepFXS(uint256 _keepFXS) external {
+        require(msg.sender == governance, "!governance");
+        keepFXS = _keepFXS;
     }
 
     function setFXSVault(address _vault) external {
@@ -284,12 +293,16 @@ contract StrategyProxy {
 
         for (uint256 i = 0; i < _tokens.length; i++) {
             _balances[i] = (IERC20(_tokens[i]).balanceOf(address(proxy))).sub(_balances[i]);
-            if (_balances[i] > 0)
+            if (_balances[i] > 0) {
+                uint256 _swapAmount = (_tokens[i] == fxs)
+                    ? (_balances[i].sub(_balances[i].mul(keepFXS).div(keepFXSMax)))
+                    : _balances[i];
                 proxy.safeExecute(
                     _tokens[i],
                     0,
-                    abi.encodeWithSignature("transfer(address,uint256)", msg.sender, _balances[i])
+                    abi.encodeWithSignature("transfer(address,uint256)", msg.sender, _swapAmount)
                 );
+            }
         }
     }
 
