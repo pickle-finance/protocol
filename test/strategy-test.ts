@@ -162,13 +162,18 @@ export function doStrategyTest(test_case: TestableStrategy) {
 
             await fastForwardAWeek();
 
-            let harvestable = await Strategy.getHarvestable();
-            log(`\tHarvestable, pre harvest: ${harvestable.toString()}`);
+            let harvestable: string;
+            if (Strategy.functions['getHarvestable']) {
+                harvestable = await Strategy.getHarvestable();
+                log(`\tHarvestable, pre harvest: ${harvestable.toString()}`);
+            }
             let initialBalance = await Strategy.balanceOf();
             await Strategy.connect(walletSigner).harvest();
             await increaseBlock(2);
-            harvestable = await Strategy.getHarvestable();
-            log(`\tHarvestable, post harvest: ${harvestable.toString()}`);
+            if (Strategy.functions['getHarvestable']) {
+                harvestable = await Strategy.getHarvestable();
+                log(`\tHarvestable, post harvest: ${harvestable.toString()}`);
+            }
 
             return [amt, initialBalance];
         };

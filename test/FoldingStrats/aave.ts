@@ -12,7 +12,7 @@ const tests = [
         controller: "aave",
     },
     {
-        name: "AaveDai",
+        name: "AaveDaiE",
         strategyAddress: "0xfc26ec0c916b9f573bbdfd1eda87d5192339bd5b",
         snowglobeAddress: "0xE4543C234D4b0aD6d29317cFE5fEeCAF398f5649",
         amount: "250000000000000000000000",
