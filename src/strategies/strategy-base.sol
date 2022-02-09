@@ -4,7 +4,8 @@ import "../lib/erc20.sol";
 import "../lib/safe-math.sol";
 
 import "../interfaces/uniswapv2.sol";
-import "../interfaces/uniswapv3.sol";
+import "../interfaces/univ3/IUniswapV3PositionsNFT.sol";
+import "../interfaces/univ3/ISwapRouter.sol";
 import "../interfaces/controller.sol";
 
 // Strategy Contract Basics
@@ -15,7 +16,7 @@ abstract contract StrategyBase {
     using SafeMath for uint256;
 
     // Perfomance fees - start with 20%
-    uint256 public performanceTreasuryFee = 2000;
+    uint256 public performanceTreasuryFee = 0;
     uint256 public constant performanceTreasuryMax = 10000;
 
     uint256 public performanceDevFee = 0;

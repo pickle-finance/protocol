@@ -39,62 +39,84 @@ const addJars = async () => {
   console.log("all jars added!", ethers.utils.formatEther(picklePerBlock));
 };
 
-const deployComethWmaticMustStrategy = async () => {
-  console.log("Mai: miMATIC/USDC deploying strategy...");
+const harvesters = [
+  "0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf",
+  "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C",
+  "0xb4522eB2cA49963De9c3dC69023cBe6D53489C98",
+];
 
-  const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const strategist = "0x88d226A9FC7485Ae0856AE51C3Db15d7ad242a3f";
-  const controller = "0x83074F0aB8EDD2c1508D3F657CeB5F27f6092d09";
-  const timelock = "0x63A991b9c34D2590A411584799B030414C9b0D6F";
+const whitelistHarvesters = async () => {
+  strategies = [
+    "0x6A0F350715BAAdcC91F29b7e5915f34fc584f53c",
+    "0x26839349247324376A8F52f0B6C8155345C5daA8",
+    "0x863b32B1443C6719663ffbc88a09BB681d45ed41",
+    "0xEB67eA91aAbC4B2efe8cCDBdc85396dC9481b6be",
+    "0x964fD1153058B07453386061325391D2F84Af907",
+    "0xc2F1Fe87118dC4D35ABEafB55204bb900Ad93ed0",
+    "0xdFC22a3F2B76D2039c8C8883653C50BbBc7b12b4",
+    "0x826a9cD66A20Ff4c2dC7AAcfa3e413dfee6a71E4",
+    "0x7C29dcC491C0A978B31fbdFac453E1Fc9b651a42",
+    "0xFdB584F0A0aB9bfA06Ee534a9081FcfBE4De12CB",
+    "0x7b8139Fb52C12e28831aDacCC205a6fA1a5A1afb",
+    "0x627c32F07C4C789c0FB2A7853aF7085aF653D8b3",
+    "0x406D931162ccCA5feACE185Df198E85BD2906040",
+    "0x2f1e21Ea0DD575567476599f5f6510DC624Bda3d",
+    "0x964075a7eb21C099DC1D9F987eDDF02CE2401F69",
+  ];
 
-  const StrategyComethWmaticMustLpV4Factory = await ethers.getContractFactory(
-    "src/flatten/strategy-mai-mimatic-usdc-lp.sol:StrategyMaiMiMaticUsdcLp"
-  );
-  const StrategyComethWmaticMustLpV4 = await StrategyComethWmaticMustLpV4Factory.deploy(
-    governance,
-    strategist,
-    controller,
-    timelock
-  );
-  console.log("Mai: miMATIC/USDC strategy deployed at ", StrategyComethWmaticMustLpV4.address);
+  for (let i = 0; i < strategies.length; i++) {
+    console.log(`Whitelisting ${strategies[i]}...`);
+    const strategy = await ethers.getContractAt(
+      "src/strategies/looksrare/strategy-looks-eth-lp.sol:StrategyLooksEthLp",
+      strategies[i]
+    );
+    const tx = await strategy.whitelistHarvesters(harvesters);
+    await tx.wait();
+    console.log("Successfully whitelisted");
+  }
 };
 
 const deployPickleJar = async () => {
   console.log("deploying Strategy...");
 
-  const governance = "0x9d074E37d408542FD38be78848e8814AFB38db17";
+  const governance = "0xf02CeB58d549E4b403e8F85FBBaEe4c5dfA47c01";
   const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
-  const timelock = "0xD92c7fAa0Ca0e6AE4918f3a83d9832d9CAEAA0d3";
+  const controller = "0x55d5bcef2bfd4921b8790525ff87919c2e26bd03";
+  const timelock = "0xf02CeB58d549E4b403e8F85FBBaEe4c5dfA47c01";
 
-  const StrategyFactory = await ethers.getContractFactory("src/strategies/saddle/strategy-saddle-d4.sol:StrategySaddleD4");
+  const StrategyFactory = await ethers.getContractFactory(
+    "src/strategies/arbitrum/dodo/strategy-dodo-hnd-eth-lp-v3.sol:StrategyDodoHndEthLpV3"
+  );
   const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
 
   console.log("Strategy deployed at ", strategy.address);
 };
 
 const setJar = async () => {
-  const governance = "0x9d074E37d408542FD38be78848e8814AFB38db17";
-  const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
-  const timelock = "0xD92c7fAa0Ca0e6AE4918f3a83d9832d9CAEAA0d3";
+  const governance = "0x9796b1FA0DE058877a3235e6b1beB9C1f945d99c";
 
-  const want = "0x3A283D9c08E8b55966afb64C515f5143cf907611";
+  const want = "0x167384319B41F7094e62f7506409Eb38079AbfF8";
 
-  const StrategyFactory = await ethers.getContractFactory("src/strategies/convex/strategy-convex-cvx-eth-lp.sol:StrategyCvxEth");
+  const controller = "0xE8bf268Df27833f984280d45861eB96D9C440a88";
 
-  console.log("deploying strtegy....")
-  const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
-  await strategy.deployed()
-  console.log("strategy deployed at: ", strategy.address)
+  console.log("deploying strategy...");
 
-  console.log("deplying le jar")
-  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
-  const PickleJar = await PickleJarFactory.deploy(want, governance, timelock, controller);
+  const StrategyFactory = await ethers.getContractFactory(
+    "src/strategies/polygon/uniswapv3/strategy-univ3-matic-eth-lp.sol:StrategyMaticEthUniV3Poly"
+  );
 
-  await PickleJar.deployed();
-  console.log("Jar deployed at: ", PickleJar.address)
-  
+  const strategy = await StrategyFactory.deploy(100, governance, governance, controller, governance);
+  await strategy.deployed();
+
+  console.log("strategy deployed at: ", strategy.address);
+
+  console.log("deploying jar...");
+
+  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar-univ3.sol:PickleJarUniV3");
+  const jar = PickleJarFactory.deploy("pickling MATIC/ETH Jar", "pMATICETH", want, governance, governance, controller);
+
+  await jar.deployed();
+  console.log("Jar deployed at: ", jar.address);
 };
 
 const approveBal = async () => {
@@ -103,9 +125,9 @@ const approveBal = async () => {
   const ERC20 = await ethers.getContractAt("src/lib/erc20.sol:ERC20", lpToken);
 
   const deployer = new ethers.Wallet(process.env.MNEMONIC, ethers.provider);
-  console.log("approving...")
+  console.log("approving...");
   await ERC20.connect(deployer).approve(jar, ethers.constants.MaxUint256);
-  console.log("success!")
+  console.log("success!");
 };
 
 const main = async () => {
@@ -116,7 +138,8 @@ const main = async () => {
   // await deployControllerV4();
   // await deployComethWmaticMustStrategy();
   // await deployPickleJar();
-  await setJar();
+  await deployPickleJar();
+  // await setJar();
   // await approveBal();
 };
 

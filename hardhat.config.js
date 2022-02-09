@@ -50,14 +50,20 @@ module.exports = {
     },
     matic: {
       url: "https://polygon-rpc.com/",
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
+      accounts: [`0x${process.env.MNEMONIC}`],
     },
     arbitrum: {
       url: `https://arb1.arbitrum.io/rpc/`,
       accounts: [`0x${process.env.MNEMONIC}`],
     },
+    metis: {
+      url: `https://andromeda.metis.io/?owner=1088`,
+      accounts: [`0x${process.env.MNEMONIC}`],
+    },
+    moonbeam: {
+      url: `https://rpc.api.moonbeam.network`,
+      accounts: [`0x${process.env.MNEMONIC}`]
+    }
   },
   contractSizer: {
     alphaSort: true,
