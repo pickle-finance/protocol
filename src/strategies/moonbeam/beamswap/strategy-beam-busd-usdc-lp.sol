@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "./strategy-beam-farm-base.sol";
 
-contract StrategyGlintUsdcBusdLp is StrategyGlintFarmBase {
+contract StrategyGlintUsdcBusdLp is StrategyBeamFarmBase {
     uint256 public usdc_busd_poolId = 2;
 
     // Token addresses
@@ -18,7 +18,7 @@ contract StrategyGlintUsdcBusdLp is StrategyGlintFarmBase {
         address _timelock
     )
         public
-        StrategyGlintFarmBase(
+        StrategyBeamFarmBase(
             usdc_busd_lp,
             usdc_busd_poolId,
             _governance,
