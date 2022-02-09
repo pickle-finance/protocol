@@ -1,15 +1,21 @@
-require("@nomiclabs/hardhat-waffle");
-require("@nomiclabs/hardhat-etherscan");
+import { HardhatUserConfig } from 'hardhat/types';
+import '@nomiclabs/hardhat-waffle';
+import '@nomiclabs/hardhat-etherscan';
+import "hardhat-deploy";
+import '@typechain/hardhat';
+import './tasks/accounts';
 
 require("dotenv").config();
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
-module.exports = {
+const config: HardhatUserConfig = {
+    namedAccounts: {
+        deployer: 0,
+    },
     networks: {
         hardhat: {
-            accounts: [{ privateKey: process.env.PRIVATE_KEY, balance: "100000000000000000000000" }],
             chainId: 43114,
             forking: {
                 // url: "https://node.snowapi.net/ext/bc/C/rpc",
@@ -18,22 +24,17 @@ module.exports = {
         },
         fuji: {
             url: "https://api.avax-test.network/ext/bc/C/rpc",
-            accounts: [process.env.PRIVATE_KEY]
+            accounts: [process.env.PRIVATE_KEY ?? '']
         },
-        mainnet: {
+        avalanche: {
             chainId: 43114,
             url: "https://api.avax.network/ext/bc/C/rpc",
-            accounts: [process.env.PRIVATE_KEY]
-        },
-        AVALANCHE: {
-            chainId: 43114,
-            url: "https://api.avax.network/ext/bc/C/rpc",
-            accounts: [process.env.PRIVATE_KEY]
+            accounts: [process.env.PRIVATE_KEY ?? '']
         },
     },
     etherscan: {
         // Your API key for Snowtrace
-        apiKey: process.env.SNOWTRACE_KEY,
+        apiKey: process.env.SNOWTRACE_KEY ?? '',
     },
     solidity: {
         compilers: [
@@ -54,6 +55,10 @@ module.exports = {
         cache: "./cache", 
         artifacts: "./artifacts"
       },
+    typechain: {
+        alwaysGenerateOverloads: true,
+        outDir: 'typechain',
+    },
     mocha: {
         timeout: 240000
     },
@@ -61,3 +66,4 @@ module.exports = {
     //   version: "0.2.4",
     // },
 };
+export default config;
