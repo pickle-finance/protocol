@@ -26,6 +26,8 @@ contract StrategyOxdUsdcLp is StrategyOxdFarmBase {
         )
     {
         swapRoutes[usdc] = [oxd, usdc];
+        token0 = 0x04068DA6C83AFCFA0e13ba15A6696662335D5B75;
+        token1 = 0xc165d941481e68696f43EE6E99BFB2B23E0E3114;
     }
 
     // **** Views ****

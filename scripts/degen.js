@@ -8,14 +8,23 @@ const sleep = async (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-// Moonbeam addresses
-const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+// Fantom addresses
+const governance = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
 const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-const controller = "0x95ca4584ea2007d578fa2693ccc76d930a96d165";
-const timelock = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";
+const timelock = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
 
 const deployAndTest = async () => {
-  const contracts = ["src/strategies/moonbeam/solarflare/strategy-solarflare-glmr-eth-lp.sol:StrategyFlareGlmrEthLp"];
+  const contracts = [
+    "src/strategies/fantom/oxd/strategy-oxd-lqdr.sol:StrategyOxdLqdr",
+    "src/strategies/fantom/oxd/strategy-oxd-single.sol:StrategyOxdSingle",
+    "src/strategies/fantom/oxd/strategy-oxd-tomb.sol:StrategyOxdTomb",
+    "src/strategies/fantom/oxd/strategy-oxd-usdc-lp.sol:StrategyOxdUsdcLp",
+    "src/strategies/fantom/oxd/strategy-oxd-xboo.sol:StrategyOxdXboo",
+    "src/strategies/fantom/oxd/strategy-oxd-xcredit.sol:StrategyOxdXcredit",
+    "src/strategies/fantom/oxd/strategy-oxd-xscream.sol:StrategyOxdXscream",
+    "src/strategies/fantom/oxd/strategy-oxd-xtarot.sol:StrategyOxdXtarot",
+  ];
 
   for (const contract of contracts) {
     const StrategyFactory = await ethers.getContractFactory(contract);
@@ -27,10 +36,13 @@ const deployAndTest = async () => {
 
       const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
       console.log(`✔️ Strategy deployed at: ${strategy.address}`);
+      await sleep(10000);
       const want = await strategy.want();
 
       console.log(`Deploying PickleJar...`);
       const jar = await PickleJarFactory.deploy(want, governance, timelock, controller);
+      await sleep(10000);
+
       console.log(`✔️ PickleJar deployed at: ${jar.address}`);
       console.log(`Want address is: ${want}`);
 
@@ -67,14 +79,14 @@ const deployAndTest = async () => {
       const harvestTx = await strategy.harvest();
       await harvestTx.wait();
 
+      console.log(`Verifying contracts...`);
+      await hre.run("verify:verify", {
+        address: strategy.address,
+        constructorArguments: [governance, strategist, controller, timelock],
+      });
       const ratio = await jar.getRatio();
       if (ratio.gt(BigNumber.from(parseEther("1")))) {
         console.log(`✔️ Harvest was successful, ending ratio of ${ratio.toString()}`);
-        console.log(`Verifying contracts...`);
-        await hre.run("verify:verify", {
-          address: strategy.address,
-          constructorArguments: [governance, strategist, controller, timelock],
-        });
       } else {
         console.log(`❌ Harvest failed, ending ratio of ${ratio.toString()}`);
       }

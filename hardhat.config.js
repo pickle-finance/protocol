@@ -63,6 +63,11 @@ module.exports = {
     moonbeam: {
       url: `https://rpc.api.moonbeam.network`,
       accounts: [`0x${process.env.MNEMONIC}`]
+    },
+    fantom: {
+      url: `https://rpc.ftm.tools/`,
+      accounts: [`0x${process.env.MNEMONIC}`],
+      gas: 4000000
     }
   },
   contractSizer: {

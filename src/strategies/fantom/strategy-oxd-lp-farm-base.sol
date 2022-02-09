@@ -35,8 +35,6 @@ abstract contract StrategyOxdFarmBase is StrategyBase {
         // Spooky router
         sushiRouter = 0xF491e7B69E4244ad4002BC14e878a34207E38c29;
         poolId = _poolId;
-        token0 = IUniswapV2Pair(_lp).token0();
-        token1 = IUniswapV2Pair(_lp).token1();
     }
 
     function balanceOfPool() public view override returns (uint256) {
