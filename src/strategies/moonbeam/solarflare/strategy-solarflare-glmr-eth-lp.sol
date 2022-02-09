@@ -7,7 +7,7 @@ contract StrategyFlareGlmrEthLp is StrategyFlareFarmBase {
     uint256 public glmr_eth_poolId = 7;
 
     // Token addresses
-    address public glmr_eth_lp = 0xb521c0acf67390c1364f1e940e44db25828e5ef9;
+    address public glmr_eth_lp = 0xb521C0aCf67390C1364f1e940e44dB25828E5Ef9;
     address public eth = 0xfA9343C3897324496A05fC75abeD6bAC29f8A40f;
 
     constructor(

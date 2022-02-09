@@ -47,10 +47,11 @@ abstract contract StrategyBeamFarmBase is StrategyBase {
     }
 
     function getHarvestable() external view returns (uint256) {
-        
-        (, , , uint256[] amounts) =
-         IBeamChef(beamChef).pendingTokens(poolId, address(this));
-         return amounts[0];
+        (, , , uint256[] memory amounts) = IBeamChef(beamChef).pendingTokens(
+            poolId,
+            address(this)
+        );
+        return amounts[0];
     }
 
     // **** Setters ****

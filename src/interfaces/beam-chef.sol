@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+pragma experimental ABIEncoderV2;
 
 // interface for Beamchef contract
 interface IBeamChef {
