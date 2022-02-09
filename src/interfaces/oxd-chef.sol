@@ -13,10 +13,15 @@ interface IOxdChef {
     function userInfo(uint256, address)
         external
         view
-        returns (
-            uint256 amount,
-            uint256 rewardDebt
-        );
+        returns (uint256 amount, uint256 rewardDebt);
 
     function withdraw(uint256 _pid, uint256 _amount) external;
+}
+
+interface IXtoken {
+    function enter(
+        address vault,
+        uint256 underlyingAmount,
+        address toBorrowable
+    ) external;
 }
