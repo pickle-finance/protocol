@@ -27,9 +27,6 @@ abstract contract StrategyUniV3Base {
     uint256 public performanceTreasuryFee = 2000;
     uint256 public constant performanceTreasuryMax = 10000;
 
-    uint256 public performanceDevFee = 0;
-    uint256 public constant performanceDevMax = 10000;
-
     // Tokens
     IUniswapV3Pool public pool;
 
@@ -130,11 +127,6 @@ abstract contract StrategyUniV3Base {
         for (uint256 i = 0; i < _harvesters.length; i++) {
             harvesters[_harvesters[i]] = false;
         }
-    }
-
-    function setPerformanceDevFee(uint256 _performanceDevFee) external {
-        require(msg.sender == timelock, "!timelock");
-        performanceDevFee = _performanceDevFee;
     }
 
     function setPerformanceTreasuryFee(uint256 _performanceTreasuryFee) external {
@@ -336,11 +328,6 @@ abstract contract StrategyUniV3Base {
                 IControllerV2(controller).treasury(),
                 _balance0.mul(performanceTreasuryFee).div(performanceTreasuryMax)
             );
-            // Performance fee
-            token0.safeTransfer(
-                IControllerV2(controller).devfund(),
-                _balance0.mul(performanceDevFee).div(performanceDevMax)
-            );
         }
 
         if (_balance1 > 0) {
@@ -348,11 +335,6 @@ abstract contract StrategyUniV3Base {
             token1.safeTransfer(
                 IControllerV2(controller).treasury(),
                 _balance1.mul(performanceTreasuryFee).div(performanceTreasuryMax)
-            );
-            // Performance fee
-            token1.safeTransfer(
-                IControllerV2(controller).devfund(),
-                _balance1.mul(performanceDevFee).div(performanceDevMax)
             );
         }
         deposit();
