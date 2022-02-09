@@ -17,7 +17,7 @@ contract StrategyBooYfiEthLp is StrategyBooFarmLPBase {
         address _timelock
     )
         public
-        StrategyNettFarmLPBase(
+        StrategyBooFarmLPBase(
             yfi_eth_lp,
             yfi_eth_poolid,
             _governance,
@@ -26,8 +26,8 @@ contract StrategyBooYfiEthLp is StrategyBooFarmLPBase {
             _timelock
         )
     {
-        swapRoutes[yfi] = [boo, ftm, eth, yfi];
-        swapRoutes[eth] = [boo, ftm, eth];
+        swapRoutes[yfi] = [boo, wftm, eth, yfi];
+        swapRoutes[eth] = [boo, wftm, eth];
     }
 
     // **** Views ****

@@ -17,7 +17,7 @@ contract StrategyBooUsdcMaiLp is StrategyBooFarmLPBase {
         address _timelock
     )
         public
-        StrategyNettFarmLPBase(
+        StrategyBooFarmLPBase(
             usdc_mai_lp,
             usdc_mai_poolid,
             _governance,
@@ -26,8 +26,8 @@ contract StrategyBooUsdcMaiLp is StrategyBooFarmLPBase {
             _timelock
         )
     {
-        swapRoutes[usdc] = [boo, ftm, usdc];
-        swapRoutes[mai] = [boo, ftm, usdc, mai];
+        swapRoutes[usdc] = [boo, wftm, usdc];
+        swapRoutes[mai] = [boo, wftm, usdc, mai];
     }
 
     // **** Views ****

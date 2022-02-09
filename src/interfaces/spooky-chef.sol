@@ -13,10 +13,7 @@ interface IBooChef {
     function userInfo(uint256, address)
         external
         view
-        returns (
-            uint256 amount,
-            uint256 rewardDebt,
-        );
+        returns (uint256 amount, uint256 rewardDebt);
 
     function withdraw(uint256 _pid, uint256 _amount) external;
 }

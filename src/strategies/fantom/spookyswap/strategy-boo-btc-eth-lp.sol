@@ -17,7 +17,7 @@ contract StrategyBooBtcEthLp is StrategyBooFarmLPBase {
         address _timelock
     )
         public
-        StrategyNettFarmLPBase(
+        StrategyBooFarmLPBase(
             btc_eth_lp,
             btc_eth_poolid,
             _governance,
@@ -26,8 +26,8 @@ contract StrategyBooBtcEthLp is StrategyBooFarmLPBase {
             _timelock
         )
     {
-        swapRoutes[btc] = [boo, ftm, btc];
-        swapRoutes[eth] = [boo, ftm, eth];
+        swapRoutes[btc] = [boo, wftm, btc];
+        swapRoutes[eth] = [boo, wftm, eth];
     }
 
     // **** Views ****

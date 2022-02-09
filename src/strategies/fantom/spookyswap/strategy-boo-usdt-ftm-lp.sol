@@ -4,9 +4,9 @@ pragma solidity ^0.6.7;
 import "../strategy-spookyswap-base.sol";
 
 contract StrategyBooUsdtFtmLp is StrategyBooFarmLPBase {
-    uint256 public usdt_ftm_poolid = 1;
+    uint256 public usdt_wftm_poolid = 1;
     // Token addresses
-    address public usdt_ftm_lp = 0x5965E53aa80a0bcF1CD6dbDd72e6A9b2AA047410;
+    address public usdt_wftm_lp = 0x5965E53aa80a0bcF1CD6dbDd72e6A9b2AA047410;
     address public usdt = 0x049d68029688eAbF473097a2fC38ef61633A3C7A;
 
     constructor(
@@ -16,16 +16,16 @@ contract StrategyBooUsdtFtmLp is StrategyBooFarmLPBase {
         address _timelock
     )
         public
-        StrategyNettFarmLPBase(
-            usdt_ftm_lp,
-            usdt_ftm_poolid,
+        StrategyBooFarmLPBase(
+            usdt_wftm_lp,
+            usdt_wftm_poolid,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {
-        swapRoutes[usdt] = [boo, ftm, usdt];
+        swapRoutes[usdt] = [boo, wftm, usdt];
     }
 
     // **** Views ****
