@@ -1,7 +1,6 @@
 {
   "BenqiQi": {  // contract name (use snowglobe/strategy naming convention)
     "controller": "Benqi", // only necessary if not the base controller
-    "snowglobe_addr": "0x124F5991e1EAD696D3082139154dB787E52f4C87" // only necesary if the controller for the snowglobe is different
+    "snowglobe_addr": "0x124F5991e1EAD696D3082139154dB787E52f4C87" // only necesary if the controller for the snowglobe is set
   },
-  ...
 }

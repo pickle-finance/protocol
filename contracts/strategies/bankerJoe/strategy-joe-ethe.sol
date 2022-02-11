@@ -3,10 +3,10 @@ pragma solidity ^0.6.2;
 
 import "../strategy-bankerjoe-farm-base.sol";
 
-contract StrategyJoeWbtc is StrategyBankerJoeFarmBase {
+contract StrategyJoeEthE is StrategyBankerJoeFarmBase {
     
-    address public constant wbtc = 0x50b7545627a5162F82A992c33b87aDc75187B218; //banker joe deposit token
-    address public constant jWBTC = 0x3fE38b7b610C0ACD10296fEf69d9b18eB7a9eB1F; //lending receipt token
+    address public constant ethE = 0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB; //banker joe deposit token
+    address public constant jWETHE = 0x929f5caB61DFEc79a5431a7734a68D714C4633fa; //lending receipt token
 
     constructor(
         address _governance,
@@ -16,8 +16,8 @@ contract StrategyJoeWbtc is StrategyBankerJoeFarmBase {
     )
         public
         StrategyBankerJoeFarmBase(
-            wbtc, 
-            jWBTC, 
+            ethE, 
+            jWETHE, 
             _governance, 
             _strategist, 
             _controller, 
@@ -69,6 +69,6 @@ contract StrategyJoeWbtc is StrategyBankerJoeFarmBase {
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {
-        return "StrategyJoeWbtc";
+        return "StrategyJoeEthE";
     }
 }

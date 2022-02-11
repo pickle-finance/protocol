@@ -161,21 +161,19 @@ export function doStrategyTest(test_case: TestableStrategy) {
             await SnowGlobe.connect(walletSigner).earn();
 
             await fastForwardAWeek();
-
-            let harvestable: string;
-            if (Strategy.functions['getHarvestable']) {
-                harvestable = await Strategy.getHarvestable();
-                log(`\tHarvestable, pre harvest: ${harvestable.toString()}`);
-            }
+            
+            let harvestable_function = Strategy.functions['getHarvestable']? 'getHarvestable' : 'getWavaxAccrued';
+            let harvestable = await Strategy.functions[harvestable_function]();
+            log(`\tHarvestable, pre harvest: ${harvestable.toString()}`);
+    
             let initialBalance = await Strategy.balanceOf();
             await Strategy.connect(walletSigner).harvest();
             await increaseBlock(2);
-            if (Strategy.functions['getHarvestable']) {
-                harvestable = await Strategy.getHarvestable();
-                log(`\tHarvestable, post harvest: ${harvestable.toString()}`);
-            }
 
-            return [amt, initialBalance];
+            harvestable = await Strategy.functions[harvestable_function]();
+            log(`\tHarvestable, post harvest: ${harvestable.toString()}`);
+
+            return [amt, initialBalance]; 
         };
 
         it("user wallet contains asset balance", async function() {

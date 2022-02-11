@@ -3,10 +3,9 @@ pragma solidity ^0.6.2;
 
 import "../strategy-bankerjoe-farm-base.sol";
 
-contract StrategyJoeUsdc is StrategyBankerJoeFarmBase {
-    
-    address public constant usdc = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664; //banker joe deposit token
-    address public constant jUSDC = 0xEd6AaF91a2B084bd594DBd1245be3691F9f637aC; //lending receipt token
+contract StrategyJoeDaiE is StrategyBankerJoeFarmBase {
+    address public constant daiE = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70; //banker joe deposit token
+    address public constant jDAIE = 0xc988c170d0E38197DC634A45bF00169C7Aa7CA19; //lending receipt token
 
     constructor(
         address _governance,
@@ -16,8 +15,8 @@ contract StrategyJoeUsdc is StrategyBankerJoeFarmBase {
     )
         public
         StrategyBankerJoeFarmBase(
-            usdc, 
-            jUSDC, 
+            daiE, 
+            jDAIE, 
             _governance, 
             _strategist, 
             _controller, 
@@ -40,6 +39,7 @@ contract StrategyJoeUsdc is StrategyBankerJoeFarmBase {
         returns (uint256)
     {
         uint256 _want = balanceOfWant();
+        
         if (_want < _amount) {
             uint256 _redeem = _amount.sub(_want);
             // Make sure market can cover liquidity
@@ -69,6 +69,6 @@ contract StrategyJoeUsdc is StrategyBankerJoeFarmBase {
     // **** Views **** //
 
     function getName() external override pure returns (string memory) {
-        return "StrategyJoeUsdc";
+        return "StrategyJoeDaiE";
     }
 }

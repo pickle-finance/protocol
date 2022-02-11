@@ -225,10 +225,10 @@ async function main() {
     /* Encoding for Add Keeper */
     if(
       !pools[name].keeper 
-      && pools[name].controller == "Aave"
-      && pools[name].controller == "BankerJoe"
-      && pools[name].controller == "Benqi"
-      && pools[name].controller == "Optimizer"
+      && (pools[name].controller == "Aave"
+      || pools[name].controller == "BankerJoe"
+      || pools[name].controller == "Benqi"
+      || pools[name].controller == "Optimizer")
     ){
       const IStrategy = new ethers.utils.Interface(strategy_ABI);
       pools[name].targets.push(pools[name].strategy_addr);
