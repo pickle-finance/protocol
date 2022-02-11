@@ -21,6 +21,7 @@ abstract contract StrategyUniV3Base {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
+    using SafeMath for uint128;
     using PoolVariables for IUniswapV3Pool;
 
     // Perfomance fees - start with 20%
@@ -342,6 +343,60 @@ abstract contract StrategyUniV3Base {
         // Donates DUST
         token0.safeTransfer(IControllerV2(controller).treasury(), token0.balanceOf(address(this)));
         token1.safeTransfer(IControllerV2(controller).treasury(), token1.balanceOf(address(this)));
+    }
+
+    function _balanceProportion(int24 _tickLower, int24 _tickUpper) internal {
+        PoolVariables.Info memory _cache;
+
+        _cache.amount0Desired = token0.balanceOf(address(this));
+        _cache.amount1Desired = token1.balanceOf(address(this));
+
+        (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(_tickLower);
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(_tickUpper);
+
+        _cache.liquidity = uint128(
+            LiquidityAmounts.getLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, _cache.amount0Desired).add(
+                LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioBX96, _cache.amount1Desired)
+            )
+        );
+
+        (_cache.amount0, _cache.amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtPriceX96,
+            sqrtRatioAX96,
+            sqrtRatioBX96,
+            _cache.liquidity
+        );
+
+        //Determine Trade Direction
+        bool _zeroForOne = _cache.amount0Desired > _cache.amount0 ? true : false;
+
+        //Determine Amount to swap
+        uint256 _amountSpecified = _zeroForOne
+            ? (_cache.amount0Desired.sub(_cache.amount0))
+            : (_cache.amount1Desired.sub(_cache.amount1));
+
+        if (_amountSpecified > 0) {
+            //Determine Token to swap
+            address _inputToken = _zeroForOne ? address(token0) : address(token1);
+
+            IERC20(_inputToken).safeApprove(univ3Router, 0);
+            IERC20(_inputToken).safeApprove(univ3Router, _amountSpecified);
+
+            //Swap the token imbalanced
+            ISwapRouter(univ3Router).exactInputSingle(
+                ISwapRouter.ExactInputSingleParams({
+                    tokenIn: _inputToken,
+                    tokenOut: _zeroForOne ? address(token1) : address(token0),
+                    fee: pool.fee(),
+                    recipient: address(this),
+                    amountIn: _amountSpecified,
+                    deadline: block.timestamp + 300,
+                    amountOutMinimum: 0,
+                    sqrtPriceLimitX96: 0
+                })
+            );
+        }
     }
 
     function onERC721Received(

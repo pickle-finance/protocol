@@ -27,6 +27,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
+    using SafeMath for uint128;
     using PoolVariables for IUniswapV3Pool;
 
     address public governance;
@@ -75,6 +76,13 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     function liquidityOfThis() public view returns (uint256) {
         uint256 _balance0 = token0.balanceOf(address(this));
         uint256 _balance1 = token1.balanceOf(address(this));
+
+        return determineLiquidity(_balance0, _balance1);
+    }
+
+    function liquidityInProportion() public view returns (uint256) {
+        uint256 _balance0 = token0.balanceOf(address(this));
+        uint256 _balance1 = token1.balanceOf(address(this));
         return uint256(pool.liquidityForAmounts(_balance0, _balance1, tick_lower, tick_upper));
     }
 
@@ -109,34 +117,27 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     function earn() public {
         require(liquidityOfThis() > 0, "no liquidity here");
 
-        uint256 balance0 = token0.balanceOf(address(this));
-        uint256 balance1 = token1.balanceOf(address(this));
+        uint256 _balance0 = token0.balanceOf(address(this));
+        uint256 _balance1 = token1.balanceOf(address(this));
 
-        token0.safeTransfer(controller, balance0);
-        token1.safeTransfer(controller, balance1);
+        if (_balance0 > 0) token0.safeTransfer(controller, _balance0);
+        if (_balance1 > 0) token1.safeTransfer(controller, _balance1);
 
-        IControllerV2(controller).earn(address(pool), balance0, balance1);
+        IControllerV2(controller).earn(address(pool), _balance0, _balance1);
     }
 
-    function deposit(uint256 token0Amount, uint256 token1Amount) external nonReentrant whenNotPaused {
-        require(IERC20(token0).allowance(msg.sender, address(this)) >= token0Amount, "!Token0Approval");
-        require(IERC20(token1).allowance(msg.sender, address(this)) >= token1Amount, "!Token1Approval");
-        // account for imperfect deposit ratios
-        uint256 amount0ForAmount1 = token1Amount.mul(1e18).div(getProportion());
-        uint256 amount1ForAmount0 = token0Amount.mul(getProportion()).div(1e18);
-
-        if (token0Amount > amount0ForAmount1) {
-            token0Amount = amount0ForAmount1;
-        } else {
-            token1Amount = amount1ForAmount0;
-        }
-
+    function deposit(uint256 _token0Amount, uint256 _token1Amount)
+        external
+        nonReentrant
+        whenNotPaused
+        checkBalances(_token0Amount, _token1Amount)
+    {
         uint256 _pool = totalLiquidity();
 
-        uint256 _liquidity = uint256(pool.liquidityForAmounts(token0Amount, token1Amount, tick_lower, tick_upper));
+        uint256 _liquidity = determineLiquidity(_token0Amount, _token1Amount);
 
-        token0.safeTransferFrom(msg.sender, address(this), token0Amount);
-        token1.safeTransferFrom(msg.sender, address(this), token1Amount);
+        token0.safeTransferFrom(msg.sender, address(this), _token0Amount);
+        token1.safeTransferFrom(msg.sender, address(this), _token1Amount);
 
         uint256 shares = 0;
         if (totalSupply() == 0) {
@@ -170,7 +171,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         _burn(msg.sender, _shares);
         // Check balance
         uint256[2] memory _balances = [token0.balanceOf(address(this)), token1.balanceOf(address(this))];
-        uint256 b = liquidityOfThis();
+        uint256 b = liquidityInProportion();
 
         if (b < r) {
             uint256 _withdraw = r.sub(b);
@@ -183,6 +184,17 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         token1.safeTransfer(msg.sender, _expectA1);
     }
 
+    function determineLiquidity(uint256 _amount0, uint256 _amount1) internal view returns (uint256) {
+        (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tick_lower);
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tick_upper);
+
+        return
+            LiquidityAmounts.getLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, _amount0).add(
+                LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioBX96, _amount1)
+            );
+    }
+
     function getRatio() public view returns (uint256) {
         if (totalSupply() == 0) return 0;
         return totalLiquidity().mul(1e18).div(totalSupply());
@@ -190,6 +202,14 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
     modifier whenNotPaused() {
         require(paused == false, "paused");
+        _;
+    }
+
+    modifier checkBalances(uint256 _amount0, uint256 _amount1) {
+        require(IERC20(token0).allowance(msg.sender, address(this)) >= _amount0, "!Token0Approval");
+        require(IERC20(token1).allowance(msg.sender, address(this)) >= _amount1, "!Token1Approval");
+        require(IERC20(token0).balanceOf(msg.sender) >= _amount0, "Too Small Token0 Balance");
+        require(IERC20(token1).balanceOf(msg.sender) >= _amount1, "Too Small Token1 Balance");
         _;
     }
 

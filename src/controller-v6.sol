@@ -109,8 +109,8 @@ contract ControllerV6 is Initializable {
         address _want = IStrategyV2(_strategy).pool();
         require(_want == _pool, "pool address is different");
 
-        IERC20(IUniswapV3Pool(_pool).token0()).safeTransfer(_strategy, _token0Amount);
-        IERC20(IUniswapV3Pool(_pool).token1()).safeTransfer(_strategy, _token1Amount);
+        if (_token0Amount > 0) IERC20(IUniswapV3Pool(_pool).token0()).safeTransfer(_strategy, _token0Amount);
+        if (_token1Amount > 0) IERC20(IUniswapV3Pool(_pool).token1()).safeTransfer(_strategy, _token1Amount);
         IStrategyV2(_strategy).deposit();
     }
 

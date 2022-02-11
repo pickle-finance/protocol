@@ -104,6 +104,7 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
     // **** Setters ****
 
     function deposit() public override {
+        _balanceProportion(tick_lower, tick_upper);
         (uint256 _tokenId, ) = _wrapAllToNFT();
         nftManager.safeTransferFrom(address(this), strategyProxy, _tokenId);
         IStrategyProxy(strategyProxy).depositV3(
