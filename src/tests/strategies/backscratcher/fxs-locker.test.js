@@ -186,9 +186,9 @@ describe("FXSLocker test", () => {
     console.log("=============== Alice deposit ==============");
     await deposit(alice, depositA, depositB);
     await pickleJar.earn();
-    console.log("FXS balance in backscratcher before harvest: ", (await fxs.balanceOf(veFxsVault.address)).toString());
+    console.log("FXS balance in backscratcher before harvest: ", (await fxs.balanceOf(locker.address)).toString());
     await harvest();
-    console.log("FXS balance in backscratcher after harvest: ", (await fxs.balanceOf(veFxsVault.address)).toString());
+    console.log("FXS balance in backscratcher after harvest: ", (await fxs.balanceOf(locker.address)).toString());
     await veFxsVault.connect(alice).claim();
     console.log("FXS balance for Alice intermediate: ", (await fxs.balanceOf(alice.address)).toString());
 
