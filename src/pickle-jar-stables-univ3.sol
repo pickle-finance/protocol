@@ -23,7 +23,7 @@ import "./lib/safe-math.sol";
 import "./interfaces/univ3/IUniswapV3PositionsNFT.sol";
 import "./interfaces/univ3/IUniswapV3Pool.sol";
 
-contract PickleJarUniV3 is ERC20, ReentrancyGuard {
+contract PickleJarStablesUniV3 is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;

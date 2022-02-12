@@ -79,7 +79,7 @@ describe("FXSLocker test", () => {
     await strategyProxy.approveStrategy(FRAX_DAI_GAUGE, strategy.address);
 
     pickleJar = await deployContract(
-      "PickleJarUniV3",
+      "PickleJarStablesUniV3",
       "pickling Frax/DAI Jar",
       "pFraxDAI",
       FRAX_DAI_POOL,

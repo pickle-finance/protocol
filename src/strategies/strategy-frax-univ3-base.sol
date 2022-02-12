@@ -17,7 +17,7 @@ import "../lib/univ3/PoolActions.sol";
 
 // Strategy Contract Basics
 
-abstract contract StrategyUniV3Base {
+abstract contract StrategyFraxUniV3Base {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;

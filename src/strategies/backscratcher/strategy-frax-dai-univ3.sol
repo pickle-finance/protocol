@@ -2,11 +2,11 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../strategy-univ3-base.sol";
+import "../strategy-frax-univ3-base.sol";
 import "../../interfaces/backscratcher/IStrategyProxy.sol";
 import "../../interfaces/backscratcher/FraxGauge.sol";
 
-contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
+contract StrategyFraxDaiUniV3 is StrategyFraxUniV3Base {
     address public strategyProxy;
 
     address public frax_dai_pool = 0x97e7d56A0408570bA1a7852De36350f7713906ec;
@@ -25,7 +25,7 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
         address _strategist,
         address _controller,
         address _timelock
-    ) public StrategyUniV3Base(frax_dai_pool, -50, 50, _governance, _strategist, _controller, _timelock) {}
+    ) public StrategyFraxUniV3Base(frax_dai_pool, -50, 50, _governance, _strategist, _controller, _timelock) {}
 
     // **** Views ****
     function setStrategyProxy(address _proxy) external {
