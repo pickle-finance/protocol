@@ -94,11 +94,9 @@ describe("StrategyFraxDAI", () => {
     console.log("✅ PickleJar is deployed at ", pickleJar.address);
 
     await newController.connect(governance).setJar(FRAX_DAI_POOL, pickleJar.address);
-    console.log("✅ Set Jar");
     await newController.connect(governance).approveStrategy(FRAX_DAI_POOL, strategy.address);
-    console.log("✅ Approve Strategy");
     await newController.connect(governance).setStrategy(FRAX_DAI_POOL, strategy.address);
-    console.log("✅ Set Strategy");
+
     veFxsVault = await deployContract("veFXSVault");
     console.log("✅ veFxsVault is deployed at ", veFxsVault.address);
 
