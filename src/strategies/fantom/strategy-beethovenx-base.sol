@@ -98,7 +98,7 @@ abstract contract StrategyBeethovenxFarmBase is StrategyBase {
         IERC20(beets).safeTransfer(IController(controller).treasury(), _keepBEETS);
     }
 
-    function harvest() public override {
+    function harvest() public virtual override {
         _harvestRewards();
 
         uint256 _rewardBalance = IERC20(beets).balanceOf(address(this));
