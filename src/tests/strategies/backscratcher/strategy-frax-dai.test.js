@@ -54,7 +54,7 @@ describe("StrategyFraxDAI", () => {
     console.log("✅ Controller is deployed at ", controller.address);
 
     const upgradedController = await deployContract("ControllerV7");
-    console.log("✅ Controller V6 is deployed at ", upgradedController.address);
+    console.log("✅ Controller V7 is deployed at ", upgradedController.address);
 
     await proxyAdmin.upgrade(controllerProxy.address, upgradedController.address);
 
