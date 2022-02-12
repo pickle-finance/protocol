@@ -15,7 +15,7 @@ import "./interfaces/onesplit.sol";
 import "./interfaces/converter.sol";
 import "./interfaces/univ3/IUniswapV3Pool.sol";
 
-contract ControllerV6 is Initializable {
+contract ControllerV7 is Initializable {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
