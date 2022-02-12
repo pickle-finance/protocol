@@ -17,6 +17,8 @@ interface IStrategyProxy {
         address[] calldata _rewardTokens
     ) external returns (uint256);
 
+    function proxy() external view returns (address);
+
     function balanceOf(address _gauge) external view returns (uint256);
 
     function lockedNFTsOf(address _gauge) external view returns (LockedNFT[] memory);

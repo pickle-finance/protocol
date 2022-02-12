@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "../strategy-univ3-base.sol";
 import "../../interfaces/backscratcher/IStrategyProxy.sol";
+import "../../interfaces/backscratcher/FraxGauge.sol";
 
 contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
     address public strategyProxy;
@@ -99,7 +100,9 @@ contract StrategyFraxDaiUniV3 is StrategyUniV3Base {
         return IStrategyProxy(strategyProxy).balanceOf(frax_dai_gauge);
     }
 
-    function getHarvestable() public view returns (uint256, uint256) {}
+    function getHarvestable() public view returns (uint256) {
+        return IFraxGaugeBase(frax_dai_gauge).earned(IStrategyProxy(strategyProxy).proxy());
+    }
 
     // **** Setters ****
 

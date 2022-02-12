@@ -299,7 +299,9 @@ describe("StrategyFraxDAI", () => {
     console.log("Ratio before harvest => ", (await pickleJar.getRatio()).toString());
     await increaseTime(60 * 60 * 24 * 14); //travel 30 days
     await increaseBlock(1000);
+    console.log("Amount Harvestable => ", (await strategy.getHarvestable()).toString());
     await strategy.harvest();
+    console.log("Amount Harvestable after => ", (await strategy.getHarvestable()).toString());
     console.log("Ratio after harvest => ", (await pickleJar.getRatio()).toString());
     console.log("============ Harvest Ended ==============");
   };

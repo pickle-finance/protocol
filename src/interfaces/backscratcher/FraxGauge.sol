@@ -25,6 +25,8 @@ interface IFraxGaugeBase {
 
     function getReward() external returns (uint256);
 
+    function earned(address) external view returns (uint256);
+
     function lock_time_min() external returns (uint256);
 
     function combinedWeightOf(address account) external view returns (uint256);
@@ -35,19 +37,13 @@ interface IFraxGaugeUniV3 is IFraxGaugeBase {
 
     function withdrawLocked(uint256 token_id) external;
 
-    function lockedNFTsOf(address account)
-        external
-        view
-        returns (LockedNFT[] memory);
+    function lockedNFTsOf(address account) external view returns (LockedNFT[] memory);
 }
 
 interface IFraxGaugeUniV2 {
     function stakeLocked(uint256 liquidity, uint256 secs) external;
 
-    function lockedStakesOf(address)
-        external
-        view
-        returns (LockedStake[] memory);
+    function lockedStakesOf(address) external view returns (LockedStake[] memory);
 
     function withdrawLocked(bytes32 kek_id) external;
 
