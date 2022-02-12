@@ -72,10 +72,8 @@ module.exports = {
       gasPrice: "auto",
     },
     matic: {
-      url: "https://keen-bell:chaste-gulf-chunk-aloe-deuce-copied@nd-654-291-805.p2pify.com/",
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
+      url: "https://polygon-rpc.com/",
+      accounts: [`0x${process.env.MNEMONIC}`],
     },
   },
   contractSizer: {

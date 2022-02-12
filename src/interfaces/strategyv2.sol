@@ -2,6 +2,12 @@
 pragma solidity ^0.6.2;
 
 interface IStrategyV2 {
+    function tick_lower() external view returns (int24);
+
+    function tick_upper() external view returns (int24);
+
+    function balanceProportion(int24, int24) external;
+
     function pool() external view returns (address);
 
     function timelock() external view returns (address);
@@ -17,6 +23,8 @@ interface IStrategyV2 {
     function liquidityOf() external view returns (uint256);
 
     function harvest() external;
+
+    function rebalance() external;
 
     function setTimelock(address) external;
 

@@ -33,7 +33,7 @@ describe("StrategyFraxDAI", () => {
     proxyAdmin = await deployContract("ProxyAdmin");
     console.log("✅ ProxyAdmin is deployed at ", proxyAdmin.address);
 
-    const controllerImp = await deployContract("ControllerV6");
+    const controllerImp = await deployContract("ControllerV5");
 
     const controllerProxy = await deployContract(
       "AdminUpgradeabilityProxy",
@@ -41,7 +41,8 @@ describe("StrategyFraxDAI", () => {
       proxyAdmin.address,
       []
     );
-    controller = await getContractAt("ControllerV6", controllerProxy.address);
+
+    controller = await getContractAt("ControllerV5", controllerProxy.address);
 
     await controller.initialize(
       governance.address,
@@ -51,6 +52,13 @@ describe("StrategyFraxDAI", () => {
       treasury.address
     );
     console.log("✅ Controller is deployed at ", controller.address);
+
+    const upgradedController = await deployContract("ControllerV6");
+    console.log("✅ Controller V6 is deployed at ", upgradedController.address);
+
+    await proxyAdmin.upgrade(controllerProxy.address, upgradedController.address);
+
+    let newController = await getContractAt("ControllerV6", controllerProxy.address);
 
     locker = await deployContract("FXSLocker");
     console.log("✅ Locker is deployed at ", locker.address);
@@ -68,7 +76,7 @@ describe("StrategyFraxDAI", () => {
       "StrategyFraxDaiUniV3",
       governance.address,
       strategist.address,
-      controller.address,
+      newController.address,
       timelock.address
     );
     await strategy.connect(governance).setStrategyProxy(strategyProxy.address);
@@ -79,18 +87,18 @@ describe("StrategyFraxDAI", () => {
       "pickling Frax/DAI Jar",
       "pFraxDAI",
       FRAX_DAI_POOL,
-      -50,
-      50,
       governance.address,
       timelock.address,
-      controller.address
+      newController.address
     );
     console.log("✅ PickleJar is deployed at ", pickleJar.address);
 
-    await controller.connect(governance).setJar(FRAX_DAI_POOL, pickleJar.address);
-    await controller.connect(governance).approveStrategy(FRAX_DAI_POOL, strategy.address);
-    await controller.connect(governance).setStrategy(FRAX_DAI_POOL, strategy.address);
-
+    await newController.connect(governance).setJar(FRAX_DAI_POOL, pickleJar.address);
+    console.log("✅ Set Jar");
+    await newController.connect(governance).approveStrategy(FRAX_DAI_POOL, strategy.address);
+    console.log("✅ Approve Strategy");
+    await newController.connect(governance).setStrategy(FRAX_DAI_POOL, strategy.address);
+    console.log("✅ Set Strategy");
     veFxsVault = await deployContract("veFXSVault");
     console.log("✅ veFxsVault is deployed at ", veFxsVault.address);
 

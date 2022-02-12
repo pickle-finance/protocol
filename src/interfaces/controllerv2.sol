@@ -20,4 +20,8 @@ interface IControllerV2 {
     ) external;
 
     function strategies(address) external view returns (address);
+
+    function getUpperTick(address) external view returns (int24);
+
+    function getLowerTick(address) external view returns (int24);
 }

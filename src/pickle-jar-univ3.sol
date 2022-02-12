@@ -42,15 +42,10 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     IERC20 public token0;
     IERC20 public token1;
 
-    int24 public tick_lower;
-    int24 public tick_upper;
-
     constructor(
         string memory _name,
         string memory _symbol,
         address _pool,
-        int24 _tick_lower,
-        int24 _tick_upper,
         address _governance,
         address _timelock,
         address _controller
@@ -58,9 +53,6 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         pool = IUniswapV3Pool(_pool);
         token0 = IERC20(pool.token0());
         token1 = IERC20(pool.token1());
-
-        tick_lower = _tick_lower;
-        tick_upper = _tick_upper;
 
         governance = _governance;
         timelock = _timelock;
@@ -83,7 +75,15 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     function liquidityInProportion() public view returns (uint256) {
         uint256 _balance0 = token0.balanceOf(address(this));
         uint256 _balance1 = token1.balanceOf(address(this));
-        return uint256(pool.liquidityForAmounts(_balance0, _balance1, tick_lower, tick_upper));
+        return uint256(pool.liquidityForAmounts(_balance0, _balance1, getLowerTick(), getUpperTick()));
+    }
+
+    function getUpperTick() public view returns (int24) {
+        return IControllerV2(controller).getUpperTick(address(pool));
+    }
+
+    function getLowerTick() public view returns (int24) {
+        return IControllerV2(controller).getLowerTick(address(pool));
     }
 
     function setGovernance(address _governance) public {
@@ -152,12 +152,12 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     }
 
     function getProportion() public view returns (uint256) {
-        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1e18, tick_lower, tick_upper);
+        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1e18, getLowerTick(), getUpperTick());
         return (a2 * (10**18)) / a1;
     }
 
     function getAmountsForLiquidity(uint128 _liquidity) public view returns (uint256, uint256) {
-        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(_liquidity, tick_lower, tick_upper);
+        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(_liquidity, getLowerTick(), getUpperTick());
         return (a1, a2);
     }
 
@@ -167,7 +167,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
     function withdraw(uint256 _shares) public nonReentrant whenNotPaused {
         uint256 r = (totalLiquidity().mul(_shares)).div(totalSupply());
-        (uint256 _expectA0, uint256 _expectA1) = pool.amountsForLiquidity(uint128(r), tick_lower, tick_upper);
+        (uint256 _expectA0, uint256 _expectA1) = pool.amountsForLiquidity(uint128(r), getLowerTick(), getUpperTick());
         _burn(msg.sender, _shares);
         // Check balance
         uint256[2] memory _balances = [token0.balanceOf(address(this)), token1.balanceOf(address(this))];
@@ -186,8 +186,8 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
     function determineLiquidity(uint256 _amount0, uint256 _amount1) internal view returns (uint256) {
         (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
-        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tick_lower);
-        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tick_upper);
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(getLowerTick());
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(getUpperTick());
 
         return
             LiquidityAmounts.getLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, _amount0).add(
