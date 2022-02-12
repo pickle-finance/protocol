@@ -37,7 +37,7 @@ describe("FXSLocker test", () => {
     proxyAdmin = await deployContract("ProxyAdmin");
     console.log("✅ ProxyAdmin is deployed at ", proxyAdmin.address);
 
-    const controllerImp = await deployContract("ControllerV6");
+    const controllerImp = await deployContract("ControllerV7");
 
     const controllerProxy = await deployContract(
       "AdminUpgradeabilityProxy",
@@ -45,7 +45,7 @@ describe("FXSLocker test", () => {
       proxyAdmin.address,
       []
     );
-    controller = await getContractAt("ControllerV6", controllerProxy.address);
+    controller = await getContractAt("ControllerV7", controllerProxy.address);
 
     await controller.initialize(
       governance.address,
