@@ -8,7 +8,7 @@ describe("StrategyBeethovenUsdcDaiMaiLp", () => {
   
   before("Get want token", async () => {
     [alice] = await hre.ethers.getSigners();
-    await getWantFromWhale(want_addr, toWei(1, 18), alice, whale_addr);
+    await getWantFromWhale(want_addr, toWei(1000, 18), alice, whale_addr);
   });
 
   doTestBehaviorBase("StrategyBeethovenUsdcDaiMaiLp", want_addr, true);

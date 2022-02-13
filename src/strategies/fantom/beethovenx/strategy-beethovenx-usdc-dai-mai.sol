@@ -3,7 +3,6 @@ pragma solidity ^0.6.7;
 pragma experimental ABIEncoderV2;
 
 import "../strategy-beethovenx-base.sol";
-import "hardhat/console.sol";
 
 contract StrategyBeethovenUsdcDaiMaiLp is StrategyBeethovenxFarmBase {
     // Token addresses
@@ -50,8 +49,6 @@ contract StrategyBeethovenUsdcDaiMaiLp is StrategyBeethovenxFarmBase {
 
         uint256 _rewardBalance = IERC20(beets).balanceOf(address(this));
 
-        console.log("----Got the beets!\n\t_beets = %s", _rewardBalance);
-
         if (_rewardBalance == 0) {
             return;
         }
@@ -79,17 +76,10 @@ contract StrategyBeethovenUsdcDaiMaiLp is StrategyBeethovenxFarmBase {
 
         // Swap WFTM for USDC
         uint256 _wftm = IERC20(wftm).balanceOf(address(this));
-
-        console.log("----Got the wftm!\n\t_wftm = %s", _wftm);
-        
-        // _swapSushiswapWithPath(swapRoutes[usdc], _wftm);
-        _swapSushiswap(wftm, usdc, _wftm);
+        _swapSushiswapWithPath(swapRoutes[usdc], _wftm);
 
         // approve USDC spending
         uint256 _usdc = IERC20(usdc).balanceOf(address(this));
-
-        console.log("----Got the usdc!\n\t_usdc = %s", _usdc);
-
         IERC20(usdc).safeApprove(vault, 0);
         IERC20(usdc).safeApprove(vault, _usdc);
 
