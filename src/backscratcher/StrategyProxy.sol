@@ -294,9 +294,17 @@ contract StrategyProxy {
         for (uint256 i = 0; i < _tokens.length; i++) {
             _balances[i] = (IERC20(_tokens[i]).balanceOf(address(proxy))).sub(_balances[i]);
             if (_balances[i] > 0) {
-                uint256 _swapAmount = (_tokens[i] == fxs)
-                    ? (_balances[i].sub(_balances[i].mul(keepFXS).div(keepFXSMax)))
-                    : _balances[i];
+                uint256 _swapAmount = _balances[i];
+                if (_tokens[i] == fxs) {
+                    uint256 _amountKeep = _balances[i].mul(keepFXS).div(keepFXSMax);
+                    _swapAmount = _balances[i].sub(_amountKeep);
+                    proxy.safeExecute(
+                        _tokens[i],
+                        0,
+                        abi.encodeWithSignature("transfer(address,uint256)", veFxsVault, _amountKeep)
+                    );
+                }
+
                 proxy.safeExecute(
                     _tokens[i],
                     0,
