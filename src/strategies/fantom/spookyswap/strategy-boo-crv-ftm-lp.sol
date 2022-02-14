@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-spookyswap-base.sol";
 
-contract StrategyCrvUsdtFtmLp is StrategyBooFarmLPBase {
+contract StrategyBooCrvFtmLp is StrategyBooFarmLPBase {
     uint256 public crv_wftm_poolid = 14;
     // Token addresses
     address public crv_wftm_lp = 0xB471Ac6eF617e952b84C6a9fF5de65A9da96C93B;
@@ -26,6 +26,7 @@ contract StrategyCrvUsdtFtmLp is StrategyBooFarmLPBase {
         )
     {
         swapRoutes[crv] = [boo, wftm, crv];
+        swapRoutes[wftm] = [boo, wftm];
     }
 
     // **** Views ****

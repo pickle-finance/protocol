@@ -6,7 +6,7 @@ import "../strategy-spookyswap-base.sol";
 contract StrategyBooFtmAvaxLp is StrategyBooFarmLPBase {
     uint256 public wftm_avax_poolid = 52;
     // Token addresses
-    address public wftm_avax_lp = 0x956DE13EA0FA5b577E4097Be837BF4aC80005820;
+    address public wftm_avax_lp = 0x5DF809e410d9CC577f0d01b4E623C567C7aD56c1;
     address public avax = 0x511D35c52a3C244E7b8bd92c0C297755FbD89212;
 
     constructor(

@@ -29,7 +29,7 @@ abstract contract StrategyBooFarmLPBase is StrategyBase {
         public
         StrategyBase(_want, _governance, _strategist, _controller, _timelock)
     {
-        sushiRouter = 0x1E876cCe41B7b844FDe09E38Fa1cf00f213bFf56;
+        sushiRouter = 0xF491e7B69E4244ad4002BC14e878a34207E38c29;
         IUniswapV2Pair pair = IUniswapV2Pair(_want);
         token0 = pair.token0();
         token1 = pair.token1();
