@@ -4,22 +4,30 @@ const { formatEther, parseEther } = require("ethers/lib/utils");
 const hre = require("hardhat");
 const ethers = hre.ethers;
 
-const sleep = async (ms, active) => {
+const sleep = async (ms, active=true) => {
   if (active) {
     console.log("Sleeping...")
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 };
-// This function is meant to run multiple verifications
-// Simultaneously with Promise.all
+
+const recall = async (fn, ...args) => {
+  const delay = async() => new Promise(resolve => setTimeout(resolve, recallTime));
+  await delay();
+  await fn(...args);
+}
+
 const verifyContracts = async (strategies) => {
   console.log(`Verifying contracts...`);
   await Promise.all(strategies.map(async(strategy) => {
-    console.log(`Verifying contract ${strategy.contract} at ${strategy.address}`)
-    await hre.run("verify:verify", {
-      address: strategy.address,
-      constructorArguments: [governance, strategist, controller, timelock],
-    });
+    try {
+      await hre.run("verify:verify", {
+        address: strategy,
+        constructorArguments: [governance, strategist, controller, timelock],
+      });
+    } catch (e) {
+      console.error(e);
+    }
   }));
 }
 
@@ -29,22 +37,23 @@ const strategist = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";
 const timelock = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
 
+const testedStrategies = ["0xA6b01164af308d74eD593e24637275ee26Cf9531", "0x20b515d6fA1a248e92350d449286B8D258d91C19", "0xbe9e4d2902f23B83c9d04c1780C09809af5E7b3F", "0x2722930172C38420a4A0Aa7af67C316ebD845Be4", "0x62e02D2E56A18C5DCD5bE447D30D04C9800519E8", "0x767ef1887A71734A1F5198b2bE6dA9c32293ca5e",];
+
 const deployAndTest = async () => {
   //Script Configs
   const sleepToggle = false;
   const sleepTime = 10000;
-  let callAttempts = 3;
-  const callCleanup = () => callAttempts = 3;
+  const callAttempts = 3;
+  const recallTime = 60000
 
   const contracts = [
     // "src/strategies/fantom/oxd/strategy-oxd-xboo.sol:StrategyOxdXboo",
-    "src/strategies/fantom/spookyswap/strategy-boo-ftm-sushi-lp.sol:StrategyBooFtmSushiLp",
+    // "src/strategies/fantom/spookyswap/strategy-boo-ftm-sushi-lp.sol:StrategyBooFtmSushiLp",
     // "src/strategies/fantom/spookyswap/strategy-boo-btc-eth-lp.sol:StrategyBooBtcEthLp",
     "src/strategies/fantom/spookyswap/strategy-boo-ftm-treeb-lp.sol:StrategyBooFtmTreebLp",
-    "src/strategies/fantom/spookyswap/strategy-boo-ftm-any-lp.sol:StrategyBooFtmAnyLp",
+    // "src/strategies/fantom/spookyswap/strategy-boo-ftm-any-lp.sol:StrategyBooFtmAnyLp",
   ];
 
-  const testedStrategies = [];
   const allReports = [];
 
   for (const contract of contracts) {
@@ -59,11 +68,14 @@ const deployAndTest = async () => {
       console.log(`Deploying ${currentContract}...`);
       let strategy;
       const checkStrategy = async (calls) => {
+        console.log('Ping!')
         await sleep(sleepTime, sleepToggle);
+        recall(checkStrategy, callAttempts)
         try {
           strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
           await sleep(sleepTime, sleepToggle);
           await strategy.deployTransaction.wait();
+          console.log(`✔️ Strategy deployed at: ${strategy.address}`);
         } catch (e) {
             console.log(`Transaction Failed`);
             console.error(e);
@@ -76,7 +88,30 @@ const deployAndTest = async () => {
           }
         }
       await checkStrategy(callAttempts);
-      console.log(`✔️ Strategy deployed at: ${strategy.address}`);
+      // console.log(`✔️ Strategy deployed at: ${strategy.address}`);
+
+      const executeTx = async (calls, tx, fn, ...args) => {
+        await sleep(sleepTime, sleepToggle);
+        recall(executeTx, ...args);
+        try {
+          window[`${tx}`] = await fn(...args);
+          if (tx === strategy || tx === jar) {
+            await tx.deployTransaction.wait();
+          } else {
+            await tx.wait();
+          }
+        } catch (e) {
+          console.error(e);
+          if (calls > 0) {
+            console.log(`Trying again. ${calls} more attempts left.`);
+            await executeTx(...args);
+          } else {
+            console.log('Looks like something is broken!')
+          }
+        }
+      }
+
+
 
       await sleep(sleepTime, sleepToggle);
 // Get Want
@@ -87,6 +122,7 @@ const deployAndTest = async () => {
       const checkPickleJar = async (calls) => {
         console.log(`Deploying PickleJar...`);
         await sleep(sleepTime, sleepToggle);
+        recall(checkPickleJar, callAttempts)
         try {
           jar = await PickleJarFactory.deploy(want, governance, timelock, controller);
           await sleep(sleepTime, sleepToggle);
@@ -116,6 +152,7 @@ const deployAndTest = async () => {
       let approveTx;
       const checkApproveTx = async(calls) => {
         await sleep(sleepTime, sleepToggle);
+        recall(checkApproveTx, callAttempts)
         try {
           approveTx = await wantContract.approve(jar.address, ethers.constants.MaxUint256);
           await sleep(sleepTime, sleepToggle);
@@ -141,6 +178,7 @@ const deployAndTest = async () => {
       let approveStratTx;
       const checkApproveStratTx = async(calls) => {
         await sleep(sleepTime, sleepToggle);
+        recall(checkApproveStratTx, callAttempts)
         try {
           approveStratTx = await Controller.approveStrategy(want, strategy.address);
           await sleep(sleepTime, sleepToggle);
@@ -165,6 +203,7 @@ const deployAndTest = async () => {
       let setJarTx;
       const checkSetJarTx = async(calls) => {
         await sleep(sleepTime, sleepToggle);
+        recall(checkSetJarTx, callAttempts)
         try {
           setJarTx = await Controller.setJar(want, jar.address);
           await sleep(sleepTime, sleepToggle);
@@ -187,6 +226,8 @@ const deployAndTest = async () => {
 // Set Strategy
       let setStratTx;
       const checkSetStratTx = async(calls) => {
+        await sleep(sleepTime, sleepToggle);
+        recall(checkSetStratTx, callAttempts)
         try {
           setStratTx = await Controller.setStrategy(want, strategy.address);
           await sleep(sleepTime, sleepToggle);
@@ -213,6 +254,7 @@ const deployAndTest = async () => {
       let depositTx;
       const checkDepositTx = async(calls) => {
         await sleep(sleepTime, sleepToggle);
+        recall(checkDepositTx, callAttempts)
         try {
           depositTx = await jar.depositAll();
           await sleep(sleepTime, sleepToggle);
@@ -237,6 +279,7 @@ const deployAndTest = async () => {
       let earnTx;
       const checkEarnTx = async(calls) => {
         await sleep(sleepTime, sleepToggle);
+        recall(checkEarnTx, callAttempts)
         try {
           earnTx = await jar.earn();
           await sleep(sleepTime, sleepToggle);
@@ -258,11 +301,25 @@ const deployAndTest = async () => {
 
       console.log(`Waiting for 30 seconds before harvesting...`);
       await sleep(30000);
-
-      const harvestTx = await strategy.harvest();
-      await sleep(sleepTime, sleepToggle);
-
-      await harvestTx.wait();
+      let harvestTx;
+      const checkHarvestTx = async(calls) => {
+        await sleep(sleepTime, sleepToggle);
+        recall(checkHarvestTx, callAttempts)
+        try {
+          harvestTx = await strategy.harvest();
+          await sleep(sleepTime, sleepToggle);
+          await harvestTx.wait();
+        } catch (e) {
+          console.log(`Transaction Failed`);
+          console.error(e);
+          if (calls > 0) {
+            console.log(`Trying again. ${calls} more attempts left`);
+            await checkHarvestTx(calls - 1);
+          } else {
+            console.log('Looks like something is broken!')
+          }
+        }
+      }
       await sleep(sleepTime, sleepToggle);
 
       const ratio = await jar.getRatio();
@@ -282,6 +339,7 @@ const deployAndTest = async () => {
       want: ${want}
       picklejar: ${jar.address}
       strategy: ${strategy.address}
+      ratio: ${ratio.toString()}
       `;
 
       console.log(report)
@@ -293,14 +351,17 @@ const deployAndTest = async () => {
     }
   }
   console.log(
-    `Here's the full report -
+    `
+    ----------------------------
+      Here's the full report -
+    ----------------------------
     ${allReports.join('\n')}
     `
     )
     for (const strategy of testedStrategies) {
     console.log(`Verifying contract ${strategy.contract} at ${strategy.address}`)
     const verification = await hre.run("verify:verify", {
-      address: strategy.address,
+      address: strategy,
       constructorArguments: [governance, strategist, controller, timelock],
     });
   }
@@ -310,7 +371,7 @@ const deployAndTest = async () => {
 
 const main = async () => {
   await deployAndTest();
-  // await verifyContracts();
+  // await verifyContracts(testedStrategies);
 };
 
 main()
