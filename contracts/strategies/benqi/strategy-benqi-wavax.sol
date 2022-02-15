@@ -30,6 +30,7 @@ contract StrategyBenqiWavax is StrategyQiFarmBase {
         // get the value of Native Avax in the contract
         uint256 _avax = address(this).balance;
 
+
         if (_want > 0) {
             // unwrap wavax to avax for benqi
             WAVAX(want).withdraw(_want);
@@ -42,18 +43,17 @@ contract StrategyBenqiWavax is StrategyQiFarmBase {
 
             // confirm that qiTokens is received in exchange
             require( IQiToken(qiavax).balanceOf(address(this)) > 0 , "qitokens not received" );
+        }
+        //check if there is a balance of Native Avax Outstanding
+        if (_avax > 0) {
+            // confirm that msg.sender received avax
+            require(address(this).balance >= _avax, "!unwrap unsuccessful");
 
-            //check if there is a balance of Native Avax Outstanding
-            if (_avax > 0) {
-                // confirm that msg.sender received avax
-                require(address(this).balance >= _avax, "!unwrap unsuccessful");
+            // mint qiTokens external payable
+            IQiAvax(qiavax).mint{value: _avax}();
 
-                // mint qiTokens external payable
-                IQiAvax(qiavax).mint{value: _avax}();
-
-                // confirm that qiTokens is received in exchange
-                require( IQiToken(qiavax).balanceOf(address(this)) > 0 , "qitokens not received" );
-            }
+            // confirm that qiTokens is received in exchange
+            require( IQiToken(qiavax).balanceOf(address(this)) > 0 , "qitokens not received" );
         }
     }
     
