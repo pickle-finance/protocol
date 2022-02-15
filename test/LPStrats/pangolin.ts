@@ -198,28 +198,32 @@ const tests = [
     //     controller: "main",
     //     slot: 1
     // },
+    // {
+    //     name: "PngAvaxAaveE",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxBnb",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxIme",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxAvxt",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxMoney",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxYdr",
+    //     controller: "main"
+    // },
     {
-        name: "PngAvaxAaveE",
-        controller: "main"
-    },
-    {
-        name: "PngAvaxBnb",
-        controller: "main"
-    },
-    {
-        name: "PngAvaxIme",
-        controller: "main"
-    },
-    {
-        name: "PngAvaxAvxt",
-        controller: "main"
-    },
-    {
-        name: "PngAvaxMoney",
-        controller: "main"
-    },
-    {
-        name: "PngAvaxYdr",
+        name: "PngAvaxTus",
         controller: "main"
     },
 ];
