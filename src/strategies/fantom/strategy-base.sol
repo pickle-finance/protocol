@@ -292,9 +292,7 @@ abstract contract StrategyBase {
             path[1] = wftm;
             path[2] = _to;
         }
-
-        IERC20(_from).safeApprove(sushiRouter, 0);
-        IERC20(_from).safeApprove(sushiRouter, _amount);
+        
         UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
             _amount,
             0,

@@ -35,7 +35,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://rpc.ftm.tools/`,
+        url: `https://ftmrpc.ultimatenodes.io/`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
