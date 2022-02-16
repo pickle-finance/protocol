@@ -4,7 +4,32 @@ const { formatEther, parseEther } = require("ethers/lib/utils");
 const hre = require("hardhat");
 const ethers = hre.ethers;
 
-const sleep = async (ms, active=true) => {
+//Script Configs
+const sleepToggle = true;
+const sleepTime = 10000;
+const callAttempts = 3;
+const recallTime = 180000
+
+// Fantom addresses
+const governance = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
+const strategist = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
+const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";
+const timelock = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
+
+const testedStrategies = ["0xA6b01164af308d74eD593e24637275ee26Cf9531", "0x20b515d6fA1a248e92350d449286B8D258d91C19", "0xbe9e4d2902f23B83c9d04c1780C09809af5E7b3F", "0x2722930172C38420a4A0Aa7af67C316ebD845Be4", "0x62e02D2E56A18C5DCD5bE447D30D04C9800519E8", "0x767ef1887A71734A1F5198b2bE6dA9c32293ca5e",];
+
+const contracts = [
+  // "src/strategies/fantom/oxd/strategy-oxd-xboo.sol:StrategyOxdXboo",
+  // "src/strategies/fantom/spookyswap/strategy-boo-ftm-sushi-lp.sol:StrategyBooFtmSushiLp",
+  // "src/strategies/fantom/spookyswap/strategy-boo-btc-eth-lp.sol:StrategyBooBtcEthLp",
+  "src/strategies/fantom/spookyswap/strategy-boo-ftm-beets-lp.sol:StrategyBooFtmBeetsLp"
+  // "src/strategies/fantom/spookyswap/strategy-boo-ftm-any-lp.sol:StrategyBooFtmAnyLp",
+];
+
+const allReports = [];
+
+
+const sleep = async (ms, active = true) => {
   if (active) {
     console.log("Sleeping...")
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -12,14 +37,14 @@ const sleep = async (ms, active=true) => {
 };
 
 const recall = async (fn, ...args) => {
-  const delay = async() => new Promise(resolve => setTimeout(resolve, recallTime));
+  const delay = async () => new Promise(resolve => setTimeout(resolve, recallTime));
   await delay();
   await fn(...args);
 }
 
 const verifyContracts = async (strategies) => {
   console.log(`Verifying contracts...`);
-  await Promise.all(strategies.map(async(strategy) => {
+  await Promise.all(strategies.map(async (strategy) => {
     try {
       await hre.run("verify:verify", {
         address: strategy,
@@ -31,31 +56,7 @@ const verifyContracts = async (strategies) => {
   }));
 }
 
-// Fantom addresses
-const governance = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
-const strategist = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
-const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";
-const timelock = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
-
-const testedStrategies = ["0xA6b01164af308d74eD593e24637275ee26Cf9531", "0x20b515d6fA1a248e92350d449286B8D258d91C19", "0xbe9e4d2902f23B83c9d04c1780C09809af5E7b3F", "0x2722930172C38420a4A0Aa7af67C316ebD845Be4", "0x62e02D2E56A18C5DCD5bE447D30D04C9800519E8", "0x767ef1887A71734A1F5198b2bE6dA9c32293ca5e",];
-
 const deployAndTest = async () => {
-  //Script Configs
-  const sleepToggle = false;
-  const sleepTime = 10000;
-  const callAttempts = 3;
-  const recallTime = 60000
-
-  const contracts = [
-    // "src/strategies/fantom/oxd/strategy-oxd-xboo.sol:StrategyOxdXboo",
-    // "src/strategies/fantom/spookyswap/strategy-boo-ftm-sushi-lp.sol:StrategyBooFtmSushiLp",
-    // "src/strategies/fantom/spookyswap/strategy-boo-btc-eth-lp.sol:StrategyBooBtcEthLp",
-    "src/strategies/fantom/spookyswap/strategy-boo-ftm-treeb-lp.sol:StrategyBooFtmTreebLp",
-    // "src/strategies/fantom/spookyswap/strategy-boo-ftm-any-lp.sol:StrategyBooFtmAnyLp",
-  ];
-
-  const allReports = [];
-
   for (const contract of contracts) {
     const StrategyFactory = await ethers.getContractFactory(contract);
     // console.log("" + StrategyFactory.deploy);
@@ -64,7 +65,7 @@ const deployAndTest = async () => {
     const currentContract = contract.substring(contract.lastIndexOf(":") + 1);
 
     try {
-// Deploy Strategy contract
+      // Deploy Strategy contract
       console.log(`Deploying ${currentContract}...`);
       let strategy;
       const checkStrategy = async (calls) => {
@@ -77,47 +78,23 @@ const deployAndTest = async () => {
           await strategy.deployTransaction.wait();
           console.log(`✔️ Strategy deployed at: ${strategy.address}`);
         } catch (e) {
-            console.log(`Transaction Failed`);
-            console.error(e);
-            if (calls > 0) {
-              console.log(`Trying again. ${calls} more attempts left.`)
-              await checkStrategy(calls - 1);
-            } else {
-              console.log('Looks like something is broken!')
-            }
-          }
-        }
-      await checkStrategy(callAttempts);
-      // console.log(`✔️ Strategy deployed at: ${strategy.address}`);
-
-      const executeTx = async (calls, tx, fn, ...args) => {
-        await sleep(sleepTime, sleepToggle);
-        recall(executeTx, ...args);
-        try {
-          window[`${tx}`] = await fn(...args);
-          if (tx === strategy || tx === jar) {
-            await tx.deployTransaction.wait();
-          } else {
-            await tx.wait();
-          }
-        } catch (e) {
+          console.log(`Transaction Failed`);
           console.error(e);
           if (calls > 0) {
-            console.log(`Trying again. ${calls} more attempts left.`);
-            await executeTx(...args);
+            console.log(`Trying again. ${calls} more attempts left.`)
+            await checkStrategy(calls - 1);
           } else {
             console.log('Looks like something is broken!')
           }
         }
       }
-
-
-
+      await checkStrategy(callAttempts);
+      // console.log(`✔️ Strategy deployed at: ${strategy.address}`);
       await sleep(sleepTime, sleepToggle);
-// Get Want
+      // Get Want
       const want = await strategy.want();
 
-// Deploy PickleJar contract
+      // Deploy PickleJar contract
       let jar;
       const checkPickleJar = async (calls) => {
         console.log(`Deploying PickleJar...`);
@@ -142,15 +119,15 @@ const deployAndTest = async () => {
       await sleep(sleepTime, sleepToggle);
       console.log(`✔️ PickleJar deployed at: ${jar.address}`);
 
-// Log Want
+      // Log Want
       console.log(`Want address is: ${want}`);
       console.log(`Approving want token for deposit...`);
       const wantContract = await ethers.getContractAt("ERC20", want);
       await sleep(sleepTime, sleepToggle);
 
-// Approve Want
+      // Approve Want
       let approveTx;
-      const checkApproveTx = async(calls) => {
+      const checkApproveTx = async (calls) => {
         await sleep(sleepTime, sleepToggle);
         recall(checkApproveTx, callAttempts)
         try {
@@ -174,9 +151,9 @@ const deployAndTest = async () => {
 
       console.log(`Setting all the necessary stuff in controller...`);
 
-// Approve Strategy
+      // Approve Strategy
       let approveStratTx;
-      const checkApproveStratTx = async(calls) => {
+      const checkApproveStratTx = async (calls) => {
         await sleep(sleepTime, sleepToggle);
         recall(checkApproveStratTx, callAttempts)
         try {
@@ -199,9 +176,9 @@ const deployAndTest = async () => {
       await sleep(sleepTime, sleepToggle);
 
 
-// Set Jar
+      // Set Jar
       let setJarTx;
-      const checkSetJarTx = async(calls) => {
+      const checkSetJarTx = async (calls) => {
         await sleep(sleepTime, sleepToggle);
         recall(checkSetJarTx, callAttempts)
         try {
@@ -223,9 +200,9 @@ const deployAndTest = async () => {
       console.log(`Jar Set!`)
       await sleep(sleepTime, sleepToggle);
 
-// Set Strategy
+      // Set Strategy
       let setStratTx;
-      const checkSetStratTx = async(calls) => {
+      const checkSetStratTx = async (calls) => {
         await sleep(sleepTime, sleepToggle);
         recall(checkSetStratTx, callAttempts)
         try {
@@ -250,9 +227,9 @@ const deployAndTest = async () => {
       console.log(`✔️ Controller params all set!`);
       console.log(`Depositing in Jar...`);
 
-// Deposit Want
+      // Deposit Want
       let depositTx;
-      const checkDepositTx = async(calls) => {
+      const checkDepositTx = async (calls) => {
         await sleep(sleepTime, sleepToggle);
         recall(checkDepositTx, callAttempts)
         try {
@@ -274,10 +251,10 @@ const deployAndTest = async () => {
       console.log(`✔️ Successfully deposited want in Jar`);
       await sleep(sleepTime, sleepToggle);
 
-// Call Earn
+      // Call Earn
       console.log(`Calling earn...`);
       let earnTx;
-      const checkEarnTx = async(calls) => {
+      const checkEarnTx = async (calls) => {
         await sleep(sleepTime, sleepToggle);
         recall(checkEarnTx, callAttempts)
         try {
@@ -302,7 +279,7 @@ const deployAndTest = async () => {
       console.log(`Waiting for 30 seconds before harvesting...`);
       await sleep(30000);
       let harvestTx;
-      const checkHarvestTx = async(calls) => {
+      const checkHarvestTx = async (calls) => {
         await sleep(sleepTime, sleepToggle);
         recall(checkHarvestTx, callAttempts)
         try {
@@ -327,13 +304,13 @@ const deployAndTest = async () => {
       if (ratio.gt(BigNumber.from(parseEther("1")))) {
         console.log(`✔️ Harvest was successful, ending ratio of ${ratio.toString()}`);
         console.log(`Adding ${currentContract} deployed at ${strategy.address} to testedStrategies`)
-        testedStrategies.push({contract: currentContract, address: strategy.address})
+        testedStrategies.push({ contract: currentContract, address: strategy.address })
       } else {
         console.log(`❌ Harvest failed, ending ratio of ${ratio.toString()}`);
       }
 
       const report =
-      `
+        `
       Jar Info -
       name: ${currentContract}
       want: ${want}
@@ -357,8 +334,8 @@ const deployAndTest = async () => {
     ----------------------------
     ${allReports.join('\n')}
     `
-    )
-    for (const strategy of testedStrategies) {
+  )
+  for (const strategy of testedStrategies) {
     console.log(`Verifying contract ${strategy.contract} at ${strategy.address}`)
     const verification = await hre.run("verify:verify", {
       address: strategy,

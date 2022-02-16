@@ -3,6 +3,7 @@ const { BigNumber } = require("ethers");
 const { formatEther, parseEther } = require("ethers/lib/utils");
 const hre = require("hardhat");
 const ethers = hre.ethers;
+const { exec } = require("child_process");
 
 // Script configs
 const sleepToggle = true;
@@ -24,7 +25,7 @@ const contracts = [
   // "src/strategies/fantom/oxd/strategy-oxd-xboo.sol:StrategyOxdXboo",
   // "src/strategies/fantom/spookyswap/strategy-boo-ftm-sushi-lp.sol:StrategyBooFtmSushiLp",
   // "src/strategies/fantom/spookyswap/strategy-boo-btc-eth-lp.sol:StrategyBooBtcEthLp",
-  "src/strategies/fantom/spookyswap/strategy-boo-ftm-treeb-lp.sol:StrategyBooFtmTreebLp",
+  "src/strategies/fantom/spookyswap/strategy-boo-ftm-beets-lp.sol:StrategyBooFtmBeetsLp",
   // "src/strategies/fantom/spookyswap/strategy-boo-ftm-any-lp.sol:StrategyBooFtmAnyLp",
 ];
 
@@ -35,7 +36,7 @@ const testedStrategies = [
 ];
 
 // Functions
-const sleep = async (ms, active=true) => {
+const sleep = async (ms, active = true) => {
   if (active) {
     console.log("Sleeping...")
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -43,14 +44,15 @@ const sleep = async (ms, active=true) => {
 };
 
 const recall = async (fn, ...args) => {
-  const delay = async() => new Promise(resolve => setTimeout(resolve, recallTime));
+  const delay = async () => new Promise(resolve => setTimeout(resolve, recallTime));
   await delay();
   await fn(...args);
 }
 
 const verifyContracts = async (strategies) => {
+  await exec("npx hardhat clean");
   console.log(`Verifying contracts...`);
-  await Promise.all(strategies.map(async(strategy) => {
+  await Promise.all(strategies.map(async (strategy) => {
     try {
       await hre.run("verify:verify", {
         address: strategy,
@@ -62,119 +64,113 @@ const verifyContracts = async (strategies) => {
   }));
 }
 
-const deployAndTest = async () => {
-  const executeTx = async (calls, tx, fn, ...args) => {
-    await sleep(sleepTime, sleepToggle);
-    if (!txRefs[tx]) {recall(executeTx, calls, tx, fn, ...args)}
-    try {
-      if(!txRefs[tx]) {
-        txRefs[tx] = await fn(...args);
-        if (tx === strategy || tx === jar) {
-          await tx.deployTransaction.wait();
-        } else {
-          await tx.wait();
-        }
-      }
-      // console.log(`Transaction receipt: ${txRefs[tx]}`)
-    } catch (e) {
-      console.error(e);
-      if (calls > 0) {
-        console.log(`Trying again. ${calls} more attempts left.`);
-        await executeTx(calls - 1, tx, fn, ...args);
+const executeTx = async (calls, tx, fn, ...args) => {
+  await sleep(sleepTime, sleepToggle);
+  if (!txRefs[tx]) { recall(executeTx, calls, tx, fn, ...args) }
+  try {
+    if (!txRefs[tx]) {
+      console.log(fn.toString())
+      ///// WIP ////////////////
+      txRefs[tx] = await fn(...args)
+      ///// WIP ////////////////
+      if (tx === 'strategy' || tx === 'jar') {
+        await tx.deployTransaction.wait();
       } else {
-        console.log('Looks like something is broken!');
-        return;
+        await tx.wait();
       }
     }
-    await sleep(sleepTime, sleepToggle);
+    console.log(`Transaction receipt: ${txRefs[tx]}`)
+  } catch (e) {
+    console.error(e);
+    if (calls > 0) {
+      console.log(`Trying again. ${calls} more attempts left.`);
+      await executeTx(calls - 1, tx, fn, ...args);
+    } else {
+      console.log('Looks like something is broken!');
+      return;
+    }
   }
-
+  await sleep(sleepTime, sleepToggle);
+}
+const deployAndTest = async () => {
   for (const contract of contracts) {
     const StrategyFactory = await ethers.getContractFactory(contract);
+    console.log(StrategyFactory)
     const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
     const Controller = await ethers.getContractAt("src/controller-v4.sol:ControllerV4", controller);
-    txRefs[name] = contract.substring(contract.lastIndexOf(":") + 1);
+    txRefs['name'] = contract.substring(contract.lastIndexOf(":") + 1);
 
     try {
-// Deploy Strategy contract
-      console.log(`Deploying ${txRefs[name]}...`);
-      let strategy;
-      await executeTx(callAttempts, strategy, StrategyFactory.deploy, governance, strategist, controller, timelock);
-      console.log(`✔️ Strategy deployed at: ${txRefs[strategy].address}`);
+      // Deploy Strategy contract
+      console.log(`Deploying ${txRefs['name']}...`);
+      await executeTx(callAttempts, 'strategy', StrategyFactory.deploy, governance, strategist, controller, timelock);
+      console.log(`✔️ Strategy deployed at: ${txRefs['strategy'].address}`);
 
-// Get Want
-      txRefs[want] = await txRefs[strategy].want();
+      // Get Want
+      txRefs['want'] = await txRefs['strategy'].want();
 
-// Deploy PickleJar contract
-      let jar;
-      await executeTx(callAttempts, jar, PickleJarFactor.deploy, txRefs[want], governance, timelock, controller);
-      console.log(`✔️ PickleJar deployed at: ${txRefs[jar].address}`);
+      // Deploy PickleJar contract
+      await executeTx(callAttempts, 'jar', PickleJarFactory.deploy, txRefs['want'], governance, timelock, controller);
+      console.log(`✔️ PickleJar deployed at: ${txRefs['jar'].address}`);
 
-// Log Want
-      console.log(`Want address is: ${txRefs[want]}`);
+      // Log Want
+      console.log(`Want address is: ${txRefs['want']}`);
       console.log(`Approving want token for deposit...`);
-      const wantContract = await ethers.getContractAt("ERC20", txRefs[want]);
+      txRefs['wantContract'] = await ethers.getContractAt("ERC20", txRefs['want']);
 
-// Approve Want
-      let approveTx;
-      await executeTx(callAttempts, approveTx, wantContract.approve, txRefs[jar].address, ethers.constants.MaxUint256);
+      // Approve Want
+      await executeTx(callAttempts, 'approveTx', txRefs['wantContract'].approve, txRefs['jar'].address, ethers.constants.MaxUint256);
       console.log(`✔️ Successfully approved Jar to spend want`);
       console.log(`Setting all the necessary stuff in controller...`);
 
-// Approve Strategy
-      let approveStratTx;
-      await executeTx(callAttempts, approveStratTx, Controller.approveStrategy, txRefs[want], txRefs[strategy].address);
+      // Approve Strategy
+      await executeTx(callAttempts, 'approveStratTx', Controller.approveStrategy, txRefs['want'], txRefs['strategy'].address);
       console.log(`Strategy Approved!`)
 
-// Set Jar
-      let setJarTx;
-      await executeTx(callAttempts, setJarTx, Controller.setJar, want, txRefs[jar].address);
+      // Set Jar
+      await executeTx(callAttempts, 'setJarTx', Controller.setJar, txRefs['want'], txRefs['jar'].address);
       console.log(`Jar Set!`)
 
-// Set Strategy
-      let setStratTx;
-      await executeTx(callAttempts, setStratTx, Controller.setStrategy, txRefs[want], strategy.address);
+      // Set Strategy
+      await executeTx(callAttempts, 'setStratTx', Controller.setStrategy, txRefs['want'], txRefs['strategy'].address);
       console.log(`Strategy Set!`)
       console.log(`✔️ Controller params all set!`);
 
-// Deposit Want
+      // Deposit Want
       console.log(`Depositing in Jar...`);
-      let depositTx;
-      await executeTx(callAttempts, depositTx, txRefs[jar].depositAll)
+      await executeTx(callAttempts, 'depositTx', txRefs['jar'].depositAll)
       console.log(`✔️ Successfully deposited want in Jar`);
 
-// Call Earn
+      // Call Earn
       console.log(`Calling earn...`);
-      let earnTx;
-      await executeTx(callAttempts, earnTx, txRefs[jar].earn);
+      await executeTx(callAttempts, 'earnTx', txRefs['jar'].earn);
       console.log(`✔️ Successfully called earn`);
 
-// Call Harvest
+      // Call Harvest
       console.log(`Waiting for 30 seconds before harvesting...`);
       await sleep(30000);
-      let harvestTx;
-      await executeTx(callAttempts, harvestTx, txRefs[strategy].harvest);
+      await executeTx(callAttempts, 'harvestTx', txRefs['strategy'].harvest);
 
-      txRefs[ratio] = await txRefs[jar].getRatio();
+      txRefs['ratio'] = await txRefs['jar'].getRatio();
 
-      if (txRefs[ratio].gt(BigNumber.from(parseEther("1")))) {
-        console.log(`✔️ Harvest was successful, ending ratio of ${txRefs[ratio].toString()}`);
-        testedStrategies.push(txRefs[strategy].address)
+      if (txRefs['ratio'].gt(BigNumber.from(parseEther("1")))) {
+        console.log(`✔️ Harvest was successful, ending ratio of ${txRefs['ratio'].toString()}`);
+        testedStrategies.push(txRefs['strategy'].address)
       } else {
-        console.log(`❌ Harvest failed, ending ratio of ${txRefs[ratio].toString()}`);
+        console.log(`❌ Harvest failed, ending ratio of ${txRefs['ratio'].toString()}`);
       }
-// Script Report
+      // Script Report
       const report =
-      `
+        `
       Jar Info -
-      name: ${txRefs[name]}
-      want: ${txRefs[want]}
-      picklejar: ${txRefs[jar].address}
-      strategy: ${txRefs[strategy].address}
-      ratio: ${txRefs[ratio].toString()}
+      name: ${txRefs['name']}
+      want: ${txRefs['want']}
+      picklejar: ${txRefs['jar'].address}
+      strategy: ${txRefs['strategy'].address}
+      ratio: ${txRefs['ratio'].toString()}
       `;
 
-      // console.log(txRefs);
+      console.log(txRefs);
       // console.log(report);
 
       allReports.push(report);
@@ -197,8 +193,8 @@ const deployAndTest = async () => {
 };
 
 const main = async () => {
-  // await deployAndTest();
-  await verifyContracts(testedStrategies);
+  await deployAndTest();
+  // await verifyContracts(testedStrategies);
 };
 
 main()
