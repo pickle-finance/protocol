@@ -19,6 +19,8 @@ interface ILqdrChef {
         view
         returns (uint256 amount, uint256 rewardDebt);
 
+    function harvest(uint256, address) external;
+
     function withdraw(
         uint256 _pid,
         uint256 _amount,

@@ -7,7 +7,7 @@ contract StrategyLqdrSushiWftm is StrategyLqdrFarmLPBase {
     uint256 public _poolId = 13;
     // Token addresses
     address public _lp = 0xf84E313B36E86315af7a06ff26C8b20e9EB443C3;
-    address public sushi = 0xf84E313B36E86315af7a06ff26C8b20e9EB443C3;
+    address public sushi = 0xae75A438b2E0cB8Bb01Ec1E1e376De11D44477CC;
 
     // Spiritswap router
     address public _router = 0xF491e7B69E4244ad4002BC14e878a34207E38c29;
