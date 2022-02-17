@@ -71,7 +71,6 @@ const deployAndTest = async () => {
       const checkStrategy = async (calls) => {
         console.log('Ping!')
         await sleep(sleepTime, sleepToggle);
-        recall(checkStrategy, callAttempts)
         try {
           strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
           await sleep(sleepTime, sleepToggle);
@@ -99,7 +98,6 @@ const deployAndTest = async () => {
       const checkPickleJar = async (calls) => {
         console.log(`Deploying PickleJar...`);
         await sleep(sleepTime, sleepToggle);
-        recall(checkPickleJar, callAttempts)
         try {
           jar = await PickleJarFactory.deploy(want, governance, timelock, controller);
           await sleep(sleepTime, sleepToggle);
@@ -129,7 +127,6 @@ const deployAndTest = async () => {
       let approveTx;
       const checkApproveTx = async (calls) => {
         await sleep(sleepTime, sleepToggle);
-        recall(checkApproveTx, callAttempts)
         try {
           approveTx = await wantContract.approve(jar.address, ethers.constants.MaxUint256);
           await sleep(sleepTime, sleepToggle);
@@ -155,7 +152,6 @@ const deployAndTest = async () => {
       let approveStratTx;
       const checkApproveStratTx = async (calls) => {
         await sleep(sleepTime, sleepToggle);
-        recall(checkApproveStratTx, callAttempts)
         try {
           approveStratTx = await Controller.approveStrategy(want, strategy.address);
           await sleep(sleepTime, sleepToggle);
@@ -180,7 +176,6 @@ const deployAndTest = async () => {
       let setJarTx;
       const checkSetJarTx = async (calls) => {
         await sleep(sleepTime, sleepToggle);
-        recall(checkSetJarTx, callAttempts)
         try {
           setJarTx = await Controller.setJar(want, jar.address);
           await sleep(sleepTime, sleepToggle);
@@ -204,7 +199,6 @@ const deployAndTest = async () => {
       let setStratTx;
       const checkSetStratTx = async (calls) => {
         await sleep(sleepTime, sleepToggle);
-        recall(checkSetStratTx, callAttempts)
         try {
           setStratTx = await Controller.setStrategy(want, strategy.address);
           await sleep(sleepTime, sleepToggle);
@@ -231,7 +225,6 @@ const deployAndTest = async () => {
       let depositTx;
       const checkDepositTx = async (calls) => {
         await sleep(sleepTime, sleepToggle);
-        recall(checkDepositTx, callAttempts)
         try {
           depositTx = await jar.depositAll();
           await sleep(sleepTime, sleepToggle);
@@ -256,7 +249,6 @@ const deployAndTest = async () => {
       let earnTx;
       const checkEarnTx = async (calls) => {
         await sleep(sleepTime, sleepToggle);
-        recall(checkEarnTx, callAttempts)
         try {
           earnTx = await jar.earn();
           await sleep(sleepTime, sleepToggle);
@@ -281,7 +273,6 @@ const deployAndTest = async () => {
       let harvestTx;
       const checkHarvestTx = async (calls) => {
         await sleep(sleepTime, sleepToggle);
-        recall(checkHarvestTx, callAttempts)
         try {
           harvestTx = await strategy.harvest();
           await sleep(sleepTime, sleepToggle);
