@@ -44,10 +44,10 @@ const tests = [
         slot: 3,
         controller:"optimizer"
     },
-    // {
-    //     name: "BenqiDaiE",
-    //     controller:"optimizer"
-    // },
+    {
+        name: "BenqiDaiE",
+        controller:"optimizer"
+    },
  
 ];
 

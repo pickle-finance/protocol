@@ -2793,29 +2793,60 @@ abstract contract StrategyQiFarmBase is StrategyBase, Exponential {
 
         IComptroller(comptroller).claimReward(1, address(this));        // ClaimAvax
         uint256 _avax = address(this).balance;                          // get balance of native Avax
-
         if (_avax > 0) {                                                // wrap avax into ERC20
             WAVAX(wavax).deposit{value: _avax}();
         }
 
+        IComptroller(comptroller).claimReward(0, address(this));        //Claim Qi
+
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        if (_wavax > 0) {
+        uint256 _benqi = IERC20(benqi).balanceOf(address(this));
+
+
+        // Taking fee from rewards
+        if (_wavax > 0){
             _keep = _wavax.mul(keep).div(keepMax);
-            if (_keep > 0) {
+            if (_keep > 0){
                 _takeFeeWavaxToSnob(_keep);
+            }
+
+            _wavax = IERC20(wavax).balanceOf(address(this));
+        }
+
+        if (_benqi > 0){
+            _keep = _benqi.mul(keep).div(keepMax);
+            if (_keep > 0){
+                _takeFeeQiToSnob(_keep);
+            }
+            _benqi = IERC20(benqi).balanceOf(address(this));
+        }
+
+        // Swaps
+        if (_wavax > 0) {
+            if(want != wavax){
+                IERC20(wavax).safeApprove(pangolinRouter, 0);
+                IERC20(wavax).safeApprove(pangolinRouter, _wavax);
+
+                _swapPangolin(wavax, want, _wavax);
             }
         }
 
-        IComptroller(comptroller).claimReward(0, address(this));        //Claim Qi
-        uint256 _benqi = IERC20(benqi).balanceOf(address(this));
-        if (_benqi > 0) {
-            _keep = _benqi.mul(keep).div(keepMax);
-            if (_keep > 0) {
-                _takeFeeQiToSnob(_keep);
-            }
-            if (want != benqi) {
-                _benqi = IERC20(benqi).balanceOf(address(this));
-                _swapPangolin(benqi, want, _benqi);
+        if (_benqi > 0){
+            if ((want != benqi) && (want != wavax)) {
+                address[] memory path = new address[](3);
+                path[0] = benqi;
+                path[1] = wavax;
+                path[2] = want;
+
+                IERC20(benqi).safeApprove(pangolinRouter, 0);
+                IERC20(benqi).safeApprove(pangolinRouter, _benqi);
+
+                _swapPangolinWithPath(path, _benqi);
+            } else if (want == wavax){
+                IERC20(benqi).safeApprove(pangolinRouter, 0);
+                IERC20(benqi).safeApprove(pangolinRouter, _benqi);
+
+                _swapPangolin(benqi, wavax, _benqi);
             }
         }
 
