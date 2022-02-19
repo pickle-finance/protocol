@@ -1,0 +1,14 @@
+{
+  "StrategyBeethovenUsdcDaiMaiLp": {
+    "name": "StrategyBeethovenUsdcDaiMaiLp",
+    "strategy": "0xA57a77FD70733c52bD51e2AB9ccB325c322f07d2",
+    "want": "0x2C580C6F08044D6dfACA8976a66C8fAddDBD9901",
+    "jar": "0x3a0F1451629f62fCb290a600e553e0d9f03B62C9",
+    "wantApproveTx": "0xe5d376e306a27948c4f511806d29a06105080ad66db76bdeaa7a5c652dbd33f4",
+    "stratApproveTx": "0x7c948d939b7532fbb633d9aaf40436a3f8396496c8f77b2de7892b2ba948da08",
+    "jarSetTx": "0xb9812bd8128f5a5faba5ee6dd6fd0a98cc49d5ab0e231adf02727ad92ed19c1f",
+    "stratSetTx": "0xe65e8e4cb12ae8405a628e25e78f6de93cbd9328d0fc577994916623509a0e0a",
+    "depositTx": "0xc38fc974cffe2d66a8156930701efc9f495e45bbb9fcae3cf4f5ee34107c4c2e",
+    "earnTx": "0xff7f488cef69eb66f65103303430e2d73767b286593375b6ec757b972ad1ff93"
+  }
+}
