@@ -19,7 +19,7 @@ const done = JSON.parse(JSON.stringify(doneJson));
 // Addresses & Contracts [Fantom]
 const governance = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
 const strategist = "0xacfe4511ce883c14c4ea40563f176c3c09b4c47c";
-const controller = "0xB1698A97b497c998b2B2291bb5C48D1d6075836a"; //"0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";
+const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";//"0xB1698A97b497c998b2B2291bb5C48D1d6075836a";
 const timelock = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
 
 const contracts = [
@@ -34,10 +34,10 @@ const contracts = [
 ];
 
 const testedStratsAddresses = [
-  // "0xC064F3b14b6fFF60cdDe41Ff128e2ac7d32e3f18",
+  // "0xb64f09dFE30Ba3A65be15498B3f32aE3068bdaEb",
 ];
 const testedStratsContracts = [
-  // "src/tmp/strategy-beethovenx-ftm-btc-eth.sol:StrategyBeethovenFtmBtcEthLp",
+  // "src/tmp/strategy-beethovenx-usdc-dai-mai.sol:StrategyBeethovenUsdcDaiMaiLp",
 ];
 
 // Functions
@@ -110,7 +110,9 @@ const deployAndTest = async () => {
           console.log(`${error.code}! Retrying...`);
           txn = tx;
         } else {
+          console.log("New error encountered! Please investigate!");
           console.error(error);
+          return;
         }
       }
     } else {
@@ -125,15 +127,17 @@ const deployAndTest = async () => {
           return await executeTx(tries, fn, deployTx);
         }
 
-        // 2) usually with a failing harvest
+        // 2) usually with a failing harvest (not enough rewards accrued)
         else if (error.code === "UNPREDICTABLE_GAS_LIMIT") {
-          console.error(`Tx failed with code: ${error.code}\nFull error body:\n${error}`);
+          console.error(`Tx failed with code: ${error.code}`);
           if (tries > 0) {
             console.log("Retrying...");
             return await executeTx(tries - 1, fn, deployTx, txn);
           }
         } else {
+          console.log("New error encountered! Please investigate!");
           console.log(error);
+          return;
         }
       }
     }
