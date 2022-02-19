@@ -37,6 +37,8 @@ contract StrategyBeethovenUsdcDaiMaiLp is StrategyBeethovenxFarmBase {
             _timelock
         )
     {
+        sushiRouter = 0xF491e7B69E4244ad4002BC14e878a34207E38c29;
+        IERC20(wftm).approve(sushiRouter, uint256(-1));
         swapRoutes[usdc] = [wftm, usdc];
     }
 
