@@ -222,8 +222,12 @@ const tests = [
     //     name: "PngAvaxYdr",
     //     controller: "main"
     // },
+    // {
+    //     name: "PngAvaxTus",
+    //     controller: "main"
+    // },
     {
-        name: "PngAvaxTus",
+        name: "PngAvaxSavax",
         controller: "main"
     },
 ];

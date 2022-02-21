@@ -84,33 +84,38 @@ const tests = [
     //     controller: "traderJoe",
     //     slot: 1
     // }
+    // {
+    //     name: "JoeAvaxDomi",
+    //     controller: "traderJoe",
+    //     slot: 1
+    // },
+    // {
+    //     name: "JoeAvaxGmx",
+    //     controller: "traderJoe",
+    //     slot: 1
+    // },
+    // {
+    //     name: "JoeAvaxHon",
+    //     controller: "traderJoe",
+    //     slot: 1
+    // },
+    // {
+    //     name: "JoeAvaxTus",
+    //     controller: "traderJoe",
+    //     slot: 1
+    // },
+    // {
+    //     name: "JoeAvaxUsdc",
+    //     controller: "traderJoe",
+    //     slot: 1
+    // },
+    // {
+    //     name: "JoeUsdcEUst",
+    //     controller: "traderJoe",
+    //     slot: 1
+    // }
     {
-        name: "JoeAvaxDomi",
-        controller: "traderJoe",
-        slot: 1
-    },
-    {
-        name: "JoeAvaxGmx",
-        controller: "traderJoe",
-        slot: 1
-    },
-    {
-        name: "JoeAvaxHon",
-        controller: "traderJoe",
-        slot: 1
-    },
-    {
-        name: "JoeAvaxTus",
-        controller: "traderJoe",
-        slot: 1
-    },
-    {
-        name: "JoeAvaxUsdc",
-        controller: "traderJoe",
-        slot: 1
-    },
-    {
-        name: "JoeUsdcEUst",
+        name: "JoeAvaxSavax",
         controller: "traderJoe",
         slot: 1
     }
