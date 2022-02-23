@@ -3,16 +3,15 @@ pragma solidity ^0.6.7;
 import "../../strategy-base.sol";
 import "../../../interfaces/netswap-chef.sol";
 
-abstract contract StrategyExtraRewardsLPBase is StrategyBase {
-    address public reward = 0x90fE084F877C65e1b577c7b2eA64B8D8dd1AB278;
+abstract contract StrategyNettBtcMetisLPBase is StrategyBase {
+    address public nett = 0x90fE084F877C65e1b577c7b2eA64B8D8dd1AB278;
     address public masterchef = 0x9d1dbB49b2744A1555EDbF1708D64dC71B0CB052;
-    address[] public extraRewards;
     address public token0;
     address public token1;
 
-    // How much REWARD tokens to keep?
-    uint256 public keepREWARD = 1000;
-    uint256 public constant keepREWARDMax = 10000;
+    // How much NETT tokens to keep?
+    uint256 public keepNETT = 1000;
+    uint256 public constant keepNETTMax = 10000;
 
     mapping(address => address[]) public swapRoutes;
 
@@ -38,11 +37,11 @@ abstract contract StrategyExtraRewardsLPBase is StrategyBase {
 
         IERC20(token0).approve(sushiRouter, uint256(-1));
         IERC20(token1).approve(sushiRouter, uint256(-1));
-        IERC20(reward).approve(sushiRouter, uint256(-1));
+        IERC20(nett).approve(sushiRouter, uint256(-1));
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        (uint256 amount, ) = IRewardChef(masterchef).userInfo(
+        (uint256 amount, ) = INettChef(masterchef).userInfo(
             poolId,
             address(this)
         );
@@ -50,23 +49,18 @@ abstract contract StrategyExtraRewardsLPBase is StrategyBase {
     }
 
     function getHarvestable() external view returns (uint256) {
-        (uint256 pendingREWARD, , , ) = IRewardChef(masterchef).pendingTokens(
+        (uint256 pendingNETT, , , ) = INettChef(masterchef).pendingTokens(
             poolId,
             address(this)
         );
-        return pendingREWARD;
+        return pendingNETT;
     }
 
     // **** Setters ****
 
-    function setKeepREWARD(uint256 _keepREWARD) external {
+    function setKeepNETT(uint256 _keepNETT) external {
         require(msg.sender == timelock, "!timelock");
-        keepREWARD = _keepREWARD;
-    }
-
-    function setRewardTokens(address token) {
-        require(msg.sender == timelock, "!timelock");
-        extraRewards.push(token);
+        keepNETT = _keepNETT;
     }
 
     function deposit() public override {
@@ -74,7 +68,7 @@ abstract contract StrategyExtraRewardsLPBase is StrategyBase {
         if (_want > 0) {
             IERC20(want).safeApprove(masterchef, 0);
             IERC20(want).safeApprove(masterchef, _want);
-            IRewardChef(masterchef).deposit(poolId, _want);
+            INettChef(masterchef).deposit(poolId, _want);
         }
     }
 
@@ -83,42 +77,39 @@ abstract contract StrategyExtraRewardsLPBase is StrategyBase {
         override
         returns (uint256)
     {
-        IRewardChef(masterchef).withdraw(poolId, _amount);
+        INettChef(masterchef).withdraw(poolId, _amount);
         return _amount;
     }
 
     function harvest() public override {
-        IRewardChef(masterchef).deposit(poolId, 0);
-        uint256 _reward = IERC20(reward).balanceOf(address(this));
+        INettChef(masterchef).deposit(poolId, 0);
+        uint256 _nett = IERC20(nett).balanceOf(address(this));
         uint256 _metis = IERC20(metis).balanceOf(address(this));
 
-        //swap all extraRewards to reward
-        for (uint256 i = 0; i < extraRewards.length; i++) {
-            uint256 _reward = IERC20(extraRewards[i]).balanceOf(address(this));
-            if (_reward > 0) {
-                address[] memory path = new address[](2);
-                path[0] = extraRewards[i];
-                path[1] = reward;
-                UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-                    _reward,
-                    0,
-                    path,
-                    address(this),
-                    now + 60
-                );
-            }
+        // swap all Metis to NETT
+        if (_metis > 0) {
+            address[] memory pathMetis = new address[](2);
+            pathMetis[0] = metis;
+            pathMetis[1] = nett;
+            UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
+                _metis,
+                0,
+                pathMetis,
+                address(this),
+                now + 60
+            );
         }
 
-        if (_reward > 0) {
-            uint256 _keepREWARD = _reward.mul(keepREWARD).div(keepREWARDMax);
-            IERC20(reward).safeTransfer(
+        if (_nett > 0) {
+            uint256 _keepNETT = _nett.mul(keepNETT).div(keepNETTMax);
+            IERC20(nett).safeTransfer(
                 IController(controller).treasury(),
-                _keepREWARD
+                _keepNETT
             );
 
-            _reward = _reward.sub(_keepREWARD);
-            uint256 toToken0 = _reward.div(2);
-            uint256 toToken1 = _reward.sub(toToken0);
+            _nett = _nett.sub(_keepNETT);
+            uint256 toToken0 = _nett.div(2);
+            uint256 toToken1 = _nett.sub(toToken0);
 
             if (swapRoutes[token0].length > 1) {
                 _swapSushiswapWithPath(swapRoutes[token0], toToken0);
