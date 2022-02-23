@@ -14,7 +14,7 @@ const waitBeforeTx = 10000; // wait for the provider to update chain state (sign
 
 // References
 const allReports = [];
-const done = require("./".concat(OBJECT_FILE_NAME));  // deployment state object
+const done = require("./".concat(OBJECT_FILE_NAME)); // deployment state object
 
 // Addresses & Contracts [Fantom]
 const governance = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
@@ -23,14 +23,10 @@ const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6"; //"0xB1698A97b4
 const timelock = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
 
 const contracts = [
-  // "src/tmp/strategy-beethovenx-ftm-beets.sol:StrategyBeethovenFtmBeetsLp",
-  // "src/tmp/strategy-beethovenx-ftm-btc-eth.sol:StrategyBeethovenFtmBtcEthLp",
-  // "src/tmp/strategy-beethovenx-lqdr-ftm.sol:StrategyBeethovenLqdrFtmLp",
-  // "src/tmp/strategy-beethovenx-wftm-matic-sol-avax-luna-bnb.sol:StrategyBeethovenWftmMaticSolAvaxLunaBnbLp",
-  // "src/tmp/strategy-beethovenx-wftm-usdc.sol:StrategyBeethovenWftmUsdcLp",
-  // "src/tmp/strategy-lqdr-sushi-wftm.sol:StrategyLqdrSushiWftm",
-  // "src/tmp/strategy-beethovenx-usdc-ftm-btc-eth.sol:StrategyBeethovenUsdcFtmBtcEthLp",
-  "src/tmp/strategy-beethovenx-usdc-dai-mai.sol:StrategyBeethovenUsdcDaiMaiLp", // pending harvest
+  // "src/tmp/strategy-lqdr-dei-usdc.sol:StrategyLqdrDeiUsdc",
+  "src/tmp/strategy-lqdr-deus-wftm.sol:StrategyLqdrDeusWftm",
+
+  // "src/tmp/strategy-beethovenx-usdc-dai-mai.sol:StrategyBeethovenUsdcDaiMaiLp", // pending harvest
 ];
 
 const testedStratsAddresses = [
@@ -71,9 +67,6 @@ const verifyStrats = async () => {
 };
 
 const deployAndTest = async () => {
-  console.log(done);
-  await sleep(1000);
-
   const executeTx = async (tries, fn, deployTx = false, tx = undefined) => {
     await sleep(waitBeforeTx, sleepToggle);
 
@@ -209,14 +202,14 @@ const deployAndTest = async () => {
     // Set deployment state object properties
     const objProps = [
       "name",
+      "strategy",
       "want",
       "jar",
       "wantApproveTx",
-      "jarSetTx",
-      "depositTx",
-      "strategy",
       "stratApproveTx",
+      "jarSetTx",
       "stratSetTx",
+      "depositTx",
       "earnTx",
       "harvestTx",
     ];
@@ -240,6 +233,8 @@ const deployAndTest = async () => {
           persistify(done);
           strategy = await ethers.getContractAt(contract, done[name].strategy);
           console.log(`✔️ Strategy deployed at: ${strategy.address}`);
+        } else {
+          console.log(`❌ Strategy deployment failed!`);
         }
       }
 
@@ -254,11 +249,13 @@ const deployAndTest = async () => {
           () => PickleJarFactory.deploy(done[name].want, governance, timelock, controller),
           true
         );
-        if (jarTx?.address){
+        if (jarTx?.address) {
           done[name].jar = jarTx.address;
           persistify(done);
           jar = await ethers.getContractAt("src/pickle-jar.sol:PickleJar", done[name].jar);
           console.log(`✔️ PickleJar deployed at: ${jar.address}`);
+        } else {
+          console.log(`❌ PickleJar deployment failed!`);
         }
       }
 
@@ -272,10 +269,12 @@ const deployAndTest = async () => {
         const approveTx = await executeTx(callAttempts, () =>
           wantContract.approve(jar.address, ethers.constants.MaxUint256)
         );
-        if (approveTx?.transactionHash){
+        if (approveTx?.transactionHash) {
           done[name].wantApproveTx = approveTx.transactionHash;
           persistify(done);
           console.log(`✔️ Successfully approved Jar to spend want`);
+        } else {
+          console.log(`❌ Failed approving Jar to spend want!`);
         }
       }
 
@@ -283,47 +282,60 @@ const deployAndTest = async () => {
         console.log(`Setting all the necessary stuff in controller...`);
 
         // Approve Strategy
+        console.log(`Approving Strategy...`);
         const approveStratTx = await executeTx(callAttempts, () =>
           Controller.approveStrategy(done[name].want, strategy.address)
         );
-        if(approveStratTx?.transactionHash){
+        if (approveStratTx?.transactionHash) {
           done[name].stratApproveTx = approveStratTx.transactionHash;
           persistify(done);
-          console.log(`Strategy Approved!`);
+          console.log(`✔️ Strategy Approved!`);
+        } else {
+          console.log(`❌ Failed approving strategy in the controller!`);
         }
       }
 
       if (done[name].stratApproveTx && !done[name].jarSetTx) {
         // Set Jar
+        console.log(`Setting Jar...`);
         const setJarTx = await executeTx(callAttempts, () => Controller.setJar(done[name].want, jar.address));
-        if(setJarTx?.transactionHash){
+        if (setJarTx?.transactionHash) {
           done[name].jarSetTx = setJarTx.transactionHash;
           persistify(done);
-          console.log(`Jar Set!`);
+          console.log(`✔️ Jar Set!`);
+        } else {
+          console.log(`❌ Failed setting Jar in the controller!`);
         }
       }
 
       if (done[name].jarSetTx && !done[name].stratSetTx) {
         // Set Strategy
+        console.log(`Setting Strategy...`);
         const setStratTx = await executeTx(callAttempts, () =>
           Controller.setStrategy(done[name].want, strategy.address)
         );
-        if(setStratTx?.transactionHash){
+        if (setStratTx?.transactionHash) {
           done[name].stratSetTx = setStratTx.transactionHash;
           persistify(done);
-          console.log(`Strategy Set!`);
+          console.log(`✔️ Strategy Set!`);
           console.log(`✔️ Controller params all set!`);
+        } else {
+          console.log(`❌ Failed setting strategy in the controller!`);
         }
       }
 
-      if (done[name].stratSetTx && !done[name].depositTx) {
+      if (done[name].stratSetTx && !done[name].depositTx && done[name].wantApproveTx) {
         // Deposit Want
         console.log(`Depositing in Jar...`);
         const depositTx = await executeTx(callAttempts, () => jar.depositAll());
-        if(depositTx?.transactionHash){
+        if (depositTx?.transactionHash) {
           done[name].depositTx = depositTx.transactionHash;
           persistify(done);
-          console.log(`✔️ Successfully deposited want in Jar. Please double-check the tx hash ${depositTx.transactionHash}`);
+          console.log(
+            `✔️ Successfully deposited want in Jar. Please double-check the tx hash ${depositTx.transactionHash}`
+          );
+        } else {
+          console.log(`❌ Failed depositing want in Jar!`);
         }
       }
 
@@ -331,10 +343,12 @@ const deployAndTest = async () => {
         // Call Earn
         console.log(`Calling earn...`);
         const earnTx = await executeTx(callAttempts, () => jar.earn());
-        if(earnTx?.transactionHash){
+        if (earnTx?.transactionHash) {
           done[name].earnTx = earnTx.transactionHash;
           persistify(done);
           console.log(`✔️ Successfully called earn. Please double-check the tx hash ${earnTx.transactionHash}`);
+        } else {
+          console.log(`❌ Failed calling earn!`);
         }
       }
 
@@ -383,15 +397,10 @@ const deployAndTest = async () => {
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     `
   );
-
-  const doneStringified = JSON.stringify(done, null, 4);
-  fs.writeFileSync("deployments/deployment-object.json", doneStringified, (err) => {
-    if (err) console.log(err);
-  });
 };
 
-
 const main = async () => {
+  // TODO ensure the deployer has the necessary permissions on the controller
   await deployAndTest();
   await verifyStrats();
 };
