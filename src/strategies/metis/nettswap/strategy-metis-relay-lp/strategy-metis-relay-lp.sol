@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../farmbase-nett-metis-relay.sol";
+import "./farmbase-nett-metis-relay.sol";
 
-contract StrategyNettMetisRelayLp is StrategyNettFarmLPBase {
+contract StrategyNettMetisRelayLp is StrategyNettBtcMetisLPBase {
     uint256 public metis_relay_poolid = 11;
     // Token addresses
     address public metis_relay_lp = 0xA58bd557BFBC12f8cEaCcc6E1668F5FBFB2118BB;
@@ -15,7 +15,7 @@ contract StrategyNettMetisRelayLp is StrategyNettFarmLPBase {
         address _timelock
     )
         public
-        StrategyNettFarmLPBase(
+        StrategyNettBtcMetisLPBase(
             metis_relay_lp,
             metis_relay_poolid,
             _governance,

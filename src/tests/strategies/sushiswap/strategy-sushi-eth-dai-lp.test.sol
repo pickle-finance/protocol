@@ -12,7 +12,7 @@ import "../../../strategies/sushiswap/strategy-sushi-eth-dai-lp.sol";
 
 contract StrategySushiEthDaiLpTest is StrategySushiFarmTestBase {
     function setUp() public {
-        want = 0xC3D03e4F041Fd4cD388c549Ee2A29a9E5075882f;
+        want = 0xE0cc462fe369146BAef2306EC6B4BF26704eE84e;
         token1 = dai;
 
         governance = address(this);

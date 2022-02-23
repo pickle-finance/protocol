@@ -1,7 +1,7 @@
 pragma solidity ^0.6.7;
 
 import "../../strategy-base.sol";
-import "../../../interfaces/netswap-chef.sol";
+import "../../../../interfaces/netswap-chef.sol";
 
 abstract contract StrategyNettBtcMetisLPBase is StrategyBase {
     address public nett = 0x90fE084F877C65e1b577c7b2eA64B8D8dd1AB278;
@@ -93,7 +93,7 @@ abstract contract StrategyNettBtcMetisLPBase is StrategyBase {
             pathMetis[0] = metis;
             pathMetis[1] = nett;
             UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-                _metis,
+                _relay,
                 0,
                 pathMetis,
                 address(this),

@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../farmbase-nett-btc-usdt.sol";
+import "./farmbase-nett-btc-usdt.sol";
 
-contract StrategyNettBtcUsdtLp is StrategyNettFarmLPBase {
+contract StrategyNettBtcUsdtLp is StrategyNettBtcUsdtLPBase {
     uint256 public btc_usdt_poolid = 14;
     // Token addresses
     address public btc_usdt_lp = 0xAd9b903451dfdc3D79d2021289F9d864fd8c8119;
-    address public btc = 0xa5B55ab1dAF0F8e1EFc0eB1931a957fd89B918f4;
     address public usdt = 0xbB06DCA3AE6887fAbF931640f67cab3e3a16F4dC;
 
     constructor(
@@ -17,7 +16,7 @@ contract StrategyNettBtcUsdtLp is StrategyNettFarmLPBase {
         address _timelock
     )
         public
-        StrategyNettFarmLPBase(
+        StrategyNettBtcUsdtLPBase(
             btc_usdt_lp,
             btc_usdt_poolid,
             _governance,

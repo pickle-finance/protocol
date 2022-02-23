@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../farmbase-nett-metis-mines.sol";
+import "./farmbase-nett-metis-mines.sol";
 
-contract StrategyNettMetisMinesLp is StrategyNettFarmLPBase {
+contract StrategyNettMetisMinesLp is StrategyNettMetisMinesLPBase {
     uint256 public metis_mines_poolid = 12;
     // Token addresses
     address public metis_mines_lp = 0xA22e47e0E60CAEAaCD19A372ad3d14B9D7279e74;
@@ -16,7 +16,7 @@ contract StrategyNettMetisMinesLp is StrategyNettFarmLPBase {
         address _timelock
     )
         public
-        StrategyNettFarmLPBase(
+        StrategyNettMetisMinesLPBase(
             metis_mines_lp,
             metis_mines_poolid,
             _governance,

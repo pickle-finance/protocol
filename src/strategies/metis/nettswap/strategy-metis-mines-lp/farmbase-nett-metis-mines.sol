@@ -1,7 +1,7 @@
 pragma solidity ^0.6.7;
 
 import "../../strategy-base.sol";
-import "../../../interfaces/netswap-chef.sol";
+import "../../../../interfaces/netswap-chef.sol";
 
 abstract contract StrategyNettMetisMinesLPBase is StrategyBase {
     address public nett = 0x90fE084F877C65e1b577c7b2eA64B8D8dd1AB278;
@@ -53,8 +53,6 @@ abstract contract StrategyNettMetisMinesLPBase is StrategyBase {
             poolId,
             address(this)
         );
-
-        IRewarder rewarder = INettChef(masterchef).rewarder(poolId);
 
         return pendingNETT;
     }

@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-base.sol";
-import "../../../interfaces/stella-chef.sol";
+import "./strategy-base.sol";
+import "../../interfaces/zip-chef.sol";
 
-abstract contract StrategyStellaFarmBase is StrategyBase {
+abstract contract StrategyZipFarmBase is StrategyBase {
     // Token addresses
-    address public constant stella = 0x0E358838ce72d5e61E0018a2ffaC4bEC5F4c88d2;
-    address public constant stellaChef =
-        0xEDFB330F5FA216C9D2039B99C8cE9dA85Ea91c1E;
+    address public constant zip = 0xFA436399d0458Dbe8aB890c3441256E3E09022a8;
+    address public constant zipChef =
+        0x1e2F8e5f94f366eF5Dc041233c0738b1c1C2Cb0c;
 
     address public token0;
     address public token1;
 
-    // How much STELLA tokens to keep?
-    uint256 public keepSTELLA = 1000;
-    uint256 public constant keepSTELLAMax = 10000;
+    // How much ZIP tokens to keep?
+    uint256 public keepZIP = 1000;
+    uint256 public constant keepZIPMax = 10000;
 
     uint256 public poolId;
     mapping(address => address[]) public swapRoutes;
@@ -31,33 +31,33 @@ abstract contract StrategyStellaFarmBase is StrategyBase {
         public
         StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
     {
-        // Stellaswap router
-        sushiRouter = 0xd0A01ec574D1fC6652eDF79cb2F880fd47D34Ab1;
+        // Zipswap router
+        sushiRouter = 0xE6Df0BB08e5A97b40B21950a0A51b94c4DbA0Ff6;
         poolId = _poolId;
         token0 = IUniswapV2Pair(_lp).token0();
         token1 = IUniswapV2Pair(_lp).token1();
+
+        IERC20(token0).approve(sushiRouter, uint256(-1));
+        IERC20(token1).approve(sushiRouter, uint256(-1));
+        IERC20(zip).approve(sushiRouter, uint256(-1));
+        IERC20(want).approve(zipChef, uint256(-1));
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        (uint256 amount, , , ) = IStellaChef(stellaChef).userInfo(
-            poolId,
-            address(this)
-        );
+        (uint256 amount, ) = IZipChef(zipChef).userInfo(poolId, address(this));
         return amount;
     }
 
     function getHarvestable() external view returns (uint256) {
-        return IStellaChef(stellaChef).pendingStella(poolId, address(this));
+        return IZipChef(zipChef).pendingReward(poolId, address(this));
     }
 
     // **** Setters ****
 
     function deposit() public override {
-        uint256 _want = IERC20(want).balanceOf(address(this));
+        uint128 _want = uint128(IERC20(want).balanceOf(address(this)));
         if (_want > 0) {
-            IERC20(want).safeApprove(stellaChef, 0);
-            IERC20(want).safeApprove(stellaChef, _want);
-            IStellaChef(stellaChef).deposit(poolId, _want);
+            IZipChef(zipChef).deposit(poolId, _want, address(this));
         }
     }
 
@@ -66,31 +66,31 @@ abstract contract StrategyStellaFarmBase is StrategyBase {
         override
         returns (uint256)
     {
-        IStellaChef(stellaChef).withdraw(poolId, _amount);
+        IZipChef(zipChef).withdraw(poolId, uint128(_amount), address(this));
         return _amount;
     }
 
-    function setKeepSTELLA(uint256 _keepSTELLA) external {
+    function setKeepZIP(uint256 _keepZIP) external {
         require(msg.sender == timelock, "!timelock");
-        keepSTELLA = _keepSTELLA;
+        keepZIP = _keepZIP;
     }
 
     // **** State Mutations ****
 
     function harvest() public override {
-        // Collects STELLA tokens
-        IStellaChef(stellaChef).deposit(poolId, 0);
-        uint256 _stella = IERC20(stella).balanceOf(address(this));
+        // Collects ZIP tokens
+        IZipChef(zipChef).harvest(poolId, address(this));
+        uint256 _zip = IERC20(zip).balanceOf(address(this));
 
-        if (_stella > 0) {
-            uint256 _keepSTELLA = _stella.mul(keepSTELLA).div(keepSTELLAMax);
-            IERC20(stella).safeTransfer(
+        if (_zip > 0) {
+            uint256 _keepZIP = _zip.mul(keepZIP).div(keepZIPMax);
+            IERC20(zip).safeTransfer(
                 IController(controller).treasury(),
-                _keepSTELLA
+                _keepZIP
             );
-            _stella = _stella.sub(_keepSTELLA);
-            uint256 toToken0 = _stella.div(2);
-            uint256 toToken1 = _stella.sub(toToken0);
+            _zip = _zip.sub(_keepZIP);
+            uint256 toToken0 = _zip.div(2);
+            uint256 toToken1 = _zip.sub(toToken0);
 
             if (swapRoutes[token0].length > 1) {
                 _swapSushiswapWithPath(swapRoutes[token0], toToken0);
@@ -105,11 +105,6 @@ abstract contract StrategyStellaFarmBase is StrategyBase {
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
 
         if (_token0 > 0 && _token1 > 0) {
-            IERC20(token0).safeApprove(sushiRouter, 0);
-            IERC20(token0).safeApprove(sushiRouter, _token0);
-            IERC20(token1).safeApprove(sushiRouter, 0);
-            IERC20(token1).safeApprove(sushiRouter, _token1);
-
             UniswapRouterV2(sushiRouter).addLiquidity(
                 token0,
                 token1,

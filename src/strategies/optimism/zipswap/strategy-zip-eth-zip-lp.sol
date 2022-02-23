@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "./strategy-stella-farm-base.sol";
+import "../strategy-zip-farm-base.sol";
 
-contract StrategyStellaGlmrLp is StrategyStellaFarmBase {
-    uint256 public stella_glmr_poolId = 0;
-
+contract StrategyZipEthZipLp is StrategyZipFarmBase {
+    uint256 public constant eth_zip_poolid = 3;
     // Token addresses
-    address public stella_glmr_lp = 0x7F5Ac0FC127bcf1eAf54E3cd01b00300a0861a62;
+    address public constant eth_zip_lp =
+        0xD7F6ECF4371eddBd60C1080BfAEc3d1d60D415d0;
 
     constructor(
         address _governance,
@@ -16,21 +16,21 @@ contract StrategyStellaGlmrLp is StrategyStellaFarmBase {
         address _timelock
     )
         public
-        StrategyStellaFarmBase(
-            stella_glmr_lp,
-            stella_glmr_poolId,
+        StrategyZipFarmBase(
+            eth_zip_lp,
+            eth_zip_poolid,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {
-        swapRoutes[glmr] = [stella, glmr];
+        swapRoutes[weth] = [zip, weth];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyStellaGlmrLp";
+        return "StrategyZipEthZipLp";
     }
 }

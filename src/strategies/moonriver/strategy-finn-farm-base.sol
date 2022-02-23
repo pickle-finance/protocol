@@ -39,7 +39,7 @@ abstract contract StrategyFinnFarmBase is StrategyBase {
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        (uint256 amount, , , ) = IFinnChef(finnChef).userInfo(
+        (uint256 amount, ) = IFinnChef(finnChef).userInfo(
             poolId,
             address(this)
         );
@@ -47,7 +47,7 @@ abstract contract StrategyFinnFarmBase is StrategyBase {
     }
 
     function getHarvestable() external view returns (uint256) {
-        return IFinnChef(finnChef).pendingFinn(poolId, address(this));
+        return IFinnChef(finnChef).pendingReward(poolId, address(this));
     }
 
     // **** Setters ****
