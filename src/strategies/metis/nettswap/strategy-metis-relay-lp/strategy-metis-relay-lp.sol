@@ -3,11 +3,10 @@ pragma solidity ^0.6.7;
 
 import "../strategy-netswap-base.sol";
 
-contract StrategyNettBtcMetisLp is StrategyNettFarmLPBase {
-    uint256 public btc_metis_poolid = 13;
+contract StrategyNettMetisRelayLp is StrategyNettFarmLPBase {
+    uint256 public metis_relay_poolid = 11;
     // Token addresses
-    address public btc_metis_lp = 0xE0cc462fe369146BAef2306EC6B4BF26704eE84e;
-    address public btc = 0xa5B55ab1dAF0F8e1EFc0eB1931a957fd89B918f4;
+    address public metis_relay_lp = 0xA58bd557BFBC12f8cEaCcc6E1668F5FBFB2118BB;
 
     constructor(
         address _governance,
@@ -17,8 +16,8 @@ contract StrategyNettBtcMetisLp is StrategyNettFarmLPBase {
     )
         public
         StrategyNettFarmLPBase(
-            btc_metis_lp,
-            btc_metis_poolid,
+            metis_relay_lp,
+            metis_relay_poolid,
             _governance,
             _strategist,
             _controller,
@@ -26,12 +25,12 @@ contract StrategyNettBtcMetisLp is StrategyNettFarmLPBase {
         )
     {
         swapRoutes[metis] = [nett, metis];
-        swapRoutes[btc] = [nett, metis, btc];
+        swapRoutes[relay] = [nett, metis, relay];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyNettBtcMetisLp";
+        return "StrategyNettMetisRelayLp";
     }
 }
