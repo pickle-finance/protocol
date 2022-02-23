@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-netswap-base.sol";
+import "../farmbase-nett-metis-relay.sol";
 
 contract StrategyNettMetisRelayLp is StrategyNettFarmLPBase {
     uint256 public metis_relay_poolid = 11;

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-netswap-base.sol";
+import "../farmbase-nett-metis-mines.sol";
 
 contract StrategyNettMetisMinesLp is StrategyNettFarmLPBase {
     uint256 public metis_mines_poolid = 12;

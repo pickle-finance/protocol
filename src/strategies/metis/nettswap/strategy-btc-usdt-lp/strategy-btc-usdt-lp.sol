@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-netswap-base.sol";
+import "../farmbase-nett-btc-usdt.sol";
 
 contract StrategyNettBtcUsdtLp is StrategyNettFarmLPBase {
     uint256 public btc_usdt_poolid = 14;
