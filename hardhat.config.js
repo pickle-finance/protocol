@@ -35,7 +35,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://arb1.arbitrum.io/rpc/`,
+        url: `https://polygon-rpc.com/`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -60,10 +60,6 @@ module.exports = {
       url: `https://andromeda.metis.io/?owner=1088`,
       accounts: [`0x${process.env.MNEMONIC}`],
     },
-    moonbeam: {
-      url: `https://rpc.api.moonbeam.network`,
-      accounts: [`0x${process.env.MNEMONIC}`]
-    }
   },
   contractSizer: {
     alphaSort: true,

@@ -4,8 +4,6 @@ pragma solidity ^0.6.2;
 interface IStakingRewards {
     function balanceOf(address account) external view returns (uint256);
 
-    function balances(address account) external view returns (uint256);
-
     function earned(address account) external view returns (uint256);
 
     function exit() external;

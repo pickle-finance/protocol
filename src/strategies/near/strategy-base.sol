@@ -42,7 +42,7 @@ abstract contract StrategyBase {
     address public strategist;
     address public timelock;
 
-    // Dex
+    // Dex 
     address public sushiRouter = 0x2CB45Edb4517d5947aFdE3BEAbF95A582506858B;
 
     mapping(address => bool) public harvesters;
@@ -69,7 +69,7 @@ abstract contract StrategyBase {
 
     // **** Modifiers **** //
 
-    modifier onlyBenevolent() {
+    modifier onlyBenevolent {
         require(
             harvesters[msg.sender] ||
                 msg.sender == governance ||
@@ -84,36 +84,30 @@ abstract contract StrategyBase {
         return IERC20(want).balanceOf(address(this));
     }
 
-    function balanceOfPool() public view virtual returns (uint256);
+    function balanceOfPool() public virtual view returns (uint256);
 
     function balanceOf() public view returns (uint256) {
         return balanceOfWant().add(balanceOfPool());
     }
 
-    function getName() external pure virtual returns (string memory);
+    function getName() external virtual pure returns (string memory);
 
     // **** Setters **** //
 
     function whitelistHarvesters(address[] calldata _harvesters) external {
-        require(
-            msg.sender == governance ||
-                msg.sender == strategist ||
-                harvesters[msg.sender],
-            "not authorized"
-        );
-
-        for (uint256 i = 0; i < _harvesters.length; i++) {
+        require(msg.sender == governance ||
+             msg.sender == strategist || harvesters[msg.sender], "not authorized");
+             
+        for (uint i = 0; i < _harvesters.length; i ++) {
             harvesters[_harvesters[i]] = true;
         }
     }
 
     function revokeHarvesters(address[] calldata _harvesters) external {
-        require(
-            msg.sender == governance || msg.sender == strategist,
-            "not authorized"
-        );
+        require(msg.sender == governance ||
+             msg.sender == strategist, "not authorized");
 
-        for (uint256 i = 0; i < _harvesters.length; i++) {
+        for (uint i = 0; i < _harvesters.length; i ++) {
             harvesters[_harvesters[i]] = false;
         }
     }
@@ -265,16 +259,17 @@ abstract contract StrategyBase {
             returndatacopy(add(response, 0x20), 0, size)
 
             switch iszero(succeeded)
-            case 1 {
-                // throw if delegatecall failed
-                revert(add(response, 0x20), size)
-            }
+                case 1 {
+                    // throw if delegatecall failed
+                    revert(add(response, 0x20), size)
+                }
         }
     }
 
-    function _swapSushiswapWithPath(address[] memory path, uint256 _amount)
-        internal
-    {
+    function _swapSushiswapWithPath(
+        address[] memory path,
+        uint256 _amount
+    ) internal {
         require(path[1] != address(0));
 
         IERC20(path[0]).safeApprove(sushiRouter, 0);

@@ -96,7 +96,7 @@ abstract contract StrategyNettBtcUsdtLPBase is StrategyBase {
             UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
                 _btc,
                 0,
-                pathMetis,
+                pathBtc,
                 address(this),
                 now + 60
             );

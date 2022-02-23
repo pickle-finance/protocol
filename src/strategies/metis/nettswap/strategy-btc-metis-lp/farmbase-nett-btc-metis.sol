@@ -1,7 +1,7 @@
 pragma solidity ^0.6.7;
 
 import "../../strategy-base.sol";
-import "../../../interfaces/netswap-chef.sol";
+import "../../../../interfaces/netswap-chef.sol";
 
 abstract contract StrategyNettBtcMetisLPBase is StrategyBase {
     address public nett = 0x90fE084F877C65e1b577c7b2eA64B8D8dd1AB278;

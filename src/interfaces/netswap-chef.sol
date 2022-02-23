@@ -20,10 +20,5 @@ interface INettChef {
         view
         returns (uint256 amount, uint256 rewardDebt);
 
-    function rewarderBonusTokenInfo(uint256)
-        external
-        view
-        returns (address bonusTokenAddress, string memory bonusTokenSymbol);
-
     function withdraw(uint256 _pid, uint256 _amount) external;
 }
