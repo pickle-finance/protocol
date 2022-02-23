@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../../strategy-lqdr-base.sol";
+import "../../strategy-lqdr-dual-rewards-base.sol";
 
-contract StrategyLqdrPillsWftm is StrategyLqdrFarmLPBase {
+contract StrategyLqdrPillsWftm is StrategyLqdrDualFarmLPBase {
     uint256 public _poolId = 35;
     // Token addresses
     address public _lp = 0x9C775D3D66167685B2A3F4567B548567D2875350;
@@ -19,14 +19,15 @@ contract StrategyLqdrPillsWftm is StrategyLqdrFarmLPBase {
         address _timelock
     )
         public
-        StrategyLqdrFarmLPBase(
+        StrategyLqdrDualFarmLPBase(
             _lp,
             _poolId,
             router,
             _governance,
             _strategist,
             _controller,
-            _timelock
+            _timelock,
+            pills
         )
     {
         swapRoutes[pills] = [wftm, pills];
