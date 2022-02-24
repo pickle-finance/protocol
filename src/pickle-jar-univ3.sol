@@ -22,7 +22,7 @@ import "./lib/reentrancy-guard.sol";
 import "./lib/safe-math.sol";
 import "./interfaces/univ3/IUniswapV3PositionsNFT.sol";
 import "./interfaces/univ3/IUniswapV3Pool.sol";
-import "./interfaces/univ3/ISwapRouter.sol";
+import "./interfaces/univ3/ISwapRouter02.sol";
 import "./interfaces/weth.sol";
 
 contract PickleJarUniV3 is ERC20, ReentrancyGuard {
@@ -31,8 +31,9 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     using SafeMath for uint256;
     using PoolVariables for IUniswapV3Pool;
 
-    address public constant weth = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
-    address public constant univ3Router = 0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
+    address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address public constant univ3Router =
+        0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
 
     address public governance;
     address public timelock;
