@@ -29,6 +29,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
+    using SafeMath for uint128;
     using PoolVariables for IUniswapV3Pool;
 
     address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
@@ -128,61 +129,23 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         IControllerV2(controller).earn(address(pool), balance0, balance1);
     }
 
-    function deposit(uint256 token0Amount, uint256 token1Amount)
-        external
-        payable
-        nonReentrant
-        whenNotPaused
-    {
-        bool isEthToken0;
-        bool isEthToken1;
-        uint256 _eth = address(this).balance;
-        if (_eth > 0) {
-            WETH(weth).deposit{value: _eth}();
-
-            if (address(token0) == weth) {
-                token0Amount = _eth;
-                isEthToken0 = true;
-            } else if (address(token1) == weth) {
-                token1Amount = _eth;
-                isEthToken1 = true;
-            }
-        }
-        (token0Amount, token1Amount) = _getCorrectAmounts(
+    function deposit(
+        uint256 token0Amount,
+        uint256 token1Amount,
+        bool _swap
+    ) external payable nonReentrant whenNotPaused {
+        bool _ethUsed;
+        (token0Amount, token1Amount, _ethUsed) = _convertEth(
             token0Amount,
             token1Amount
         );
 
-        if (token0Amount > 0 && !isEthToken0)
-            token0.safeTransferFrom(msg.sender, address(this), token0Amount);
-        if (token1Amount > 0 && !isEthToken1)
-            token1.safeTransferFrom(msg.sender, address(this), token1Amount);
+        _swap
+            ? _depositSwap(token0Amount, token1Amount)
+            : _depositExact(token0Amount, token1Amount);
 
         // refund excess ETH to user
-        if (isEthToken0) {
-            uint256 _refund = _eth.sub(token0Amount);
-            WETH(weth).withdraw(_refund);
-            (bool sent, bytes memory data) = (msg.sender).call{value: _refund}(
-                ""
-            );
-            require(sent, "Failed to refund Ether");
-        } else if (isEthToken1) {
-            uint256 _refund = _eth.sub(token1Amount);
-            WETH(weth).withdraw(_refund);
-            (bool sent, bytes memory data) = (msg.sender).call{value: _refund}(
-                ""
-            );
-            require(sent, "Failed to refund Ether");
-        }
-
-        uint256 _liquidity = uint256(
-            pool.liquidityForAmounts(
-                token0.balanceOf(address(this)),
-                token1.balanceOf(address(this)),
-                getLowerTick(),
-                getUpperTick()
-            )
-        );
+        uint256 _liquidity = _refundUnused(_ethUsed);
 
         uint256 shares = 0;
         if (totalSupply() == 0) {
@@ -262,6 +225,185 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     function getRatio() public view returns (uint256) {
         if (totalSupply() == 0) return 0;
         return totalLiquidity().mul(1e18).div(totalSupply());
+    }
+
+    function _depositSwap(uint256 token0Amount, uint256 token1Amount) internal {
+        if (
+            !(token0.balanceOf(address(this)) >= token0Amount) &&
+            (token0Amount != 0)
+        ) token0.safeTransferFrom(msg.sender, address(this), token0Amount);
+
+        if (
+            !(token1.balanceOf(address(this)) >= token1Amount) &&
+            (token1Amount != 0)
+        ) token1.safeTransferFrom(msg.sender, address(this), token1Amount);
+
+        _balanceProportion(getLowerTick(), getUpperTick());
+    }
+
+    function _depositExact(uint256 token0Amount, uint256 token1Amount)
+        internal
+    {
+        (token0Amount, token1Amount) = _getCorrectAmounts(
+            token0Amount,
+            token1Amount
+        );
+
+        if (token0Amount > 0)
+            token0.safeTransferFrom(msg.sender, address(this), token0Amount);
+        if (token1Amount > 0)
+            token1.safeTransferFrom(msg.sender, address(this), token1Amount);
+    }
+
+    function _convertEth(uint256 token0Amount, uint256 token1Amount)
+        internal
+        returns (
+            uint256,
+            uint256,
+            bool
+        )
+    {
+        bool _ethUsed = false;
+        uint256 _eth = msg.value;
+        if (_eth > 0) {
+            WETH(weth).deposit{value: _eth}();
+
+            if (address(token0) == weth) {
+                token0Amount = _eth;
+                _ethUsed = true;
+            } else if (address(token1) == weth) {
+                token1Amount = _eth;
+                _ethUsed = true;
+            }
+        }
+        return (token0Amount, token1Amount, _ethUsed);
+    }
+
+    function _refundEth(uint256 _refund) internal {
+        WETH(weth).withdraw(_refund);
+        (bool sent, bytes memory data) = (msg.sender).call{value: _refund}("");
+        require(sent, "Failed to refund Eth");
+    }
+
+    function _refundUnused(bool _ethUsed) internal returns (uint256) {
+        PoolVariables.Info memory _cache;
+        _cache.amount0Desired = token0.balanceOf(address(this));
+        _cache.amount1Desired = token1.balanceOf(address(this));
+
+        (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(getLowerTick());
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(getUpperTick());
+
+        _cache.liquidity = uint128(
+            LiquidityAmounts
+            .getLiquidityForAmount0(
+                sqrtRatioAX96,
+                sqrtRatioBX96,
+                _cache.amount0Desired
+            ).add(
+                LiquidityAmounts.getLiquidityForAmount1(
+                    sqrtRatioAX96,
+                    sqrtRatioBX96,
+                    _cache.amount1Desired
+                )
+            )
+        );
+
+        (_cache.amount0, _cache.amount1) = LiquidityAmounts
+        .getAmountsForLiquidity(
+            sqrtPriceX96,
+            sqrtRatioAX96,
+            sqrtRatioBX96,
+            _cache.liquidity
+        );
+
+        if (_cache.amount0Desired > _cache.amount0)
+            if ((address(token0) == address(weth)) && _ethUsed)
+                _refundEth(_cache.amount0Desired.sub(_cache.amount0));
+            else {
+                token0.safeTransfer(
+                    msg.sender,
+                    _cache.amount0Desired.sub(_cache.amount0)
+                );
+            }
+
+        if (_cache.amount1Desired > _cache.amount1)
+            if ((address(token1) == address(weth)) && _ethUsed)
+                _refundEth(_cache.amount1Desired.sub(_cache.amount1));
+            else {
+                token1.safeTransfer(
+                    msg.sender,
+                    _cache.amount1Desired.sub(_cache.amount1)
+                );
+            }
+        return _cache.liquidity;
+    }
+
+    function _balanceProportion(int24 _tickLower, int24 _tickUpper) internal {
+        PoolVariables.Info memory _cache;
+
+        _cache.amount0Desired = token0.balanceOf(address(this));
+        _cache.amount1Desired = token1.balanceOf(address(this));
+
+        (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(_tickLower);
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(_tickUpper);
+
+        _cache.liquidity = uint128(
+            LiquidityAmounts
+            .getLiquidityForAmount0(
+                sqrtRatioAX96,
+                sqrtRatioBX96,
+                _cache.amount0Desired
+            ).add(
+                LiquidityAmounts.getLiquidityForAmount1(
+                    sqrtRatioAX96,
+                    sqrtRatioBX96,
+                    _cache.amount1Desired
+                )
+            )
+        );
+
+        (_cache.amount0, _cache.amount1) = LiquidityAmounts
+        .getAmountsForLiquidity(
+            sqrtPriceX96,
+            sqrtRatioAX96,
+            sqrtRatioBX96,
+            _cache.liquidity
+        );
+
+        //Determine Trade Direction
+        bool _zeroForOne = _cache.amount0Desired > _cache.amount0
+            ? true
+            : false;
+
+        //Determine Amount to swap
+        uint256 _amountSpecified = _zeroForOne
+            ? (_cache.amount0Desired.sub(_cache.amount0))
+            : (_cache.amount1Desired.sub(_cache.amount1));
+
+        if (_amountSpecified > 0) {
+            //Determine Token to swap
+            address _inputToken = _zeroForOne
+                ? address(token0)
+                : address(token1);
+
+            IERC20(_inputToken).safeApprove(univ3Router, 0);
+            IERC20(_inputToken).safeApprove(univ3Router, _amountSpecified);
+
+            //Swap the token imbalanced
+            ISwapRouter02(univ3Router).exactInputSingle(
+                ISwapRouter02.ExactInputSingleParams({
+                    tokenIn: _inputToken,
+                    tokenOut: _zeroForOne ? address(token1) : address(token0),
+                    fee: pool.fee(),
+                    recipient: address(this),
+                    amountIn: _amountSpecified,
+                    amountOutMinimum: 0,
+                    sqrtPriceLimitX96: 0
+                })
+            );
+        }
     }
 
     modifier whenNotPaused() {
