@@ -35,7 +35,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://arb1.arbitrum.io/rpc/`,
+        url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -62,8 +62,8 @@ module.exports = {
     },
     moonbeam: {
       url: `https://rpc.api.moonbeam.network`,
-      accounts: [`0x${process.env.MNEMONIC}`]
-    }
+      accounts: [`0x${process.env.MNEMONIC}`],
+    },
   },
   contractSizer: {
     alphaSort: true,
