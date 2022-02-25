@@ -257,18 +257,18 @@ const doUniV3TestBehaviorBase = (
       await token0.connect(user).approve(pickleJar.address, depositA);
       console.log("depositA => ", depositA.toString());
       console.log("depositB => ", depositB.toString());
-      console.log("User Balance before => ", (await ethers.provider.getBalance(user)).toString());
+      //console.log("User Balance before => ", (await ethers.provider.getBalance(user)).toString());
       await pickleJar.connect(user).deposit(depositA, 0, "true", {value: depositB});
-      console.log("User Balance after => ", (await ethers.provider.getBalance(user)).toString());
+      //console.log("User Balance after => ", (await ethers.provider.getBalance(user)).toString());
     };
 
     const depositWithEthToken0 = async (user, depositA, depositB) => {
       await token1.connect(user).approve(pickleJar.address, depositB);
       console.log("depositA => ", depositA.toString());
       console.log("depositB => ", depositB.toString());
-      console.log("User Balance before => ", (await ethers.provider.getBalance(user)).toString());
+      //console.log("User Balance before => ", (await ethers.provider.getBalance(user)).toString());
       await pickleJar.connect(user).deposit(0, depositB, true, {value: depositA});
-      console.log("User Balance after => ", (await ethers.provider.getBalance(user)).toString());
+      //console.log("User Balance after => ", (await ethers.provider.getBalance(user)).toString());
     };
 
     const harvest = async () => {
