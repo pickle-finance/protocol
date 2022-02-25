@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "./farmbase-nett-btc-metis.sol";
+import "../strategy-netswap-dual-base.sol";
 
-contract StrategyNettBtcMetisLp is StrategyNettBtcMetisLPBase {
+contract StrategyNettWbtcMetisLp is StrategyNettDualFarmLPBase {
     uint256 public btc_metis_poolid = 13;
     // Token addresses
     address public btc_metis_lp = 0xE0cc462fe369146BAef2306EC6B4BF26704eE84e;
-    address public btc = 0xa5B55ab1dAF0F8e1EFc0eB1931a957fd89B918f4;
+    address public wbtc = 0xa5B55ab1dAF0F8e1EFc0eB1931a957fd89B918f4;
 
     constructor(
         address _governance,
@@ -16,9 +16,10 @@ contract StrategyNettBtcMetisLp is StrategyNettBtcMetisLPBase {
         address _timelock
     )
         public
-        StrategyNettBtcMetisLPBase(
+        StrategyNettDualFarmLPBase(
             btc_metis_lp,
             btc_metis_poolid,
+            metis,
             _governance,
             _strategist,
             _controller,
@@ -26,12 +27,12 @@ contract StrategyNettBtcMetisLp is StrategyNettBtcMetisLPBase {
         )
     {
         swapRoutes[metis] = [nett, metis];
-        swapRoutes[btc] = [nett, metis, btc];
+        swapRoutes[wbtc] = [metis, wbtc];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyNettBtcMetisLp";
+        return "StrategyNettWbtcMetisLp";
     }
 }

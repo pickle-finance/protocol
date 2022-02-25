@@ -1,18 +1,19 @@
 pragma solidity ^0.6.7;
 
-import "../../strategy-base.sol";
-import "../../../../interfaces/netswap-chef.sol";
+import "./strategy-base.sol";
+import "../../interfaces/netswap-chef.sol";
 
-abstract contract StrategyNettBtcMetisLPBase is StrategyBase {
-    address public nett = 0x90fE084F877C65e1b577c7b2eA64B8D8dd1AB278;
-    address public masterchef = 0x9d1dbB49b2744A1555EDbF1708D64dC71B0CB052;
-    address public relay = 0xfe282Af5f9eB59C30A3f78789EEfFA704188bdD4;
+abstract contract StrategyNettDualFarmLPBase is StrategyBase {
+    address public constant nett = 0x90fE084F877C65e1b577c7b2eA64B8D8dd1AB278;
+    address public constant masterchef =
+        0x9d1dbB49b2744A1555EDbF1708D64dC71B0CB052;
     address public token0;
     address public token1;
+    address public extraReward;
 
-    // How much NETT tokens to keep?
-    uint256 public keepNETT = 1000;
-    uint256 public constant keepNETTMax = 10000;
+    // How much Reward tokens to keep?
+    uint256 public keepREWARD = 420;
+    uint256 public constant keepREWARDMax = 10000;
 
     mapping(address => address[]) public swapRoutes;
 
@@ -22,6 +23,7 @@ abstract contract StrategyNettBtcMetisLPBase is StrategyBase {
     constructor(
         address _want,
         uint256 _poolId,
+        address _extraReward,
         address _governance,
         address _strategist,
         address _controller,
@@ -35,10 +37,12 @@ abstract contract StrategyNettBtcMetisLPBase is StrategyBase {
         token0 = pair.token0();
         token1 = pair.token1();
         poolId = _poolId;
+        extraReward = _extraReward;
 
         IERC20(token0).approve(sushiRouter, uint256(-1));
         IERC20(token1).approve(sushiRouter, uint256(-1));
         IERC20(nett).approve(sushiRouter, uint256(-1));
+        IERC20(extraReward).approve(sushiRouter, uint256(-1));
     }
 
     function balanceOfPool() public view override returns (uint256) {
@@ -49,19 +53,20 @@ abstract contract StrategyNettBtcMetisLPBase is StrategyBase {
         return amount;
     }
 
-    function getHarvestable() external view returns (uint256) {
-        (uint256 pendingNETT, , , ) = INettChef(masterchef).pendingTokens(
-            poolId,
-            address(this)
-        );
-        return pendingNETT;
+    function getHarvestable()
+        external
+        view
+        returns (uint256 pendingNETT, uint256 pendingBonusToken)
+    {
+        (pendingNETT, , , pendingBonusToken) = INettChef(masterchef)
+            .pendingTokens(poolId, address(this));
     }
 
     // **** Setters ****
 
-    function setKeepNETT(uint256 _keepNETT) external {
+    function setKeepREWARD(uint256 _keepREWARD) external {
         require(msg.sender == timelock, "!timelock");
-        keepNETT = _keepNETT;
+        keepREWARD = _keepREWARD;
     }
 
     function deposit() public override {
@@ -84,26 +89,43 @@ abstract contract StrategyNettBtcMetisLPBase is StrategyBase {
 
     function harvest() public override {
         INettChef(masterchef).deposit(poolId, 0);
+
+        uint256 _extraReward = IERC20(extraReward).balanceOf(address(this));
         uint256 _nett = IERC20(nett).balanceOf(address(this));
-        uint256 _relay = IERC20(relay).balanceOf(address(this));
 
-        // swap all Relay to NETT
-        if (_relay > 0) {
-            address[] memory pathMetis = new address[](2);
-            pathMetis[0] = metis;
-            pathMetis[1] = nett;
-            UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-                _relay,
-                0,
-                pathMetis,
-                address(this),
-                now + 60
+        if (_extraReward == 0 && _nett == 0) return;
+
+        // Swap NETT to extra reward if part of pair
+        if (extraReward == token0 || extraReward == token1) {
+            if (swapRoutes[extraReward].length > 1 && _nett > 0)
+                _swapSushiswapWithPath(swapRoutes[extraReward], _nett);
+
+            _extraReward = IERC20(extraReward).balanceOf(address(this));
+            uint256 _keepReward = _extraReward.mul(keepREWARD).div(
+                keepREWARDMax
             );
-        }
+            IERC20(extraReward).safeTransfer(
+                IController(controller).treasury(),
+                _keepReward
+            );
 
-        if (_nett > 0) {
-            uint256 _keepNETT = _nett.mul(keepNETT).div(keepNETTMax);
-            IERC20(nett).safeTransfer(
+            _extraReward = IERC20(extraReward).balanceOf(address(this));
+            address toToken = extraReward == token0 ? token1 : token0;
+
+            if (swapRoutes[toToken].length > 1 && _extraReward > 0)
+                _swapSushiswapWithPath(
+                    swapRoutes[toToken],
+                    _extraReward.div(2)
+                );
+        }
+        // If extra reward not part of pair, swap to NETT
+        else {
+            if (swapRoutes[nett].length > 1 && _extraReward > 0)
+                _swapSushiswapWithPath(swapRoutes[nett], _extraReward);
+
+            _nett = IERC20(nett).balanceOf(address(this));
+            uint256 _keepNETT = _nett.mul(keepREWARD).div(keepREWARDMax);
+            IERC20(extraReward).safeTransfer(
                 IController(controller).treasury(),
                 _keepNETT
             );
