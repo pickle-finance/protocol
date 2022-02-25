@@ -140,12 +140,10 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
             token1Amount
         );
 
+        uint256 _liquidity;
         _swap
-            ? _depositSwap(token0Amount, token1Amount)
-            : _depositExact(token0Amount, token1Amount);
-
-        // refund excess ETH to user
-        uint256 _liquidity = _refundUnused(_ethUsed);
+            ? _liquidity = _depositSwap(token0Amount, token1Amount, _ethUsed)
+            : _liquidity = _depositExact(token0Amount, token1Amount, _ethUsed);
 
         uint256 shares = 0;
         if (totalSupply() == 0) {
@@ -227,7 +225,11 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         return totalLiquidity().mul(1e18).div(totalSupply());
     }
 
-    function _depositSwap(uint256 token0Amount, uint256 token1Amount) internal {
+    function _depositSwap(
+        uint256 token0Amount,
+        uint256 token1Amount,
+        bool _ethUsed
+    ) internal returns (uint256) {
         if (
             !(token0.balanceOf(address(this)) >= token0Amount) &&
             (token0Amount != 0)
@@ -239,20 +241,44 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         ) token1.safeTransferFrom(msg.sender, address(this), token1Amount);
 
         _balanceProportion(getLowerTick(), getUpperTick());
+
+        return _refundUnused(_ethUsed);
     }
 
-    function _depositExact(uint256 token0Amount, uint256 token1Amount)
-        internal
-    {
-        (token0Amount, token1Amount) = _getCorrectAmounts(
-            token0Amount,
-            token1Amount
+    function _depositExact(
+        uint256 _token0AmountDesired,
+        uint256 _token1AmountDesired,
+        bool _ethUsed
+    ) internal {
+        (uint256 _token0Amount, uint256 _token1Amount) = _getCorrectAmounts(
+            _token0AmountDesired,
+            _token1AmountDesired
         );
 
-        if (token0Amount > 0)
-            token0.safeTransferFrom(msg.sender, address(this), token0Amount);
-        if (token1Amount > 0)
-            token1.safeTransferFrom(msg.sender, address(this), token1Amount);
+        if (_token0Amount > 0)
+            token0.safeTransferFrom(msg.sender, address(this), _token0Amount);
+        if (_token1Amount > 0)
+            token1.safeTransferFrom(msg.sender, address(this), _token1Amount);
+
+        if (_ethUsed) {
+            if ((address(token0) == address(weth))) {
+                uint256 refundAmt = _token0AmountDesired.sub(_token0Amount);
+                if (refundAmt > 0) _refundEth(refundAmt);
+            }
+
+            if ((address(token1) == address(weth))) {
+                uint256 refundAmt = _token1AmountDesired.sub(_token1Amount);
+                if (refundAmt > 0) _refundEth(refundAmt);
+            }
+        }
+
+        return
+            pool.liquidityForAmounts(
+                token0.balanceOf(_token0Amount),
+                token1.balanceOf(_token1Amount),
+                getLowerTick(),
+                getUpperTick()
+            );
     }
 
     function _convertEth(uint256 token0Amount, uint256 token1Amount)
