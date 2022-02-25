@@ -249,7 +249,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         uint256 _token0AmountDesired,
         uint256 _token1AmountDesired,
         bool _ethUsed
-    ) internal {
+    ) internal returns (uint256) {
         (uint256 _token0Amount, uint256 _token1Amount) = _getCorrectAmounts(
             _token0AmountDesired,
             _token1AmountDesired
@@ -274,8 +274,8 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
         return
             pool.liquidityForAmounts(
-                token0.balanceOf(_token0Amount),
-                token1.balanceOf(_token1Amount),
+                _token0Amount,
+                _token1Amount,
                 getLowerTick(),
                 getUpperTick()
             );
