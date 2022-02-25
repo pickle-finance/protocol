@@ -145,7 +145,7 @@ const doUniV3TestBehaviorBase = (
         await deposit(alice, depositA, depositB);
       }
 
-      await strategy.setTickRangeMultiplier("50");
+      //await strategy.setTickRangeMultiplier("50");
       await rebalance();
 
       console.log("=============== Bob deposit ==============");
