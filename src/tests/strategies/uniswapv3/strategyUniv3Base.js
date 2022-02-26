@@ -247,7 +247,7 @@ const doUniV3TestBehaviorBase = (
       console.log("Strategy token0 Before Deposit: ", (await token0.balanceOf(strategy.address)).toString());
       console.log("Strategy token1 Before Deposit: ", (await token1.balanceOf(strategy.address)).toString());
 
-      await pickleJar.connect(user).deposit(depositA, depositB, false);
+      await pickleJar.connect(user).deposit(depositA, depositB, "false");
 
       console.log("Strategy token0 After Deposit: ", (await token0.balanceOf(strategy.address)).toString());
       console.log("Strategy token1 After Deposit: ", (await token1.balanceOf(strategy.address)).toString());
@@ -267,7 +267,7 @@ const doUniV3TestBehaviorBase = (
       console.log("depositA => ", depositA.toString());
       console.log("depositB => ", depositB.toString());
       //console.log("User Balance before => ", (await ethers.provider.getBalance(user)).toString());
-      await pickleJar.connect(user).deposit(0, depositB, true, {value: depositA});
+      await pickleJar.connect(user).deposit(0, depositB, "true", {value: depositA});
       //console.log("User Balance after => ", (await ethers.provider.getBalance(user)).toString());
     };
 
