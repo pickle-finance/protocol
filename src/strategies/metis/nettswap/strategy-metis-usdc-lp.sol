@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-netswap-base.sol";
 
-contract StrategyNettMetisUsdcLp is StrategyNettFarmLPBase {
+contract StrategyNettMetisUsdcLp is StrategyNettDualFarmLPBase {
     uint256 public metis_usdc_poolid = 7;
     // Token addresses
     address public metis_usdc_lp = 0x5Ae3ee7fBB3Cb28C17e7ADc3a6Ae605ae2465091;
@@ -16,7 +16,7 @@ contract StrategyNettMetisUsdcLp is StrategyNettFarmLPBase {
         address _timelock
     )
         public
-        StrategyNettFarmLPBase(
+        StrategyNettDualFarmLPBase(
             metis_usdc_lp,
             metis_usdc_poolid,
             _governance,
