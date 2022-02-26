@@ -187,6 +187,7 @@ const doUniV3TestBehaviorBase = (
       //await harvest();
 
       await rebalance();
+      await harvest();
       console.log("=============== Controller withdraw ===============");
       console.log(
         "PickleJar token0 balance before withdrawal => ",
