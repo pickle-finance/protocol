@@ -29,7 +29,7 @@ contract StrategyLqdrSpiritWftm is StrategyLqdrFarmLPBase {
             _timelock
         )
     {
-        swapRoutes[lqdr] = [wftm, lqdr];
+        swapRoutes[spirit] = [wftm, spirit];
     }
 
     // **** Views ****
