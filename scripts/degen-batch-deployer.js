@@ -19,21 +19,21 @@ const done = require("./".concat(OBJECT_FILE_NAME)); // deployment state object
 // Addresses & Contracts [Fantom]
 const governance = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
 const strategist = "0xacfe4511ce883c14c4ea40563f176c3c09b4c47c";
-const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6"; //"0xB1698A97b497c998b2B2291bb5C48D1d6075836a";
+const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";// "0xB1698A97b497c998b2B2291bb5C48D1d6075836a";
 const timelock = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
 
-const contracts = [
+const contractsToDeploy = [
   // "src/tmp/strategy-lqdr-dei-usdc.sol:StrategyLqdrDeiUsdc",
-  "src/tmp/strategy-lqdr-deus-wftm.sol:StrategyLqdrDeusWftm",
+  // "src/tmp/strategy-lqdr-dei-usdc.sol:StrategyLqdrDeiUsdc",
 
   // "src/tmp/strategy-beethovenx-usdc-dai-mai.sol:StrategyBeethovenUsdcDaiMaiLp", // pending harvest
 ];
 
-const testedStratsAddresses = [
-  // "0xb64f09dFE30Ba3A65be15498B3f32aE3068bdaEb",
+const toVerifyStratsAddresses = [
+  // "0x5862248d276231AA11DfAAffDA9C0787c65Bc142"
 ];
-const testedStratsContracts = [
-  // "src/tmp/strategy-beethovenx-usdc-dai-mai.sol:StrategyBeethovenUsdcDaiMaiLp",
+const toVerifyStratsContracts = [
+  // "src/strategies/fantom/liquiddriver/spiritswap/strategy-lqdr-wftm.sol:StrategyLqdrWftm"
 ];
 
 // Functions
@@ -52,16 +52,18 @@ const persistify = (deploymentStateObject) => {
 };
 
 const verifyStrats = async () => {
-  console.log(`Verifying contracts...`);
-  for (let i = 0; i < testedStratsAddresses.length; i++) {
-    try {
-      await hre.run("verify:verify", {
-        contract: testedStratsContracts[i],
-        address: testedStratsAddresses[i],
-        constructorArguments: [governance, strategist, controller, timelock],
-      });
-    } catch (e) {
-      console.error(e);
+  if (toVerifyStratsAddresses.length > 0) {
+    console.log(`Verifying contracts...`);
+    for (let i = 0; i < toVerifyStratsAddresses.length; i++) {
+      try {
+        await hre.run("verify:verify", {
+          contract: toVerifyStratsContracts[i],
+          address: toVerifyStratsAddresses[i],
+          constructorArguments: [governance, strategist, controller, timelock],
+        });
+      } catch (e) {
+        console.error(e);
+      }
     }
   }
 };
@@ -79,7 +81,7 @@ const deployAndTest = async () => {
     });
 
     if (tx) {
-      console.log("Transaction took too long. Retrying...");
+      console.log("❌ Transaction took too long. Retrying...");
       const signer = await hre.ethers.getSigner();
 
       // extract unnecessary props from previous tx
@@ -109,11 +111,11 @@ const deployAndTest = async () => {
         // feel free to add new ones
 
         // 1) previous tx confirmed before the replace
-        if (error.code === "NONCE_EXPIRED") {
+        if (error.code === "❌ NONCE_EXPIRED") {
           console.log(`${error.code}! Retrying...`);
           txn = tx;
         } else {
-          console.log("New error encountered! Please investigate!");
+          console.log("❌ New error encountered! Please investigate!");
           console.error(error);
           return;
         }
@@ -126,20 +128,20 @@ const deployAndTest = async () => {
         // feel free to add new ones
 
         // 1) provider didn't update the signer nonce yet
-        if (error.code === "NONCE_EXPIRED") {
+        if (error.code === "❌ NONCE_EXPIRED") {
           return await executeTx(tries, fn, deployTx);
         }
 
         // 2) usually with a failing harvest (not enough rewards accrued)
         else if (error.code === "UNPREDICTABLE_GAS_LIMIT") {
-          console.error(`Tx failed with code: ${error.code}`);
+          console.error(`❌ Tx failed with code: ${error.code}`);
           if (tries > 0) {
             console.log("Retrying...");
             return await executeTx(tries - 1, fn, deployTx, txn);
           }
           return;
         } else {
-          console.log("New error encountered! Please investigate!");
+          console.log("❌ New error encountered! Please investigate!");
           console.log(error);
           return;
         }
@@ -170,7 +172,7 @@ const deployAndTest = async () => {
       response.address = txn.address; // attach jar/strategy address to response (can be undefined if non-deployment tx)
       return response;
     } catch (err) {
-      console.log("Transaction reverted!");
+      console.log("❌ Transaction reverted!");
       console.error(err);
       return;
     }
@@ -179,7 +181,7 @@ const deployAndTest = async () => {
   const deployer = await hre.ethers.getSigner();
   console.log(`Deployer: ${deployer.address}`);
 
-  for (const contract of contracts) {
+  for (const contract of contractsToDeploy) {
     const StrategyFactory = await ethers.getContractFactory(contract);
     const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
     const Controller = await ethers.getContractAt("src/controller-v4.sol:ControllerV4", controller);
@@ -237,6 +239,8 @@ const deployAndTest = async () => {
           console.log(`❌ Strategy deployment failed!`);
         }
       }
+
+      // TODO: Check for deployer address want balance
 
       if (strategy && !jar) {
         // Get Want
@@ -363,8 +367,8 @@ const deployAndTest = async () => {
 
         if (ratio.gt(BigNumber.from(parseEther("1")))) {
           console.log(`✔️ Harvest was successful, ending ratio of ${ratio.toString()}`);
-          testedStratsAddresses.push(strategy.address);
-          testedStratsContracts.push(contract);
+          toVerifyStratsAddresses.push(strategy.address);
+          toVerifyStratsContracts.push(contract);
           done[name].harvestTx = harvestTx.transactionHash;
           persistify(done);
         } else {
@@ -401,6 +405,7 @@ const deployAndTest = async () => {
 
 const main = async () => {
   // TODO ensure the deployer has the necessary permissions on the controller
+  // TODO auto-flatten the contracts
   await deployAndTest();
   await verifyStrats();
 };

@@ -11,44 +11,5 @@
         "depositTx": false,
         "earnTx": false,
         "harvestTx": false
-    },
-    "StrategyLqdrDeiUsdc": {
-        "name": "StrategyLqdrDeiUsdc",
-        "strategy": "0xDdDfc485F5B0aBE8b9E6c7858BB4703814dCfdcd",
-        "want": "0x8eFD36aA4Afa9F4E157bec759F1744A7FeBaEA0e",
-        "jar": "0x41ed7A45350dD788637bD5C4616B998b27CE0832",
-        "wantApproveTx": "0xb4e9cf34adeb864ac2b6e0c784f9b6c51cf8c2fe3db7311e9b77851414b7bf8a",
-        "stratApproveTx": true,
-        "jarSetTx": true,
-        "stratSetTx": false,
-        "depositTx": "0xee982181ab254f6d6b6575195d9dc1128ee1e8a4f5fc68bddbe35290cdb95ca5",
-        "earnTx": false,
-        "harvestTx": false
-    },
-    "StrategyLqdrDeusWftm": {
-        "name": "StrategyLqdrDeusWftm",
-        "strategy": "0x1d5210263D92b6A655BFcEd0327F7Cde313F0c60",
-        "want": "0x2599Eba5fD1e49F294C76D034557948034d6C96E",
-        "jar": "0x17c138a61B2ED1A0dA0DD61Df8e66AdfF3437A5D",
-        "wantApproveTx": "0x77a138ac00c60bfd0c2d04f8954771cf1b3420218e5a286cf3ffcd322b5bfa25",
-        "stratApproveTx": "0x4778270a7e3989d4c079e508613f6cc973b746ae63554f8936517b8a8267a1eb",
-        "jarSetTx": true,
-        "stratSetTx": "0x656db6751b59efb914f50f330c90fd1c463b62ca13f8df2b1a34ac1ffbf3e861",
-        "depositTx": "0x1e61204053d7b4210e696209e2a279771fad6e1c24fd61d9bb0faf45feb44940",
-        "earnTx": "0x45d56d3b4f71424a23b6d237853b97a41db47e518ef451dcec6d4e0d111807f4",
-        "harvestTx": "0x4365045519070f1386dbac01b875237a887d5b81b432294f4eaa1fbb018f7b0b"
-    },
-    "StrategyLqdrPillsWftm": {
-        "name": "StrategyLqdrPillsWftm",
-        "strategy": "0xB3c9FE0104904f4Be760947cFFC3b1ff75bdee90",
-        "want": "0x9C775D3D66167685B2A3F4567B548567D2875350",
-        "jar": "0x4c0035863c371EB77BF3D30583BF9A00239ffcdf",
-        "wantApproveTx": "0x9a4f0e9eb4656558b540eccb2287e53cad067c24a1054bd42390541df28279ac",
-        "stratApproveTx": "0x6e2ee730237d056abc73f260948baf572311f7cb647c973a35d06827425d1d76",
-        "jarSetTx": true,
-        "stratSetTx": "0xe39f202f8f3dfb3bcd6d83182f81c8e7b3bc0fa45ecd97c40f66c6ecc3e08a26",
-        "depositTx": "0x6c63347987127227006eac4d7033c272b9bfd9ae35df6cd4e2730f108f6622c3",
-        "earnTx": "0x1f9731527fed130d99b8c09bc9ba7a39ae39adb13cc74453951ebe166e33200e",
-        "harvestTx": "0xefdb08b61cd181306b8d77503d238392fb463edb97483210a33f6d49aafa9a53"
     }
 }
