@@ -5,11 +5,11 @@ require("solidity-coverage");
 require("hardhat-deploy");
 require("hardhat-gas-reporter");
 require("hardhat-contract-sizer");
-const {removeConsoleLog} = require("hardhat-preprocessor");
+const { removeConsoleLog } = require("hardhat-preprocessor");
 require("dotenv").config();
 
 module.exports = {
-  defaultNetwork: "hardhat",
+  defaultNetwork: "fantom",
   solidity: {
     compilers: [
       {
@@ -35,7 +35,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://arb1.arbitrum.io/rpc/`,
+        url: `https://ftmrpc.ultimatenodes.io/`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -63,6 +63,11 @@ module.exports = {
     moonbeam: {
       url: `https://rpc.api.moonbeam.network`,
       accounts: [`0x${process.env.MNEMONIC}`]
+    },
+    fantom: {
+      url: `https://rpc.ftm.tools/`,
+      accounts: [`0x${process.env.MNEMONIC}`],
+      gas: 4000000
     }
   },
   contractSizer: {

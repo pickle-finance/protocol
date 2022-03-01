@@ -8,14 +8,19 @@ const sleep = async (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-// Moonbeam addresses
-const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+// Fantom addresses
+const governance = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
 const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-const controller = "0x95ca4584ea2007d578fa2693ccc76d930a96d165";
-const timelock = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
+const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";
+const timelock = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
 
 const deployAndTest = async () => {
-  const contracts = ["src/strategies/moonbeam/solarflare/strategy-solarflare-glmr-eth-lp.sol:StrategyFlareGlmrEthLp"];
+  const contracts = [
+    // "src/strategies/fantom/oxd/strategy-oxd-xboo.sol:StrategyOxdXboo",
+    // "src/strategies/fantom/oxd/strategy-oxd-xcredit.sol:StrategyOxdXcredit",
+    // "src/strategies/fantom/oxd/strategy-oxd-xscream.sol:StrategyOxdXscream",
+    "src/strategies/fantom/oxd/strategy-oxd-xtarot.sol:StrategyOxdXtarot",
+  ];
 
   for (const contract of contracts) {
     const StrategyFactory = await ethers.getContractFactory(contract);
@@ -26,11 +31,17 @@ const deployAndTest = async () => {
       console.log(`Deploying ${contract.substring(contract.lastIndexOf(":") + 1)}...`);
 
       const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
-      console.log(`✔️ Strategy deployed at: ${strategy.address}`);
-      const want = await strategy.want();
+      await strategy.deployTransaction.wait();
+      await sleep(5000);
 
+      console.log(`✔️ Strategy deployed at: ${strategy.address}`);
+
+      const want = await strategy.want();
       console.log(`Deploying PickleJar...`);
       const jar = await PickleJarFactory.deploy(want, governance, timelock, controller);
+      await jar.deployTransaction.wait();
+      await sleep(5000);
+
       console.log(`✔️ PickleJar deployed at: ${jar.address}`);
       console.log(`Want address is: ${want}`);
 
@@ -44,10 +55,16 @@ const deployAndTest = async () => {
 
       const approveStratTx = await Controller.approveStrategy(want, strategy.address);
       await approveStratTx.wait();
-      const setStratTx = await Controller.setStrategy(want, strategy.address);
-      await setStratTx.wait();
+      await sleep(5000);
+
       const setJarTx = await Controller.setJar(want, jar.address);
       await setJarTx.wait();
+      await sleep(5000);
+
+      const setStratTx = await Controller.setStrategy(want, strategy.address);
+      await setStratTx.wait();
+
+      await sleep(5000);
 
       console.log(`✔️ Controller params all set!`);
 
@@ -70,27 +87,24 @@ const deployAndTest = async () => {
       const ratio = await jar.getRatio();
       if (ratio.gt(BigNumber.from(parseEther("1")))) {
         console.log(`✔️ Harvest was successful, ending ratio of ${ratio.toString()}`);
-        console.log(`Verifying contracts...`);
-        await hre.run("verify:verify", {
-          address: strategy.address,
-          constructorArguments: [governance, strategist, controller, timelock],
-        });
       } else {
         console.log(`❌ Harvest failed, ending ratio of ${ratio.toString()}`);
       }
+      console.log(`Verifying contracts...`);
+      await hre.run("verify:verify", {
+        address: strategy.address,
+        constructorArguments: [governance, strategist, controller, timelock],
+      });
     } catch (e) {
       console.log(`Oops something went wrong...`);
       console.error(e);
+      await sleep(5000);
     }
   }
 };
 
 const verifyContracts = async () => {
-  const strategies = [
-    "0x80078De13A5A5a9142B028519728BBD2b30c01Bf",
-    "0xe9272832D9F452128264B3843de8798d387BD130",
-    "0x60cE585Ae7c19F60053Cc085fa70eDc3e1535e3A",
-  ];
+  const strategies = ["0xab986D3698A952A1b369EaaC7dA80e285CE5519d"];
   for (const strategy of strategies) {
     await hre.run("verify:verify", {
       address: strategy,
@@ -100,8 +114,8 @@ const verifyContracts = async () => {
 };
 
 const main = async () => {
-  await deployAndTest();
-  //   await verifyContracts();
+  // await deployAndTest();
+  await verifyContracts();
 };
 
 main()
