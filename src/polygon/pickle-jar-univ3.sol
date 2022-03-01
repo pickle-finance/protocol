@@ -244,10 +244,7 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
         return (token0Amount, token1Amount, _maticUsed);
     }
 
-    function _refundMatic(uint256 tokenAmount) internal {
-        uint256 _refund = WETH(wmatic).balanceOf(address(this)).sub(
-            tokenAmount
-        );
+    function _refundMatic(uint256 _refund) internal {
         WETH(wmatic).withdraw(_refund);
         (bool sent, bytes memory data) = (msg.sender).call{value: _refund}("");
         require(sent, "Failed to refund Matic");
@@ -258,19 +255,31 @@ contract PickleJarUniV3Poly is ERC20, ReentrancyGuard {
         _cache.amount0Desired = token0.balanceOf(address(this));
         _cache.amount1Desired = token1.balanceOf(address(this));
 
-        _cache.liquidity = (
-            pool.liquidityForAmounts(
-                _cache.amount0Desired,
-                _cache.amount1Desired,
-                getLowerTick(),
-                getUpperTick()
+        (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(getLowerTick());
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(getUpperTick());
+
+        _cache.liquidity = uint128(
+            LiquidityAmounts
+            .getLiquidityForAmount0(
+                sqrtRatioAX96,
+                sqrtRatioBX96,
+                _cache.amount0Desired
+            ).add(
+                LiquidityAmounts.getLiquidityForAmount1(
+                    sqrtRatioAX96,
+                    sqrtRatioBX96,
+                    _cache.amount1Desired
+                )
             )
         );
 
-        (_cache.amount0, _cache.amount1) = pool.amountsForLiquidity(
-            _cache.liquidity,
-            getLowerTick(),
-            getUpperTick()
+        (_cache.amount0, _cache.amount1) = LiquidityAmounts
+        .getAmountsForLiquidity(
+            sqrtPriceX96,
+            sqrtRatioAX96,
+            sqrtRatioBX96,
+            _cache.liquidity
         );
 
         if (_cache.amount0Desired > _cache.amount0)
