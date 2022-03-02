@@ -32,6 +32,10 @@ abstract contract StrategyBase {
     uint256 public withdrawalDevFundFee = 0;
     uint256 public constant withdrawalDevFundMax = 100000;
 
+    // How much Reward tokens to keep?
+    uint256 public keepReward = 420;
+    uint256 public constant keepRewardMax = 10000;
+
     // Tokens
     address public want;
     address public constant wftm = 0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83;
@@ -93,6 +97,11 @@ abstract contract StrategyBase {
     function getName() external pure virtual returns (string memory);
 
     // **** Setters **** //
+
+    function setKeepReward(uint256 _keepReward) external {
+        require(msg.sender == timelock, "!timelock");
+        keepReward = _keepReward;
+    }
 
     function whitelistHarvesters(address[] calldata _harvesters) external {
         require(
@@ -292,7 +301,7 @@ abstract contract StrategyBase {
             path[1] = wftm;
             path[2] = _to;
         }
-        
+
         UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
             _amount,
             0,
@@ -320,18 +329,6 @@ abstract contract StrategyBase {
         uint256 _want = IERC20(want).balanceOf(address(this));
 
         if (_want > 0) {
-            // Treasury fees
-            IERC20(want).safeTransfer(
-                IController(controller).treasury(),
-                _want.mul(performanceTreasuryFee).div(performanceTreasuryMax)
-            );
-
-            // Performance fee
-            IERC20(want).safeTransfer(
-                IController(controller).devfund(),
-                _want.mul(performanceDevFee).div(performanceDevMax)
-            );
-
             deposit();
         }
     }
