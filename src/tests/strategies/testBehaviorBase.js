@@ -42,7 +42,7 @@ const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isP
       console.log("Alice pTokenBalance after deposit: %s\n", (await pickleJar.balanceOf(alice.address)).toString());
       await pickleJar.earn();
 
-      await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+      await increaseTime(60 * 60 * 24 * 6); //travel 6 days
       if (bIncreaseBlock) {
         await increaseBlock(1000);
       }
@@ -82,7 +82,7 @@ const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isP
       console.log("Alice pTokenBalance after deposit: %s\n", (await pickleJar.balanceOf(alice.address)).toString());
       await pickleJar.earn();
 
-      await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+      await increaseTime(60 * 60 * 24 * 6); //travel 6 days
       if (bIncreaseBlock) {
         await increaseBlock(1000);
       }
@@ -145,13 +145,13 @@ const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isP
       await pickleJar.connect(alice).deposit(_wantHalved);
       await pickleJar.earn();
 
-      await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+      await increaseTime(60 * 60 * 24 * 6); //travel 6 days
 
       await pickleJar.connect(strategist).deposit(_wantHalved);
 
       await pickleJar.earn();
 
-      await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+      await increaseTime(60 * 60 * 24 * 6); //travel 6 days
 
       // Alice withdraws half
       await pickleJar.connect(alice).withdraw(_wantHalved.div(2));
