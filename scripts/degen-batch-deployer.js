@@ -3,6 +3,8 @@ const {parseEther} = require("ethers/lib/utils");
 const hre = require("hardhat");
 const ethers = hre.ethers;
 const fs = require("fs");
+require("./deploy-utils/flat");
+
 
 // Script configs
 const OBJECT_FILE_NAME = "degen-batch-deployer.json"; // deployment state object file name
@@ -11,29 +13,37 @@ const callAttempts = 3;
 const waitBeforeReplace = 60000; // time to wait for tx to confirm before replacing
 const waitBeforeHarvest = 60000; // wait for rewards to accrue
 const waitBeforeTx = 10000; // wait for the provider to update chain state (signer nonces, txns status ...etc)
+const controllerContract = "src/controller-v4.sol:ControllerV4";
+const jarContract = "src/pickle-jar.sol:PickleJar";
 
 // References
 const allReports = [];
+const flattenedContracts = [];
 const done = require("./".concat(OBJECT_FILE_NAME)); // deployment state object
 
 // Addresses & Contracts [Fantom]
 const governance = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
 const strategist = "0xacfe4511ce883c14c4ea40563f176c3c09b4c47c";
-const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";// "0xB1698A97b497c998b2B2291bb5C48D1d6075836a";
+const controller = "0xB1698A97b497c998b2B2291bb5C48D1d6075836a"; //"0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";
 const timelock = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
 
 const contractsToDeploy = [
-  // "src/tmp/strategy-lqdr-dei-usdc.sol:StrategyLqdrDeiUsdc",
-  // "src/tmp/strategy-lqdr-dei-usdc.sol:StrategyLqdrDeiUsdc",
-
-  // "src/tmp/strategy-beethovenx-usdc-dai-mai.sol:StrategyBeethovenUsdcDaiMaiLp", // pending harvest
+  "src/strategies/fantom/spiritswap/strategy-spirit-ftm.sol:StrategySpiritFtm",
+  "src/strategies/fantom/spiritswap/strategy-spirit-ftm-treeb.sol:StrategySpiritFtmTreeb",
+  "src/strategies/fantom/spiritswap/strategy-spirit-ftm-mai.sol:StrategySpiritFtmMai",
+  "src/strategies/fantom/spiritswap/strategy-spirit-ftm-lqdr.sol:StrategySpiritFtmLqdr",
+  "src/strategies/fantom/spiritswap/strategy-spirit-ftm-frax.sol:StrategySpiritFtmFrax",
+  "src/strategies/fantom/spiritswap/strategy-spirit-ftm-deus.sol:StrategySpiritFtmDeus",
+  "src/strategies/fantom/spiritswap/strategy-spirit-ftm-cre8r.sol:StrategySpiritFtmCre8r",
+  "src/strategies/fantom/spiritswap/strategy-spirit-ftm-bifi.sol:StrategySpiritFtmBifi",
+  "src/strategies/fantom/spiritswap/strategy-spirit-scarab-gscarab.sol:StrategySpiritScarabGscarab",
 ];
 
 const toVerifyStratsAddresses = [
-  // "0x5862248d276231AA11DfAAffDA9C0787c65Bc142"
+  // "0xf66B6AEa7a1eb478f538b1Ea21fF4b21045675a2"
 ];
 const toVerifyStratsContracts = [
-  // "src/strategies/fantom/liquiddriver/spiritswap/strategy-lqdr-wftm.sol:StrategyLqdrWftm"
+  // "src/tmp/strategy-lqdr-spirit-wftm.sol:StrategyLqdrSpiritWftm",
 ];
 
 // Functions
@@ -68,6 +78,21 @@ const verifyStrats = async () => {
   }
 };
 
+const flatten = async () => {
+  const tmpDir = "src/tmp";
+  for (const contract of contractsToDeploy) {
+    const path = contract.substring(0, contract.lastIndexOf(":"));
+    const fileName = path.substring(contract.lastIndexOf("/"));
+    const contractName = contract.substring(contract.lastIndexOf(":"));
+    await hre.run("flat", {
+      files: [path],
+      output: tmpDir+fileName,
+    })
+    flattenedContracts.push(tmpDir+fileName+contractName);
+  }
+  await hre.run("compile");
+}
+
 const deployAndTest = async () => {
   const executeTx = async (tries, fn, deployTx = false, tx = undefined) => {
     await sleep(waitBeforeTx, sleepToggle);
@@ -81,7 +106,7 @@ const deployAndTest = async () => {
     });
 
     if (tx) {
-      console.log("❌ Transaction took too long. Retrying...");
+      console.log("❌❌ Transaction took too long. Retrying...");
       const signer = await hre.ethers.getSigner();
 
       // extract unnecessary props from previous tx
@@ -111,11 +136,11 @@ const deployAndTest = async () => {
         // feel free to add new ones
 
         // 1) previous tx confirmed before the replace
-        if (error.code === "❌ NONCE_EXPIRED") {
+        if (error.code === "NONCE_EXPIRED") {
           console.log(`${error.code}! Retrying...`);
           txn = tx;
         } else {
-          console.log("❌ New error encountered! Please investigate!");
+          console.log("❌❌ New error encountered! Please investigate!");
           console.error(error);
           return;
         }
@@ -128,20 +153,20 @@ const deployAndTest = async () => {
         // feel free to add new ones
 
         // 1) provider didn't update the signer nonce yet
-        if (error.code === "❌ NONCE_EXPIRED") {
+        if (error.code === "NONCE_EXPIRED") {
           return await executeTx(tries, fn, deployTx);
         }
 
         // 2) usually with a failing harvest (not enough rewards accrued)
         else if (error.code === "UNPREDICTABLE_GAS_LIMIT") {
-          console.error(`❌ Tx failed with code: ${error.code}`);
+          console.error(`❌❌ Tx failed with code: ${error.code}`);
           if (tries > 0) {
             console.log("Retrying...");
             return await executeTx(tries - 1, fn, deployTx, txn);
           }
           return;
         } else {
-          console.log("❌ New error encountered! Please investigate!");
+          console.log("❌❌ New error encountered! Please investigate!");
           console.log(error);
           return;
         }
@@ -172,7 +197,7 @@ const deployAndTest = async () => {
       response.address = txn.address; // attach jar/strategy address to response (can be undefined if non-deployment tx)
       return response;
     } catch (err) {
-      console.log("❌ Transaction reverted!");
+      console.log("❌❌ Transaction reverted!");
       console.error(err);
       return;
     }
@@ -181,10 +206,10 @@ const deployAndTest = async () => {
   const deployer = await hre.ethers.getSigner();
   console.log(`Deployer: ${deployer.address}`);
 
-  for (const contract of contractsToDeploy) {
+  for (const contract of flattenedContracts) {
     const StrategyFactory = await ethers.getContractFactory(contract);
-    const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
-    const Controller = await ethers.getContractAt("src/controller-v4.sol:ControllerV4", controller);
+    const PickleJarFactory = await ethers.getContractFactory(jarContract);
+    const Controller = await ethers.getContractAt(controllerContract, controller);
     const name = contract.substring(contract.lastIndexOf(":") + 1);
 
     let strategy, jar;
@@ -195,7 +220,7 @@ const deployAndTest = async () => {
         strategy = await ethers.getContractAt(contract, done[name].strategy);
       }
       if (done[name].jar) {
-        jar = await ethers.getContractAt("src/pickle-jar.sol:PickleJar", done[name].jar);
+        jar = await ethers.getContractAt(jarContract, done[name].jar);
       }
     } else {
       done[name] = {name: name};
@@ -235,8 +260,10 @@ const deployAndTest = async () => {
           persistify(done);
           strategy = await ethers.getContractAt(contract, done[name].strategy);
           console.log(`✔️ Strategy deployed at: ${strategy.address}`);
+          toVerifyStratsAddresses.push(strategy.address);
+          toVerifyStratsContracts.push(contract);
         } else {
-          console.log(`❌ Strategy deployment failed!`);
+          console.log(`❌❌ Strategy deployment failed!`);
         }
       }
 
@@ -248,6 +275,8 @@ const deployAndTest = async () => {
         done[name].want = await strategy.want();
 
         // Deploy PickleJar contract
+        console.log(`Deploying jar...`);
+
         const jarTx = await executeTx(
           callAttempts,
           () => PickleJarFactory.deploy(done[name].want, governance, timelock, controller),
@@ -256,10 +285,10 @@ const deployAndTest = async () => {
         if (jarTx?.address) {
           done[name].jar = jarTx.address;
           persistify(done);
-          jar = await ethers.getContractAt("src/pickle-jar.sol:PickleJar", done[name].jar);
+          jar = await ethers.getContractAt(jarContract, done[name].jar);
           console.log(`✔️ PickleJar deployed at: ${jar.address}`);
         } else {
-          console.log(`❌ PickleJar deployment failed!`);
+          console.log(`❌❌ PickleJar deployment failed!`);
         }
       }
 
@@ -278,7 +307,7 @@ const deployAndTest = async () => {
           persistify(done);
           console.log(`✔️ Successfully approved Jar to spend want`);
         } else {
-          console.log(`❌ Failed approving Jar to spend want!`);
+          console.log(`❌❌ Failed approving Jar to spend want!`);
         }
       }
 
@@ -295,7 +324,7 @@ const deployAndTest = async () => {
           persistify(done);
           console.log(`✔️ Strategy Approved!`);
         } else {
-          console.log(`❌ Failed approving strategy in the controller!`);
+          console.log(`❌❌ Failed approving strategy in the controller!`);
         }
       }
 
@@ -308,7 +337,7 @@ const deployAndTest = async () => {
           persistify(done);
           console.log(`✔️ Jar Set!`);
         } else {
-          console.log(`❌ Failed setting Jar in the controller!`);
+          console.log(`❌❌ Failed setting Jar in the controller!`);
         }
       }
 
@@ -324,7 +353,7 @@ const deployAndTest = async () => {
           console.log(`✔️ Strategy Set!`);
           console.log(`✔️ Controller params all set!`);
         } else {
-          console.log(`❌ Failed setting strategy in the controller!`);
+          console.log(`❌❌ Failed setting strategy in the controller!`);
         }
       }
 
@@ -339,7 +368,7 @@ const deployAndTest = async () => {
             `✔️ Successfully deposited want in Jar. Please double-check the tx hash ${depositTx.transactionHash}`
           );
         } else {
-          console.log(`❌ Failed depositing want in Jar!`);
+          console.log(`❌❌ Failed depositing want in Jar!`);
         }
       }
 
@@ -352,7 +381,7 @@ const deployAndTest = async () => {
           persistify(done);
           console.log(`✔️ Successfully called earn. Please double-check the tx hash ${earnTx.transactionHash}`);
         } else {
-          console.log(`❌ Failed calling earn!`);
+          console.log(`❌❌ Failed calling earn!`);
         }
       }
 
@@ -367,12 +396,10 @@ const deployAndTest = async () => {
 
         if (ratio.gt(BigNumber.from(parseEther("1")))) {
           console.log(`✔️ Harvest was successful, ending ratio of ${ratio.toString()}`);
-          toVerifyStratsAddresses.push(strategy.address);
-          toVerifyStratsContracts.push(contract);
           done[name].harvestTx = harvestTx.transactionHash;
           persistify(done);
         } else {
-          console.log(`❌ Harvest failed, ending ratio of ${ratio.toString()}`);
+          console.log(`❌❌ Harvest failed, ending ratio of ${ratio.toString()}`);
         }
       }
     } catch (e) {
@@ -405,7 +432,7 @@ const deployAndTest = async () => {
 
 const main = async () => {
   // TODO ensure the deployer has the necessary permissions on the controller
-  // TODO auto-flatten the contracts
+  await flatten();
   await deployAndTest();
   await verifyStrats();
 };
