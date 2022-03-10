@@ -85,7 +85,6 @@ const deployContract = async (sleepConfigs, calls, fn, ...args) => {
 
 const deployContractsAndGeneratePfcore = async () => {
   // References
-  const allTxRefs = [];
   const allReports = [];
   for (const [jarIndex, contract] of contracts.entries()) {
     const StrategyFactory = await ethers.getContractFactory(contract);
