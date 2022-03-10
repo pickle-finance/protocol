@@ -3,14 +3,14 @@ pragma solidity ^0.6.7;
 
 import "../strategy-joe-rush-farm-base.sol";
 
-/// @notice The strategy contract for TraderJoe's AVAX/CRAFT Liquidity Pool with JOE and ??? rewards
-contract StrategyJoeAvaxCraft is StrategyJoeRushFarmBase {
+/// @notice The strategy contract for TraderJoe's AVAX/MONEY Liquidity Pool with JOE and MORE rewards
+contract StrategyJoeAvaxMoney is StrategyJoeRushFarmBase {
     // LP and Token addresses
     uint256 public lp_poolId = 56;
-    address public joe_avax_craft_lp = ;
+    address public joe_avax_money_lp = 0x66D12e1cb13EAbAB21f1Fb6628B1Ef33C6dED5a7;
     
-    address public craft = 0x8aE8be25C23833e0A01Aa200403e826F611f9CD2;
-    address public ??? = ;
+    address public money = 0x0f577433Bf59560Ef2a79c124E9Ff99fCa258948;
+    address public more = 0xd9D90f882CDdD6063959A9d837B05Cb748718A05;
     
     /// @notice Constructor
     constructor(
@@ -22,7 +22,7 @@ contract StrategyJoeAvaxCraft is StrategyJoeRushFarmBase {
         public
         StrategyJoeRushFarmBase(
             lp_poolId,
-            joe_avax_craft_lp,
+            joe_avax_money_lp,
             _governance,
             _strategist,
             _controller,
@@ -42,7 +42,8 @@ contract StrategyJoeAvaxCraft is StrategyJoeRushFarmBase {
         
         // Check token balances, take fee for each token, then update balances
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _craft = IERC20(craft).balanceOf(address(this)); 
+        uint256 _money = IERC20(money).balanceOf(address(this)); 
+        uint256 _more = IERC20(more).balanceOf(address(this)); 
         uint256 _joe = IERC20(joe).balanceOf(address(this)); 
         if (_wavax > 0) {
             uint256 _keep = _wavax.mul(keep).div(keepMax);
@@ -53,13 +54,22 @@ contract StrategyJoeAvaxCraft is StrategyJoeRushFarmBase {
             _wavax = IERC20(wavax).balanceOf(address(this));
         }
         
-        if (_craft > 0) {
-            uint256 _keep = _craft.mul(keep).div(keepMax);
+        if (_money > 0) {
+            uint256 _keep = _money.mul(keep).div(keepMax);
             if (_keep > 0){
-                _takeFeeRewardToSnob(_keep, craft);
+                _takeFeeRewardToSnob(_keep, money);
             }
             
-            _craft = IERC20(craft).balanceOf(address(this));
+            _money = IERC20(money).balanceOf(address(this));
+        }
+
+        if (_more > 0) {
+            uint256 _keep = _money.mul(keep).div(keepMax);
+            if (_keep > 0){
+                _takeFeeRewardToSnob(_keep, more);
+            }
+            
+            _more = IERC20(more).balanceOf(address(this));
         }
 
         if (_joe > 0) {
@@ -71,43 +81,51 @@ contract StrategyJoeAvaxCraft is StrategyJoeRushFarmBase {
             _joe = IERC20(joe).balanceOf(address(this));
         }
 
-        // In the case of AVAX Rewards, swap half WAVAX for CRAFT
+        // In the case of AVAX Rewards, swap half WAVAX for MONEY
         if(_wavax > 0){
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
-            _swapTraderJoe(wavax, craft, _wavax.div(2)); 
+            _swapTraderJoe(wavax, money, _wavax.div(2)); 
         }
 
-        // In the case of CRAFT Rewards, swap half CRAFT for WAVAX
-        if(_craft > 0){
-            IERC20(craft).safeApprove(joeRouter, 0);
-            IERC20(craft).safeApprove(joeRouter, _craft.div(2));   
-            _swapTraderJoe(craft, wavax, _craft.div(2)); 
+        // In the case of MONEY Rewards, swap half MONEY for WAVAX
+        if(_money > 0){
+            IERC20(money).safeApprove(joeRouter, 0);
+            IERC20(money).safeApprove(joeRouter, _money.div(2));   
+            _swapTraderJoe(money, wavax, _money.div(2)); 
         }
 
-        // In the case of JOE Rewards, swap JOE for WAVAX and CRAFT
+        // In the case of MORE Rewards, swap MORE for WAVAX and MONEY
+        if(_more > 0){
+            IERC20(more).safeApprove(joeRouter, 0);
+            IERC20(more).safeApprove(joeRouter, _more);
+            _swapTraderJoe(more, wavax, _more.div(2));
+            _swapTraderJoe(more, money, _more.div(2));
+        }
+
+        // In the case of JOE Rewards, swap JOE for WAVAX and MONEY
         if(_joe > 0){
             IERC20(joe).safeApprove(joeRouter, 0);
             IERC20(joe).safeApprove(joeRouter, _joe);
             _swapTraderJoe(joe, wavax, _joe.div(2));
-            _swapTraderJoe(joe, craft, _joe.div(2));
+            _swapTraderJoe(joe, money, _joe.div(2));
         }
         
-        // Add liquidity for AVAX/CRAFT
+        // Add liquidity for AVAX/MONEY
         _wavax = IERC20(wavax).balanceOf(address(this));
-        _craft = IERC20(craft).balanceOf(address(this));
-        if (_wavax > 0 && _craft > 0) {
+        _money = IERC20(money).balanceOf(address(this));
+        if (_wavax > 0 && _money > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
 
-            IERC20(craft).safeApprove(joeRouter, 0);
-            IERC20(craft).safeApprove(joeRouter, _craft);
+            IERC20(money).safeApprove(joeRouter, 0);
+            IERC20(money).safeApprove(joeRouter, _money);
 
             IJoeRouter(joeRouter).addLiquidity(
                 wavax,
-                craft,
+                money,
                 _wavax,
-                _craft,
+                _money,
                 0,
                 0,
                 address(this),
@@ -116,7 +134,8 @@ contract StrategyJoeAvaxCraft is StrategyJoeRushFarmBase {
 
             // Check balances and donate dust to the treasury
             _wavax = IERC20(wavax).balanceOf(address(this));
-            _craft = IERC20(craft).balanceOf(address(this));
+            _money = IERC20(money).balanceOf(address(this));
+            _more = IERC20(more).balanceOf(address(this));
             _joe = IERC20(joe).balanceOf(address(this));
             
             if (_wavax > 0){
@@ -126,10 +145,17 @@ contract StrategyJoeAvaxCraft is StrategyJoeRushFarmBase {
                 );
             }
 
-            if (_craft > 0){
-                IERC20(craft).safeTransfer(
+            if (_money > 0){
+                IERC20(money).safeTransfer(
                     IController(controller).treasury(),
-                    _craft
+                    _money
+                );
+            } 
+
+            if (_more > 0){
+                IERC20(more).safeTransfer(
+                    IController(controller).treasury(),
+                    _more
                 );
             } 
 
@@ -146,6 +172,6 @@ contract StrategyJoeAvaxCraft is StrategyJoeRushFarmBase {
 
     /// @notice Return the name of the strategy
     function getName() external override pure returns (string memory) {
-        return "StrategyJoeAvaxCraft";
+        return "StrategyJoeAvaxMoney";
     }
-}h
+}

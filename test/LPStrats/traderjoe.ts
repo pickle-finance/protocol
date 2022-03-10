@@ -123,6 +123,16 @@ const tests = [
         name: "JoeAvaxDfiat",
         controller: "traderJoe",
         slot: 1
+    },
+    {
+        name: "JoeAvaxCraft",
+        controller: "traderJoe",
+        slot: 1
+    },
+    {
+        name: "JoeAvaxMoney",
+        controller: "traderJoe",
+        slot: 1
     }
 ];
 
