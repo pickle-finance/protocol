@@ -220,7 +220,7 @@ const generateJarsAndFarms = async (args, jarAddress, jarStartBlock, wantAddress
   const depositTokenLink = `${args.liquidityURL}${args.componentAddresses.join('/')}`
   ////////////////////////
 
-  const jarName = `${args.protocols.map(x => x.toUpperCase()).join('_')}_${args.componentNames.map(x => x.toUpperCase()).join('_')}`
+  const jarName = `${args.chain.toUpperCase()}_${args.protocols.map(x => x.toUpperCase()).join('_')}_${args.componentNames.map(x => x.toUpperCase()).join('_')}`
   const jarKey = `${args.protocols.map(x => x.slice(0, 1).toUpperCase().concat(x.slice(1))).join('')}LP ${args.componentNames.map(x => x.toUpperCase()).join('/')}`
 
   const id = `${args.chain}Jar ${args.jarCode}`
@@ -230,9 +230,10 @@ const generateJarsAndFarms = async (args, jarAddress, jarStartBlock, wantAddress
   const chainNetwork = `${args.chain.slice(0, 1).toUpperCase().concat(args.chain.slice(1))}`;
   const assetProtocol = `${args.protocols[0].toUpperCase()}`
   const apiKey = `${args.protocols.map(x => x.toUpperCase()).join('')}LP-${args.componentNames.map(x => x.toUpperCase()).join('-')}`;
+  const farm = args.farmAddress ? `"${args.farmAddress}"` : NULL_ADDRESS;
 
   const output = `
-export const JAR_${jarName}: JarDefinition = {
+export const JAR_${jarName}_LP: JarDefinition = {
         type: AssetType.JAR,
         id: "${id}",
         contract: "${jarAddress}",
@@ -253,7 +254,7 @@ export const JAR_${jarName}: JarDefinition = {
           controller: "${controller}"
         },
         farm: {
-          farmAddress: "${args.farmAddress}",
+          farmAddress: ${farm},
           farmNickname: "p${jarKey}",
           farmDepositTokenName: "p${jarKey}",
         },
@@ -282,7 +283,7 @@ const generateImplementations = async (args) => {
   const jarComponents = args.componentNames.map(x => x.slice(0, 1).toUpperCase().concat(x.slice(1))).join('');
 
   const output = `
-import { ${jarProtocols}${jarComponents}Jar } from "./${args.chain}-${args.protocols.join('-')}-${args.componentNames.join('-')}-jar";
+import { ${jarProtocols}${jarComponents}Jar } from "./${args.chain}-${args.protocols.join('-')}${args.componentNames.join('-')}-jar";
 
 export class ${jarProtocols}${jarComponents} extends ${jarProtocols}Jar {
   constructor() {
