@@ -269,7 +269,7 @@ abstract contract StrategyBase {
     function _swapUniswapWithPath(address[] memory path, uint256 _amount) internal {
         require(path[1] != address(0));
 
-        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
+        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
     }
 
     function _swapSushiswap(

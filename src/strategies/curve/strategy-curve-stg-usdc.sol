@@ -49,12 +49,11 @@ contract StrategyCurveStgUsdc is StrategyCurveBase {
         // i.e. will be be heavily frontrunned?
         //      if so, a new strategy will be deployed.
 
-        ICurveGauge(gauge).claim_rewards(address(this));
+        ICurveMintr(mintr).mint(gauge);
 
         uint256 _crv = IERC20(crv).balanceOf(address(this));
-        console.log("crv balance:", _crv);
+        console.log("crv balance1:", _crv);
         if (_crv > 0) {
-            console.log("crv balance:", _crv);
             uint256 _keepCRV = _crv.mul(keepCRV).div(keepCRVMax);
             IERC20(crv).safeTransfer(IController(controller).treasury(), _keepCRV);
 
