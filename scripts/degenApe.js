@@ -11,10 +11,10 @@ const callAttempts = 3;
 const recallTime = 180000
 
 // Fantom addresses
-const governance = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
+const governance = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
 const strategist = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
-const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";
-const timelock = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
+const controller = "0x69094096DaEaFA96F49438Beda6B0e0950E4BF02";
+const timelock = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
 
 const testedStrategies = ["0xA6b01164af308d74eD593e24637275ee26Cf9531", "0x20b515d6fA1a248e92350d449286B8D258d91C19", "0xbe9e4d2902f23B83c9d04c1780C09809af5E7b3F", "0x2722930172C38420a4A0Aa7af67C316ebD845Be4", "0x62e02D2E56A18C5DCD5bE447D30D04C9800519E8", "0x767ef1887A71734A1F5198b2bE6dA9c32293ca5e",];
 
@@ -22,7 +22,7 @@ const contracts = [
   // "src/strategies/fantom/oxd/strategy-oxd-xboo.sol:StrategyOxdXboo",
   // "src/strategies/fantom/spookyswap/strategy-boo-ftm-sushi-lp.sol:StrategyBooFtmSushiLp",
   // "src/strategies/fantom/spookyswap/strategy-boo-btc-eth-lp.sol:StrategyBooBtcEthLp",
-  "src/strategies/fantom/spookyswap/strategy-boo-ftm-beets-lp.sol:StrategyBooFtmBeetsLp"
+  "src/strategies/metis/tethys/strategy-metis-dai.lp.sol:StrategyTethysMetisDaiLp"
   // "src/strategies/fantom/spookyswap/strategy-boo-ftm-any-lp.sol:StrategyBooFtmAnyLp",
 ];
 

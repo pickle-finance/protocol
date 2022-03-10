@@ -65,6 +65,12 @@ abstract contract StrategyBase {
         timelock = _timelock;
     }
 
+    // **** Fallback functions ****
+
+    receive() external payable {}
+
+    fallback() external payable {}
+
     // **** Modifiers **** //
 
     modifier onlyBenevolent() {
