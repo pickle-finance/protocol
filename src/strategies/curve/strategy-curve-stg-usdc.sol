@@ -9,9 +9,11 @@ import "../../interfaces/curve.sol";
 import "../../interfaces/uniswapv2.sol";
 import "../../interfaces/controller.sol";
 
-import "../strategy-curve-base-v2.sol";
+import "../strategy-curve-base.sol";
 
-contract StrategyCurveStgUsdc is StrategyCurveBaseV2 {
+import "hardhat/console.sol";
+
+contract StrategyCurveStgUsdc is StrategyCurveBase {
     // Curve stuff
     address public stg_usdc_pool = 0x3211C6cBeF1429da3D0d58494938299C92Ad5860;
     address public stg_usdc_gauge = 0x95d16646311fDe101Eb9F897fE06AC881B7Db802;
@@ -24,16 +26,18 @@ contract StrategyCurveStgUsdc is StrategyCurveBaseV2 {
         address _timelock
     )
         public
-        StrategyCurveBaseV2(stg_usdc_pool, stg_usdc_gauge, stg_usdc, _governance, _strategist, _controller, _timelock)
+        StrategyCurveBase(stg_usdc_pool, stg_usdc_gauge, stg_usdc, _governance, _strategist, _controller, _timelock)
     {
         IERC20(crv).safeApprove(sushiRouter, uint256(-1));
         IERC20(usdc).safeApprove(curve, uint256(-1));
-
-        swapRoutes[usdc] = [crv, weth, usdc];
     }
 
     function getName() external pure override returns (string memory) {
         return "StrategyCurveStgUsdc";
+    }
+
+    function getMostPremium() public view override returns (address, uint256) {
+        return (address(0), 0);
     }
 
     // **** State Mutations ****
@@ -48,21 +52,28 @@ contract StrategyCurveStgUsdc is StrategyCurveBaseV2 {
         ICurveGauge(gauge).claim_rewards(address(this));
 
         uint256 _crv = IERC20(crv).balanceOf(address(this));
+        console.log("crv balance:", _crv);
         if (_crv > 0) {
+            console.log("crv balance:", _crv);
             uint256 _keepCRV = _crv.mul(keepCRV).div(keepCRVMax);
             IERC20(crv).safeTransfer(IController(controller).treasury(), _keepCRV);
 
+            address[] memory route = new address[](3);
+            route[0] = crv;
+            route[1] = weth;
+            route[2] = usdc;
+
             _crv = IERC20(crv).balanceOf(address(this));
-            _swapSushiswapWithPath(swapRoutes[usdc], _crv);
+            _swapSushiswapWithPath(route, _crv);
         }
 
         uint256 _usdc = IERC20(usdc).balanceOf(address(this));
         // Adds liquidity to curve.fi's pool
         if (_usdc > 0) {
-            IERC20(usdc).safeApprove(curve, uint256(-1));
-            uint256[3] memory liquidity;
-            liquidity[2] = _usdc;
-            ICurveFi_3(curve).add_liquidity(liquidity, 0);
+            console.log("usdc balance:", _usdc);
+            uint256[2] memory liquidity;
+            liquidity[1] = _usdc;
+            ICurveFi_2(curve).add_liquidity(liquidity, 0);
         }
 
         _distributePerformanceFeesAndDeposit();

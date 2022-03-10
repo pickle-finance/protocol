@@ -30,8 +30,6 @@ abstract contract StrategyCurveBase is StrategyBase {
     uint256 public keepCRV = 0;
     uint256 public keepCRVMax = 10000;
 
-    mapping(address => address[]) public swapRoutes;
-
     constructor(
         address _curve,
         address _gauge,
