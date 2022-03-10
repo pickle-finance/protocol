@@ -125,7 +125,7 @@ abstract contract StrategyNettDualFarmLPBase is StrategyBase {
 
             _nett = IERC20(nett).balanceOf(address(this));
             uint256 _keepNETT = _nett.mul(keepREWARD).div(keepREWARDMax);
-            IERC20(extraReward).safeTransfer(
+            IERC20(nett).safeTransfer(
                 IController(controller).treasury(),
                 _keepNETT
             );

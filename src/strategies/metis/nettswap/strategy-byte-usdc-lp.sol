@@ -9,7 +9,8 @@ contract StrategyNettBinaryDAOUsdcLp is StrategyNettDualFarmLPBase {
     address public constant binaryDAO_usdc_lp =
         0x3Ab6be89ED5A0d4FDD412c246F5e6DdD250Dd45c;
     address public constant usdc = 0xEA32A96608495e54156Ae48931A7c20f0dcc1a21;
-    address public constant binaryDAO = 0x721532bC0dA5ffaeB0a6A45fB24271E8098629A7;
+    address public constant binaryDAO =
+        0x721532bC0dA5ffaeB0a6A45fB24271E8098629A7;
 
     constructor(
         address _governance,
@@ -28,6 +29,7 @@ contract StrategyNettBinaryDAOUsdcLp is StrategyNettDualFarmLPBase {
             _timelock
         )
     {
+        swapRoutes[nett] = [extraReward, nett];
         swapRoutes[usdc] = [nett, usdc];
         swapRoutes[binaryDAO] = [nett, usdc, binaryDAO];
     }
