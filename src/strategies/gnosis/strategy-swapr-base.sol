@@ -2,15 +2,14 @@
 pragma solidity ^0.6.7;
 
 import "./strategy-base.sol";
-import "../../interfaces/minichefv2.sol";
+import "../../interfaces/swapr-rewarder.sol";
 import "../../interfaces/IRewarder.sol";
 
 abstract contract StrategySwaprFarmBase is StrategyBase {
     // Token addresses
-    address public constant swapr = 0x2995D1317DcD4f0aB89f4AE60F3f020A4F17C7CE;
-    address public extraReward;
-    address public constant miniChef = 0xdDCbf776dF3dE60163066A5ddDF2277cB445E0F3;
-    address public swaprRouter = 0xE43e60736b1cb4a75ad25240E2f9a62Bff65c0C0;
+    address public constant swapr = 0x532801ED6f82FFfD2DAB70A19fC2d7B2772C4f4b;
+    address public rewarder;
+    address public constant swaprRouter = 0xE43e60736b1cb4a75ad25240E2f9a62Bff65c0C0;
 
     // WETH/<token1> pair
     address public token0;
@@ -21,48 +20,37 @@ abstract contract StrategySwaprFarmBase is StrategyBase {
 
     uint256 public poolId;
     mapping(address => address[]) public swapRoutes;
-    bool extraRewardBool;
 
     constructor(
-        bool _extraRewardBool,
-        address _extraReward,
-        uint256 _poolId,
+        address _rewarder,
         address _lp,
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
     ) public StrategyBase(_lp, _governance, _strategist, _controller, _timelock) {
-        poolId = _poolId;
+        rewarder = _rewarder;
         token0 = IUniswapV2Pair(_lp).token0();
         token1 = IUniswapV2Pair(_lp).token1();
-        extraRewardBool = _extraRewardBool;
-        extraReward = _extraReward;
 
         IERC20(token0).approve(swaprRouter, uint256(-1));
         IERC20(token1).approve(swaprRouter, uint256(-1));
         IERC20(swapr).approve(swaprRouter, uint256(-1));
-        IERC20(extraReward).approve(swaprRouter, uint256(-1));
-        IERC20(want).approve(miniChef, uint256(-1));
+        IERC20(want).approve(rewarder, uint256(-1));
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        (uint256 amount, ) = IMiniChefV2(miniChef).userInfo(poolId, address(this));
-        return amount;
+        uint256 _amount = ISwaprRewarder(rewarder).stakedTokensOf(address(this));
+        return _amount;
     }
 
     function getHarvestable() external view returns (uint256, uint256) {
-        uint256 _pendingSwapr = IMiniChefV2(miniChef).pendingSushi(poolId, address(this));
+        uint256[] memory _claimableRewards = ISwaprRewarder(rewarder).claimableRewards(address(this));
 
-        IRewarder rewarder = IMiniChefV2(miniChef).rewarder(poolId);
-        (, uint256[] memory _rewardAmounts) = rewarder.pendingTokens(poolId, address(this), 0);
+        uint256 _pendingSwapr = _claimableRewards[0];
+        uint256 _pendingGno = _claimableRewards[1];
 
-        uint256 _pendingExtraReward;
-        if (_rewardAmounts.length > 0) {
-            _pendingExtraReward = _rewardAmounts[0];
-        }
-
-        return (_pendingSwapr, _pendingExtraReward);
+        return (_pendingSwapr, _pendingGno);
     }
 
     // **** Setters ****
@@ -70,12 +58,12 @@ abstract contract StrategySwaprFarmBase is StrategyBase {
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IMiniChefV2(miniChef).deposit(poolId, _want, address(this));
+            ISwaprRewarder(rewarder).stake(_want);
         }
     }
 
     function _withdrawSome(uint256 _amount) internal override returns (uint256) {
-        IMiniChefV2(miniChef).withdraw(poolId, _amount, address(this));
+        ISwaprRewarder(rewarder).withdraw(_amount);
         return _amount;
     }
 
@@ -87,68 +75,29 @@ abstract contract StrategySwaprFarmBase is StrategyBase {
     }
 
     function harvest() public override onlyBenevolent {
-        IMiniChefV2(miniChef).harvest(poolId, address(this));
+        ISwaprRewarder(rewarder).claimAll(address(this));
+
+        // Swap SWPR to GNO
         uint256 _swapr = IERC20(swapr).balanceOf(address(this));
+        if (_swapr > 0) {
+            _swap(swaprRouter, swapRoutes[gno], _swapr);
+        }
 
-        // If there is an extraReward
-        if (extraRewardBool) {
-            uint256 _extraReward = IERC20(extraReward).balanceOf(address(this));
-            // If extra reward is part of pair - swap to extraReward to SWAPR,
-            // collect fees, and swap half of SWAPR to other token.
-            if (extraReward == token0 || extraReward == token1) {
-                if (swapRoutes[extraReward].length > 1 && _swapr > 0) {
-                    _swap(swaprRouter, swapRoutes[extraReward], _swapr);
-                }
+        // Collect Fees
+        uint256 _gno = IERC20(gno).balanceOf(address(this));
+        uint256 _keepReward = _gno.mul(keepREWARD).div(keepREWARDMax);
+        IERC20(gno).safeTransfer(IController(controller).treasury(), _keepReward);
 
-                _extraReward = IERC20(extraReward).balanceOf(address(this));
-                uint256 _keepReward = _extraReward.mul(keepREWARD).div(keepREWARDMax);
-                IERC20(extraReward).safeTransfer(IController(controller).treasury(), _keepReward);
+        // Swap GNO to token0 & token1
+        _gno = IERC20(gno).balanceOf(address(this));
+        uint256 _toToken0 = _gno.div(2);
+        uint256 _toToken1 = _gno.sub(_toToken0);
 
-                _extraReward = IERC20(extraReward).balanceOf(address(this));
-                address toToken = extraReward == token0 ? token1 : token0;
-
-                if (swapRoutes[toToken].length > 1 && _extraReward > 0) {
-                    _swap(swaprRouter, swapRoutes[toToken], _extraReward.div(2));
-                }
-            }
-            // If extraReward not part of pair - swap to SWAPR, collect fees,
-            // and swap SWAPR to token0/token1.
-            else {
-                if (swapRoutes[swapr].length > 1 && _extraReward > 0) {
-                    _swap(swaprRouter, swapRoutes[swapr], _extraReward);
-                }
-
-                _swapr = IERC20(swapr).balanceOf(address(this));
-                uint256 _keepReward = _swapr.mul(keepREWARD).div(keepREWARDMax);
-                IERC20(swapr).safeTransfer(IController(controller).treasury(), _keepReward);
-
-                _swapr = _swapr.sub(_keepReward);
-                uint256 toToken0 = _swapr.div(2);
-                uint256 toToken1 = _swapr.sub(toToken0);
-
-                if (swapRoutes[token0].length > 1) {
-                    _swap(swaprRouter, swapRoutes[token0], toToken0);
-                }
-                if (swapRoutes[token1].length > 1) {
-                    _swap(swaprRouter, swapRoutes[token1], toToken1);
-                }
-            }
-            // If there is no extraReward - collect fees and swap SWAPR to token0/token1.
-        } else {
-            _swapr = IERC20(swapr).balanceOf(address(this));
-            uint256 _keepReward = _swapr.mul(keepREWARD).div(keepREWARDMax);
-            IERC20(swapr).safeTransfer(IController(controller).treasury(), _keepReward);
-
-            _swapr = _swapr.sub(_keepReward);
-            uint256 toToken0 = _swapr.div(2);
-            uint256 toToken1 = _swapr.sub(toToken0);
-
-            if (swapRoutes[token0].length > 1) {
-                _swap(swaprRouter, swapRoutes[token0], toToken0);
-            }
-            if (swapRoutes[token1].length > 1) {
-                _swap(swaprRouter, swapRoutes[token1], toToken1);
-            }
+        if (swapRoutes[token0].length > 1) {
+            _swap(swaprRouter, swapRoutes[token0], _toToken0);
+        }
+        if (swapRoutes[token1].length > 1) {
+            _swap(swaprRouter, swapRoutes[token1], _toToken1);
         }
 
         // Adds in liquidity for token0/token1

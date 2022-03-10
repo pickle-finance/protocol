@@ -90,10 +90,7 @@ contract ControllerV4 {
     }
 
     function setJar(address _token, address _jar) public {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!strategist"
-        );
+        require(msg.sender == strategist || msg.sender == governance, "!strategist");
         require(jars[_token] == address(0), "jar");
         jars[_token] = _jar;
     }
@@ -125,14 +122,12 @@ contract ControllerV4 {
     }
 
     function setStrategy(address _token, address _strategy) public {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!strategist"
-        );
+        require(msg.sender == strategist || msg.sender == governance, "!strategist");
         require(approvedStrategies[_token][_strategy] == true, "!approved");
 
         address _current = strategies[_token];
-        if (_current != address(0)) {
+        address _balance = IERC20(_current).balanceOf(_token);
+        if (_current != address(0) && _balance > 0) {
             IStrategy(_current).withdrawAll();
         }
         strategies[_token] = _strategy;
@@ -157,28 +152,17 @@ contract ControllerV4 {
     }
 
     function withdrawAll(address _token) public {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!strategist"
-        );
+        require(msg.sender == strategist || msg.sender == governance, "!strategist");
         IStrategy(strategies[_token]).withdrawAll();
     }
 
     function inCaseTokensGetStuck(address _token, uint256 _amount) public {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!governance"
-        );
+        require(msg.sender == strategist || msg.sender == governance, "!governance");
         IERC20(_token).safeTransfer(msg.sender, _amount);
     }
 
-    function inCaseStrategyTokenGetStuck(address _strategy, address _token)
-        public
-    {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!governance"
-        );
+    function inCaseStrategyTokenGetStuck(address _strategy, address _token) public {
+        require(msg.sender == strategist || msg.sender == governance, "!governance");
         IStrategy(_strategy).withdraw(_token);
     }
 
@@ -189,13 +173,7 @@ contract ControllerV4 {
     ) public view returns (uint256 expected) {
         uint256 _balance = IERC20(_token).balanceOf(_strategy);
         address _want = IStrategy(_strategy).want();
-        (expected, ) = OneSplitAudit(onesplit).getExpectedReturn(
-            _token,
-            _want,
-            _balance,
-            parts,
-            0
-        );
+        (expected, ) = OneSplitAudit(onesplit).getExpectedReturn(_token, _want, _balance, parts, 0);
     }
 
     // Only allows to withdraw non-core strategy tokens ~ this is over and above normal yield
@@ -204,10 +182,7 @@ contract ControllerV4 {
         address _token,
         uint256 parts
     ) public {
-        require(
-            msg.sender == strategist || msg.sender == governance,
-            "!governance"
-        );
+        require(msg.sender == strategist || msg.sender == governance, "!governance");
         // This contract should never have value in it, but just incase since this is a public call
         uint256 _before = IERC20(_token).balanceOf(address(this));
         IStrategy(_strategy).withdraw(_token);
@@ -220,16 +195,8 @@ contract ControllerV4 {
             _before = IERC20(_want).balanceOf(address(this));
             IERC20(_token).safeApprove(onesplit, 0);
             IERC20(_token).safeApprove(onesplit, _amount);
-            (_expected, _distribution) = OneSplitAudit(onesplit)
-                .getExpectedReturn(_token, _want, _amount, parts, 0);
-            OneSplitAudit(onesplit).swap(
-                _token,
-                _want,
-                _amount,
-                _expected,
-                _distribution,
-                0
-            );
+            (_expected, _distribution) = OneSplitAudit(onesplit).getExpectedReturn(_token, _want, _amount, parts, 0);
+            OneSplitAudit(onesplit).swap(_token, _want, _amount, _expected, _distribution, 0);
             _after = IERC20(_want).balanceOf(address(this));
             if (_after > _before) {
                 _amount = _after.sub(_before);
@@ -266,29 +233,21 @@ contract ControllerV4 {
         address _toJarToken = IJar(_toJar).token();
 
         // Get pTokens from msg.sender
-        IERC20(_fromJar).safeTransferFrom(
-            msg.sender,
-            address(this),
-            _fromJarAmount
-        );
+        IERC20(_fromJar).safeTransferFrom(msg.sender, address(this), _fromJarAmount);
 
         // Calculate how much underlying
         // is the amount of pTokens worth
-        uint256 _fromJarUnderlyingAmount = _fromJarAmount
-            .mul(IJar(_fromJar).getRatio())
-            .div(10**uint256(IJar(_fromJar).decimals()));
+        uint256 _fromJarUnderlyingAmount = _fromJarAmount.mul(IJar(_fromJar).getRatio()).div(
+            10**uint256(IJar(_fromJar).decimals())
+        );
 
         // Call 'withdrawForSwap' on Jar's current strategy if Jar
         // doesn't have enough initial capital.
         // This has moves the funds from the strategy to the Jar's
         // 'earnable' amount. Enabling 'free' withdrawals
-        uint256 _fromJarAvailUnderlying = IERC20(_fromJarToken).balanceOf(
-            _fromJar
-        );
+        uint256 _fromJarAvailUnderlying = IERC20(_fromJarToken).balanceOf(_fromJar);
         if (_fromJarAvailUnderlying < _fromJarUnderlyingAmount) {
-            IStrategy(strategies[_fromJarToken]).withdrawForSwap(
-                _fromJarUnderlyingAmount.sub(_fromJarAvailUnderlying)
-            );
+            IStrategy(strategies[_fromJarToken]).withdrawForSwap(_fromJarUnderlyingAmount.sub(_fromJarAvailUnderlying));
         }
 
         // Withdraw from Jar
@@ -299,12 +258,8 @@ contract ControllerV4 {
         IJar(_fromJar).withdraw(_fromJarAmount);
 
         // Calculate fee
-        uint256 _fromUnderlyingBalance = IERC20(_fromJarToken).balanceOf(
-            address(this)
-        );
-        uint256 _convenienceFee = _fromUnderlyingBalance.mul(convenienceFee).div(
-            convenienceFeeMax
-        );
+        uint256 _fromUnderlyingBalance = IERC20(_fromJarToken).balanceOf(address(this));
+        uint256 _convenienceFee = _fromUnderlyingBalance.mul(convenienceFee).div(convenienceFeeMax);
 
         if (_convenienceFee > 1) {
             IERC20(_fromJarToken).safeTransfer(devfund, _convenienceFee.div(2));
@@ -333,37 +288,24 @@ contract ControllerV4 {
         return _toJarBal;
     }
 
-    function _execute(address _target, bytes memory _data)
-        internal
-        returns (bytes memory response)
-    {
+    function _execute(address _target, bytes memory _data) internal returns (bytes memory response) {
         require(_target != address(0), "!target");
 
         // call contract in current context
         assembly {
-            let succeeded := delegatecall(
-                sub(gas(), 5000),
-                _target,
-                add(_data, 0x20),
-                mload(_data),
-                0,
-                0
-            )
+            let succeeded := delegatecall(sub(gas(), 5000), _target, add(_data, 0x20), mload(_data), 0, 0)
             let size := returndatasize()
 
             response := mload(0x40)
-            mstore(
-                0x40,
-                add(response, and(add(add(size, 0x20), 0x1f), not(0x1f)))
-            )
+            mstore(0x40, add(response, and(add(add(size, 0x20), 0x1f), not(0x1f))))
             mstore(response, size)
             returndatacopy(add(response, 0x20), 0, size)
 
             switch iszero(succeeded)
-                case 1 {
-                    // throw if delegatecall failed
-                    revert(add(response, 0x20), size)
-                }
+            case 1 {
+                // throw if delegatecall failed
+                revert(add(response, 0x20), size)
+            }
         }
     }
 }

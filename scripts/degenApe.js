@@ -34,11 +34,19 @@ const outputFolder = "scripts/degenApe/degenApeOutputs";
 // by the script from the strategy address.
 // @param - componentAddresses: The underlying token addresses of the lp. These will be added
 const pfcoreArgs = {
+<<<<<<< HEAD
   chain: "optimism",
   protocols: ["zipswap"],
   extraTags: [],
   liquidityURL: "https://zipswap.fi/#/add/",
   rewardTokens: ["zip", "gohm"],
+=======
+  chain: "gnosis",
+  protocols: ["swapr"],
+  extraTags: [],
+  liquidityURL: "https://zipswap.fi/#/add/",
+  rewardTokens: ["swapr", "gno"],
+>>>>>>> 231245f (add swapr jar)
   jarCode: "1e",
   farmAddress: "",
   componentNames: [],
@@ -48,11 +56,16 @@ const pfcoreArgs = {
 // Addresses & Contracts
 const governance = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const strategist = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
+<<<<<<< HEAD
 const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";
+=======
+const controller = "0xe5E231De20C68AabB8D669f87971aE57E2AbF680";
+>>>>>>> 231245f (add swapr jar)
 const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const harvester = ["0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf"];
 
 const contracts = [
+<<<<<<< HEAD
   "src/strategies/optimism/zipswap/strategy-zip-$gohm-$weth-lp.sol:StrategyZipEthGohmLp"
 ];
 
@@ -64,6 +77,21 @@ const executeTx = async (calls, fn, ...args) => {
   try {
     transaction = await fn(...args);
 
+=======
+  "src/strategies/gnosis/swapr/strategy-swapr-weth-wbtc-lp.sol:StrategySwaprWethWbtcLp"
+];
+
+const testedStrategies = [
+  "0x6C1A93162cFa01C1071f3186d8b32B216800aa18"
+];
+
+const executeTx = async (calls, fn, ...args) => {
+  let transaction;
+  await sleep(sleepConfig);
+  try {
+    transaction = await fn(...args);
+
+>>>>>>> 231245f (add swapr jar)
     // If deployTransaction property is empty, call normal wait()
     if (transaction.deployTransaction) {
       await transaction.deployTransaction.wait();
@@ -236,9 +264,15 @@ ratio: ${ratio.toString()}
 };
 
 const main = async () => {
+<<<<<<< HEAD
   await deployContractsAndGeneratePfcore();
   // await fastVerifyContracts(testedStrategies);
   await slowVerifyContracts(testedStrategies);
+=======
+  // await deployContractsAndGeneratePfcore();
+  // await fastVerifyContracts(testedStrategies);
+  await slowVerifyContracts(testedStrategies, governance, strategist, controller, timelock);
+>>>>>>> 231245f (add swapr jar)
 };
 
 main()
