@@ -44,11 +44,10 @@ const harvester = ["0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf"];
 const contracts = [
   // "src/strategies/near/rose/strategy-$rose-$frax-lp.sol:StrategyRoseFraxLp",
   // "src/strategies/near/rose/strategy-$pad-$rose-lp.sol:StrategyPadRoseLp"
-  "src/strategies/near/rose/strategy-rose-frax-pool.sol:StrategyRoseFraxPool"
+  "src/strategies/near/rose/strategy-rose-rusd-lp.sol:StrategyRoseRusdPool"
 ];
 
 const testedStrategies = [
-  "0x87d7c426c4bF35A28D54ae34891E00Cdc8635dce"
 ];
 
 // Functions
@@ -369,6 +368,7 @@ const deployContractsAndGeneratePfcore = async () => {
       await executeTx(callAttempts, 'harvestTx2', txRefs['strategy'].harvestTwo);
       await executeTx(callAttempts, 'harvestTx3', txRefs['strategy'].harvestThree);
       await executeTx(callAttempts, 'harvestTx4', txRefs['strategy'].harvestFour);
+      await executeTx(callAttempts, 'harvestTx5', txRefs['strategy'].harvestFive);
 
       await sleep(sleepTime, sleepToggle);
       txRefs['ratio'] = await txRefs['jar'].getRatio();
@@ -433,7 +433,7 @@ ${allReports.join('\n')}
 };
 
 const main = async () => {
-  // await deployContractsAndGeneratePfcore();
+  await deployContractsAndGeneratePfcore();
   // await fastVerifyContracts(testedStrategies);
   await slowVerifyContracts(testedStrategies);
 };

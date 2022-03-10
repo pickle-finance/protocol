@@ -6,8 +6,8 @@ import "../../interfaces/rose-rewards.sol";
 
 abstract contract StrategyRoseFarmStableBase is StrategyBase {
     address public rewards;
+    address public padRouter = 0xBaE0d7DFcd03C90EBCe003C58332c1346A72836A;
     address public rose = 0xdcD6D4e2B3e1D1E1E6Fa8C21C8A323DcbecfF970;
-    address public usdt = 0x4988a896b1227218e4A686fdE5EabdcAbd91571f;
     address public usdc = 0xB12BFcA5A55806AaF64E99521918A4bf0fC40802;
 
     address public three_pool = 0xc90dB0d8713414d78523436dC347419164544A3f;
@@ -34,8 +34,8 @@ abstract contract StrategyRoseFarmStableBase is StrategyBase {
         rewards = _rewards;
 
         IERC20(usdc).approve(three_pool, uint256(-1));
-        IERC20(usdt).approve(three_pool, uint256(-1));
         IERC20(want).approve(rewards, uint256(-1));
+        IERC20(rose).approve(sushiRouter, uint256(-1));
     }
 
     function balanceOfPool() public view override returns (uint256) {
@@ -44,29 +44,6 @@ abstract contract StrategyRoseFarmStableBase is StrategyBase {
 
     function getHarvestable() external view returns (uint256) {
         return IRoseRewards(rewards).earned(address(this), rose);
-    }
-
-    function getMostPremium() public view returns (address, uint256) {
-        uint256[] memory balances = new uint256[](3);
-        balances[0] = ICurveFi_3(three_pool).balances(0); // DAI
-        balances[1] = ICurveFi_3(three_pool).balances(1); // USDC
-        balances[2] = ICurveFi_3(three_pool).balances(2); // USDT
-
-        // DAI
-        if (balances[0] < balances[1] && balances[0] < balances[2]) {
-            return (usdc, 1);
-        }
-        // USDC
-        if (balances[1] < balances[0] && balances[1] < balances[2]) {
-            return (usdc, 1);
-        }
-        // USDT
-        if (balances[2] < balances[0] && balances[2] < balances[1]) {
-            return (usdt, 2);
-        }
-
-        // If they're somehow equal, we just want DAI
-        return (usdc, 1);
     }
 
     // **** Setters ****
@@ -98,6 +75,7 @@ abstract contract StrategyRoseFarmStableBase is StrategyBase {
         harvestOne();
         harvestTwo();
         harvestThree();
+        harvestFour();
     }
 
     // **** State Mutations ****
@@ -118,27 +96,27 @@ abstract contract StrategyRoseFarmStableBase is StrategyBase {
     function harvestTwo() public virtual {
         uint256 _rose = IERC20(rose).balanceOf(address(this));
 
-        (address to, uint256 toIndex) = getMostPremium();
-
         if (_rose > 0) {
             // Use Dai because most premium token in pool
             address[] memory route = new address[](3);
             route[0] = rose;
             route[1] = near;
-            route[2] = to;
+            route[2] = usdc;
 
-            _swapSushiswapWithPath(route, _rose);
-
-            uint256 _to = IERC20(to).balanceOf(address(this));
-            if (_to > 0) {
-                uint256[3] memory liquidity;
-                liquidity[toIndex] = _to;
-                ICurveFi_3(three_pool).add_liquidity(liquidity, 0);
-            }
+            _swap(sushiRouter, route, _rose);
         }
     }
 
     function harvestThree() public virtual {
+        uint256 _usdc = IERC20(usdc).balanceOf(address(this));
+        if (_usdc > 0) {
+            uint256[3] memory liquidity;
+            liquidity[1] = _usdc;
+            ICurveFi_3(three_pool).add_liquidity(liquidity, 0);
+        }
+    }
+
+    function harvestFour() public virtual {
         // We want to get back Rose LP tokens
         _distributePerformanceFeesAndDeposit();
     }

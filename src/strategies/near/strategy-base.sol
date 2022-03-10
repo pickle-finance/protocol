@@ -285,6 +285,21 @@ abstract contract StrategyBase {
         );
     }
 
+    function _swap(
+        address router,
+        address[] memory path,
+        uint256 _amount
+    ) internal {
+        require(path[1] != address(0));
+        UniswapRouterV2(router).swapExactTokensForTokens(
+            _amount,
+            0,
+            path,
+            address(this),
+            now.add(60)
+        );
+    }
+
     function _distributePerformanceFeesAndDeposit() internal {
         uint256 _want = IERC20(want).balanceOf(address(this));
 
