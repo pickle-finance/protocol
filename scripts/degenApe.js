@@ -43,27 +43,37 @@ const contracts = [
 const testedStrategies = [
 ];
 
-const executeTx = async (sleepConfigs, calls, tx, fn, ...args) => {
+const executeTx = async (sleepConfigs, calls, fn, ...args) => {
   let transaction;
   await sleep(sleepConfigs);
   try {
-    if (!txRefs.tx) {
-      transaction = await fn(...args)
-      if (tx === 'strategy') {
-        await transaction.deployTransaction.wait();
-      }
-      else if (tx === 'jar') {
-        const jarTx = await transaction.deployTransaction.wait();
-        txRefs.'jarStartBlock' = jarTx.blockNumber;
-      } else {
-        await transaction.wait();
-      }
-    }
+    transaction = await fn(..args);
+    await transaction.wait();
   } catch (e) {
     console.error(e);
     if (calls > 0) {
       console.log(`Trying again. ${calls} more attempts left.`);
-      await executeTx(sleepConfigs, calls - 1, tx, fn, ...args);
+      await executeTx(sleepConfigs, calls - 1, fn, ...args);
+    } else {
+      console.log('Looks like something is broken!');
+      return;
+    }
+  }
+  await sleep(sleepConfigs);
+  return transaction;
+}
+
+const deployContract = async (sleepConfigs, calls, fn, ...args) => {
+  let transaction;
+  await sleep(sleepConfigs);
+  try {
+    transaction = await fn(..args);
+    await transaction.deployTransaction.wait();
+  } catch (e) {
+    console.error(e);
+    if (calls > 0) {
+      console.log(`Trying again. ${calls} more attempts left.`);
+      await executeTx(sleepConfigs, calls - 1, fn, ...args);
     } else {
       console.log('Looks like something is broken!');
       return;
@@ -78,80 +88,79 @@ const deployContractsAndGeneratePfcore = async () => {
   const allTxRefs = [];
   const allReports = [];
   for (const [jarIndex, contract] of contracts.entries()) {
-    let txRefs = {};
     const StrategyFactory = await ethers.getContractFactory(contract);
     const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
     const Controller = await ethers.getContractAt("src/controller-v4.sol:ControllerV4", controller);
-    txRefs['name'] = contract.substring(contract.lastIndexOf(":") + 1);
+    const name = contract.substring(contract.lastIndexOf(":") + 1);
 
     try {
       // Deploy Strategy contract
-      console.log(`Deploying ${txRefs['name']}...`);
-      txRefs['strategy'] = await executeTx(sleepConfigurations, callAttempts, 'strategy', StrategyFactory.deploy.bind(StrategyFactory), governance, strategist, controller, timelock);
-      console.log(`✔️ Strategy deployed at: ${txRefs['strategy'].address} `);
+      console.log(`Deploying ${name}...`);
+      const strategy = await deployContract(sleepConfigurations, callAttempts, StrategyFactory.deploy.bind(StrategyFactory), governance, strategist, controller, timelock);
+      console.log(`✔️ Strategy deployed at: ${strategy.address} `);
 
       // Get Want
       await sleep(sleepConfigurations);
-      txRefs['want'] = await txRefs['strategy'].want();
+      const want = await strategy.want();
 
       // Log Want
-      console.log(`Want address is: ${txRefs['want']} `);
+      console.log(`Want address is: ${want} `);
       await sleep(sleepConfigurations);
-      txRefs['wantContract'] = await ethers.getContractAt("ERC20", txRefs['want']);
+      const wantContract = await ethers.getContractAt("ERC20", want);
 
       // Check if Want already has a Jar on Controller
       await sleep(sleepConfigurations);
-      txRefs['jar'] = await Controller.jars(txRefs['want']);
+      const jar = await Controller.jars(want);
 
-      if (!txRefs['jar']) {
+      if (jar) {
         // Deploy PickleJar contract
-        txRefs['jar'] = await executeTx(sleepConfigurations, callAttempts, 'jar', PickleJarFactory.deploy.bind(PickleJarFactory), txRefs['want'], governance, timelock, controller);
-        console.log(`✔️ PickleJar deployed at: ${txRefs['jar'].address} `);
+        const jar = await executeTx(sleepConfigurations, callAttempts, PickleJarFactory.deploy.bind(PickleJarFactory), want, governance, timelock, controller);
+        console.log(`✔️ PickleJar deployed at: ${jar.address} `);
 
         // Set Jar
-        txRefs['setJarTx'] = await executeTx(sleepConfigurations, callAttempts, 'setJarTx', Controller.setJar, txRefs['want'], txRefs['jar'].address);
+        const setJarTx = await executeTx(sleepConfigurations, callAttempts, Controller.setJar, want, jar.address);
         console.log(`Jar Set!`);
 
         // Approve Want
         console.log(`Approving want token for deposit...`);
-        txRefs['approveTx'] = await executeTx(sleepConfigurations, callAttempts, 'approveTx', txRefs['wantContract'].approve, txRefs['jar'].address, ethers.constants.MaxUint256);
+        const approveTx = await executeTx(sleepConfigurations, callAttempts, wantContract.approve, jar.address, ethers.constants.MaxUint256);
         console.log(`✔️ Successfully approved Jar to spend want`);
       } else {
         console.log(`Jar for this want already exists`);
       }
 
       // Approve Strategy
-      txRefs['approveStratTx'] = await executeTx(sleepConfigurations, callAttempts, 'approveStratTx', Controller.approveStrategy, txRefs['want'], txRefs['strategy'].address);
+      const approveStratTx = await executeTx(sleepConfigurations, callAttempts, Controller.approveStrategy, want, strategy.address);
       console.log(`Strategy Approved!`);
 
       // Set Strategy
-      txRefs['setStratTx'] = await executeTx(sleepConfigurations, callAttempts, 'setStratTx', Controller.setStrategy, txRefs['want'], txRefs['strategy'].address);
+      const setStratTx = await executeTx(sleepConfigurations, callAttempts, Controller.setStrategy, want, strategy.address);
       console.log(`Strategy Set!`);
       console.log(`✔️ Controller params all set!`);
 
       // Deposit Want
       console.log(`Depositing in Jar...`);
-      txRefs['depositTx'] = await executeTx(sleepConfigurations, callAttempts, 'depositTx', txRefs['jar'].depositAll)
+      const depositTx = await executeTx(sleepConfigurations, callAttempts, jar.depositAll)
       console.log(`✔️ Successfully deposited want in Jar`);
 
       // Call Earn
       console.log(`Calling earn...`);
-      txRefs['earnTx'] = await executeTx(sleepConfigurations, callAttempts, 'earnTx', txRefs['jar'].earn);
+      const earnTx = await executeTx(sleepConfigurations, callAttempts, jar.earn);
       console.log(`✔️ Successfully called earn`);
 
       //Push Strategy to be verified
-      testedStrategies.push(txRefs['strategy'].address)
+      testedStrategies.push(strategy.address)
 
       // Call Harvest
       console.log(`Waiting for ${sleepConfigs.sleepTime * 4 / 1000} seconds before harvesting...`);
       await sleep(sleepConfigurations.sleepTime * 4);
-      txRefs['harvestTx'] = await executeTx(sleepConfigurations, callAttempts, 'harvestTx', txRefs['strategy'].harvest);
+      const harvestTx = await executeTx(sleepConfigurations, callAttempts, strategy.harvest);
 
       await sleep(sleepConfigurations);
-      txRefs['ratio'] = await txRefs['jar'].getRatio();
+      const ratio = await jar.getRatio();
 
-      if (txRefs['ratio'].gt(BigNumber.from(parseEther("1")))) {
-        console.log(`✔️ Harvest was successful, ending ratio of ${txRefs['ratio'].toString()} `);
+      if (ratio.gt(BigNumber.from(parseEther("1")))) {
+        console.log(`✔️ Harvest was successful, ending ratio of ${ratio.toString()} `);
 
         //Pf-core Generation
         if (generatePfcore) {
@@ -167,26 +176,26 @@ const deployContractsAndGeneratePfcore = async () => {
           await outputFolderSetup();
           await incrementJar(pfcoreArgs.jarCode, jarIndex);
           await generateJarBehaviorDiscovery(pfcoreArgs);
-          await generateJarsAndFarms(pfcoreArgs, txRefs['jar'].address, txRefs['jarStartBlock'], txRefs['want'], controller);
+          await generateJarsAndFarms(pfcoreArgs, jar.address, jar.blockNumber, want, controller);
           await generateImplementations(pfcoreArgs);
         }
       } else {
-        console.log(`❌ Harvest failed, ending ratio of ${txRefs['ratio'].toString()} `);
+        console.log(`❌ Harvest failed, ending ratio of ${ratio.toString()} `);
       }
 
       console.log(`Whitelisting harvester at ${harvester} `);
-      txRefs['whitelistHarvestsTx'] = await executeTx(sleepConfigurations, callAttempts, 'whitelistHarvestersTx', txRefs['strategy'].whitelistHarvesters, harvester);
+      const whitelistHarvestersTx = await executeTx(sleepConfigurations, callAttempts, strategy.whitelistHarvesters, harvester);
 
       // Script Report
       const report =
         `
 Jar Info -
-name: ${txRefs['name']}
-want: ${txRefs['want']}
-picklejar: ${txRefs['jar'].address}
-strategy: ${txRefs['strategy'].address}
+name: ${name}
+want: ${want}
+picklejar: ${jar.address}
+strategy: ${strategy.address}
 controller: ${controller}
-ratio: ${txRefs['ratio'].toString()}
+ratio: ${ratio.toString()}
 `;
       console.log(report)
       allReports.push(report);
@@ -195,8 +204,6 @@ ratio: ${txRefs['ratio'].toString()}
       console.log(`Oops something went wrong...`);
       console.error(e);
     }
-    allTxRefs.push(txRefs);
-    txRefs = {};
   }
   console.log(
     `
