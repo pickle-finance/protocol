@@ -27,7 +27,6 @@ contract StrategyZipEthgOHMLp is StrategyZipFarmDualBase {
             _timelock
         )
     {
-        swapRoutes[zip] = [extraReward, weth, zip];
         swapRoutes[weth] = [zip, weth];
         swapRoutes[gohm] = [zip, weth, gohm];
     }
