@@ -101,9 +101,9 @@ const deployContractsAndGeneratePfcore = async () => {
 
       // Check if Want already has a Jar on Controller
       await sleep(sleepConfigs);
-      const jarCheck = await Controller.jars(txRefs['want']);
+      txRefs['jar'] = await Controller.jars(txRefs['want']);
 
-      if (!jarCheck) {
+      if (!txRefs['jar']) {
         // Deploy PickleJar contract
         await executeTx(callAttempts, 'jar', PickleJarFactory.deploy.bind(PickleJarFactory), txRefs['want'], governance, timelock, controller);
         console.log(`✔️ PickleJar deployed at: ${txRefs['jar'].address} `);
