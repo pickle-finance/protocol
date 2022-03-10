@@ -1,4 +1,6 @@
-const outputFolderSetup = async () => {
+const fs = require("fs");
+
+const outputFolderSetup = async (outputFolder, pfcoreArgs) => {
   try {
     if (!fs.existsSync(outputFolder)) {
       fs.mkdirSync(outputFolder)
@@ -43,7 +45,7 @@ const incrementJar = async (jarCode, index) => {
   }
 };
 
-const generateJarBehaviorDiscovery = async (args) => {
+const generateJarBehaviorDiscovery = async (args, outputFolder) => {
   const modelImport = `${args.protocols.map(x => x.toUpperCase()).join('_')}_${args.componentNames.map(x => x.toUpperCase()).join('_')};
   `
   const implImport = `import { ${args.protocols.map(x => x.slice(0, 1).toUpperCase().concat(x.slice(1))).join('').concat(args.componentNames.map(x => x.slice(0, 1).toUpperCase().concat(x.slice(1))).join(''))} } from './impl/${args.chain}-${args.protocols.join('-')}-${args.componentNames.join('-')}';

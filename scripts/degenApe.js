@@ -16,10 +16,10 @@ const { sleep, fastVerifyContracts, slowVerifyContracts } = require("./degenUtil
 // Script configs
 const sleepConfig = { sleepToggle: true, sleepTime: 10000 };
 const callAttempts = 3;
-const generatePfcore = false;
+const generatePfcore = true;
 
 // Pf-core generation configs
-const outputFolder = "scripts/degenApe/degenApeOutputs";
+const outputFolder = "scripts/degenApeOutputs";
 
 // These arguments need to be set manually before the script can make pf-core
 // @param - chain: The chain on which the script is running
@@ -66,6 +66,7 @@ const harvester = ["0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf"];
 
 const contracts = [
 <<<<<<< HEAD
+<<<<<<< HEAD
   "src/strategies/optimism/zipswap/strategy-zip-$gohm-$weth-lp.sol:StrategyZipEthGohmLp"
 ];
 
@@ -79,10 +80,13 @@ const executeTx = async (calls, fn, ...args) => {
 
 =======
   "src/strategies/gnosis/swapr/strategy-swapr-weth-wbtc-lp.sol:StrategySwaprWethWbtcLp"
+=======
+  "src/strategies/gnosis/swapr/strategy-swapr-$cow-$weth-lp.sol:StrategySwaprCowWethLp"
+>>>>>>> f9a9216 (swapr multi-rewards WIP)
 ];
 
 const testedStrategies = [
-  "0x6C1A93162cFa01C1071f3186d8b32B216800aa18"
+
 ];
 
 const executeTx = async (calls, fn, ...args) => {
@@ -208,24 +212,6 @@ const deployContractsAndGeneratePfcore = async () => {
 
       if (ratio.gt(BigNumber.from(parseEther("1")))) {
         console.log(`✔️ Harvest was successful, ending ratio of ${ratio.toString()} `);
-
-        //Pf-core Generation
-        if (generatePfcore) {
-          // Regex targets all items that start with $ and end with -
-          const regex = /(?<=\$).*?(?=-)/g;
-          pfcoreArgs.componentNames = contract.match(regex);
-
-          // pfcoreArgs.componentNames.forEach((x, i) => {
-          //   const token = await txRefs['want'].getToken(i);
-          //   pfcoreArgs.componentAddresses.push(token);
-          // });
-
-          await outputFolderSetup();
-          await incrementJar(pfcoreArgs.jarCode, jarIndex);
-          await generateJarBehaviorDiscovery(pfcoreArgs);
-          await generateJarsAndFarms(pfcoreArgs, jar.address, jar.blockNumber, want, controller);
-          await generateImplementations(pfcoreArgs);
-        }
       } else {
         console.log(`❌ Harvest failed, ending ratio of ${ratio.toString()} `);
       }
@@ -245,6 +231,24 @@ ratio: ${ratio.toString()}
 `;
       console.log(report);
       allReports.push(report);
+
+      //Pf-core Generation
+      if (generatePfcore) {
+        // Regex targets all items that start with $ and end with -
+        const regex = /(?<=\$).*?(?=-)/g;
+        pfcoreArgs.componentNames = contract.match(regex);
+
+        // pfcoreArgs.componentNames.forEach((x, i) => {
+        //   const token = await txRefs['want'].getToken(i);
+        //   pfcoreArgs.componentAddresses.push(token);
+        // });
+
+        await outputFolderSetup(outputFolder, pfcoreArgs);
+        await incrementJar(pfcoreArgs.jarCode, jarIndex);
+        await generateJarBehaviorDiscovery(pfcoreArgs, outputFolder);
+        await generateJarsAndFarms(pfcoreArgs, jar.address, jar.blockNumber, want, controller);
+        await generateImplementations(pfcoreArgs);
+      }
     } catch (e) {
       console.log(`Oops something went wrong...`);
       console.error(e);
@@ -265,11 +269,15 @@ ratio: ${ratio.toString()}
 
 const main = async () => {
 <<<<<<< HEAD
+<<<<<<< HEAD
   await deployContractsAndGeneratePfcore();
   // await fastVerifyContracts(testedStrategies);
   await slowVerifyContracts(testedStrategies);
 =======
   // await deployContractsAndGeneratePfcore();
+=======
+  await deployContractsAndGeneratePfcore();
+>>>>>>> f9a9216 (swapr multi-rewards WIP)
   // await fastVerifyContracts(testedStrategies);
   await slowVerifyContracts(testedStrategies, governance, strategist, controller, timelock);
 >>>>>>> 231245f (add swapr jar)

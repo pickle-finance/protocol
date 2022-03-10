@@ -3,12 +3,12 @@ pragma solidity ^0.6.7;
 
 import "../strategy-swapr-base.sol";
 
-contract StrategySwaprWethWbtcLp is StrategySwaprFarmBase {
+contract StrategySwaprCowGnoLp is StrategySwaprFarmBase {
     // Token addresses
-    address public swapr_weth_wbtc_lp = 0xf6Be7AD58F4BAA454666b0027839a01BcD721Ac3;
-    address public wbtc = 0x8e5bBbb09Ed1ebdE8674Cda39A0c169401db4252;
-    address public rewarderContract = 0x60eC5c7Ddfe17203c706D7082224f67d0e005fcC;
-    uint256 public rewards = 2;
+    address public swapr_cow_gno_lp = 0x8028457E452D7221dB69B1e0563AA600A059fab1;
+    address public rewarderContract = 0xDa72E71f84DC15c80941D70494D6BD8a623DCBB4;
+    uint256 public rewards = 3;
+    address public cow = 0x177127622c4A00F3d409B75571e12cB3c8973d3c;
 
     constructor(
         address _governance,
@@ -20,7 +20,7 @@ contract StrategySwaprWethWbtcLp is StrategySwaprFarmBase {
         StrategySwaprFarmBase(
             rewarderContract,
             rewards,
-            swapr_weth_wbtc_lp,
+            swapr_cow_gno_lp,
             _governance,
             _strategist,
             _controller,
@@ -28,13 +28,12 @@ contract StrategySwaprWethWbtcLp is StrategySwaprFarmBase {
         )
     {
         swapRoutes[gno] = [swapr, xdai, gno];
-        swapRoutes[weth] = [gno, weth];
-        swapRoutes[wbtc] = [gno, weth, wbtc];
+        swapRoutes[cow] = [gno, weth, cow];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategySwaprWethWbtcLp";
+        return "StrategySwaprCowGnoLp";
     }
 }

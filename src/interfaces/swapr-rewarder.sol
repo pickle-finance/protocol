@@ -13,4 +13,6 @@ interface ISwaprRewarder {
     function claimAll(address) external;
 
     function stakedTokensOf(address) external view returns (uint256);
+
+    function getRewardTokens() external view returns (address[] memory);
 }
