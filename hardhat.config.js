@@ -79,7 +79,10 @@ module.exports = {
     runOnCompile: false,
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_APIKEY,
+    apiKey: {
+      mainnet: `${process.env.ETHERSCAN_APIKEY}`,
+      aurora: `${process.env.AURORASCAN_APIKEY}`
+    },
   },
   paths: {
     sources: "./src",

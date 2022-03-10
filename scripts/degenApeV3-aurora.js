@@ -12,6 +12,7 @@ const sleepTime = 10000;
 const recallTime = 60000
 const callAttempts = 3;
 const generatePfcore = true;
+const harvesterAddress = "";
 
 // Pf-core generation configs
 const outputFolder = 'scripts/degenApeV3Outputs';
@@ -42,11 +43,12 @@ const controller = "0xdc954e7399e9ADA2661cdddb8D4C19c19E070A8E";
 const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 
 const contracts = [
+  "src/strategies/near/trisolaris/strategy-tri-stnear-xtri-lp.sol:StrategyTriStnearXtriLp",
   "src/strategies/near/trisolaris/strategy-tri-stnear-near-lp.sol:StrategyTriStnearNearLp"
 ];
 
 const testedStrategies = [
-  "0x1D8a3c2EFd96050D16B303F1D533F848b29dEfb3"
+  "0x56596D372bCACDFa257FaBE165f6353D471E3122",
 ];
 
 // Functions
@@ -239,7 +241,7 @@ const generateJarsAndFarms = async (args, jarAddress, jarStartBlock, wantAddress
   const depositTokenComponents = `${args.componentNames.join('", "')}`
   const chainNetwork = `${args.chain.slice(0, 1).toUpperCase().concat(args.chain.slice(1))}`;
   const assetProtocol = `${args.protocols[0].toUpperCase()}`
-  const detailsApiKey = `${args.protocols.map(x => x.slice(0, 1).toUpperCase().concat(x.slice(1))).join('')}LP-${args.componentNames.map(x => x.toUpperCase()).join('-')}`;
+  const apiKey = `${args.protocols.map(x => x.toUpperCase()).join('')}LP-${args.componentNames.map(x => x.toUpperCase()).join('-')}`;
 
   const output = `
 export const JAR_${jarName}: JarDefinition = {
@@ -258,7 +260,7 @@ export const JAR_${jarName}: JarDefinition = {
         chain: ChainNetwork.${chainNetwork},
         protocol: AssetProtocol.${assetProtocol},
         details: {
-          apiKey: "${detailsApiKey}",
+          apiKey: "${apiKey}",
           harvestStyle: HarvestStyle.CUSTOM,
           controller: "${controller}"
         },
@@ -368,6 +370,9 @@ const deployContractsAndGeneratePfcore = async () => {
       await executeTx(callAttempts, 'earnTx', txRefs['jar'].earn);
       console.log(`✔️ Successfully called earn`);
 
+      //Add Strategy and PickleJar to be verified
+      testedStrategies.push(txRefs['strategy'].address)
+
       // Call Harvest
       console.log(`Waiting for ${sleepTime * 4 / 1000} seconds before harvesting...`);
       await sleep(sleepTime * 4);
@@ -381,10 +386,12 @@ const deployContractsAndGeneratePfcore = async () => {
 
       if (txRefs['ratio'].gt(BigNumber.from(parseEther("1")))) {
         console.log(`✔️ Harvest was successful, ending ratio of ${txRefs['ratio'].toString()} `);
-        testedStrategies.push(txRefs['strategy'].address)
       } else {
         console.log(`❌ Harvest failed, ending ratio of ${txRefs['ratio'].toString()} `);
       }
+
+      // await executeTx(callAttempts, 'whitelistHarvesters', txRefs['strategy'].whitelistHarvesters, );
+
       // Script Report
       const report =
         `
