@@ -35,6 +35,8 @@ contract StrategyTriStnearNearLp is StrategyTriDualFarmBaseV2 {
         swapRoutes[stnear] = [tri, near, stnear];
         swapRoutes[near] = [stnear, near];
         IERC20(meta).approve(wannaRouter, uint256(-1));
+        IERC20(stnear).approve(sushiRouter, uint256(-1));
+        IERC20(tri).approve(sushiRouter, uint56(-1));
     }
 
     // **** Views ****
@@ -60,7 +62,7 @@ contract StrategyTriStnearNearLp is StrategyTriDualFarmBaseV2 {
                 now.add(60)
             );
 
-            uint256 _swapAllTri = IERC20(stnear).balanceOf(address(this));
+            uint256 _swapAllTri = IERC20(tri).balanceOf(address(this));
 
             _swapSushiswapWithPath(swapRoutes[stnear], _swapAllTri);
 
