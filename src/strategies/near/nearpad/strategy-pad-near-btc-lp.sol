@@ -17,8 +17,6 @@ contract StrategyPadNearBtcLp is StrategyNearPadFarmBase {
     )
         public
         StrategyNearPadFarmBase(
-            near,
-            btc,
             near_btc_poolid,
             near_btc_lp,
             _governance,

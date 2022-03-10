@@ -17,8 +17,6 @@ contract StrategyPadPadAuroraLp is StrategyNearPadFarmBase {
     )
         public
         StrategyNearPadFarmBase(
-            pad,
-            aurora,
             pad_aurora_poolid,
             pad_aurora_lp,
             _governance,

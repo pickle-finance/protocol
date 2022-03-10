@@ -9,10 +9,8 @@ const fs = require("fs");
 // Script configs
 const sleepToggle = true;
 const sleepTime = 10000;
-const recallTime = 60000
 const callAttempts = 3;
 const generatePfcore = true;
-const harvesterAddress = "";
 
 // Pf-core generation configs
 const outputFolder = 'scripts/degenApeV3Outputs';
@@ -29,7 +27,7 @@ const outputFolder = 'scripts/degenApeV3Outputs';
 // @param - componentNames: The underlying tokens names of the lp. These will be added
 // by the script from the strategy address.
 // @param - componentAddresses: The underlying token addresses of the lp. These will be added
-const pfcoreArgs = { chain: "aurora", protocols: ["tri"], extraTags: [], liquidityURL: "https://www.trisolaris.io/#/add/", rewardTokens: ["tri"], jarCode: "1o", farmAddress: "", componentNames: [], componentAddresses: [] };
+const pfcoreArgs = { chain: "aurora", protocols: ["nearpad"], extraTags: [], liquidityURL: "https://pad.fi/dex/add/", rewardTokens: ["pad"], jarCode: "3h", farmAddress: "", componentNames: [], componentAddresses: [] };
 
 // References
 let txRefs = {};
@@ -41,14 +39,19 @@ const governance = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const strategist = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const controller = "0xdc954e7399e9ADA2661cdddb8D4C19c19E070A8E";
 const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
+const harvester = ["0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf"];
 
 const contracts = [
-  "src/strategies/near/trisolaris/strategy-tri-stnear-xtri-lp.sol:StrategyTriStnearXtriLp",
-  "src/strategies/near/trisolaris/strategy-tri-stnear-near-lp.sol:StrategyTriStnearNearLp"
+  "src/strategies/near/nearpad/strategy-pad-$dai-$pad-lp.sol:StrategyPadDaiPadLp",
+  "src/strategies/near/nearpad/strategy-pad-$pad-$aurora-lp.sol:StrategyPadPadAuroraLp",
+  "src/strategies/near/nearpad/strategy-pad-$pad-$rose-lp.sol:StrategyPadPadRoseLp",
+  "src/strategies/near/nearpad/strategy-pad-$near-$eth-lp.sol:StrategyPadNearEthLp",
+  "src/strategies/near/nearpad/strategy-pad-$near-$frax-lp.sol:StrategyPadNearFraxLp",
+  "src/strategies/near/nearpad/strategy-pad-$pad-$tri-lp.sol:StrategyPadPadTriLp"
 ];
 
 const testedStrategies = [
-  "0x56596D372bCACDFa257FaBE165f6353D471E3122",
+  "0x7BC037F25f073EfE17918643E1c5E28458093555",
 ];
 
 // Functions
@@ -58,12 +61,6 @@ const sleep = async (ms, active = true) => {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 };
-
-// const recall = async (fn, ...args) => {
-//   const delay = async () => new Promise(resolve => setTimeout(resolve, recallTime));
-//   await delay();
-//   await fn(...args);
-// }
 
 // Use this for verification of 5 contracts or less
 const fastVerifyContracts = async (strategies) => {
@@ -160,16 +157,12 @@ const incrementJar = async (jarCode, index) => {
     let charCode = letter.charCodeAt(0);
     return String.fromCharCode((charCode - 96) % 26 + 97)
   };
-  const increment = (code, letter) => {
-    code.split('').slice(0, code.length - 1).concat(nextLetter(letter)).join('');
-  }
   const lastLetter = jarCode.split('').pop();
-
   if (lastLetter === 'z') {
-    pfcoreArgs.jarCode = increment(jarCode, lastLetter);
+    pfcoreArgs.jarCode = jarCode.split('').slice(0, jarCode.length - 1).concat(nextLetter(lastLetter)).join('');
     pfcoreArgs.jarCode += "a";
   } else if (index != 0) {
-    pfcoreArgs.jarCode = increment(jarCode, lastLetter);
+    pfcoreArgs.jarCode = jarCode.split('').slice(0, jarCode.length - 1).concat(nextLetter(lastLetter)).join('')
   }
 };
 
@@ -370,7 +363,7 @@ const deployContractsAndGeneratePfcore = async () => {
       await executeTx(callAttempts, 'earnTx', txRefs['jar'].earn);
       console.log(`✔️ Successfully called earn`);
 
-      //Add Strategy and PickleJar to be verified
+      //Push Strategy to be verified
       testedStrategies.push(txRefs['strategy'].address)
 
       // Call Harvest
@@ -380,6 +373,7 @@ const deployContractsAndGeneratePfcore = async () => {
       await executeTx(callAttempts, 'harvestTx2', txRefs['strategy'].harvestTwo);
       await executeTx(callAttempts, 'harvestTx3', txRefs['strategy'].harvestThree);
       await executeTx(callAttempts, 'harvestTx4', txRefs['strategy'].harvestFour);
+      await executeTx(callAttempts, 'harvestTx5', txRefs['strategy'].harvestFive);
 
       await sleep(sleepTime, sleepToggle);
       txRefs['ratio'] = await txRefs['jar'].getRatio();
@@ -390,7 +384,8 @@ const deployContractsAndGeneratePfcore = async () => {
         console.log(`❌ Harvest failed, ending ratio of ${txRefs['ratio'].toString()} `);
       }
 
-      // await executeTx(callAttempts, 'whitelistHarvesters', txRefs['strategy'].whitelistHarvesters, );
+      console.log(`Whitelisting harvester at ${harvester}`);
+      await executeTx(callAttempts, 'whitelistHarvestersTx', txRefs['strategy'].whitelistHarvesters, harvester);
 
       // Script Report
       const report =
@@ -443,9 +438,9 @@ ${allReports.join('\n')}
 };
 
 const main = async () => {
-  // await deployContractsAndGeneratePfcore();
-  await fastVerifyContracts(testedStrategies);
-  // await slowVerifyContracts(testedStrategies);
+  await deployContractsAndGeneratePfcore();
+  // await fastVerifyContracts(testedStrategies);
+  await slowVerifyContracts(testedStrategies);
 };
 
 main()

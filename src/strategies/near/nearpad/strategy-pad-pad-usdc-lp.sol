@@ -17,8 +17,6 @@ contract StrategyPadPadUsdcLp is StrategyNearPadFarmBase {
     )
         public
         StrategyNearPadFarmBase(
-            pad,
-            usdc,
             pad_usdc_poolid,
             pad_usdc_lp,
             _governance,

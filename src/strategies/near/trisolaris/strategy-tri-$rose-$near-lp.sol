@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-nearpad-base.sol";
+import "../strategy-tri-base-dual-v2.sol";
 
-contract StrategyPadPadRoseLp is StrategyNearPadFarmBase {
-    uint256 public pad_rose_poolid = 17;
+contract StrategyTriRoseNearLp is StrategyTriDualFarmBaseV2 {
+    // Token/usdo pool id in MasterChef contract
+    uint256 public tri_rose_near_poolid = 20;
     // Token addresses
-    address public pad_rose_lp = 0xC6C3cc84EabD4643C382C988fA2830657fc70a6B;
+    address public tri_rose_near_lp =
+        0xbe753E99D0dBd12FB39edF9b884eBF3B1B09f26C;
     address public rose = 0xdcD6D4e2B3e1D1E1E6Fa8C21C8A323DcbecfF970;
 
     constructor(
@@ -16,23 +18,24 @@ contract StrategyPadPadRoseLp is StrategyNearPadFarmBase {
         address _timelock
     )
         public
-        StrategyNearPadFarmBase(
-            pad,
+        StrategyTriDualFarmBaseV2(
             rose,
-            pad_rose_poolid,
-            pad_rose_lp,
+            tri_rose_near_poolid,
+            tri_rose_near_lp,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {
-        swapRoutes[rose] = [pad, rose];
+        extraReward = rose;
+        swapRoutes[rose] = [tri, near, rose];
+        swapRoutes[near] = [rose, near];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyPadPadRoseLp";
+        return "StrategyTriRoseNearLp";
     }
 }

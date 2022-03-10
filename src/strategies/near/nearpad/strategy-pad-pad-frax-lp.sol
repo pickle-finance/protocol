@@ -17,8 +17,6 @@ contract StrategyPadPadFraxLp is StrategyNearPadFarmBase {
     )
         public
         StrategyNearPadFarmBase(
-            pad,
-            frax,
             pad_frax_poolid,
             pad_frax_lp,
             _governance,

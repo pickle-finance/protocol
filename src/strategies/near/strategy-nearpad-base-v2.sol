@@ -8,6 +8,7 @@ import "../../interfaces/IRewarder.sol";
 abstract contract StrategyNearPadFarmBase is StrategyBase {
     // Token addresses
     address public constant pad = 0x885f8CF6E45bdd3fdcDc644efdcd0AC93880c781;
+    address public extraReward;
     address public constant miniChef =
         0x2aeF68F92cfBAFA4b542F60044c7596e65612D20;
     address public constant padRouter =
