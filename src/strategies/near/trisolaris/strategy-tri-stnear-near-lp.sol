@@ -31,8 +31,10 @@ contract StrategyTriStnearNearLp is StrategyTriDualFarmBaseV2 {
             _timelock
         )
     {
+        extraReward = meta;
         swapRoutes[stnear] = [tri, near, stnear];
-        swapRoutes[near] = [tri, near];
+        swapRoutes[near] = [stnear, near];
+        IERC20(meta).approve(wannaRouter, uint256(-1));
     }
 
     // **** Views ****
@@ -44,45 +46,36 @@ contract StrategyTriStnearNearLp is StrategyTriDualFarmBaseV2 {
     function harvestTwo() public override onlyBenevolent {
         uint256 _extraReward = IERC20(extraReward).balanceOf(address(this));
         uint256 _tri = IERC20(tri).balanceOf(address(this));
-        address[] memory path = [meta, stnear];
+        uint256 _meta = IERC20(meta).balanceOf(address(this));
 
-        if (swapRoutes[tri].length > 1 && _extraReward > 0) {
-            address[] memory path = [meta, stnear];
+        if (_tri > 0 && _meta > 0) {
+            address[] memory path = new address[](2);
+            path[0] = meta;
+            path[1] = stnear;
             UniswapRouterV2(wannaRouter).swapExactTokensForTokens(
-                _extraReward,
+                _meta,
                 0,
                 path,
                 address(this),
                 now.add(60)
             );
 
-            uint256 _amount = IERC20(stnear).balanceOf(address(this));
+            uint256 _swapAllTri = IERC20(stnear).balanceOf(address(this));
 
-            address[] memory path2 = [stnear, near, tri];
-            UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-                _amount,
-                0,
-                path2,
-                address(this),
-                now.add(60)
-            );
+            _swapSushiswapWithPath(swapRoutes[stnear], _swapAllTri);
 
-            _tri = IERC20(tri).balanceOf(address(this));
+            uint256 _stnear = IERC20(stnear).balanceOf(address(this));
             uint256 _keepReward = _tri.mul(keepREWARD).div(keepREWARDMax);
-            IERC20(tri).safeTransfer(
+            IERC20(stnear).safeTransfer(
                 IController(controller).treasury(),
                 _keepReward
             );
 
-            _tri = _tri.sub(_keepReward);
-            uint256 toToken0 = _tri.div(2);
-            uint256 toToken1 = _tri.sub(toToken0);
+            _stnear = _stnear.sub(_keepReward);
+            uint256 _stnearToSwap = _stnear.div(2);
 
-            if (swapRoutes[token0].length > 1) {
-                _swapSushiswapWithPath(swapRoutes[token0], toToken0);
-            }
-            if (swapRoutes[token1].length > 1) {
-                _swapSushiswapWithPath(swapRoutes[token1], toToken1);
+            if (swapRoutes[near].length > 1 && _stnear > 0) {
+                _swapSushiswapWithPath(swapRoutes[near], _stnearToSwap);
             }
         }
     }

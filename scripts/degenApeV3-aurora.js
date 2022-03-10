@@ -42,7 +42,7 @@ const controller = "0xdc954e7399e9ADA2661cdddb8D4C19c19E070A8E";
 const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 
 const contracts = [
-  "src/strategies/near/trisolaris/strategy-tri-usdo-usdt-lp.sol:StrategyTriUsdoUsdtLp"
+  "src/strategies/near/trisolaris/strategy-tri-stnear-near-lp.sol:StrategyTriStnearNearLp"
 ];
 
 const testedStrategies = [
