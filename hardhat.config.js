@@ -70,7 +70,11 @@ module.exports = {
     fantom: {
       url: `https://rpc.ftm.tools/`,
       accounts: [`0x${process.env.MNEMONIC}`],
+<<<<<<< HEAD
       // gas: 40000000
+=======
+      gas: 4000000
+>>>>>>> 6662f89 (sushi and curve done. degenApe script improvements WIP)
     },
     aurora: {
       url: `https://mainnet.aurora.dev/`,
@@ -80,10 +84,13 @@ module.exports = {
       url: `https://rpc.xdaichain.com/`,
       accounts: [`0x${process.env.MNEMONIC}`],
       gasPrice: 10000000000,
+<<<<<<< HEAD
     },
     optimism: {
       url: `https://mainnet.optimism.io`,
       accounts: [`0x${process.env.MNEMONIC}`],
+=======
+>>>>>>> 6662f89 (sushi and curve done. degenApe script improvements WIP)
     }
   },
   contractSizer: {
