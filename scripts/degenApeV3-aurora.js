@@ -27,7 +27,7 @@ const outputFolder = 'scripts/degenApeV3Outputs';
 // @param - componentNames: The underlying tokens names of the lp. These will be added
 // by the script from the strategy address.
 // @param - componentAddresses: The underlying token addresses of the lp. These will be added
-const pfcoreArgs = { chain: "aurora", protocols: ["wannaswap"], extraTags: [], liquidityURL: "https://wannaswap.finance/exchange/add/", rewardTokens: ["wanna"], jarCode: "2o", farmAddress: "", componentNames: [], componentAddresses: [] };
+const pfcoreArgs = { chain: "aurora", protocols: ["trisolaris"], extraTags: [], liquidityURL: "https://www.trisolaris.io/#/pool", rewardTokens: ["tri"], jarCode: "1ab", farmAddress: "", componentNames: [], componentAddresses: [] };
 
 // References
 let txRefs = {};
@@ -42,11 +42,13 @@ const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const harvester = ["0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf"];
 
 const contracts = [
-  "src/strategies/near/wannaswap/strategy-wanna-$wannax-$stnear-lp.sol:StrategyWannaWannaxStnearLp"
+  // "src/strategies/near/trisolaris/strategoy-tri-$aurora-$near-lp.sol:StrategyTriAuroraNearLp",
+  "src/strategies/near/trisolaris/strategy-tri-near-usdc-lp.sol:StrategyTriNearUsdcLp",
+  // "src/strategies/near/trisolaris/strategy-tri-$near-$usdt-lp.sol:StrategyTriNearUsdtLp"
 ];
 
 const testedStrategies = [
-
+  "0xE197b88C0C94F6396a66f964dbd6F87F11EF95D4"
 ];
 
 // Functions
@@ -230,7 +232,7 @@ const generateJarsAndFarms = async (args, jarAddress, jarStartBlock, wantAddress
   const chainNetwork = `${args.chain.slice(0, 1).toUpperCase().concat(args.chain.slice(1))}`;
   const assetProtocol = `${args.protocols[0].toUpperCase()}`
   const apiKey = `${args.protocols.map(x => x.toUpperCase()).join('')}LP-${args.componentNames.map(x => x.toUpperCase()).join('-')}`;
-  const farm = args.farmAddress ? `"${args.farmAddress}"` : NULL_ADDRESS;
+  const farm = args.farmAddress ? `"${args.farmAddress}"` : "NULL_ADDRESS";
 
   const output = `
 export const JAR_${jarName}_LP: JarDefinition = {
@@ -250,7 +252,7 @@ export const JAR_${jarName}_LP: JarDefinition = {
         protocol: AssetProtocol.${assetProtocol},
         details: {
           apiKey: "${apiKey}",
-          harvestStyle: HarvestStyle.CUSTOM,
+          harvestStyle: HarvestStyle.PASSIVE,
           controller: "${controller}"
         },
         farm: {
@@ -259,7 +261,7 @@ export const JAR_${jarName}_LP: JarDefinition = {
           farmDepositTokenName: "p${jarKey}",
         },
     };
-    JAR_DEFINITIONS.push(JAR_${jarName});
+    JAR_DEFINITIONS.push(JAR_${jarName}_LP);
     `
   const filePath = `${outputFolder}/jarsAndFarms.ts`
 

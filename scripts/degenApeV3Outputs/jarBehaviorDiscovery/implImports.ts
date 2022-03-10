@@ -18,4 +18,6 @@ import { TriRoseNear } from './impl/aurora-tri-rose-near';
   import { NearpadPadTri } from './impl/aurora-nearpad-pad-tri';
   import { WannaswapWannaxStnear } from './impl/aurora-wannaswap-wannax-stnear';
   import { WannaswapWannaxStnear } from './impl/aurora-wannaswap-wannax-stnear';
+  import { TrisolarisAuroraNear } from './impl/aurora-trisolaris-aurora-near';
+  import { TrisolarisNearUsdt } from './impl/aurora-trisolaris-near-usdt';
   

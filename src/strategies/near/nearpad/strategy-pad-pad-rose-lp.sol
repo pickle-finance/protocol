@@ -17,8 +17,6 @@ contract StrategyPadPadRoseLp is StrategyNearPadFarmBase {
     )
         public
         StrategyNearPadFarmBase(
-            pad,
-            rose,
             pad_rose_poolid,
             pad_rose_lp,
             _governance,

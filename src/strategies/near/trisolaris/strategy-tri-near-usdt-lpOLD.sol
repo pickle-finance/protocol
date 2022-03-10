@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-tri-base-dual-v2.sol";
+import "../strategy-tri-base.sol";
 
-contract StrategyTriNearUsdtLp is StrategyTriDualFarmBaseV2 {
+contract StrategyTriNearUsdtLp is StrategyTriFarmBase {
     // Token/ETH pool id in MasterChef contract
-    uint256 public tri_near_usdt_poolid = 26;
+    uint256 public tri_near_usdt_poolid = 2;
     // Token addresses
     address public tri_near_usdt_lp =
         0x03B666f3488a7992b2385B12dF7f35156d7b29cD;
     address public usdt = 0x4988a896b1227218e4A686fdE5EabdcAbd91571f;
-    address public aurora = 0x8BEc47865aDe3B172A928df8f990Bc7f2A3b9f79;
 
     constructor(
         address _governance,
@@ -19,8 +18,9 @@ contract StrategyTriNearUsdtLp is StrategyTriDualFarmBaseV2 {
         address _timelock
     )
         public
-        StrategyTriDualFarmBaseV2(
-            aurora,
+        StrategyTriFarmBase(
+            near,
+            usdt,
             tri_near_usdt_poolid,
             tri_near_usdt_lp,
             _governance,
@@ -29,8 +29,6 @@ contract StrategyTriNearUsdtLp is StrategyTriDualFarmBaseV2 {
             _timelock
         )
     {
-        extraReward = aurora;
-        swapRoutes[tri] = [aurora, near, tri];
         swapRoutes[near] = [tri, near];
         swapRoutes[usdt] = [tri, near, usdt];
     }

@@ -17,8 +17,6 @@ contract StrategyPadDaiPadLp is StrategyNearPadFarmBase {
     )
         public
         StrategyNearPadFarmBase(
-            dai,
-            pad,
             dai_pad_poolid,
             dai_pad_lp,
             _governance,

@@ -476,3 +476,31 @@ export const JAR_WANNASWAP_WANNAX_STNEAR: JarDefinition = {
     };
     JAR_DEFINITIONS.push(JAR_WANNASWAP_WANNAX_STNEAR);
     
+export const JAR_AURORA_TRISOLARIS_NEAR_USDT_LP: JarDefinition = {
+        type: AssetType.JAR,
+        id: "auroraJar 1ab",
+        contract: "0x372d3dBE547f220311Ac996998B18eB287251644",
+        startBlock: 64899522,
+        depositToken: {
+          addr: "0x03B666f3488a7992b2385B12dF7f35156d7b29cD",
+          name: "TrisolarisLP NEAR/USDT",
+          link: "https://www.trisolaris.io/#/pool0x03B666f3488a7992b2385B12dF7f35156d7b29cD",
+          components: ["near", "usdt"],
+        },
+        rewardTokens: ["tri"],
+        enablement: AssetEnablement.ENABLED,
+        chain: ChainNetwork.Aurora,
+        protocol: AssetProtocol.TRISOLARIS,
+        details: {
+          apiKey: "TRISOLARISLP-NEAR-USDT",
+          harvestStyle: HarvestStyle.PASSIVE,
+          controller: "0xdc954e7399e9ADA2661cdddb8D4C19c19E070A8E"
+        },
+        farm: {
+          farmAddress: NULL_ADDRESS,
+          farmNickname: "pTrisolarisLP NEAR/USDT",
+          farmDepositTokenName: "pTrisolarisLP NEAR/USDT",
+        },
+    };
+    JAR_DEFINITIONS.push(JAR_AURORA_TRISOLARIS_NEAR_USDT);
+    

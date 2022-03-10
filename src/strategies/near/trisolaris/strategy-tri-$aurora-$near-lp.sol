@@ -3,13 +3,12 @@ pragma solidity ^0.6.7;
 
 import "../strategy-tri-base-dual-v2.sol";
 
-contract StrategyTriNearUsdtLp is StrategyTriDualFarmBaseV2 {
+contract StrategyTriAuroraNearLp is StrategyTriDualFarmBaseV2 {
     // Token/ETH pool id in MasterChef contract
-    uint256 public tri_near_usdt_poolid = 26;
+    uint256 public tri_aurora_near_poolid = 24;
     // Token addresses
-    address public tri_near_usdt_lp =
-        0x03B666f3488a7992b2385B12dF7f35156d7b29cD;
-    address public usdt = 0x4988a896b1227218e4A686fdE5EabdcAbd91571f;
+    address public tri_aurora_near_lp =
+        0x1e0e812FBcd3EB75D8562AD6F310Ed94D258D008;
     address public aurora = 0x8BEc47865aDe3B172A928df8f990Bc7f2A3b9f79;
 
     constructor(
@@ -21,8 +20,8 @@ contract StrategyTriNearUsdtLp is StrategyTriDualFarmBaseV2 {
         public
         StrategyTriDualFarmBaseV2(
             aurora,
-            tri_near_usdt_poolid,
-            tri_near_usdt_lp,
+            tri_aurora_near_poolid,
+            tri_aurora_near_lp,
             _governance,
             _strategist,
             _controller,
@@ -30,14 +29,13 @@ contract StrategyTriNearUsdtLp is StrategyTriDualFarmBaseV2 {
         )
     {
         extraReward = aurora;
-        swapRoutes[tri] = [aurora, near, tri];
-        swapRoutes[near] = [tri, near];
-        swapRoutes[usdt] = [tri, near, usdt];
+        swapRoutes[aurora] = [tri, aurora];
+        swapRoutes[near] = [aurora, near];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyTriNearUsdtLp";
+        return "StrategyTriAuroraNearLp";
     }
 }

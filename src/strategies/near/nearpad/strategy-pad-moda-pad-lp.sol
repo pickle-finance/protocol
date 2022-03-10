@@ -17,8 +17,6 @@ contract StrategyPadModaPadLp is StrategyNearPadFarmBase {
     )
         public
         StrategyNearPadFarmBase(
-            moda,
-            pad,
             moda_pad_poolid,
             moda_pad_lp,
             _governance,

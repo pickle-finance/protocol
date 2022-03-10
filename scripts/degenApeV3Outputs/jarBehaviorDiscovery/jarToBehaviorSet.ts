@@ -38,4 +38,8 @@ jarToBehavior.set(TRI_ROSE_NEAR;
   .id, new WannaswapWannaxStnear());
   jarToBehavior.set(WANNASWAP_WANNAX_STNEAR;
   .id, new WannaswapWannaxStnear());
+  jarToBehavior.set(TRISOLARIS_AURORA_NEAR;
+  .id, new TrisolarisAuroraNear());
+  jarToBehavior.set(TRISOLARIS_NEAR_USDT;
+  .id, new TrisolarisNearUsdt());
   
