@@ -18,7 +18,7 @@ contract StrategyTriStnearNearLp is StrategyTriDualFarmBaseV2 {
         address _timelock
     )
         public
-        StrategyTriFarmBase(
+        StrategyTriDualFarmBaseV2(
             stnear,
             near,
             tri_stnear_near_poolid,

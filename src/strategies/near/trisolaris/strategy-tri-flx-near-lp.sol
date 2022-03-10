@@ -17,7 +17,7 @@ contract StrategyTriFlxNearLp is StrategyTriDualFarmBaseV2 {
         address _timelock
     )
         public
-        StrategyTriFarmBase(
+        StrategyTriDualFarmBaseV2(
             flx,
             near,
             tri_flx_near_poolid,
@@ -28,6 +28,7 @@ contract StrategyTriFlxNearLp is StrategyTriDualFarmBaseV2 {
             _timelock
         )
     {
+        extraReward = flx;
         pathExtraReward[tri] = [flx, near, tri];
         swapRoutes[flx] = [tri, near, flx];
         swapRoutes[near] = [tri, near];

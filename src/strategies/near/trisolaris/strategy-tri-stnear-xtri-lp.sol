@@ -19,7 +19,7 @@ contract StrategyTriStnearXtriLp is StrategyTriDualFarmBaseV2 {
         address _timelock
     )
         public
-        StrategyTriFarmBase(
+        StrategyTriDualFarmBaseV2(
             stnear,
             xtri,
             tri_stnear_xtri_poolid,

@@ -19,7 +19,7 @@ contract StrategyTriUsdoUsdtLp is StrategyTriDualFarmBaseV2 {
         address _timelock
     )
         public
-        StrategyTriFarmBase(
+        StrategyTriDualFarmBaseV2(
             usdo,
             usdt,
             tri_usdo_usdt_poolid,

@@ -9,7 +9,7 @@ const { removeConsoleLog } = require("hardhat-preprocessor");
 require("dotenv").config();
 
 module.exports = {
-  defaultNetwork: "fantom",
+  defaultNetwork: "aurora",
   solidity: {
     compilers: [
       {

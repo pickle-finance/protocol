@@ -28,7 +28,7 @@ const outputFolder = 'scripts/degenApeV3Outputs';
 // @param - componentNames: The underlying tokens names of the lp. These will be added
 // by the script from the strategy address.
 // @param - componentAddresses: The underlying token addresses of the lp. These will be added
-const pfcoreArgs = { chain: "fantom", protocols: ["oxd", "solidex"], extraTags: ["stable"], liquidityURL: "https://solidly.exchange/liquidity/", rewardTokens: ["oxd", "solid"], jarCode: "7a", farmAddress: "", componentNames: [], componentAddresses: [] };
+const pfcoreArgs = { chain: "aurora", protocols: ["tri"], extraTags: [], liquidityURL: "https://www.trisolaris.io/#/add/", rewardTokens: ["tri"], jarCode: "1m", farmAddress: "", componentNames: [], componentAddresses: [] };
 
 // References
 let txRefs = {};
@@ -36,16 +36,16 @@ const allTxRefs = [];
 const allReports = [];
 
 // Addresses & Contracts
-const governance = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
+const governance = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const strategist = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
-const controller = "0xB1698A97b497c998b2B2291bb5C48D1d6075836a";
-const timelock = "0xE4ee7EdDDBEBDA077975505d11dEcb16498264fB";
+const controller = "0xdc954e7399e9ADA2661cdddb8D4C19c19E070A8E";
+const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 
 const contracts = [
+  "src/strategies/near/trisolaris/strategy-tri-flx-near-lp.sol:StrategyTriFlxNearLp"
 ];
 
 const testedStrategies = [
-  "0xeB231174F32446e2653058AEcf1d22e9D62c521b"
 ];
 
 // Functions
@@ -318,6 +318,9 @@ const deployContractsAndGeneratePfcore = async () => {
     const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
     const Controller = await ethers.getContractAt("src/controller-v4.sol:ControllerV4", controller);
     txRefs['name'] = contract.substring(contract.lastIndexOf(":") + 1);
+    console.log("PING1", StrategyFactory);
+    console.log("PING2", PickleJarFactory);
+    console.log("PING3", Controller);
 
     try {
       // Deploy Strategy contract
@@ -437,7 +440,7 @@ ${allReports.join('\n')}
 };
 
 const main = async () => {
-  // await deployContractsAndGeneratePfcore();
+  await deployContractsAndGeneratePfcore();
   await fastVerifyContracts(testedStrategies);
   // await slowVerifyContracts(testedStrategies);
 };
