@@ -38,6 +38,6 @@ contract StrategySwaprCowWethLp is StrategySwaprFarmBase {
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategySwaprGnoWethLp";
+        return "StrategySwaprCowWethLp";
     }
 }

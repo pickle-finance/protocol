@@ -63,10 +63,8 @@ abstract contract StrategySwaprFarmBase is StrategyBase {
 
         uint256 j;
         for (uint256 i = 0; i < _claimableRewards.length; i++) {
-            if (rewardRoutes[rewardTokens[i]].length > 0) {
-                PendingRewards[j] = _claimableRewards[i];
-                j++;
-            }
+            PendingRewards[j] = _claimableRewards[i];
+            j++;
         }
         return PendingRewards;
     }
@@ -100,7 +98,7 @@ abstract contract StrategySwaprFarmBase is StrategyBase {
         address[] memory rewardTokens = ISwaprRewarder(rewarder).getRewardTokens();
         for (uint256 i = 0; i > rewardTokens.length; i++) {
             uint256 _rewardToken = IERC20(rewardTokens[i]).balanceOf(address(this));
-            if (rewardRoutes[rewardTokens[i]].length > 1) {
+            if (rewardRoutes[rewardTokens[i]].length > 1 && _rewardToken > 0) {
                 _swap(swaprRouter, rewardRoutes[rewardTokens[i]], _rewardToken);
             }
         }
@@ -112,14 +110,12 @@ abstract contract StrategySwaprFarmBase is StrategyBase {
 
         _gno = IERC20(gno).balanceOf(address(this));
 
-        if (gno == token0 || gno == token1) {
-            if (_gno > 0) {
+        if (_gno > 0) {
+            if (gno == token0 || gno == token1) {
                 address toToken = gno == token0 ? token1 : token0;
                 _swap(swaprRouter, swapRoutes[toToken], _gno.div(2));
-            }
-        } else {
-            // Swap GNO to token0 & token1
-            if (_gno > 0) {
+            } else {
+                // Swap GNO to token0 & token1
                 uint256 _toToken0 = _gno.div(2);
                 uint256 _toToken1 = _gno.sub(_toToken0);
 

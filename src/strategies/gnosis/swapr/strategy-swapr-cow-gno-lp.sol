@@ -27,6 +27,9 @@ contract StrategySwaprCowGnoLp is StrategySwaprFarmBase {
             _timelock
         )
     {
+        rewardRoutes[swapr] = [swapr, xdai, gno];
+        rewardRoutes[cow] = [cow, gno];
+        rewardRoutes[gno] = [gno];
         swapRoutes[gno] = [swapr, xdai, gno];
         swapRoutes[cow] = [gno, weth, cow];
     }
