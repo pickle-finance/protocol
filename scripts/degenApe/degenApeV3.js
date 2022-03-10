@@ -13,7 +13,7 @@ const callAttempts = 3;
 const generatePfcore = true;
 
 // Pf-core generation configs
-const outputFolder = 'scripts/degenApeV3Outputs';
+const outputFolder = 'scripts/degenApe/degenApeV3Outputs';
 
 // These arguments need to be set manually before the script can make pf-core
 // @param - chain: The chain on which the script is running
