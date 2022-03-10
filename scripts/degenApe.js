@@ -29,11 +29,6 @@ const outputFolder = 'scripts/degenApe/degenApeOutputs';
 // @param - componentAddresses: The underlying token addresses of the lp. These will be added
 const pfcoreArgs = { chain: "optimism", protocols: ["zipswap"], extraTags: [], liquidityURL: "https://zipswap.fi/#/add/", rewardTokens: ["zip", "gohm"], jarCode: "1e", farmAddress: "", componentNames: [], componentAddresses: [] };
 
-// References
-let txRefs = {};
-const allTxRefs = [];
-const allReports = [];
-
 // Addresses & Contracts
 const governance = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const strategist = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
@@ -79,7 +74,11 @@ const executeTx = async (calls, tx, fn, ...args) => {
 }
 
 const deployContractsAndGeneratePfcore = async () => {
+  // References
+  const allTxRefs = [];
+  const allReports = [];
   for (const [jarIndex, contract] of contracts.entries()) {
+    let txRefs = {};
     const StrategyFactory = await ethers.getContractFactory(contract);
     const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
     const Controller = await ethers.getContractAt("src/controller-v4.sol:ControllerV4", controller);
