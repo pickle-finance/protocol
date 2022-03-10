@@ -1,6 +1,6 @@
-const {verify} = require("crypto");
-const {BigNumber} = require("ethers");
-const {formatEther, parseEther} = require("ethers/lib/utils");
+const { verify } = require("crypto");
+const { BigNumber } = require("ethers");
+const { formatEther, parseEther } = require("ethers/lib/utils");
 const hre = require("hardhat");
 const ethers = hre.ethers;
 const fs = require("fs");
@@ -11,12 +11,12 @@ const {
   generateJarsAndFarms,
   generateImplementations,
 } = require("./pfcoreUtils.js");
-const {sleep, fastVerifyContracts, slowVerifyContracts} = require("./degenUtils.js");
+const { sleep, fastVerifyContracts, slowVerifyContracts } = require("./degenUtils.js");
 
 // Script configs
-const sleepConfig = {sleepToggle: true, sleepTime: 10000};
+const sleepConfig = { sleepToggle: true, sleepTime: 10000 };
 const callAttempts = 3;
-const generatePfcore = true;
+const generatePfcore = false;
 
 // Pf-core generation configs
 const outputFolder = "scripts/degenApe/degenApeOutputs";
@@ -48,18 +48,21 @@ const pfcoreArgs = {
 // Addresses & Contracts
 const governance = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const strategist = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
-const controller = "0xe5E231De20C68AabB8D669f87971aE57E2AbF680";
+const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";
 const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const harvester = ["0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf"];
 
-const contracts = ["src/strategies/gnosis/curve/strategy-curve-3pool-lp.sol:StrategyXdaiCurve3CRV"];
+const contracts = [
+  "src/strategies/optimism/zipswap/strategy-zip-$gohm-$weth-lp.sol:StrategyZipEthGohmLp"
+];
 
 const testedStrategies = [];
 
 const executeTx = async (calls, fn, ...args) => {
+  let transaction;
   await sleep(sleepConfig);
   try {
-    const transaction = await fn(...args);
+    transaction = await fn(...args);
 
     // If deployTransaction property is empty, call normal wait()
     if (transaction.deployTransaction) {
@@ -77,6 +80,7 @@ const executeTx = async (calls, fn, ...args) => {
       return Error;
     }
   }
+  return transaction;
 };
 
 const deployContractsAndGeneratePfcore = async () => {
@@ -113,11 +117,11 @@ const deployContractsAndGeneratePfcore = async () => {
       // Check if Want already has a Jar on Controller
       await sleep(sleepConfig);
       const currentControllerJar = await Controller.jars(want);
-
+      let jar;
       // Only do shit if there's not already an active jar
       if (currentControllerJar === ethers.constants.AddressZero) {
         // Deploy PickleJar contract
-        const jar = await executeTx(
+        jar = await executeTx(
           callAttempts,
           PickleJarFactory.deploy.bind(PickleJarFactory),
           want,
@@ -131,7 +135,9 @@ const deployContractsAndGeneratePfcore = async () => {
         await executeTx(callAttempts, Controller.setJar, want, jar.address);
         console.log(`Jar Set!`);
       } else {
-        console.log(`Jar for this want already exists`);
+        console.log(`Jar for this Want already exists`);
+        jar = await ethers.getContractAt("src/pickle-jar.sol:PickleJar", currentControllerJar);
+        console.log(`PickeJar is deployed on Controller at: ${jar.address}`)
       }
 
       // Approve Want
