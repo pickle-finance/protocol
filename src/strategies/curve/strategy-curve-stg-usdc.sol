@@ -9,9 +9,9 @@ import "../../interfaces/curve.sol";
 import "../../interfaces/uniswapv2.sol";
 import "../../interfaces/controller.sol";
 
-import "../strategy-curve-base.sol";
+import "../strategy-curve-base-v2.sol";
 
-abstract contract StrategyCurveStgUsdc is StrategyCurveBase {
+contract StrategyCurveStgUsdc is StrategyCurveBaseV2 {
     // Curve stuff
     address public stg_usdc_pool = 0x3211C6cBeF1429da3D0d58494938299C92Ad5860;
     address public stg_usdc_gauge = 0x95d16646311fDe101Eb9F897fE06AC881B7Db802;
@@ -24,7 +24,7 @@ abstract contract StrategyCurveStgUsdc is StrategyCurveBase {
         address _timelock
     )
         public
-        StrategyCurveBase(stg_usdc_pool, stg_usdc_gauge, stg_usdc, _governance, _strategist, _controller, _timelock)
+        StrategyCurveBaseV2(stg_usdc_pool, stg_usdc_gauge, stg_usdc, _governance, _strategist, _controller, _timelock)
     {
         IERC20(crv).safeApprove(sushiRouter, uint256(-1));
         IERC20(usdc).safeApprove(curve, uint256(-1));
@@ -33,7 +33,7 @@ abstract contract StrategyCurveStgUsdc is StrategyCurveBase {
     }
 
     function getName() external pure override returns (string memory) {
-        return "StrategyCurveTricrypto";
+        return "StrategyCurveStgUsdc";
     }
 
     // **** State Mutations ****
@@ -51,6 +51,9 @@ abstract contract StrategyCurveStgUsdc is StrategyCurveBase {
         if (_crv > 0) {
             uint256 _keepCRV = _crv.mul(keepCRV).div(keepCRVMax);
             IERC20(crv).safeTransfer(IController(controller).treasury(), _keepCRV);
+
+            _crv = IERC20(crv).balanceOf(address(this));
+            _swapSushiswapWithPath(swapRoutes[usdc], _crv);
         }
 
         uint256 _usdc = IERC20(usdc).balanceOf(address(this));
