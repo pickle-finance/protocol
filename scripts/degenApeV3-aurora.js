@@ -27,7 +27,7 @@ const outputFolder = 'scripts/degenApeV3Outputs';
 // @param - componentNames: The underlying tokens names of the lp. These will be added
 // by the script from the strategy address.
 // @param - componentAddresses: The underlying token addresses of the lp. These will be added
-const pfcoreArgs = { chain: "aurora", protocols: ["nearpad"], extraTags: [], liquidityURL: "https://pad.fi/dex/add/", rewardTokens: ["pad"], jarCode: "3h", farmAddress: "", componentNames: [], componentAddresses: [] };
+const pfcoreArgs = { chain: "aurora", protocols: ["wannaswap"], extraTags: [], liquidityURL: "https://wannaswap.finance/exchange/add/", rewardTokens: ["wanna"], jarCode: "2o", farmAddress: "", componentNames: [], componentAddresses: [] };
 
 // References
 let txRefs = {};
@@ -42,16 +42,11 @@ const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const harvester = ["0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf"];
 
 const contracts = [
-  "src/strategies/near/nearpad/strategy-pad-$dai-$pad-lp.sol:StrategyPadDaiPadLp",
-  "src/strategies/near/nearpad/strategy-pad-$pad-$aurora-lp.sol:StrategyPadPadAuroraLp",
-  "src/strategies/near/nearpad/strategy-pad-$pad-$rose-lp.sol:StrategyPadPadRoseLp",
-  "src/strategies/near/nearpad/strategy-pad-$near-$eth-lp.sol:StrategyPadNearEthLp",
-  "src/strategies/near/nearpad/strategy-pad-$near-$frax-lp.sol:StrategyPadNearFraxLp",
-  "src/strategies/near/nearpad/strategy-pad-$pad-$tri-lp.sol:StrategyPadPadTriLp"
+  "src/strategies/near/wannaswap/strategy-wanna-$wannax-$stnear-lp.sol:StrategyWannaWannaxStnearLp"
 ];
 
 const testedStrategies = [
-  "0x7BC037F25f073EfE17918643E1c5E28458093555",
+
 ];
 
 // Functions
@@ -373,7 +368,6 @@ const deployContractsAndGeneratePfcore = async () => {
       await executeTx(callAttempts, 'harvestTx2', txRefs['strategy'].harvestTwo);
       await executeTx(callAttempts, 'harvestTx3', txRefs['strategy'].harvestThree);
       await executeTx(callAttempts, 'harvestTx4', txRefs['strategy'].harvestFour);
-      await executeTx(callAttempts, 'harvestTx5', txRefs['strategy'].harvestFive);
 
       await sleep(sleepTime, sleepToggle);
       txRefs['ratio'] = await txRefs['jar'].getRatio();

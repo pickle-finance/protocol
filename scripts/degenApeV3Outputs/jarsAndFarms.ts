@@ -420,3 +420,59 @@ export const JAR_NEARPAD_PAD_TRI: JarDefinition = {
     };
     JAR_DEFINITIONS.push(JAR_NEARPAD_PAD_TRI);
     
+export const JAR_WANNASWAP_WANNAX_STNEAR: JarDefinition = {
+        type: AssetType.JAR,
+        id: "auroraJar 2o",
+        contract: "0x9f8FD72D1B49A9eff1601a38eA540c0bcE7E6Feb",
+        startBlock: 64261713,
+        depositToken: {
+          addr: "0xE22606659ec950E0328Aa96c7f616aDC4907cBe3",
+          name: "WannaswapLP WANNAX/STNEAR",
+          link: "https://wannaswap.finance/exchange/add/0xE22606659ec950E0328Aa96c7f616aDC4907cBe3",
+          components: ["wannax", "stnear"],
+        },
+        rewardTokens: ["wanna"],
+        enablement: AssetEnablement.ENABLED,
+        chain: ChainNetwork.Aurora,
+        protocol: AssetProtocol.WANNASWAP,
+        details: {
+          apiKey: "WANNASWAPLP-WANNAX-STNEAR",
+          harvestStyle: HarvestStyle.CUSTOM,
+          controller: "0xdc954e7399e9ADA2661cdddb8D4C19c19E070A8E"
+        },
+        farm: {
+          farmAddress: "",
+          farmNickname: "pWannaswapLP WANNAX/STNEAR",
+          farmDepositTokenName: "pWannaswapLP WANNAX/STNEAR",
+        },
+    };
+    JAR_DEFINITIONS.push(JAR_WANNASWAP_WANNAX_STNEAR);
+    
+export const JAR_WANNASWAP_WANNAX_STNEAR: JarDefinition = {
+        type: AssetType.JAR,
+        id: "auroraJar 2o",
+        contract: "0x527F243112Cc6DE5A9879c93c2091C23E9a3afa5",
+        startBlock: 64263363,
+        depositToken: {
+          addr: "0xE22606659ec950E0328Aa96c7f616aDC4907cBe3",
+          name: "WannaswapLP WANNAX/STNEAR",
+          link: "https://wannaswap.finance/exchange/add/0xE22606659ec950E0328Aa96c7f616aDC4907cBe3",
+          components: ["wannax", "stnear"],
+        },
+        rewardTokens: ["wanna"],
+        enablement: AssetEnablement.ENABLED,
+        chain: ChainNetwork.Aurora,
+        protocol: AssetProtocol.WANNASWAP,
+        details: {
+          apiKey: "WANNASWAPLP-WANNAX-STNEAR",
+          harvestStyle: HarvestStyle.CUSTOM,
+          controller: "0xdc954e7399e9ADA2661cdddb8D4C19c19E070A8E"
+        },
+        farm: {
+          farmAddress: "",
+          farmNickname: "pWannaswapLP WANNAX/STNEAR",
+          farmDepositTokenName: "pWannaswapLP WANNAX/STNEAR",
+        },
+    };
+    JAR_DEFINITIONS.push(JAR_WANNASWAP_WANNAX_STNEAR);
+    

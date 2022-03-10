@@ -16,4 +16,6 @@ import { TriRoseNear } from './impl/aurora-tri-rose-near';
   import { NearpadNearEth } from './impl/aurora-nearpad-near-eth';
   import { NearpadNearFrax } from './impl/aurora-nearpad-near-frax';
   import { NearpadPadTri } from './impl/aurora-nearpad-pad-tri';
+  import { WannaswapWannaxStnear } from './impl/aurora-wannaswap-wannax-stnear';
+  import { WannaswapWannaxStnear } from './impl/aurora-wannaswap-wannax-stnear';
   

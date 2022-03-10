@@ -34,4 +34,8 @@ jarToBehavior.set(TRI_ROSE_NEAR;
   .id, new NearpadNearFrax());
   jarToBehavior.set(NEARPAD_PAD_TRI;
   .id, new NearpadPadTri());
+  jarToBehavior.set(WANNASWAP_WANNAX_STNEAR;
+  .id, new WannaswapWannaxStnear());
+  jarToBehavior.set(WANNASWAP_WANNAX_STNEAR;
+  .id, new WannaswapWannaxStnear());
   
