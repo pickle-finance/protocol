@@ -29,7 +29,6 @@ contract StrategyTriFlxNearLp is StrategyTriDualFarmBaseV2 {
         )
     {
         extraReward = flx;
-        pathExtraReward[tri] = [flx, near, tri];
         swapRoutes[flx] = [tri, near, flx];
         swapRoutes[near] = [tri, near];
     }

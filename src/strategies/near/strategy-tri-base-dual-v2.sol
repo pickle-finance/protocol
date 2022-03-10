@@ -22,7 +22,6 @@ abstract contract StrategyTriDualFarmBaseV2 is StrategyBase {
 
     uint256 public poolId;
     mapping(address => address[]) public swapRoutes;
-    mapping(address => address[]) public pathExtraReward;
 
     constructor(
         address _token0,
@@ -118,20 +117,17 @@ abstract contract StrategyTriDualFarmBaseV2 is StrategyBase {
     function harvestTwo() public onlyBenevolent {
         uint256 _extraReward = IERC20(extraReward).balanceOf(address(this));
         if (_extraReward > 0) {
-            if (pathExtraReward[tri].length > 1) {
-                // swap all ExtraReward to TRI
-                // address[] memory pathExtraReward = new address[](3);
-                // pathExtraReward[0] = extraReward;
-                // pathExtraReward[1] = near;
-                // pathExtraReward[2] = tri;
-                UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-                    _extraReward,
-                    0,
-                    pathExtraReward[extraReward],
-                    address(this),
-                    now + 60
-                );
-            }
+            // swap all ExtraReward to TRI
+            address[] memory pathExtraReward = new address[](2);
+            pathExtraReward[0] = extraReward;
+            pathExtraReward[1] = tri;
+            UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
+                _extraReward,
+                0,
+                pathExtraReward,
+                address(this),
+                now + 60
+            );
         }
 
         uint256 _tri = IERC20(tri).balanceOf(address(this));
