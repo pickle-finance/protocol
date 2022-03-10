@@ -49,7 +49,7 @@ contract StrategyRoseUstPool is StrategyRoseFarmStableBase {
         }
     }
 
-    function harvestFive() public override {
+    function harvestFive() public {
         // We want to get back Rose LP tokens
         _distributePerformanceFeesAndDeposit();
     }

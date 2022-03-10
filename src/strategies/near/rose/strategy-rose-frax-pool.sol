@@ -40,28 +40,6 @@ contract StrategyRoseFraxPool is StrategyRoseFarmStableBase {
     }
 
     // **** State Mutations ****
-    function harvestTwo() public override {
-        uint256 _rose = IERC20(rose).balanceOf(address(this));
-
-        if (_rose > 0) {
-            // Use Frax because most premium token in pool
-            address[] memory route = new address[](2);
-            route[0] = rose;
-            route[1] = frax;
-
-            _swapSushiswapWithPath(route, _rose);
-        }
-    }
-
-    function harvestThree() public override {
-        uint256 _frax = IERC20(frax).balanceOf(address(this));
-        if (_frax > 0) {
-            uint256[2] memory liquidity;
-            liquidity[0] = _frax;
-            ICurveFi_2(frax_pool).add_liquidity(liquidity, 0);
-        }
-    }
-
     function harvestFour() public override {
         uint256 _threePool = IERC20(three_pool_lp).balanceOf(address(this));
         if (_threePool > 0) {

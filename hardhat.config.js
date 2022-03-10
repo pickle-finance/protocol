@@ -5,11 +5,11 @@ require("solidity-coverage");
 require("hardhat-deploy");
 require("hardhat-gas-reporter");
 require("hardhat-contract-sizer");
-const {removeConsoleLog} = require("hardhat-preprocessor");
+const { removeConsoleLog } = require("hardhat-preprocessor");
 require("dotenv").config();
 
 module.exports = {
-  defaultNetwork: "hardhat",
+  defaultNetwork: "aurora",
   solidity: {
     compilers: [
       {
@@ -35,14 +35,14 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://polygon-rpc.com/`,
+        url: `https://ftmrpc.ultimatenodes.io/`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },
       hardfork: "london",
       gasPrice: "auto",
-      gas: 2500000
+      gas: 2500000,
     },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
@@ -50,24 +50,39 @@ module.exports = {
     },
     matic: {
       url: "https://polygon-rpc.com/",
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
+      accounts: [`0x${process.env.MNEMONIC}`],
     },
     arbitrum: {
       url: `https://arb1.arbitrum.io/rpc/`,
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
+      accounts: [`0x${process.env.MNEMONIC}`],
+    },
+    metis: {
+      url: `https://andromeda.metis.io/?owner=1088`,
+      accounts: [`0x${process.env.MNEMONIC}`],
+    },
+    moonbeam: {
+      url: `https://rpc.api.moonbeam.network`,
       accounts: [`0x${process.env.MNEMONIC}`]
     },
+    fantom: {
+      url: `https://rpc.ftm.tools/`,
+      accounts: [`0x${process.env.MNEMONIC}`],
+      gas: 4000000
+    },
+    aurora: {
+      url: `https://mainnet.aurora.dev/`,
+      accounts: [`0x${process.env.MNEMONIC}`],
+    }
   },
   contractSizer: {
     alphaSort: true,
     runOnCompile: false,
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_APIKEY,
+    apiKey: {
+      mainnet: `${process.env.ETHERSCAN_APIKEY}`,
+      aurora: `${process.env.AURORASCAN_APIKEY}`
+    },
   },
   paths: {
     sources: "./src",
