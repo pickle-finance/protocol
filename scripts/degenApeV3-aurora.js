@@ -10,7 +10,7 @@ const fs = require("fs");
 const sleepToggle = true;
 const sleepTime = 10000;
 const callAttempts = 3;
-const generatePfcore = false;
+const generatePfcore = true;
 
 // Pf-core generation configs
 const outputFolder = 'scripts/degenApeV3Outputs';
@@ -27,7 +27,7 @@ const outputFolder = 'scripts/degenApeV3Outputs';
 // @param - componentNames: The underlying tokens names of the lp. These will be added
 // by the script from the strategy address.
 // @param - componentAddresses: The underlying token addresses of the lp. These will be added
-const pfcoreArgs = { chain: "aurora", protocols: ["rose"], extraTags: [], liquidityURL: "https://app.rose.fi/#/pools/", rewardTokens: ["rose"], jarCode: "6c", farmAddress: "", componentNames: [], componentAddresses: [] };
+const pfcoreArgs = { chain: "aurora", protocols: ["trisolaris"], extraTags: [], liquidityURL: "https://www.trisolaris.io/#/pool", rewardTokens: ["tri"], jarCode: "1ab", farmAddress: "", componentNames: [], componentAddresses: [] };
 
 // References
 let txRefs = {};
@@ -42,9 +42,9 @@ const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const harvester = ["0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf"];
 
 const contracts = [
-  // "src/strategies/near/rose/strategy-$rose-$frax-lp.sol:StrategyRoseFraxLp",
-  // "src/strategies/near/rose/strategy-$pad-$rose-lp.sol:StrategyPadRoseLp"
-  "src/strategies/near/rose/strategy-rose-rusd-lp.sol:StrategyRoseRusdPool"
+  // "src/strategies/near/trisolaris/strategoy-tri-$aurora-$near-lp.sol:StrategyTriAuroraNearLp",
+  "src/strategies/near/trisolaris/strategy-tri-near-usdc-lp.sol:StrategyTriNearUsdcLp",
+  // "src/strategies/near/trisolaris/strategy-tri-$near-$usdt-lp.sol:StrategyTriNearUsdtLp"
 ];
 
 const testedStrategies = [
@@ -221,7 +221,7 @@ const generateJarsAndFarms = async (args, jarAddress, jarStartBlock, wantAddress
   const depositTokenLink = `${args.liquidityURL}${args.componentAddresses.join('/')}`
   ////////////////////////
 
-  const jarName = `${args.protocols.map(x => x.toUpperCase()).join('_')}_${args.componentNames.map(x => x.toUpperCase()).join('_')}`
+  const jarName = `${args.chain.toUpperCase()}_${args.protocols.map(x => x.toUpperCase()).join('_')}_${args.componentNames.map(x => x.toUpperCase()).join('_')}`
   const jarKey = `${args.protocols.map(x => x.slice(0, 1).toUpperCase().concat(x.slice(1))).join('')}LP ${args.componentNames.map(x => x.toUpperCase()).join('/')}`
 
   const id = `${args.chain}Jar ${args.jarCode}`
@@ -231,9 +231,10 @@ const generateJarsAndFarms = async (args, jarAddress, jarStartBlock, wantAddress
   const chainNetwork = `${args.chain.slice(0, 1).toUpperCase().concat(args.chain.slice(1))}`;
   const assetProtocol = `${args.protocols[0].toUpperCase()}`
   const apiKey = `${args.protocols.map(x => x.toUpperCase()).join('')}LP-${args.componentNames.map(x => x.toUpperCase()).join('-')}`;
+  const farm = args.farmAddress ? `"${args.farmAddress}"` : "NULL_ADDRESS";
 
   const output = `
-export const JAR_${jarName}: JarDefinition = {
+export const JAR_${jarName}_LP: JarDefinition = {
         type: AssetType.JAR,
         id: "${id}",
         contract: "${jarAddress}",
@@ -250,16 +251,16 @@ export const JAR_${jarName}: JarDefinition = {
         protocol: AssetProtocol.${assetProtocol},
         details: {
           apiKey: "${apiKey}",
-          harvestStyle: HarvestStyle.CUSTOM,
+          harvestStyle: HarvestStyle.PASSIVE,
           controller: "${controller}"
         },
         farm: {
-          farmAddress: "${args.farmAddress}",
+          farmAddress: ${farm},
           farmNickname: "p${jarKey}",
           farmDepositTokenName: "p${jarKey}",
         },
     };
-    JAR_DEFINITIONS.push(JAR_${jarName});
+    JAR_DEFINITIONS.push(JAR_${jarName}_LP);
     `
   const filePath = `${outputFolder}/jarsAndFarms.ts`
 
@@ -283,7 +284,8 @@ const generateImplementations = async (args) => {
   const jarComponents = args.componentNames.map(x => x.slice(0, 1).toUpperCase().concat(x.slice(1))).join('');
 
   const output = `
-import { ${jarProtocols}${jarComponents}Jar } from "./${args.chain}-${args.protocols.join('-')}-${args.componentNames.join('-')}-jar";
+import { ${jarProtocols}${jarComponents}Jar } from "./${args.chain}-${args.protocols.join('-')}${args.componentNames.join('-')}-jar";
+
 export class ${jarProtocols}${jarComponents} extends ${jarProtocols}Jar {
   constructor() {
     super();
@@ -368,7 +370,6 @@ const deployContractsAndGeneratePfcore = async () => {
       await executeTx(callAttempts, 'harvestTx2', txRefs['strategy'].harvestTwo);
       await executeTx(callAttempts, 'harvestTx3', txRefs['strategy'].harvestThree);
       await executeTx(callAttempts, 'harvestTx4', txRefs['strategy'].harvestFour);
-      await executeTx(callAttempts, 'harvestTx5', txRefs['strategy'].harvestFive);
 
       await sleep(sleepTime, sleepToggle);
       txRefs['ratio'] = await txRefs['jar'].getRatio();
@@ -444,3 +445,5 @@ main()
     console.error(error);
     process.exit(1);
   });
+
+
