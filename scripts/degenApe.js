@@ -368,10 +368,7 @@ const deployContractsAndGeneratePfcore = async () => {
       // Call Harvest
       console.log(`Waiting for ${sleepTime * 4 / 1000} seconds before harvesting...`);
       await sleep(sleepTime * 4);
-      await executeTx(callAttempts, 'harvestTx1', txRefs['strategy'].harvestOne);
-      await executeTx(callAttempts, 'harvestTx2', txRefs['strategy'].harvestTwo);
-      await executeTx(callAttempts, 'harvestTx3', txRefs['strategy'].harvestThree);
-      await executeTx(callAttempts, 'harvestTx4', txRefs['strategy'].harvestFour);
+      await executeTx(callAttempts, 'harvestTx', txRefs['strategy'].harvest);
 
       await sleep(sleepTime, sleepToggle);
       txRefs['ratio'] = await txRefs['jar'].getRatio();
