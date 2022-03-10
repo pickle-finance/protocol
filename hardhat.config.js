@@ -68,6 +68,10 @@ module.exports = {
       url: `https://rpc.ftm.tools/`,
       accounts: [`0x${process.env.MNEMONIC}`],
       gas: 4000000
+    },
+    aurora: {
+      url: `https://mainnet.aurora.dev/`,
+      accounts: [`0x${process.env.MNEMONIC}`],
     }
   },
   contractSizer: {
