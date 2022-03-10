@@ -30,6 +30,8 @@ abstract contract StrategyCurveBase is StrategyBase {
     uint256 public keepCRV = 0;
     uint256 public keepCRVMax = 10000;
 
+    mapping(address => address[]) public swapRoutes;
+
     constructor(
         address _curve,
         address _gauge,
@@ -38,17 +40,14 @@ abstract contract StrategyCurveBase is StrategyBase {
         address _strategist,
         address _controller,
         address _timelock
-    )
-        public
-        StrategyBase(_want, _governance, _strategist, _controller, _timelock)
-    {
+    ) public StrategyBase(_want, _governance, _strategist, _controller, _timelock) {
         curve = _curve;
         gauge = _gauge;
     }
 
     // **** Getters ****
 
-    function balanceOfPool() public override view returns (uint256) {
+    function balanceOfPool() public view override returns (uint256) {
         return ICurveGauge(gauge).balanceOf(address(this));
     }
 
@@ -56,7 +55,7 @@ abstract contract StrategyCurveBase is StrategyBase {
         return ICurveGauge(gauge).claimable_tokens(address(this));
     }
 
-    function getMostPremium() public virtual view returns (address, uint256);
+    function getMostPremium() public view virtual returns (address, uint256);
 
     // **** Setters ****
 
@@ -76,11 +75,7 @@ abstract contract StrategyCurveBase is StrategyBase {
         }
     }
 
-    function _withdrawSome(uint256 _amount)
-        internal
-        override
-        returns (uint256)
-    {
+    function _withdrawSome(uint256 _amount) internal override returns (uint256) {
         ICurveGauge(gauge).withdraw(_amount);
         return _amount;
     }
