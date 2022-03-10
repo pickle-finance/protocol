@@ -22,6 +22,7 @@ abstract contract StrategyTriDualFarmBaseV2 is StrategyBase {
 
     uint256 public poolId;
     mapping(address => address[]) public swapRoutes;
+    mapping(address => address[]) public pathExtraReward;
 
     constructor(
         address _token0,
@@ -118,10 +119,10 @@ abstract contract StrategyTriDualFarmBaseV2 is StrategyBase {
         uint256 _extraReward = IERC20(extraReward).balanceOf(address(this));
         if (_extraReward > 0) {
             // swap all ExtraReward to TRI
-            address[] memory pathExtraReward = new address[](3);
-            pathExtraReward[0] = extraReward;
-            pathExtraReward[1] = near;
-            pathExtraReward[2] = tri;
+            // address[] memory pathExtraReward = new address[](3);
+            // pathExtraReward[0] = extraReward;
+            // pathExtraReward[1] = near;
+            // pathExtraReward[2] = tri;
             UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
                 _extraReward,
                 0,
