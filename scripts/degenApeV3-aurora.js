@@ -46,7 +46,7 @@ const contracts = [
 ];
 
 const testedStrategies = [
-  "0xFEfBB3CeacAB3a682C34E25A1b4A330771D46b0D"
+  "0x1D8a3c2EFd96050D16B303F1D533F848b29dEfb3"
 ];
 
 // Functions
@@ -436,8 +436,8 @@ ${allReports.join('\n')}
 };
 
 const main = async () => {
-  await deployContractsAndGeneratePfcore();
-  // await fastVerifyContracts(testedStrategies);
+  // await deployContractsAndGeneratePfcore();
+  await fastVerifyContracts(testedStrategies);
   // await slowVerifyContracts(testedStrategies);
 };
 

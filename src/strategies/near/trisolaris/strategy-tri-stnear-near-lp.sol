@@ -46,6 +46,7 @@ contract StrategyTriStnearNearLp is StrategyTriDualFarmBaseV2 {
 
     function harvestTwo() public override onlyBenevolent {
         uint256 _meta = IERC20(meta).balanceOf(address(this));
+        uint256 _tri = IERC20(tri).balanceOf(address(this));
 
         if (_tri > 0 && _meta > 0) {
             address[] memory path = new address[](2);
