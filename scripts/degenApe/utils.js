@@ -35,33 +35,4 @@ const slowVerifyContracts = async (strategies) => {
   }
 }
 
-// const executeTx = async (configs, tx, fn, ...args) => {
-//   await sleep(configs.sleepTime, configs.sleepToggle);
-//   // if (!txRefs[tx]) { recall(executeTx, calls, tx, fn, ...args) }
-//   try {
-//     if (!txRefs[tx]) {
-//       txRefs[tx] = await fn(...args)
-//       if (tx === 'strategy') {
-//         await txRefs[tx].deployTransaction.wait();
-//       }
-//       else if (tx === 'jar') {
-//         const jarTx = await txRefs[tx].deployTransaction.wait();
-//         txRefs['jarStartBlock'] = jarTx.blockNumber;
-//       } else {
-//         await txRefs[tx].wait();
-//       }
-//     }
-//   } catch (e) {
-//     console.error(e);
-//     if (calls > 0) {
-//       console.log(`Trying again. ${calls} more attempts left.`);
-//       await executeTx(configs.calls - 1, tx, fn, ...args);
-//     } else {
-//       console.log('Looks like something is broken!');
-//       return;
-//     }
-//   }
-//   await sleep(configs.sleepTime, configs.sleepToggle);
-// }
-
 module.exports = { sleep, fastVerifyContracts, slowVerifyContracts }

@@ -8,7 +8,8 @@ const { outputFolderSetup, incrementJar, generateJarBehaviorDiscovery, generateJ
 const { sleep, fastVerifyContracts, slowVerifyContracts } = require("./utils.js");
 
 // Script configs
-const scriptConfigs = { sleepToggle: true, sleepTime: 10000, callAttempts: 3 }
+const sleepConfigs = { sleepToggle: true, sleepTime: 10000 }
+const callAttempts = 3;
 const generatePfcore = true;
 
 // Pf-core generation configs
@@ -47,8 +48,8 @@ const contracts = [
 const testedStrategies = [
 ];
 
-const executeTx = async (configs, tx, fn, ...args) => {
-  await sleep(scriptConfigs);
+const executeTx = async (calls, tx, fn, ...args) => {
+  await sleep(sleepConfigs);
   // if (!txRefs[tx]) { recall(executeTx, calls, tx, fn, ...args) }
   try {
     if (!txRefs[tx]) {
@@ -65,15 +66,15 @@ const executeTx = async (configs, tx, fn, ...args) => {
     }
   } catch (e) {
     console.error(e);
-    if (configs.callAttempts > 0) {
-      console.log(`Trying again. ${configs.callAttempts} more attempts left.`);
-      await executeTx(configs.callAttempts - 1, tx, fn, ...args);
+    if (calls > 0) {
+      console.log(`Trying again. ${calls} more attempts left.`);
+      await executeTx(calls - 1, tx, fn, ...args);
     } else {
       console.log('Looks like something is broken!');
       return;
     }
   }
-  await sleep(scriptConfigs);
+  await sleep(sleepConfigs);
 }
 
 const deployContractsAndGeneratePfcore = async () => {
@@ -86,66 +87,67 @@ const deployContractsAndGeneratePfcore = async () => {
     try {
       // Deploy Strategy contract
       console.log(`Deploying ${txRefs['name']}...`);
-      await executeTx(scriptConfigs, 'strategy', StrategyFactory.deploy.bind(StrategyFactory), governance, strategist, controller, timelock);
+      await executeTx(callAttempts, 'strategy', StrategyFactory.deploy.bind(StrategyFactory), governance, strategist, controller, timelock);
       console.log(`✔️ Strategy deployed at: ${txRefs['strategy'].address} `);
 
       // Get Want
-      await sleep(scriptConfigs);
+      await sleep(sleepConfigs);
       txRefs['want'] = await txRefs['strategy'].want();
 
       // Log Want
       console.log(`Want address is: ${txRefs['want']} `);
-      console.log(`Approving want token for deposit...`);
-      await sleep(scriptConfigs);
+      await sleep(sleepConfigs);
       txRefs['wantContract'] = await ethers.getContractAt("ERC20", txRefs['want']);
 
-      // Check if Want already has a Jar
-      const jarCheck = await executeTx(scriptConfigs, 'jarCheckTx', Controller.jars, txRefs['want']);
-
-      console.log("PING", jarCheck);
+      // Check if Want already has a Jar on Controller
+      await sleep(sleepConfigs);
+      const jarCheck = await Controller.jars(txRefs['want']);
 
       if (!jarCheck) {
         // Deploy PickleJar contract
-        await executeTx(scriptConfigs, 'jar', PickleJarFactory.deploy.bind(PickleJarFactory), txRefs['want'], governance, timelock, controller);
+        await executeTx(callAttempts, 'jar', PickleJarFactory.deploy.bind(PickleJarFactory), txRefs['want'], governance, timelock, controller);
         console.log(`✔️ PickleJar deployed at: ${txRefs['jar'].address} `);
 
         // Set Jar
-        await executeTx(scriptConfigs, 'setJarTx', Controller.setJar, txRefs['want'], txRefs['jar'].address);
+        await executeTx(callAttempts, 'setJarTx', Controller.setJar, txRefs['want'], txRefs['jar'].address);
         console.log(`Jar Set!`);
 
         // Approve Want
-        await executeTx(scriptConfigs, 'approveTx', txRefs['wantContract'].approve, txRefs['jar'].address, ethers.constants.MaxUint256);
+        console.log(`Approving want token for deposit...`);
+        await executeTx(callAttempts, 'approveTx', txRefs['wantContract'].approve, txRefs['jar'].address, ethers.constants.MaxUint256);
         console.log(`✔️ Successfully approved Jar to spend want`);
+      } else {
+        console.log(`Jar for this want already exists`);
       }
 
       // Approve Strategy
-      await executeTx(scriptConfigs, 'approveStratTx', Controller.approveStrategy, txRefs['want'], txRefs['strategy'].address);
+      await executeTx(callAttempts, 'approveStratTx', Controller.approveStrategy, txRefs['want'], txRefs['strategy'].address);
       console.log(`Strategy Approved!`);
 
       // Set Strategy
-      await executeTx(scriptConfigs, 'setStratTx', Controller.setStrategy, txRefs['want'], txRefs['strategy'].address);
+      await executeTx(callAttempts, 'setStratTx', Controller.setStrategy, txRefs['want'], txRefs['strategy'].address);
       console.log(`Strategy Set!`);
       console.log(`✔️ Controller params all set!`);
 
       // Deposit Want
       console.log(`Depositing in Jar...`);
-      await executeTx(scriptConfigs, 'depositTx', txRefs['jar'].depositAll)
+      await executeTx(callAttempts, 'depositTx', txRefs['jar'].depositAll)
       console.log(`✔️ Successfully deposited want in Jar`);
 
       // Call Earn
       console.log(`Calling earn...`);
-      await executeTx(scriptConfigs, 'earnTx', txRefs['jar'].earn);
+      await executeTx(callAttempts, 'earnTx', txRefs['jar'].earn);
       console.log(`✔️ Successfully called earn`);
 
       //Push Strategy to be verified
       testedStrategies.push(txRefs['strategy'].address)
 
       // Call Harvest
-      console.log(`Waiting for ${scriptConfigs.sleepTime * 4 / 1000} seconds before harvesting...`);
-      await sleep(scriptConfigs.sleepTime * 4);
-      await executeTx(scriptConfigs, 'harvestTx', txRefs['strategy'].harvest);
+      console.log(`Waiting for ${sleepConfigs.sleepTime * 4 / 1000} seconds before harvesting...`);
+      await sleep(sleepConfigs.sleepTime * 4);
+      await executeTx(callAttempts, 'harvestTx', txRefs['strategy'].harvest);
 
-      await sleep(scriptConfigs);
+      await sleep(sleepConfigs);
       txRefs['ratio'] = await txRefs['jar'].getRatio();
 
       if (txRefs['ratio'].gt(BigNumber.from(parseEther("1")))) {
@@ -172,7 +174,7 @@ const deployContractsAndGeneratePfcore = async () => {
       }
 
       console.log(`Whitelisting harvester at ${harvester}`);
-      await executeTx(scriptConfigs, 'whitelistHarvestersTx', txRefs['strategy'].whitelistHarvesters, harvester);
+      await executeTx(callAttempts, 'whitelistHarvestersTx', txRefs['strategy'].whitelistHarvesters, harvester);
 
       // Script Report
       const report =
