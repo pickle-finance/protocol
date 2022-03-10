@@ -40,7 +40,7 @@ contract StrategyRoseFraxPool is StrategyRoseFarmStableBase {
     }
 
     // **** State Mutations ****
-    function harvestFour() public override {
+    function harvestThree() public override {
         uint256 _threePool = IERC20(three_pool_lp).balanceOf(address(this));
         if (_threePool > 0) {
             // The FRAX pool accepts [FRAX, 3Pool]
@@ -50,7 +50,7 @@ contract StrategyRoseFraxPool is StrategyRoseFarmStableBase {
         }
     }
 
-    function harvestFive() public {
+    function harvestFour() public {
         // We want to get back Rose LP tokens
         _distributePerformanceFeesAndDeposit();
     }

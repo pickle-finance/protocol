@@ -39,7 +39,7 @@ contract StrategyRoseUstPool is StrategyRoseFarmStableBase {
     }
 
     // **** State Mutations ****
-    function harvestFour() public override {
+    function harvestThree() public override {
         uint256 _threePool = IERC20(three_pool_lp).balanceOf(address(this));
         if (_threePool > 0) {
             // The UST pool accepts [UST, 3Pool]
@@ -49,7 +49,7 @@ contract StrategyRoseUstPool is StrategyRoseFarmStableBase {
         }
     }
 
-    function harvestFive() public {
+    function harvestFour() public {
         // We want to get back Rose LP tokens
         _distributePerformanceFeesAndDeposit();
     }

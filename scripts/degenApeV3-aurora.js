@@ -10,7 +10,7 @@ const fs = require("fs");
 const sleepToggle = true;
 const sleepTime = 10000;
 const callAttempts = 3;
-const generatePfcore = true;
+const generatePfcore = false;
 
 // Pf-core generation configs
 const outputFolder = 'scripts/degenApeV3Outputs';
@@ -42,11 +42,13 @@ const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const harvester = ["0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf"];
 
 const contracts = [
-  "src/strategies/near/rose/strategy-$rose-$frax-lp.sol:StrategyRoseFraxLp",
-  "src/strategies/near/rose/strategy-$pad-$rose-lp.sol:StrategyPadRoseLp"
+  // "src/strategies/near/rose/strategy-$rose-$frax-lp.sol:StrategyRoseFraxLp",
+  // "src/strategies/near/rose/strategy-$pad-$rose-lp.sol:StrategyPadRoseLp"
+  "src/strategies/near/rose/strategy-rose-frax-pool.sol:StrategyRoseFraxPool"
 ];
 
 const testedStrategies = [
+  "0x87d7c426c4bF35A28D54ae34891E00Cdc8635dce"
 ];
 
 // Functions
@@ -431,7 +433,7 @@ ${allReports.join('\n')}
 };
 
 const main = async () => {
-  await deployContractsAndGeneratePfcore();
+  // await deployContractsAndGeneratePfcore();
   // await fastVerifyContracts(testedStrategies);
   await slowVerifyContracts(testedStrategies);
 };
