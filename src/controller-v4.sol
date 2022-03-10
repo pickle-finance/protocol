@@ -126,7 +126,7 @@ contract ControllerV4 {
         require(approvedStrategies[_token][_strategy] == true, "!approved");
 
         address _current = strategies[_token];
-        address _balance = IERC20(_current).balanceOf(_token);
+        address _balance = IERC20(_token).balanceOf(_current);
         if (_current != address(0) && _balance > 0) {
             IStrategy(_current).withdrawAll();
         }
