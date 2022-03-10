@@ -3,7 +3,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-zip-farm-dual-base.sol";
 
-contract StrategyZipEthgOHMLp is StrategyZipFarmDualBase {
+contract StrategyZipEthGohmLp is StrategyZipFarmDualBase {
     uint256 public constant eth_gohm_poolid = 5;
     // Token addresses
     address public constant eth_gohm_lp =
@@ -18,22 +18,25 @@ contract StrategyZipEthgOHMLp is StrategyZipFarmDualBase {
     )
         public
         StrategyZipFarmDualBase(
+            extraRewardBool,
+            gohm,
             eth_gohm_lp,
             eth_gohm_poolid,
-            gohm,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {
-        swapRoutes[weth] = [zip, weth];
+        extraRewardBool = true;
+        extraReward = gohm;
         swapRoutes[gohm] = [zip, weth, gohm];
+        swapRoutes[weth] = [gohm, weth];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyZipEthgOHMLp";
+        return "StrategyZipEthGohmLp";
     }
 }

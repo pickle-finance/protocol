@@ -1,3 +1,5 @@
+
+
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-ethers");
@@ -8,8 +10,9 @@ require("hardhat-contract-sizer");
 const { removeConsoleLog } = require("hardhat-preprocessor");
 require("dotenv").config();
 
+
 module.exports = {
-  defaultNetwork: "optimism",
+  defaultNetwork: "aurora",
   solidity: {
     compilers: [
       {
@@ -35,7 +38,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://mainnet.optimism.io`,
+        url: `https://ftmrpc.ultimatenodes.io/`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -69,6 +72,15 @@ module.exports = {
       accounts: [`0x${process.env.MNEMONIC}`],
       gas: 4000000
     },
+    aurora: {
+      url: `https://mainnet.aurora.dev/`,
+      accounts: [`0x${process.env.MNEMONIC}`],
+    },
+    xdai: {
+      url: `https://rpc.xdaichain.com/`,
+      accounts: [`0x${process.env.MNEMONIC}`],
+      gasPrice: 10000000000,
+    },
     optimism: {
       url: `https://mainnet.optimism.io`,
       accounts: [`0x${process.env.MNEMONIC}`],
@@ -79,7 +91,11 @@ module.exports = {
     runOnCompile: false,
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_APIKEY,
+    apiKey: {
+      mainnet: `${process.env.ETHERSCAN_APIKEY}`,
+      aurora: `${process.env.AURORASCAN_APIKEY}`,
+      xdai: `${process.env.GNOSIS_APIKEY}`,
+    },
   },
   paths: {
     sources: "./src",

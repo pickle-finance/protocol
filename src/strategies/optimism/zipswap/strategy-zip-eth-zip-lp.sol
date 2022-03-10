@@ -19,6 +19,7 @@ contract StrategyZipEthZipLp is StrategyZipFarmBase {
         StrategyZipFarmBase(
             eth_zip_lp,
             eth_zip_poolid,
+            eth_zip_lp,
             _governance,
             _strategist,
             _controller,
