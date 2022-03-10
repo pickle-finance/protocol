@@ -114,7 +114,7 @@ const deployContractsAndGeneratePfcore = async () => {
 
       if (jar) {
         // Deploy PickleJar contract
-        const jar = await executeTx(sleepConfigurations, callAttempts, PickleJarFactory.deploy.bind(PickleJarFactory), want, governance, timelock, controller);
+        const jar = await deployContract(sleepConfigurations, callAttempts, PickleJarFactory.deploy.bind(PickleJarFactory), want, governance, timelock, controller);
         console.log(`✔️ PickleJar deployed at: ${jar.address} `);
 
         // Set Jar
