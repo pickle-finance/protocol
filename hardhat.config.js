@@ -9,7 +9,7 @@ const { removeConsoleLog } = require("hardhat-preprocessor");
 require("dotenv").config();
 
 module.exports = {
-  defaultNetwork: "fantom",
+  defaultNetwork: "optimism",
   solidity: {
     compilers: [
       {
@@ -35,7 +35,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://ftmrpc.ultimatenodes.io/`,
+        url: `https://mainnet.optimism.io`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -68,6 +68,10 @@ module.exports = {
       url: `https://rpc.ftm.tools/`,
       accounts: [`0x${process.env.MNEMONIC}`],
       gas: 4000000
+    },
+    optimism: {
+      url: `https://mainnet.optimism.io`,
+      accounts: [`0x${process.env.MNEMONIC}`],
     }
   },
   contractSizer: {
