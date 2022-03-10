@@ -31,7 +31,6 @@ contract StrategyTriStnearNearLp is StrategyTriDualFarmBaseV2 {
             _timelock
         )
     {
-        extraReward = meta;
         swapRoutes[stnear] = [tri, near, stnear];
         swapRoutes[near] = [stnear, near];
         IERC20(meta).approve(wannaRouter, uint256(-1));
@@ -46,8 +45,6 @@ contract StrategyTriStnearNearLp is StrategyTriDualFarmBaseV2 {
     }
 
     function harvestTwo() public override onlyBenevolent {
-        uint256 _extraReward = IERC20(extraReward).balanceOf(address(this));
-        uint256 _tri = IERC20(tri).balanceOf(address(this));
         uint256 _meta = IERC20(meta).balanceOf(address(this));
 
         if (_tri > 0 && _meta > 0) {
