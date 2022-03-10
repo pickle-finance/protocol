@@ -20,6 +20,9 @@ abstract contract StrategyTriDualFarmBaseV2 is StrategyBase {
     uint256 public keepTRI = 1000;
     uint256 public constant keepTRIMax = 10000;
 
+    uint256 public keepREWARD = 1000;
+    uint256 public constant keepREWARDMax = 10000;
+
     uint256 public poolId;
     mapping(address => address[]) public swapRoutes;
 
@@ -112,7 +115,7 @@ abstract contract StrategyTriDualFarmBaseV2 is StrategyBase {
         IMiniChefTri(miniChef).harvest(poolId, address(this));
     }
 
-    function harvestTwo() public onlyBenevolent {
+    function harvestTwo() public virtual onlyBenevolent {
         uint256 _extraReward = IERC20(extraReward).balanceOf(address(this));
         uint256 _tri = IERC20(tri).balanceOf(address(this));
 

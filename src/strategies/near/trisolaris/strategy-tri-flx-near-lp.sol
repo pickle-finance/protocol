@@ -29,7 +29,7 @@ contract StrategyTriFlxNearLp is StrategyTriDualFarmBaseV2 {
     {
         extraReward = flx;
         swapRoutes[flx] = [tri, near, flx];
-        swapRoutes[near] = [tri, near];
+        swapRoutes[near] = [flx, near];
     }
 
     // **** Views ****

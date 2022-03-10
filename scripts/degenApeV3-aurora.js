@@ -28,7 +28,7 @@ const outputFolder = 'scripts/degenApeV3Outputs';
 // @param - componentNames: The underlying tokens names of the lp. These will be added
 // by the script from the strategy address.
 // @param - componentAddresses: The underlying token addresses of the lp. These will be added
-const pfcoreArgs = { chain: "aurora", protocols: ["tri"], extraTags: [], liquidityURL: "https://www.trisolaris.io/#/add/", rewardTokens: ["tri"], jarCode: "1m", farmAddress: "", componentNames: [], componentAddresses: [] };
+const pfcoreArgs = { chain: "aurora", protocols: ["tri"], extraTags: [], liquidityURL: "https://www.trisolaris.io/#/add/", rewardTokens: ["tri"], jarCode: "1o", farmAddress: "", componentNames: [], componentAddresses: [] };
 
 // References
 let txRefs = {};
@@ -46,6 +46,7 @@ const contracts = [
 ];
 
 const testedStrategies = [
+  "0xFEfBB3CeacAB3a682C34E25A1b4A330771D46b0D"
 ];
 
 // Functions
@@ -318,9 +319,6 @@ const deployContractsAndGeneratePfcore = async () => {
     const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
     const Controller = await ethers.getContractAt("src/controller-v4.sol:ControllerV4", controller);
     txRefs['name'] = contract.substring(contract.lastIndexOf(":") + 1);
-    console.log("PING1", StrategyFactory);
-    console.log("PING2", PickleJarFactory);
-    console.log("PING3", Controller);
 
     try {
       // Deploy Strategy contract
@@ -373,12 +371,10 @@ const deployContractsAndGeneratePfcore = async () => {
       // Call Harvest
       console.log(`Waiting for ${sleepTime * 4 / 1000} seconds before harvesting...`);
       await sleep(sleepTime * 4);
-      await executeTx(callAttempts, 'harvestTx', txRefs['strategy'].harvestOne);
-      await executeTx(callAttempts, 'harvestTx', txRefs['strategy'].harvestTwo);
-      await executeTx(callAttempts, 'harvestTx', txRefs['strategy'].harvestThree);
-      await executeTx(callAttempts, 'harvestTx', txRefs['strategy'].harvestFour);
-      await executeTx(callAttempts, 'harvestTx', txRefs['strategy'].harvestFive);
-      await executeTx(callAttempts, 'harvestTx', txRefs['strategy'].harvestSix);
+      await executeTx(callAttempts, 'harvestTx1', txRefs['strategy'].harvestOne);
+      await executeTx(callAttempts, 'harvestTx2', txRefs['strategy'].harvestTwo);
+      await executeTx(callAttempts, 'harvestTx3', txRefs['strategy'].harvestThree);
+      await executeTx(callAttempts, 'harvestTx4', txRefs['strategy'].harvestFour);
 
       await sleep(sleepTime, sleepToggle);
       txRefs['ratio'] = await txRefs['jar'].getRatio();
@@ -441,7 +437,7 @@ ${allReports.join('\n')}
 
 const main = async () => {
   await deployContractsAndGeneratePfcore();
-  await fastVerifyContracts(testedStrategies);
+  // await fastVerifyContracts(testedStrategies);
   // await slowVerifyContracts(testedStrategies);
 };
 

@@ -11,6 +11,7 @@ contract StrategyTriStnearXtriLp is StrategyTriDualFarmBaseV2 {
         0x48887cEEA1b8AD328d5254BeF774Be91B90FaA09;
     address public stnear = 0x07F9F7f963C5cD2BBFFd30CcfB964Be114332E30;
     address public xtri = 0x802119e4e253D5C19aA06A5d567C5a41596D6803;
+    address public meta = 0xc21Ff01229e982d7c8b8691163B0A3Cb8F357453;
 
     constructor(
         address _governance,
@@ -20,8 +21,7 @@ contract StrategyTriStnearXtriLp is StrategyTriDualFarmBaseV2 {
     )
         public
         StrategyTriDualFarmBaseV2(
-            stnear,
-            xtri,
+            meta,
             tri_stnear_xtri_poolid,
             tri_stnear_xtri_lp,
             _governance,

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-tri-base-dual-v2.sol";
+import "../strategy-tri-base-dual.sol";
 
-contract StrategyNearLunaLp is StrategyTriDualFarmBaseV2 {
+contract StrategyNearLunaLp is StrategyTriDualFarmBase {
     // Token/ETH pool id in MasterChef contract
     uint256 public near_luna_poolid = 2;
     // Token addresses
@@ -17,7 +17,7 @@ contract StrategyNearLunaLp is StrategyTriDualFarmBaseV2 {
         address _timelock
     )
         public
-        StrategyTriDualFarmBaseV2(
+        StrategyTriDualFarmBase(
             near,
             luna,
             near_luna_poolid,
@@ -28,7 +28,6 @@ contract StrategyNearLunaLp is StrategyTriDualFarmBaseV2 {
             _timelock
         )
     {
-        extraReward = 0xC4bdd27c33ec7daa6fcfd8532ddB524Bf4038096;
         swapRoutes[luna] = [tri, near, luna];
         swapRoutes[near] = [tri, near];
     }
