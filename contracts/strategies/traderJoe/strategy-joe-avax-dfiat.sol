@@ -6,7 +6,7 @@ import "../strategy-joe-rush-farm-base.sol";
 /// @notice The strategy contract for TraderJoe's AVAX/DFIAT Liquidity Pool with JOE and DFIAT rewards
 contract StrategyJoeAvaxDfiat is StrategyJoeRushFarmBase {
     // LP and Token addresses
-    uint256 public lp_poolId = 56;
+    uint256 public lp_poolId = 58;
     address public joe_avax_dfiat_lp = 0x7Ca8e6a11466f8542f2b65B845C77D425182CbDe;
     
     address public dfiat = 0xAfE3d2A31231230875DEe1fa1eEF14a412443d22;

@@ -3,10 +3,10 @@ pragma solidity ^0.6.7;
 
 import "../strategy-joe-rush-farm-base.sol";
 
-/// @notice The strategy contract for TraderJoe's AVAX/MONEY Liquidity Pool with JOE and MORE rewards
+/// @notice The strategy contract for TraderJoe's AVAX/MONEy Liquidity Pool with JOE and MORE rewards
 contract StrategyJoeAvaxMoney is StrategyJoeRushFarmBase {
     // LP and Token addresses
-    uint256 public lp_poolId = 56;
+    uint256 public lp_poolId = 57;
     address public joe_avax_money_lp = 0x66D12e1cb13EAbAB21f1Fb6628B1Ef33C6dED5a7;
     
     address public money = 0x0f577433Bf59560Ef2a79c124E9Ff99fCa258948;
@@ -81,21 +81,21 @@ contract StrategyJoeAvaxMoney is StrategyJoeRushFarmBase {
             _joe = IERC20(joe).balanceOf(address(this));
         }
 
-        // In the case of AVAX Rewards, swap half WAVAX for MONEY
+        // In the case of AVAX Rewards, swap half WAVAX for MONEy
         if(_wavax > 0){
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
             _swapTraderJoe(wavax, money, _wavax.div(2)); 
         }
 
-        // In the case of MONEY Rewards, swap half MONEY for WAVAX
+        // In the case of MONEy Rewards, swap half MONEy for WAVAX
         if(_money > 0){
             IERC20(money).safeApprove(joeRouter, 0);
             IERC20(money).safeApprove(joeRouter, _money.div(2));   
             _swapTraderJoe(money, wavax, _money.div(2)); 
         }
 
-        // In the case of MORE Rewards, swap MORE for WAVAX and MONEY
+        // In the case of MORE Rewards, swap MORE for WAVAX and MONEy
         if(_more > 0){
             IERC20(more).safeApprove(joeRouter, 0);
             IERC20(more).safeApprove(joeRouter, _more);
@@ -103,7 +103,7 @@ contract StrategyJoeAvaxMoney is StrategyJoeRushFarmBase {
             _swapTraderJoe(more, money, _more.div(2));
         }
 
-        // In the case of JOE Rewards, swap JOE for WAVAX and MONEY
+        // In the case of JOE Rewards, swap JOE for WAVAX and MONEy
         if(_joe > 0){
             IERC20(joe).safeApprove(joeRouter, 0);
             IERC20(joe).safeApprove(joeRouter, _joe);
@@ -111,7 +111,7 @@ contract StrategyJoeAvaxMoney is StrategyJoeRushFarmBase {
             _swapTraderJoe(joe, money, _joe.div(2));
         }
         
-        // Add liquidity for AVAX/MONEY
+        // Add liquidity for AVAX/MONEy
         _wavax = IERC20(wavax).balanceOf(address(this));
         _money = IERC20(money).balanceOf(address(this));
         if (_wavax > 0 && _money > 0) {

@@ -3,14 +3,13 @@ pragma solidity ^0.6.7;
 
 import "../strategy-joe-rush-farm-base.sol";
 
-/// @notice The strategy contract for TraderJoe's AVAX/CRAFT Liquidity Pool with JOE and ??? rewards
+/// @notice The strategy contract for TraderJoe's AVAX/CRAFT Liquidity Pool with JOE and CRAFT rewards
 contract StrategyJoeAvaxCraft is StrategyJoeRushFarmBase {
     // LP and Token addresses
-    uint256 public lp_poolId = 56;
-    address public joe_avax_craft_lp = ;
+    uint256 public lp_poolId = 20;
+    address public joe_avax_craft_lp = 0x86D1b1Ab4812a104BC1Ea1FbD07809DE636E6C6b;
     
     address public craft = 0x8aE8be25C23833e0A01Aa200403e826F611f9CD2;
-    address public ??? = ;
     
     /// @notice Constructor
     constructor(
@@ -148,4 +147,4 @@ contract StrategyJoeAvaxCraft is StrategyJoeRushFarmBase {
     function getName() external override pure returns (string memory) {
         return "StrategyJoeAvaxCraft";
     }
-}h
+}
