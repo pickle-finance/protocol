@@ -180,6 +180,7 @@ export async function takeSomeFees(harvester: Function, assetContract: Contract,
     const treasuryBefore = await assetContract.connect(walletSigner).balanceOf(treasury_addr);
     const snobBefore = await snobContract.balanceOf(treasury_addr);
     log(`snobBefore: ${snobBefore.toString()}`);
+    log(`globeBefore: ${globeBefore.toString()}`);
 
     let initialBalance;
     [, initialBalance] = await harvester();
@@ -192,6 +193,7 @@ export async function takeSomeFees(harvester: Function, assetContract: Contract,
     const treasuryAfter = await assetContract.connect(walletSigner).balanceOf(treasury_addr);
     const snobAfter = await snobContract.balanceOf(treasury_addr);
     log(`snobAfter: ${snobAfter.toString()}`);
+    log(`globeAfter: ${globeAfter.toString()}`);
     const earnt = globeAfter.sub(globeBefore);
     const earntTTreasury = treasuryAfter.sub(treasuryBefore);
     const snobAccrued = snobAfter.sub(snobBefore);

@@ -226,10 +226,46 @@ const tests = [
     //     name: "PngAvaxTus",
     //     controller: "main"
     // },
+    // {
+    //     name: "PngAvaxSavax",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxDep",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxZee",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxFire",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxAcre",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxBava",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxOddz",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxFeed",
+    //     controller: "main"
+    // },
     {
-        name: "PngAvaxSavax",
+        name: "PngAvaxBribe",
         controller: "main"
     },
+    {
+        name: "PngUstDlaunch",
+        controller: "main"
+    }
 ];
 
 describe("Pangolin LP test", function() {

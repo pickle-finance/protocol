@@ -114,8 +114,23 @@ const tests = [
     //     controller: "traderJoe",
     //     slot: 1
     // }
+    // {
+    //     name: "JoeAvaxSavax",
+    //     controller: "traderJoe",
+    //     slot: 1
+    // }
+    // {
+    //     name: "JoeAvaxFief",
+    //     controller: "traderJoe",
+    //     slot: 1
+    // }
     {
-        name: "JoeAvaxSavax",
+        name: "JoeAvaxEcd",
+        controller: "traderJoe",
+        slot: 1
+    },
+    {
+        name: "JoeAvaxVtx",
         controller: "traderJoe",
         slot: 1
     }

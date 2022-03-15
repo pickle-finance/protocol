@@ -24,7 +24,7 @@ export const FoldTestDefault: TestableStrategy = {
 export const SingleStakeTestDefault: TestableStrategy = {
     type: "SS",
     name: "",
-    lp_suffix: true,
+    lp_suffix: false,
     controller: "main",
     snowglobeAddress: "",
     strategyAddress: "",

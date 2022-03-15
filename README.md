@@ -46,6 +46,22 @@ npx hardhat test
 
 > To learn more about the tests available and how to run them, click [here](test/README.md).
 
+To find the slot of a token, install and run the slot20 tool (https://github.com/kendricktan/slot20):
+
+```
+npm i slot20
+```
+In another terminal, start a hardhat fork:
+
+```
+npx hardhat node --fork https://api.avax.network/ext/bc/C/rpc
+```
+
+then, run:
+```
+slot20 balanceOf <token address> <token holder>
+```
+
 ---
 
 ## Deployments

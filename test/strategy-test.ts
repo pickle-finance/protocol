@@ -84,7 +84,7 @@ export function doStrategyTest(test_case: TestableStrategy) {
             log(`impersonating account: ${wallet_addr}`);
             walletSigner = await returnSigner(wallet_addr);
             [timelockSigner, strategistSigner, governanceSigner] = await setupSigners(timelockIsStrategist);
-
+            
             // Add a new case here when including a new family of folding strategies
             controller_addr = returnController(controller);
             Controller = await ethers.getContractAt("ControllerV4", controller_addr, governanceSigner);

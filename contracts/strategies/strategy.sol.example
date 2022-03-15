@@ -1,0 +1,131 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.7;
+
+// Import the appropriate base contract
+import "../strategy-joe-rush-farm-base.sol";
+
+/// @title LP Strategy Example Contract
+/// @author 0xYeti
+/// @notice Contracts use NatSpec Format comments. NatSpec documentation is located here: https://docs.soliditylang.org/en/develop/natspec-format.html
+/// @notice The strategy contract for TraderJoe's FirstToken/SecondToken Liquidity Pool with double rewards
+contract StrategyJoeFirstTokenSecondToken is StrategyJoeRushFarmBase {
+    // LP and Token addresses
+    uint256 public lp_poolId = 10;
+    address public joe_token_lp_address = 0x1000000000;
+    
+    // Addresses for tokens not found in the base contracts
+    address public secondToken = 0x2000000000;
+    address public firstReward = 0x300000000;
+
+    /// @notice Constructor
+    /// @param _governance The wallet which will be given ownership of this strategy
+    /// @param _strategist The wallet which will be given strategist role for this strategy
+    /// @param _controller The contract which will be set as the controller for this strategy 
+    /// @param _timelock The contract acting as timelock for this strategy
+    constructor(
+        address _governance,
+        address _strategist,
+        address _controller,
+        address _timelock
+    )
+        public
+        StrategyJoeRushFarmBase(
+            lp_poolId,
+            joe_token_lp_address,
+            _governance,
+            _strategist,
+            _controller,
+            _timelock
+        )
+    {}
+
+    /// @notice Collect token fees, swap rewards, and add liquidity to base pair
+    /// @dev Ensure the deposit function interfaces with the correct controller for your platform (Joe, Pangolin, etc.)
+    function harvest() public override onlyBenevolent {
+        IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
+        
+        // Get balance of native AVAX and wrap AVAX into ERC20 (WAVAX)
+        // This function is necessary whenever dealing with AVAX
+        // Variables preceded with an underscore (_avax) represent the numerical quantity of that variable
+        uint256 _avax = address(this).balance;
+        if (_avax > 0) {                                    
+            WAVAX(wavax).deposit{value: _avax}();
+        }
+        
+        // Check token balances, take fee for each token, then update balances
+        // The contract will require one balanceOf() call and one if() block per token
+        // Example: the JoeAvaxSavax contract has 4 tokens; AVAX, sAVAX, QI, and JOE
+        uint256 _firstToken = IERC20(firstToken).balanceOf(address(this));
+        
+        if (_firstToken > 0) {
+            uint256 _keep = _firstToken.mul(keep).div(keepMax);
+            if (_keep > 0){
+                // Check the imported base contract and strategy-base.sol contracts for the appropriate
+                // fee function for the token. Tokens may reqire a specific path to exchange for SNOB
+                _takeFeeWavaxToSnob(_keep);
+            }
+            
+            _firstToken = IERC20(firstToken).balanceOf(address(this));
+        }
+
+        // Swap base pair rewards for the other token
+        // In the case of firstToken Rewards, swap half firstToken for secondToken
+        if(_firstToken > 0){
+            IERC20(firstToken).safeApprove(joeRouter, 0);
+            IERC20(firstToken).safeApprove(joeRouter, _firstToken.div(2)); 
+            //  Use the swap function appropriate to your platform. Future swaps will utilize our dex aggregator
+            _swapTraderJoe(firstToken, secondToken, _firstToken.div(2)); 
+        }
+
+        // In the case of firstReward Rewards, swap firstReward for firstToken and secondToken
+        if(_firstReward > 0){
+            IERC20(firstReward).safeApprove(joeRouter, 0);
+            IERC20(firstReward).safeApprove(joeRouter, _firstReward);   
+            _swapTraderJoe(firstReward, firstToken, _firstReward.div(2));
+            _swapTraderJoe(firstReward, secondToken, _firstReward.div(2));
+        }
+ 
+        // Add liquidity for firstToken/secondToken
+        _firstToken = IERC20(firstToken).balanceOf(address(this));
+        _secondToken = IERC20(secondToken).balanceOf(address(this));
+        if (_firstToken > 0 && _secondToken > 0) {
+            IERC20(firstToken).safeApprove(joeRouter, 0);
+            IERC20(firstToken).safeApprove(joeRouter, _firstToken);
+
+            IERC20(secondToken).safeApprove(joeRouter, 0);
+            IERC20(secondToken).safeApprove(joeRouter, _secondToken);
+
+            IJoeRouter(joeRouter).addLiquidity(
+                firstToken,
+                secondToken,
+                _firstToken,
+                _secondToken,
+                0,
+                0,
+                address(this),
+                now + 60
+            );
+
+            // Just as with the fee and swap functions above, one balanceOf() and one if() block reqired per token
+            // Check balances and donate dust to the treasury
+            _firstToken = IERC20(firstToken).balanceOf(address(this));
+            
+            if (_firstToken > 0){
+                IERC20(firstToken).transfer(
+                    IController(controller).treasury(),
+                    _firstToken
+                );
+            }
+
+             
+        }
+
+        _distributePerformanceFeesAndDeposit();
+    }
+
+    // For our deployment and test scripts to work correctly, the contract name returned from getName()
+    // must match the contract name on line 11
+    function getName() external override pure returns (string memory) {
+        return "StrategyJoefirstTokensecondToken";
+    }
+}
