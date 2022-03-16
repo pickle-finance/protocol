@@ -9,16 +9,16 @@ const {
 const {getWantFromWhale} = require("../../utils/setupHelper");
 const {BigNumber: BN} = require("ethers");
 
-describe("StrategyFraxDAI", () => {
-  const FRAX_DAI_POOL = "0x97e7d56A0408570bA1a7852De36350f7713906ec";
-  const FRAX_DAI_GAUGE = "0xF22471AC2156B489CC4a59092c56713F813ff53e";
+describe("StrategyFraxUSDC", () => {
+  const FRAX_USDC_POOL = "0xc63B0708E2F7e69CB8A1df0e1389A98C35A76D52";
+  const FRAX_USDC_GAUGE = "0x3EF26504dbc8Dd7B7aa3E97Bc9f3813a9FC0B4B0";
   const FraxToken = "0x853d955acef822db058eb8505911ed77f175b99e";
-  const DAIToken = "0x6b175474e89094c44da98b954eedeac495271d0f";
+  const USDCToken = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
   const FXSToken = "0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0";
   const SMARTCHECKER = "0x53c13BA8834a1567474b19822aAD85c6F90D9f9F";
 
   let alice;
-  let frax, dai, fxs, fraxDeployer, escrow;
+  let frax, usdc, fxs, fraxDeployer, escrow;
   let strategy, pickleJar, controller, proxyAdmin, strategyProxy, locker, veFxsVault;
   let smartChecker;
   let governance, strategist, devfund, treasury, timelock;
@@ -73,29 +73,29 @@ describe("StrategyFraxDAI", () => {
     await strategyProxy.setLocker(locker.address);
 
     strategy = await deployContract(
-      "StrategyFraxDaiUniV3",
+      "StrategyFraxUsdcUniV3",
       governance.address,
       strategist.address,
       newController.address,
       timelock.address
     );
     await strategy.connect(governance).setStrategyProxy(strategyProxy.address);
-    await strategyProxy.approveStrategy(FRAX_DAI_GAUGE, strategy.address);
+    await strategyProxy.approveStrategy(FRAX_USDC_GAUGE, strategy.address);
 
     pickleJar = await deployContract(
       "PickleJarStablesUniV3",
-      "pickling Frax/DAI Jar",
-      "pFraxDAI",
-      FRAX_DAI_POOL,
+      "pickling Frax/USDC Jar",
+      "pFraxUSDC",
+      FRAX_USDC_POOL,
       governance.address,
       timelock.address,
       newController.address
     );
     console.log("✅ PickleJar is deployed at ", pickleJar.address);
 
-    await newController.connect(governance).setJar(FRAX_DAI_POOL, pickleJar.address);
-    await newController.connect(governance).approveStrategy(FRAX_DAI_POOL, strategy.address);
-    await newController.connect(governance).setStrategy(FRAX_DAI_POOL, strategy.address);
+    await newController.connect(governance).setJar(FRAX_USDC_POOL, pickleJar.address);
+    await newController.connect(governance).approveStrategy(FRAX_USDC_POOL, strategy.address);
+    await newController.connect(governance).setStrategy(FRAX_USDC_POOL, strategy.address);
 
     veFxsVault = await deployContract("veFXSVault");
     console.log("✅ veFxsVault is deployed at ", veFxsVault.address);
@@ -107,27 +107,21 @@ describe("StrategyFraxDAI", () => {
     await strategyProxy.setFXSVault(veFxsVault.address);
 
     frax = await getContractAt("ERC20", FraxToken);
-    dai = await getContractAt("ERC20", DAIToken);
+    usdc = await getContractAt("ERC20", USDCToken);
     fxs = await getContractAt("ERC20", FXSToken);
 
     await getWantFromWhale(FraxToken, toWei(100000), alice, "0x820A9eb227BF770A9dd28829380d53B76eAf1209");
-
-    await getWantFromWhale(DAIToken, toWei(100000), alice, "0x921760e71fb58dcc8de902ce81453e9e3d7fe253");
-
+    await getWantFromWhale(USDCToken, "100000000000000", alice, "0xE78388b4CE79068e89Bf8aA7f218eF6b9AB0e9d0");
     await getWantFromWhale(FraxToken, toWei(100000), bob, "0x820A9eb227BF770A9dd28829380d53B76eAf1209");
-
-    await getWantFromWhale(DAIToken, toWei(100000), bob, "0x921760e71fb58dcc8de902ce81453e9e3d7fe253");
-
+    await getWantFromWhale(USDCToken, "100000000000000", bob, "0xE78388b4CE79068e89Bf8aA7f218eF6b9AB0e9d0");
     await getWantFromWhale(FraxToken, toWei(100000), charles, "0x820A9eb227BF770A9dd28829380d53B76eAf1209");
-
-    await getWantFromWhale(DAIToken, toWei(100000), charles, "0x921760e71fb58dcc8de902ce81453e9e3d7fe253");
-
+    await getWantFromWhale(USDCToken, "100000000000000", charles, "0xE78388b4CE79068e89Bf8aA7f218eF6b9AB0e9d0");
     await getWantFromWhale(FXSToken, toWei(100000), alice, "0xF977814e90dA44bFA03b6295A0616a897441aceC");
 
     // transfer FXS to distributor
     fxs.connect(alice).transfer("0x278dc748eda1d8efef1adfb518542612b49fcd34", toWei(10000));
     // transfer FXS to gauge
-    fxs.connect(alice).transfer("0xF22471AC2156B489CC4a59092c56713F813ff53e", toWei(10000));
+    fxs.connect(alice).transfer(FRAX_USDC_GAUGE, toWei(10000));
   });
 
   it("should harvest correctly", async () => {
@@ -154,11 +148,11 @@ describe("StrategyFraxDAI", () => {
     console.log("Alice share amount => ", aliceShare.toString());
 
     console.log("===============Alice partial withdraw==============");
-    console.log("Alice dai balance before withdrawal => ", (await dai.balanceOf(alice.address)).toString());
+    console.log("Alice usdc balance before withdrawal => ", (await usdc.balanceOf(alice.address)).toString());
     console.log("Alice frax balance before withdrawal => ", (await frax.balanceOf(alice.address)).toString());
     await pickleJar.connect(alice).withdraw(aliceShare.div(BN.from(2)));
 
-    console.log("Alice dai balance after withdrawal => ", (await dai.balanceOf(alice.address)).toString());
+    console.log("Alice usdc balance after withdrawal => ", (await usdc.balanceOf(alice.address)).toString());
     console.log("Alice frax balance after withdrawal => ", (await frax.balanceOf(alice.address)).toString());
 
     await increaseTime(60 * 60 * 24 * 1); //travel 14 days
@@ -171,11 +165,11 @@ describe("StrategyFraxDAI", () => {
     await deposit(charles, depositA, depositB);
 
     console.log("===============Bob withdraw==============");
-    console.log("Bob dai balance before withdrawal => ", (await dai.balanceOf(bob.address)).toString());
+    console.log("Bob usdc balance before withdrawal => ", (await usdc.balanceOf(bob.address)).toString());
     console.log("Bob frax balance before withdrawal => ", (await frax.balanceOf(bob.address)).toString());
     await pickleJar.connect(bob).withdrawAll();
 
-    console.log("Bob dai balance after withdrawal => ", (await dai.balanceOf(bob.address)).toString());
+    console.log("Bob usdc balance after withdrawal => ", (await usdc.balanceOf(bob.address)).toString());
     console.log("Bob frax balance after withdrawal => ", (await frax.balanceOf(bob.address)).toString());
 
     await harvest();
@@ -186,32 +180,32 @@ describe("StrategyFraxDAI", () => {
     await increaseTime(60 * 60 * 24 * 1); //travel 14 days
 
     console.log("=============== Controller withdraw ===============");
-    console.log("PickleJar dai balance before withdrawal => ", (await dai.balanceOf(pickleJar.address)).toString());
+    console.log("PickleJar usdc balance before withdrawal => ", (await usdc.balanceOf(pickleJar.address)).toString());
     console.log("PickleJar frax balance before withdrawal => ", (await frax.balanceOf(pickleJar.address)).toString());
 
-    await controller.withdrawAll(FRAX_DAI_POOL);
+    await controller.withdrawAll(FRAX_USDC_POOL);
 
-    console.log("PickleJar dai balance after withdrawal => ", (await dai.balanceOf(pickleJar.address)).toString());
+    console.log("PickleJar usdc balance after withdrawal => ", (await usdc.balanceOf(pickleJar.address)).toString());
     console.log("PickleJar frax balance after withdrawal => ", (await frax.balanceOf(pickleJar.address)).toString());
 
     console.log("===============Alice Full withdraw==============");
 
-    console.log("Alice dai balance before withdrawal => ", (await dai.balanceOf(alice.address)).toString());
+    console.log("Alice usdc balance before withdrawal => ", (await usdc.balanceOf(alice.address)).toString());
     console.log("Alice frax balance before withdrawal => ", (await frax.balanceOf(alice.address)).toString());
     await pickleJar.connect(alice).withdrawAll();
 
-    console.log("Alice dai balance after withdrawal => ", (await dai.balanceOf(alice.address)).toString());
+    console.log("Alice usdc balance after withdrawal => ", (await usdc.balanceOf(alice.address)).toString());
     console.log("Alice frax balance after withdrawal => ", (await frax.balanceOf(alice.address)).toString());
 
     // await harvest();
     // await increaseTime(60 * 60 * 24 * 1); //travel 14 days
 
     console.log("=============== charles withdraw ==============");
-    console.log("Charles dai balance before withdrawal => ", (await dai.balanceOf(charles.address)).toString());
+    console.log("Charles usdc balance before withdrawal => ", (await usdc.balanceOf(charles.address)).toString());
     console.log("Charles frax balance before withdrawal => ", (await frax.balanceOf(charles.address)).toString());
     await pickleJar.connect(charles).withdrawAll();
 
-    console.log("Charles dai balance after withdrawal => ", (await dai.balanceOf(charles.address)).toString());
+    console.log("Charles usdc balance after withdrawal => ", (await usdc.balanceOf(charles.address)).toString());
     console.log("Charles frax balance after withdrawal => ", (await frax.balanceOf(charles.address)).toString());
 
     // console.log("=============== Alice redeposit ==============");
@@ -226,31 +220,31 @@ describe("StrategyFraxDAI", () => {
 
     // console.log("===============Alice final withdraw==============");
 
-    // console.log("Alice dai balance before withdrawal => ", (await dai.balanceOf(alice.address)).toString());
+    // console.log("Alice usdc balance before withdrawal => ", (await usdc.balanceOf(alice.address)).toString());
     // console.log("Alice frax balance before withdrawal => ", (await frax.balanceOf(alice.address)).toString());
     // await pickleJar.connect(alice).withdrawAll();
 
-    // console.log("Alice dai balance after withdrawal => ", (await dai.balanceOf(alice.address)).toString());
+    // console.log("Alice usdc balance after withdrawal => ", (await usdc.balanceOf(alice.address)).toString());
     // console.log("Alice frax balance after withdrawal => ", (await frax.balanceOf(alice.address)).toString());
 
     console.log("------------------ Finished -----------------------");
 
-    console.log("Treasury dai balance => ", (await dai.balanceOf(treasury.address)).toString());
+    console.log("Treasury usdc balance => ", (await usdc.balanceOf(treasury.address)).toString());
     console.log("Treasury frax balance => ", (await frax.balanceOf(treasury.address)).toString());
 
-    console.log("Strategy dai balance => ", (await dai.balanceOf(strategy.address)).toString());
+    console.log("Strategy usdc balance => ", (await usdc.balanceOf(strategy.address)).toString());
     console.log("Strategy frax balance => ", (await frax.balanceOf(strategy.address)).toString());
     console.log("Strategy fxs balance => ", (await fxs.balanceOf(strategy.address)).toString());
 
-    console.log("PickleJar dai balance => ", (await dai.balanceOf(pickleJar.address)).toString());
+    console.log("PickleJar usdc balance => ", (await usdc.balanceOf(pickleJar.address)).toString());
     console.log("PickleJar frax balance => ", (await frax.balanceOf(pickleJar.address)).toString());
     console.log("PickleJar fxs balance => ", (await fxs.balanceOf(pickleJar.address)).toString());
 
-    console.log("Locker dai balance => ", (await dai.balanceOf(locker.address)).toString());
+    console.log("Locker usdc balance => ", (await usdc.balanceOf(locker.address)).toString());
     console.log("Locker frax balance => ", (await frax.balanceOf(locker.address)).toString());
     console.log("Locker fxs balance => ", (await fxs.balanceOf(locker.address)).toString());
 
-    console.log("StrategyProxy dai balance => ", (await dai.balanceOf(strategyProxy.address)).toString());
+    console.log("StrategyProxy usdc balance => ", (await usdc.balanceOf(strategyProxy.address)).toString());
     console.log("StrategyProxy frax balance => ", (await frax.balanceOf(strategyProxy.address)).toString());
     console.log("StrategyProxy fxs balance => ", (await fxs.balanceOf(strategyProxy.address)).toString());
   });
@@ -265,26 +259,26 @@ describe("StrategyFraxDAI", () => {
     await harvest();
 
     await increaseTime(60 * 60 * 24 * 1); //travel 14 days
-    console.log("PickleJar dai balance before withdrawal => ", (await dai.balanceOf(pickleJar.address)).toString());
+    console.log("PickleJar usdc balance before withdrawal => ", (await usdc.balanceOf(pickleJar.address)).toString());
     console.log("PickleJar frax balance before withdrawal => ", (await frax.balanceOf(pickleJar.address)).toString());
 
-    await controller.withdrawAll(FRAX_DAI_POOL);
+    await controller.withdrawAll(FRAX_usdc_POOL);
 
-    console.log("PickleJar dai balance after withdrawal => ", (await dai.balanceOf(pickleJar.address)).toString());
+    console.log("PickleJar usdc balance after withdrawal => ", (await usdc.balanceOf(pickleJar.address)).toString());
     console.log("PickleJar frax balance after withdrawal => ", (await frax.balanceOf(pickleJar.address)).toString());
 
-    console.log("Alice dai balance before withdrawal => ", (await dai.balanceOf(alice.address)).toString());
+    console.log("Alice usdc balance before withdrawal => ", (await usdc.balanceOf(alice.address)).toString());
     console.log("Alice frax balance before withdrawal => ", (await frax.balanceOf(alice.address)).toString());
 
     await pickleJar.connect(alice).withdrawAll();
 
-    console.log("Alice dai balance after withdrawal => ", (await dai.balanceOf(alice.address)).toString());
+    console.log("Alice usdc balance after withdrawal => ", (await usdc.balanceOf(alice.address)).toString());
     console.log("Alice frax balance after withdrawal => ", (await frax.balanceOf(alice.address)).toString());
   });
 */
   const deposit = async (user, depositA, depositB) => {
-    await dai.connect(user).approve(pickleJar.address, depositA);
-    await frax.connect(user).approve(pickleJar.address, depositB);
+    await usdc.connect(user).approve(pickleJar.address, "999999999999999999999999999999999999");
+    await frax.connect(user).approve(pickleJar.address, "999999999999999999999999999999999999");
     console.log("depositA => ", depositA.toString());
     console.log("depositB => ", depositB.toString());
 
@@ -306,6 +300,7 @@ describe("StrategyFraxDAI", () => {
 
   const getAmountB = async (amountA) => {
     const proportion = await pickleJar.getProportion();
+    console.log("Proportion: ", proportion.toString());
     const amountB = amountA.mul(proportion).div(hre.ethers.BigNumber.from("1000000000000000000"));
     return amountB;
   };

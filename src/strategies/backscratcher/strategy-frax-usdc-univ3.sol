@@ -29,8 +29,8 @@ contract StrategyFraxUsdcUniV3 is StrategyFraxUniV3Base {
         public
         StrategyFraxUniV3Base(
             frax_usdc_pool,
-            -50,
-            50,
+            -276380,
+            -276270,
             _governance,
             _strategist,
             _controller,
