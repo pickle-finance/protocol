@@ -14,15 +14,13 @@ abstract contract StrategyVVSFarmBase is StrategyBase {
     address public token1;
 
     // How much VVS tokens to keep?
-    uint256 public keepVVS = 1000;
+    uint256 public keepVVS = 420;
     uint256 public constant keepVVSMax = 10000;
 
     uint256 public poolId;
     mapping(address => address[]) public uniswapRoutes;
 
     constructor(
-        address _token0,
-        address _token1,
         uint256 _poolId,
         address _lp,
         address _governance,
@@ -35,8 +33,8 @@ abstract contract StrategyVVSFarmBase is StrategyBase {
     {
         sushiRouter = 0x145863Eb42Cf62847A6Ca784e6416C1682b1b2Ae;
         poolId = _poolId;
-        token0 = _token0;
-        token1 = _token1;
+        token0 = IUniswapV2Pair(want).token0();
+        token1 = IUniswapV2Pair(want).token1();
     }
 
     function balanceOfPool() public view override returns (uint256) {

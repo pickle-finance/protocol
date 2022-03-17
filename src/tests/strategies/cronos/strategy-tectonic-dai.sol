@@ -5,7 +5,7 @@ pragma solidity ^0.6.7;
 import "../../lib/hevm.sol";
 import "../../lib/user.sol";
 import "../../lib/test-approx.sol";
-import "../../lib/test-defi-base.sol";
+import "../../lib/cronos/test-defi-base.sol";
 
 import "../../../interfaces/compound.sol";
 
@@ -64,7 +64,7 @@ contract StrategyTectonicDai is DSTestDefiBase {
     }
 
     function testFail_cmpnd_dai_v3_onlyKeeper_leverage() public {
-        _getERC20(want, 100e18);
+        _getERC20WithETH(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
         pickleJar.deposit(_want);
@@ -74,7 +74,7 @@ contract StrategyTectonicDai is DSTestDefiBase {
     }
 
     function testFail_cmpnd_dai_v3_onlyKeeper_deleverage() public {
-        _getERC20(want, 100e18);
+        _getERC20WithETH(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
         pickleJar.deposit(_want);
@@ -85,7 +85,7 @@ contract StrategyTectonicDai is DSTestDefiBase {
     }
 
     function test_cmpnd_dai_v3_comp_accrued() public {
-        _getERC20(want, 1000000e18);
+        _getERC20WithETH(want, 1000000e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
         pickleJar.deposit(_want);
@@ -105,7 +105,7 @@ contract StrategyTectonicDai is DSTestDefiBase {
     }
 
     function test_cmpnd_dai_v3_comp_sync() public {
-        _getERC20(want, 1000000e18);
+        _getERC20WithETH(want, 1000000e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
         pickleJar.deposit(_want);
@@ -133,7 +133,7 @@ contract StrategyTectonicDai is DSTestDefiBase {
     }
 
     function test_cmpnd_dai_v3_leverage() public {
-        _getERC20(want, 100e18);
+        _getERC20WithETH(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
         pickleJar.deposit(_want);
@@ -170,7 +170,7 @@ contract StrategyTectonicDai is DSTestDefiBase {
     }
 
     function test_cmpnd_dai_v3_deleverage() public {
-        _getERC20(want, 100e18);
+        _getERC20WithETH(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
         pickleJar.deposit(_want);
@@ -193,7 +193,7 @@ contract StrategyTectonicDai is DSTestDefiBase {
     }
 
     function test_cmpnd_dai_v3_withdrawSome() public {
-        _getERC20(want, 100e18);
+        _getERC20WithETH(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
         pickleJar.deposit(_want);
@@ -227,7 +227,7 @@ contract StrategyTectonicDai is DSTestDefiBase {
     }
 
     function test_cmpnd_dai_v3_withdrawAll() public {
-        _getERC20(want, 100e18);
+        _getERC20WithETH(want, 100e18);
 
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
@@ -259,7 +259,7 @@ contract StrategyTectonicDai is DSTestDefiBase {
     }
 
     function test_cmpnd_dai_v3_earn_harvest_rewards() public {
-        _getERC20(want, 100e18);
+        _getERC20WithETH(want, 100e18);
 
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
@@ -302,7 +302,7 @@ contract StrategyTectonicDai is DSTestDefiBase {
     }
 
     function test_cmpnd_dai_v3_functions() public {
-        _getERC20(want, 100e18);
+        _getERC20WithETH(want, 100e18);
 
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
@@ -355,7 +355,7 @@ contract StrategyTectonicDai is DSTestDefiBase {
     }
 
     function test_cmpnd_dai_v3_deleverage_stepping() public {
-        _getERC20(want, 100e18);
+        _getERC20WithETH(want, 100e18);
         uint256 _want = IERC20(want).balanceOf(address(this));
         IERC20(want).approve(address(pickleJar), _want);
         pickleJar.deposit(_want);
