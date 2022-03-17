@@ -11,34 +11,34 @@ const tests = [
     //     fold: true,
     //     controller: "aave",
     // },
-    {
-        name: "AaveUsdc",
-        fold: true,
-        controller: "optimizer",
-    },
-    {
-        name: "AaveUsdt",
-        fold: false,
-        controller: "optimizer",
-        slot: 0
-    },
-    {
-        name: "AaveWbtc",
-        slot: 0,
-        fold: true,
-        controller: "optimizer",
-    },
-    {
-        name: "AaveWeth",
-        slot: 0,
-        fold: true,
-        controller: "optimizer",
-    },
     // {
-    //     name: "AaveWavax",
-    //     controller:"optimizer",
-    //     slot: 3
+    //     name: "AaveUsdc",
+    //     fold: true,
+    //     controller: "optimizer",
     // },
+    // {
+    //     name: "AaveUsdt",
+    //     fold: false,
+    //     controller: "optimizer",
+    //     slot: 0
+    // },
+    // {
+    //     name: "AaveWbtc",
+    //     slot: 0,
+    //     fold: true,
+    //     controller: "optimizer",
+    // },
+    // {
+    //     name: "AaveWeth",
+    //     slot: 0,
+    //     fold: true,
+    //     controller: "optimizer",
+    // },
+    {
+        name: "AaveWavax",
+        controller:"optimizer",
+        slot: 3
+    },
 
 ];
 
