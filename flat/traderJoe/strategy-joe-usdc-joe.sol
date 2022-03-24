@@ -1929,18 +1929,18 @@ abstract contract StrategyJoeBoostFarmBase is StrategyJoeBase{
 }
 
 
-// File contracts/strategies/traderJoe/strategy-joe-avax-mim.sol
+// File contracts/strategies/traderJoe/strategy-joe-usdc-joe.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-/// @notice This is the strategy contract for TraderJoe's Avax-Mim pair with Joe rewards
-contract StrategyJoeAvaxMim is StrategyJoeBoostFarmBase {
-    // Token and LP contract addresses
-    address public mim = 0x130966628846BFd36ff31a822705796e8cb8C18D; 
-    address public avaxMimLp=  0x781655d802670bbA3c89aeBaaEa59D3182fD755D;
+/// @notice This is the strategy contract for TraderJoe's Usdc-Joe pair which reapos joe rewards
+contract StrategyJoeUsdcJoe is StrategyJoeBoostFarmBase {
+    // Token and LP contract adresses
+    address public usdc = 0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E;
+    address public usdcJoeLp =  0x3bc40d4307cD946157447CD55d70ee7495bA6140;
 
-    uint256 public lpPoolId = 4; 
+    uint256 public lpPoolId = 7; 
 
     constructor (
         address _governance,
@@ -1951,7 +1951,7 @@ contract StrategyJoeAvaxMim is StrategyJoeBoostFarmBase {
     public
     StrategyJoeBoostFarmBase(
         lpPoolId,
-        avaxMimLp, 
+        usdcJoeLp, 
         _governance,
         _strategist,
         _controller,
@@ -1975,37 +1975,35 @@ contract StrategyJoeAvaxMim is StrategyJoeBoostFarmBase {
         // ** Swap all our reward tokens for wavax ** //
         uint256 _joe = IERC20(joe).balanceOf(address(this));            // get balance of joe tokens
         if(_joe > 0) {
-            _swapToWavax(joe, _joe);
+            uint256 _keep = _joe.mul(keep).div(keepMax); 
+           if (_keep > 0) {
+               _takeFeeJoeToSnob(_keep); 
+           }
         }
 
-        // ** Takes the fee and swaps for equal shares in our lp token ** // 
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));            
-        if (_wavax > 0) {
-            uint256 _keep = _wavax.mul(keep).div(keepMax); 
-            if (_keep > 0) {
-               _takeFeeWavaxToSnob(_keep); 
-
-               _wavax = IERC20(wavax).balanceOf(address(this));
-               _swapTraderJoe(wavax, mim, _wavax.div(2));                     
-            }
+        // ** Takes the fee and swaps half for USDC for equal shares in our lp token ** // 
+        _joe = IERC20(joe).balanceOf(address(this));            
+        if (_joe > 0) {
+            _joe = IERC20(joe).balanceOf(address(this));
+            _swapTraderJoe(joe, usdc, _joe.div(2) );                  
         }
 
-        // ** Adds liqudity for the AVAX-MIM LP ** //
-        _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _mim = IERC20(mim).balanceOf(address(this));
-        if (_wavax > 0 && _mim > 0) {
-            IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax);
+        // ** Adds liqudity for the JOE-USDC LP ** //
+        _joe = IERC20(joe).balanceOf(address(this));
+        uint256 _usdc = IERC20(usdc).balanceOf(address(this));
+        if (_joe > 0 && _usdc > 0) {
+            IERC20(joe).safeApprove(joeRouter, 0);
+            IERC20(joe).safeApprove(joeRouter, _joe);
 
-            IERC20(mim).safeApprove(joeRouter, 0);
-            IERC20(mim).safeApprove(joeRouter, _mim);
+            IERC20(usdc).safeApprove(joeRouter, 0);
+            IERC20(usdc).safeApprove(joeRouter, _usdc);
             
-            ///@dev see IJoeRouter contract for param definitions
+            ///@dev see IJoeRouter contract for param definitions 
             IJoeRouter(joeRouter).addLiquidity(
-                wavax,
-                mim,
-                _wavax,
-                _mim,
+                joe,
+                usdc,
+                _joe,
+                _usdc,
                 0,
                 0,
                 address(this),
@@ -2013,9 +2011,9 @@ contract StrategyJoeAvaxMim is StrategyJoeBoostFarmBase {
             );
         }
 
-         // ** Donates DUST ** // 
-            _wavax = IERC20(wavax).balanceOf(address(this));
-            _mim = IERC20(mim).balanceOf(address(this));
+            // ** Donates DUST ** // 
+            uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+            _usdc = IERC20(usdc).balanceOf(address(this));
             _joe = IERC20(joe).balanceOf(address(this));
             if (_wavax > 0){
                 IERC20(wavax).transfer(
@@ -2023,17 +2021,16 @@ contract StrategyJoeAvaxMim is StrategyJoeBoostFarmBase {
                     _wavax
                 );
             }
-            if (_mim > 0){
-                IERC20(mim).safeTransfer(
-                    IController(controller).treasury(),
-                    _mim
-                );
-            }
-
             if (_joe > 0){
                 IERC20(joe).safeTransfer(
                     IController(controller).treasury(),
                     _joe
+                );
+            }
+            if (_usdc > 0){
+                IERC20(usdc).safeTransfer(
+                    IController(controller).treasury(),
+                    _usdc
                 );
             }
 
@@ -2041,8 +2038,8 @@ contract StrategyJoeAvaxMim is StrategyJoeBoostFarmBase {
     }
 
     // **** Views ****
-    ///@notice Returns the strategy name
+    ///@notice Returns the strategy
     function getName() external pure override returns (string memory) {
-        return "StrategyJoeAvaxMim";
+        return "StrategyJoeUsdcJoe";
     }
 }

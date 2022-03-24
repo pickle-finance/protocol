@@ -3,13 +3,13 @@ pragma solidity ^0.6.7;
 
 import "../bases/strategy-joe-boost-farm.sol";
 
-/// @notice This is the strategy contract for TraderJoe's Avax-WbtcE pair with Joe rewards
-contract StrategyJoeAvaxWbtcE is StrategyJoeBoostFarmBase {
-    // Token and LP contract addresses
-    address public wbtce = 0x50b7545627a5162F82A992c33b87aDc75187B218; 
-    address public avaxWbtceLp=  0xd5a37dC5C9A396A03dd1136Fc76A1a02B1c88Ffa;
+/// @notice This is the strategy contract for TraderJoe's Usdc-Joe pair which reapos joe rewards
+contract StrategyJoeUsdcJoe is StrategyJoeBoostFarmBase {
+    // Token and LP contract adresses
+    address public usdc = 0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E;
+    address public usdcJoeLp =  0x3bc40d4307cD946157447CD55d70ee7495bA6140;
 
-    uint256 public lpPoolId = 5; 
+    uint256 public lpPoolId = 7; 
 
     constructor (
         address _governance,
@@ -20,7 +20,7 @@ contract StrategyJoeAvaxWbtcE is StrategyJoeBoostFarmBase {
     public
     StrategyJoeBoostFarmBase(
         lpPoolId,
-        avaxWbtceLp, 
+        usdcJoeLp, 
         _governance,
         _strategist,
         _controller,
@@ -44,37 +44,35 @@ contract StrategyJoeAvaxWbtcE is StrategyJoeBoostFarmBase {
         // ** Swap all our reward tokens for wavax ** //
         uint256 _joe = IERC20(joe).balanceOf(address(this));            // get balance of joe tokens
         if(_joe > 0) {
-            _swapToWavax(joe, _joe);
+            uint256 _keep = _joe.mul(keep).div(keepMax); 
+           if (_keep > 0) {
+               _takeFeeJoeToSnob(_keep); 
+           }
         }
 
-        // ** Takes the fee and swaps for equal shares in our lp token ** // 
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));            
-        if (_wavax > 0) {
-            uint256 _keep = _wavax.mul(keep).div(keepMax); 
-            if (_keep > 0) {
-               _takeFeeWavaxToSnob(_keep); 
-
-               _wavax = IERC20(wavax).balanceOf(address(this));
-               _swapTraderJoe(wavax, wbtce, _wavax.div(2));                     
-            }
+        // ** Takes the fee and swaps half for USDC for equal shares in our lp token ** // 
+        _joe = IERC20(joe).balanceOf(address(this));            
+        if (_joe > 0) {
+            _joe = IERC20(joe).balanceOf(address(this));
+            _swapTraderJoe(joe, usdc, _joe.div(2) );                  
         }
 
-        // ** Adds liqudity for the AVAX-WBTCE LP ** //
-        _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _wbtce = IERC20(wbtce).balanceOf(address(this));
-        if (_wavax > 0 && _wbtce > 0) {
-            IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax);
+        // ** Adds liqudity for the JOE-USDC LP ** //
+        _joe = IERC20(joe).balanceOf(address(this));
+        uint256 _usdc = IERC20(usdc).balanceOf(address(this));
+        if (_joe > 0 && _usdc > 0) {
+            IERC20(joe).safeApprove(joeRouter, 0);
+            IERC20(joe).safeApprove(joeRouter, _joe);
 
-            IERC20(wbtce).safeApprove(joeRouter, 0);
-            IERC20(wbtce).safeApprove(joeRouter, _wbtce);
+            IERC20(usdc).safeApprove(joeRouter, 0);
+            IERC20(usdc).safeApprove(joeRouter, _usdc);
             
             ///@dev see IJoeRouter contract for param definitions 
             IJoeRouter(joeRouter).addLiquidity(
-                wavax,
-                wbtce,
-                _wavax,
-                _wbtce,
+                joe,
+                usdc,
+                _joe,
+                _usdc,
                 0,
                 0,
                 address(this),
@@ -83,8 +81,8 @@ contract StrategyJoeAvaxWbtcE is StrategyJoeBoostFarmBase {
         }
 
             // ** Donates DUST ** // 
-            _wavax = IERC20(wavax).balanceOf(address(this));
-            _wbtce = IERC20(wbtce).balanceOf(address(this));
+            uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+            _usdc = IERC20(usdc).balanceOf(address(this));
             _joe = IERC20(joe).balanceOf(address(this));
             if (_wavax > 0){
                 IERC20(wavax).transfer(
@@ -92,17 +90,16 @@ contract StrategyJoeAvaxWbtcE is StrategyJoeBoostFarmBase {
                     _wavax
                 );
             }
-            if (_wbtce > 0){
-                IERC20(wbtce).safeTransfer(
-                    IController(controller).treasury(),
-                    _wbtce
-                );
-            }
-
             if (_joe > 0){
                 IERC20(joe).safeTransfer(
                     IController(controller).treasury(),
                     _joe
+                );
+            }
+            if (_usdc > 0){
+                IERC20(usdc).safeTransfer(
+                    IController(controller).treasury(),
+                    _usdc
                 );
             }
 
@@ -110,8 +107,8 @@ contract StrategyJoeAvaxWbtcE is StrategyJoeBoostFarmBase {
     }
 
     // **** Views ****
-    ///@notice Returns the strategy name
+    ///@notice Returns the strategy
     function getName() external pure override returns (string memory) {
-        return "StrategyJoeAvaxWbtcE";
+        return "StrategyJoeUsdcJoe";
     }
 }

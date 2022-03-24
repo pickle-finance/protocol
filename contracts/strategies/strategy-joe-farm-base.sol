@@ -72,6 +72,9 @@ abstract contract StrategyJoeFarmBase is StrategyBase {
     ) internal {
         require(_to != address(0));
 
+        IERC20(_from).safeApprove(joeRouter, 0);
+        IERC20(_from).safeApprove(joeRouter, _amount);
+
         address[] memory path;
 
         if (_from == wavax || _to == wavax) {

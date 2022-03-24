@@ -145,7 +145,42 @@ const tests = [
     //     slot: 1
     // }
     {
+        name: "JoeAvaxEthE",
+        controller: "traderJoe",
+        slot: 1
+    },
+    {
+        name: "JoeAvaxJoe",
+        controller: "traderJoe",
+        slot: 1
+    },
+    {
         name: "JoeAvaxMim",
+        controller: "traderJoe",
+        slot: 1
+    },
+    {
+        name: "JoeAvaxUsdc",
+        controller: "traderJoe",
+        slot: 1
+    },
+    {
+        name: "JoeAvaxUsdcE",
+        controller: "traderJoe",
+        slot: 1
+    },
+    {
+        name: "JoeAvaxUsdtE",
+        controller: "traderJoe",
+        slot: 1
+    },
+    {
+        name: "JoeAvaxWbtcE",
+        controller: "traderJoe",
+        slot: 1
+    },
+    {
+        name: "JoeUsdcJoe",
         controller: "traderJoe",
         slot: 1
     }

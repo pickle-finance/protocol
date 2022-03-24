@@ -1,99 +1,117 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-joe-farm-base.sol";
+import "../bases/strategy-joe-boost-farm.sol";
 
-contract StrategyJoeAvaxUsdtELp is StrategyJoeFarmBase {
+/// @notice This is the strategy contract for TraderJoe's Avax-UsdtE pair with Joe rewards
+contract StrategyJoeAvaxUsdtE is StrategyJoeBoostFarmBase {
+    // Token and LP contract addresses
+    address public usdte = 0xc7198437980c041c805A1EDcbA50c1Ce5db95118; 
+    address public avaxUsdteLp=  0xeD8CBD9F0cE3C6986b22002F03c6475CEb7a6256;
 
-    uint256 public avax_usdt_poolId = 28;
+    uint256 public lpPoolId = 2; 
 
-    address public joe_avax_usdt_lp = 0xeD8CBD9F0cE3C6986b22002F03c6475CEb7a6256;
-    address public usdt = 0xc7198437980c041c805A1EDcbA50c1Ce5db95118;
-
-    constructor(
+    constructor (
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
     )
-        public
-        StrategyJoeFarmBase(
-            avax_usdt_poolId,
-            joe_avax_usdt_lp,
-            _governance,
-            _strategist,
-            _controller,
-            _timelock
-        )
+    public
+    StrategyJoeBoostFarmBase(
+        lpPoolId,
+        avaxUsdteLp, 
+        _governance,
+        _strategist,
+        _controller,
+        _timelock
+    )
     {}
 
-    // **** State Mutations ****
-
+    ///@notice ** Harvest our rewards from masterchef **
     function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But AVAX is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
 
-        // Collects Joe tokens
-        IMasterChefJoeV2(masterChefJoeV2).deposit(poolId, 0);
+        /// @param _pid is the pool id for the lp tokens
+        /// @param _amount is the amount to be deposited into masterchef
+        IMasterChefJoe(masterchefJoe).deposit(lpPoolId, 0);
 
-        uint256 _joe = IERC20(joe).balanceOf(address(this));
-        if (_joe > 0) {
-            // 10% is sent to treasury
-            uint256 _keep = _joe.mul(keep).div(keepMax);
-            uint256 _amount = _joe.sub(_keep).div(2);
-            if (_keep > 0) {
-                _takeFeeJoeToSnob(_keep);
-            }
-            IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _joe.sub(_keep));
-
-            _swapTraderJoe(joe, wavax, _amount);
-            _swapTraderJoe(joe, usdt, _amount);
+        // ** Wraps any AVAX that might be present into wavax ** //
+        uint256 _avax = address(this).balance;                 
+        if (_avax > 0) {                                       
+            WAVAX(wavax).deposit{value: _avax}();
         }
 
-        // Adds in liquidity for AVAX/USDT
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
+        // ** Swap all our reward tokens for wavax ** //
+        uint256 _joe = IERC20(joe).balanceOf(address(this));            // get balance of joe tokens
+        if(_joe > 0) {
+            _swapToWavax(joe, _joe);
+        }
 
-        uint256 _usdt = IERC20(usdt).balanceOf(address(this));
+        // ** Takes the fee and swaps for equal shares in our lp token ** // 
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));            
+        if (_wavax > 0) {
+            uint256 _keep = _wavax.mul(keep).div(keepMax); 
+            if (_keep > 0) {
+               _takeFeeWavaxToSnob(_keep); 
 
-        if (_wavax > 0 && _usdt > 0) {
+               _wavax = IERC20(wavax).balanceOf(address(this));
+               _swapTraderJoe(wavax, usdte, _wavax.div(2));                     
+            }
+        }
+
+        // ** Adds liqudity for the AVAX-USDTE LP ** //
+        _wavax = IERC20(wavax).balanceOf(address(this));
+        uint256 _usdte = IERC20(usdte).balanceOf(address(this));
+        if (_wavax > 0 && _usdte > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
 
-            IERC20(usdt).safeApprove(joeRouter, 0);
-            IERC20(usdt).safeApprove(joeRouter, _usdt);
-
+            IERC20(usdte).safeApprove(joeRouter, 0);
+            IERC20(usdte).safeApprove(joeRouter, _usdte);
+            
+            ///@dev see IJoeRouter contract for param definitions 
             IJoeRouter(joeRouter).addLiquidity(
                 wavax,
-                usdt,
+                usdte,
                 _wavax,
-                _usdt,
+                _usdte,
                 0,
                 0,
                 address(this),
                 now + 60
             );
-
-            // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                IERC20(wavax).balanceOf(address(this))
-            );
-            IERC20(usdt).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(usdt).balanceOf(address(this))
-            );
         }
 
-        _distributePerformanceFeesAndDeposit();
+            // ** Donates DUST ** // 
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _usdte = IERC20(usdte).balanceOf(address(this));
+            _joe = IERC20(joe).balanceOf(address(this));
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
+            if (_usdte > 0){
+                IERC20(usdte).safeTransfer(
+                    IController(controller).treasury(),
+                    _usdte
+                );
+            }
+
+            if (_joe > 0){
+                IERC20(joe).safeTransfer(
+                    IController(controller).treasury(),
+                    _joe
+                );
+            }
+
+        _distributePerformanceFeesAndDeposit();                 // redeposits lp 
     }
 
     // **** Views ****
-
-    function getName() external override pure returns (string memory) {
-        return "StrategyJoeAvaxUsdtELp";
+    ///@notice Returns the strategy name
+    function getName() external pure override returns (string memory) {
+        return "StrategyJoeAvaxUsdtE";
     }
 }

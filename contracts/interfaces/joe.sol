@@ -3,6 +3,14 @@ pragma solidity ^0.6.2;
 
 interface IJoeRouter {
 
+    ///@param tokenA is the first token in the lp
+    ///@param tokenB is the second token in the lp
+    ///@param amountADesired is the amount of token A to be deposited in the lp
+    ///@param amountBDesired is the amount of token B to be deposited in the lp
+    ///@param amountAMin is the minimum amount of token A we expect to be deposited in the lp
+    ///@param amountBMin is the minimum amount of token B we expect to be deposited in the lp
+    ///@param to address we're depositing to
+    ///@param deadline the timeout length of the addLiquidity call
     function addLiquidity(
         address tokenA,
         address tokenB,

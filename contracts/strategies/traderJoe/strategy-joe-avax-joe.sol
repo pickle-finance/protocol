@@ -1,98 +1,75 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-joe-rush-farm-base.sol";
+import "../bases/strategy-joe-boost-farm.sol";
 
-contract StrategyJoeAvaxJoeLp is StrategyJoeRushFarmBase {
+/// @notice This is the strategy contract for TraderJoe's Avax-Joe pair which reapos joe rewards
+contract StrategyJoeAvaxJoe is StrategyJoeBoostFarmBase {
+    
+    // Token and LP contract addresses
+    address public avaxJoeLp =  0x454E67025631C065d3cFAD6d71E6892f74487a15;
 
-    uint256 public avax_joe_poolId = 0;
+    uint256 public lpPoolId = 6; 
 
-    address public joe_avax_joe_lp = 0x454E67025631C065d3cFAD6d71E6892f74487a15;
-
-    constructor(
+    constructor (
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
     )
-        public
-        StrategyJoeRushFarmBase(
-            avax_joe_poolId,
-            joe_avax_joe_lp,
-            _governance,
-            _strategist,
-            _controller,
-            _timelock
-        )
+    public
+    StrategyJoeBoostFarmBase(
+        lpPoolId,
+        avaxJoeLp, 
+        _governance,
+        _strategist,
+        _controller,
+        _timelock
+    )
     {}
 
-    // **** State Mutations ****
-
+    ///@notice ** Harvest our rewards from masterchef **
     function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But AVAX is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
 
-        // Collects Joe tokens
-        IMasterChefJoeV2(masterChefJoeV3).deposit(poolId, 0);
+        /// @param _pid is the pool id for the lp tokens
+        /// @param _amount is the amount to be deposited into masterchef
+        IMasterChefJoe(masterchefJoe).deposit(lpPoolId, 0);
 
-        //Take Avax Rewards    
-        uint256 _avax = address(this).balance;            //get balance of native Avax
-        if (_avax > 0) {                                 //wrap avax into ERC20
+        // ** Wraps any AVAX that might be present into wavax ** //
+        uint256 _avax = address(this).balance;                 
+        if (_avax > 0) {                                       
             WAVAX(wavax).deposit{value: _avax}();
         }
-        
-        // Need to check _joe and _wavax levels at the same time to avoid 
-        // swapping what was just swapped
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _joe = IERC20(joe).balanceOf(address(this));
 
+        // ** Swap all our reward tokens for wavax ** //
+        uint256 _joe = IERC20(joe).balanceOf(address(this));            // get balance of joe tokens
+        if(_joe > 0) {
+            _swapToWavax(joe, _joe);
+        }
+
+        // ** Takes the fee and swaps for equal shares in our lp token ** // 
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));            
         if (_wavax > 0) {
-            uint256 _keep2 = _wavax.mul(keep).div(keepMax);
-            if (_keep2 > 0){
-                _takeFeeWavaxToSnob(_keep2);
-            }
-
-            _wavax = IERC20(wavax).balanceOf(address(this));
-
-            //convert Avax Rewards
-            IERC20(wavax).safeApprove(joeRouter, 0);
-            IERC20(wavax).safeApprove(joeRouter, _wavax.div(2));   
-            _swapTraderJoe(wavax, joe, _wavax.div(2));
-        }
-
-        // Take Joe Rewards
-        if (_joe > 0) {
-            // 10% is sent to treasury
-            uint256 _keep = _joe.mul(keep).div(keepMax);
+            uint256 _keep = _wavax.mul(keep).div(keepMax); 
             if (_keep > 0) {
-                _takeFeeJoeToSnob(_keep);
+               _takeFeeWavaxToSnob(_keep); 
+
+               _wavax = IERC20(wavax).balanceOf(address(this));
+               _swapTraderJoe(wavax, joe, _wavax.div(2));                     
             }
-
-            // Need to presume fees were taken properly here
-            // in order to avoid double swapping of joe
-            uint256 _amount = _joe.sub(_keep).div(2);
-
-            IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _amount);
-
-            _swapTraderJoe(joe, wavax, _amount);
         }
 
-        // Adds in liquidity for AVAX/JOE
+        // ** Adds liqudity for the AVAX-joe LP ** ///
         _wavax = IERC20(wavax).balanceOf(address(this));
-
         _joe = IERC20(joe).balanceOf(address(this));
-
         if (_wavax > 0 && _joe > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
 
             IERC20(joe).safeApprove(joeRouter, 0);
             IERC20(joe).safeApprove(joeRouter, _joe);
-
+            
+            ///@dev see IJoeRouter contract for param definitions
             IJoeRouter(joeRouter).addLiquidity(
                 wavax,
                 joe,
@@ -103,30 +80,30 @@ contract StrategyJoeAvaxJoeLp is StrategyJoeRushFarmBase {
                 address(this),
                 now + 60
             );
-
-            // Donates DUST
-            _wavax = IERC20(wavax).balanceOf(address(this));
-            _joe = IERC20(joe).balanceOf(address(this));
-            if (_wavax > 0){
-                IERC20(wavax).transfer(
-                    IController(controller).treasury(),
-                    _wavax
-                );
-            }
-            if (_joe > 0){
-                IERC20(joe).safeTransfer(
-                    IController(controller).treasury(),
-                    _joe
-                );
-            }
         }
 
-        _distributePerformanceFeesAndDeposit();
+        // ** Donates DUST ** // 
+        _wavax = IERC20(wavax).balanceOf(address(this));
+        _joe = IERC20(joe).balanceOf(address(this));
+        if (_wavax > 0){
+            IERC20(wavax).transfer(
+                IController(controller).treasury(),
+                _wavax
+            );
+        }
+        if (_joe > 0){
+            IERC20(joe).safeTransfer(
+                IController(controller).treasury(),
+                _joe
+            );
+        }
+
+        _distributePerformanceFeesAndDeposit();                 // redeposits lp 
     }
 
     // **** Views ****
-
-    function getName() external override pure returns (string memory) {
-        return "StrategyJoeAvaxJoeLp";
+    ///@notice returns the strategy name
+    function getName() external pure override returns (string memory) {
+        return "StrategyJoeAvaxJoe";
     }
 }

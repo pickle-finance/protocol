@@ -1,73 +1,75 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "../strategy-joe-farm-base.sol";
-import "../../interfaces/wavax.sol";
+import "../bases/strategy-joe-boost-farm.sol";
 
-contract StrategyJoeAvaxMim is StrategyJoeFarmBase {
+/// @notice This is the strategy contract for TraderJoe's Avax-Mim pair with Joe rewards
+contract StrategyJoeAvaxMim is StrategyJoeBoostFarmBase {
+    // Token and LP contract addresses
+    address public mim = 0x130966628846BFd36ff31a822705796e8cb8C18D; 
+    address public avaxMimLp=  0x781655d802670bbA3c89aeBaaEa59D3182fD755D;
 
-    uint256 public avax_mim_poolId = 43;
+    uint256 public lpPoolId = 4; 
 
-    address public joe_avax_mim_lp = 0x781655d802670bbA3c89aeBaaEa59D3182fD755D;
-    address public mim = 0x130966628846BFd36ff31a822705796e8cb8C18D;
-
-    constructor(
+    constructor (
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
     )
-        public
-        StrategyJoeFarmBase(
-            avax_mim_poolId,
-            joe_avax_mim_lp,
-            _governance,
-            _strategist,
-            _controller,
-            _timelock
-        )
+    public
+    StrategyJoeBoostFarmBase(
+        lpPoolId,
+        avaxMimLp, 
+        _governance,
+        _strategist,
+        _controller,
+        _timelock
+    )
     {}
 
-    // **** State Mutations ****
-
+    ///@notice ** Harvest our rewards from masterchef **
     function harvest() public override onlyBenevolent {
-        // Collects Joe tokens
-        IMasterChefJoeV2(masterChefJoeV2).deposit(poolId, 0);
 
-        // Take Avax Rewards    
-        uint256 _avax = address(this).balance;              // get balance of native AVAX
-        if (_avax > 0) {                                    // wrap AVAX into ERC20
+        /// @param _pid is the pool id for the lp tokens
+        /// @param _amount is the amount to be deposited into masterchef
+        IMasterChefJoe(masterchefJoe).deposit(lpPoolId, 0);
+
+        // ** Wraps any AVAX that might be present into wavax ** //
+        uint256 _avax = address(this).balance;                 
+        if (_avax > 0) {                                       
             WAVAX(wavax).deposit{value: _avax}();
         }
 
-        uint256 _joe = IERC20(joe).balanceOf(address(this));
-        if (_joe > 0) {
-            // 10% is sent to treasury
-            uint256 _keep = _joe.mul(keep).div(keepMax);
-            if (_keep > 0) {
-                _takeFeeJoeToSnob(_keep);
-            }
-
-            _joe = IERC20(joe).balanceOf(address(this));
-
-            IERC20(joe).safeApprove(joeRouter, 0);
-            IERC20(joe).safeApprove(joeRouter, _joe);
-
-            _swapTraderJoe(joe, wavax, _joe.div(2));
-            _swapTraderJoe(joe, mim, _joe.div(2));
+        // ** Swap all our reward tokens for wavax ** //
+        uint256 _joe = IERC20(joe).balanceOf(address(this));            // get balance of joe tokens
+        if(_joe > 0) {
+            _swapToWavax(joe, _joe);
         }
 
-        // Adds in liquidity for AVAX/WBTC
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _mim = IERC20(mim).balanceOf(address(this));
+        // ** Takes the fee and swaps for equal shares in our lp token ** // 
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));            
+        if (_wavax > 0) {
+            uint256 _keep = _wavax.mul(keep).div(keepMax); 
+            if (_keep > 0) {
+               _takeFeeWavaxToSnob(_keep); 
 
+               _wavax = IERC20(wavax).balanceOf(address(this));
+               _swapTraderJoe(wavax, mim, _wavax.div(2));                     
+            }
+        }
+
+        // ** Adds liqudity for the AVAX-MIM LP ** //
+        _wavax = IERC20(wavax).balanceOf(address(this));
+        uint256 _mim = IERC20(mim).balanceOf(address(this));
         if (_wavax > 0 && _mim > 0) {
             IERC20(wavax).safeApprove(joeRouter, 0);
             IERC20(wavax).safeApprove(joeRouter, _wavax);
 
             IERC20(mim).safeApprove(joeRouter, 0);
             IERC20(mim).safeApprove(joeRouter, _mim);
-
+            
+            ///@dev see IJoeRouter contract for param definitions
             IJoeRouter(joeRouter).addLiquidity(
                 wavax,
                 mim,
@@ -78,26 +80,38 @@ contract StrategyJoeAvaxMim is StrategyJoeFarmBase {
                 address(this),
                 now + 60
             );
-
-            _wavax = IERC20(wavax).balanceOf(address(this));
-            _mim = IERC20(mim).balanceOf(address(this));
-            // Donates DUST
-            IERC20(wavax).transfer(
-                IController(controller).treasury(),
-                _wavax
-            );
-            IERC20(mim).safeTransfer(
-                IController(controller).treasury(),
-                _mim
-            );
         }
 
-        _distributePerformanceFeesAndDeposit();
+         // ** Donates DUST ** // 
+            _wavax = IERC20(wavax).balanceOf(address(this));
+            _mim = IERC20(mim).balanceOf(address(this));
+            _joe = IERC20(joe).balanceOf(address(this));
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
+            if (_mim > 0){
+                IERC20(mim).safeTransfer(
+                    IController(controller).treasury(),
+                    _mim
+                );
+            }
+
+            if (_joe > 0){
+                IERC20(joe).safeTransfer(
+                    IController(controller).treasury(),
+                    _joe
+                );
+            }
+
+        _distributePerformanceFeesAndDeposit();                 // redeposits lp 
     }
 
     // **** Views ****
-
-    function getName() external override pure returns (string memory) {
+    ///@notice Returns the strategy name
+    function getName() external pure override returns (string memory) {
         return "StrategyJoeAvaxMim";
     }
 }
