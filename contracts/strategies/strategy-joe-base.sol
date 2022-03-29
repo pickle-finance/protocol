@@ -193,6 +193,7 @@ abstract contract StrategyJoeBase {
     function withdraw(uint256 _amount) external {
         require(msg.sender == controller, "!controller");
         uint256 _balance = IERC20(want).balanceOf(address(this));
+       
         if (_balance < _amount) {
             _amount = _withdrawSome(_amount.sub(_balance));
             _amount = _amount.add(_balance);
@@ -211,10 +212,10 @@ abstract contract StrategyJoeBase {
             _feeTreasury
         );
 
-        address _globe = IController(controller).globes(address(want));
-        require(_globe != address(0), "!globe"); // additional protection so we don't burn the funds
+        address globe = IController(controller).globes(address(want));
+        require (globe != address(0), "!globe"); // additional protection so we don't burn the funds
 
-        IERC20(want).safeTransfer(_globe, _amount.sub(_feeDev).sub(_feeTreasury));
+        IERC20(want).safeTransfer(globe, _amount.sub(_feeDev).sub(_feeTreasury));
     }
 
     // Withdraw funds, used to swap between strategies
@@ -344,7 +345,6 @@ abstract contract StrategyJoeBase {
         );
     }
         
-
     function _takeFeeJoeToSnob(uint256 _keep) internal {
         address[] memory path = new address[](3);
         path[0] = joe;

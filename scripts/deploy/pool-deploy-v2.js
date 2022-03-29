@@ -33,10 +33,12 @@ async function main() {
       case "BankerJoe": controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
       case "BankerJoe1": controller_addr = "0xF2FA11Fc9247C23b3B622C41992d8555f6D01D8f"; break;
       case "Benqi": controller_addr = "0x252B5fD3B1Cb07A2109bF36D5bDE6a247c6f4B59"; break;    
+      case "Echidna": controller_addr = "0x10A2B0cc29d36f2816cDC3F3db17a4f0f91E7313"; break; 
       case "TraderJoe": controller_addr = "0xCEB829a0881350689dAe8CBD77D0E012cf7a6a3f"; break;
       case "OldBenqi": controller_addr = "0x8Ffa3c1547479B77D9524316D5192777bedA40a1"; break;
       case "Optimizer": controller_addr = "0x2F0b4e7aC032d0708C082994Fb21Dd75DB514744"; break;
       case "Platypus": controller_addr = "0x14559fb4d15Cf8DCbc35b7EDd1215d56c0468202"; break; 
+      case "Vector": controller_addr = "0x5a068C00E32D18A354755Cddb01aC65ca074Aa06"; break; 
       default: controller_addr = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; break; //Base
     }
 

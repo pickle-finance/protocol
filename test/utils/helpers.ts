@@ -75,9 +75,10 @@ export function findSlot(address: string): number {
         case "0x60781C2586D68229fde47564546784ab3fACA982": slot = 1; break; //PNG & JOE
         case "0xdc42728b0ea910349ed3c6e1c9dc06b5fb591f98": slot = 2; break; //FRAX
         case "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7": slot = 3; break; //WAVAX
+        case "0x22d4002028f537599bE9f666d1c4Fa138522f9c8": slot = 4; break; //PTP
+        case "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E": slot = 9; break; //USDC
         case "0x1c20e891bab6b1727d14da358fae2984ed9b59eb": slot = 14; break; //TUSD
-        case "0xB91124eCEF333f17354ADD2A8b944C76979fE3EC": slot = 51; break; //s4D
-        
+        case "0xB91124eCEF333f17354ADD2A8b944C76979fE3EC": slot = 51; break; //s4D & USDT
         case "0x0D26D103c91F63052Fbca88aAF01d5304Ae40015": slot = 101; break;
         default: slot = 0; break;
     }
@@ -93,10 +94,12 @@ export function returnController(controller: string): string {
         case "bankerJoe": address = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
         case "bankerJoe1": address = "0xF2FA11Fc9247C23b3B622C41992d8555f6D01D8f"; break;
         case "benqi": address = "0x252B5fD3B1Cb07A2109bF36D5bDE6a247c6f4B59"; break;
+        case "echidna": address = "0x10A2B0cc29d36f2816cDC3F3db17a4f0f91E7313"; break;
         case "main": address = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; break;
         case "oldBenqi": address = "0x8Ffa3c1547479B77D9524316D5192777bedA40a1"; break;
         case "traderJoe": address = "0xCEB829a0881350689dAe8CBD77D0E012cf7a6a3f"; break;
         case "optimizer": address = "0x2F0b4e7aC032d0708C082994Fb21Dd75DB514744"; break;
+        case "vector": address = "0x5a068C00E32D18A354755Cddb01aC65ca074Aa06"; break; 
         default: address = ""; break;
     }
     return address
