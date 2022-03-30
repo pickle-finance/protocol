@@ -761,7 +761,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     IERC20 public constant PICKLE =
         IERC20(0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5);
 
-    IERC20 public immutable TOKEN = IERC20(address(new MasterDill()));
+    IERC20 public TOKEN;
 
     uint256 public pid;
     uint256 public totalWeight;
@@ -773,6 +773,24 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     mapping(address => address[]) public tokenVote; // msg.sender => token
     mapping(address => uint256) public usedWeights; // msg.sender => total voting weight of user
 
+    uint256 public constant week = 7 days;
+    uint256 public firstDistribution; // epoch time stamp
+    uint256 public prevDistributionId;
+    uint256 public currentId;
+    mapping(uint256 => mapping(address => mapping(address => uint256)))
+        public ballot; // id(block.timestamp) => votes
+
+    modifier epochDistribute() {
+        uint256 time = block.timestamp -
+            (prevDistributionId * 604800) +
+            firstDistribution;
+        require(
+            time > week,
+            "GaugeProxyV2: distribution already done for this week"
+        );
+        _;
+    }
+
     function tokens() external view returns (address[] memory) {
         return _tokens;
     }
@@ -781,9 +799,10 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         return gauges[_token];
     }
 
-    function initialize() public initializer {
-        // TOKEN = IERC20(address(new MasterDill()));
+    function initialize(uint256 _firstDistribution) public initializer {
+        TOKEN = IERC20(address(new MasterDill()));
         governance = msg.sender;
+        firstDistribution = _firstDistribution;
     }
 
     // Reset votes to 0
@@ -793,6 +812,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
     // Reset votes to 0
     function _reset(address _owner) internal {
+        // lastVote[_owner] = 0;
         address[] storage _tokenVote = tokenVote[_owner];
         uint256 _tokenVoteCnt = _tokenVote.length;
 
@@ -852,11 +872,19 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             );
 
             if (_gauge != address(0x0)) {
+                if (
+                    (firstDistribution + (currentId * 604800)) > block.timestamp
+                ) {
+                    currentId += 1;
+                }
                 _usedWeight = _usedWeight.add(_tokenWeight);
                 totalWeight = totalWeight.add(_tokenWeight);
                 weights[_token] = weights[_token].add(_tokenWeight);
                 tokenVote[_owner].push(_token);
                 votes[_owner][_token] = _tokenWeight;
+                // check if voting cycle is over then update ballotId
+                // add uers vote to ballot
+                ballot[currentId][_owner][_token] = _tokenWeight;
             }
         }
 
@@ -869,6 +897,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     {
         require(_tokenVote.length == _weights.length);
         _vote(msg.sender, _tokenVote, _weights);
+        // lastVote[msg.sender] = block.timestamp;
     }
 
     // Add new token gauge
@@ -908,13 +937,21 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         return _tokens.length;
     }
 
-    function distribute(uint256 _start, uint256 _end) external {
+    function distribute(uint256 _start, uint256 _end) external epochDistribute {
+        require(_start < _end, "GaugeProxyV2: bad _start");
+        require(_end <= _tokens.length, "GaugeProxyV2: bad _end");
+        require(
+            msg.sender == governance,
+            "GaugeProxyV2: only governance can distribute"
+        );
+        if (_tokens.length == _end) {
+            prevDistributionId += 1;
+        }
+        require(prevDistributionId < currentId,"GaugeProxyV2: voting for current period in progress");
         collect();
-        require(_start < _end, "bad _start");
-        require(_end <= _tokens.length, "bad _end");
         uint256 _balance = PICKLE.balanceOf(address(this));
         if (_balance > 0 && totalWeight > 0) {
-            for (uint256 i = 0; i < _tokens.length; i++) {
+            for (uint256 i = _start; i < _end; i++) {
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
                 uint256 _reward = _balance.mul(weights[_token]).div(
