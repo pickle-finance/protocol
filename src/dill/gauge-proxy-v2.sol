@@ -778,7 +778,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     uint256 public prevDistributionId;
     uint256 public currentId;
     mapping(uint256 => mapping(address => mapping(address => uint256)))
-        public ballot; // id(block.timestamp) => votes
+        public ballot; // periodId => votes
+    mapping(uint256 => uint256) public totalWeightsPerPeriod; // periodId => totalWeight
 
     modifier epochDistribute() {
         uint256 time = block.timestamp -
@@ -844,7 +845,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             uint256 _prevWeight = votes[_owner][_tokenVote[i]];
             _weights[i] = _prevWeight.mul(_weight).div(_prevUsedWeight);
         }
-
         _vote(_owner, _tokenVote, _weights);
     }
 
@@ -872,6 +872,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             );
 
             if (_gauge != address(0x0)) {
+                // check if voting cycle is over then update ballotId
                 if (
                     (firstDistribution + (currentId * 604800)) > block.timestamp
                 ) {
@@ -882,7 +883,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
                 weights[_token] = weights[_token].add(_tokenWeight);
                 tokenVote[_owner].push(_token);
                 votes[_owner][_token] = _tokenWeight;
-                // check if voting cycle is over then update ballotId
+                totalWeightsPerPeriod[currentId] = totalWeight;
                 // add uers vote to ballot
                 ballot[currentId][_owner][_token] = _tokenWeight;
             }
@@ -947,15 +948,19 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         if (_tokens.length == _end) {
             prevDistributionId += 1;
         }
-        require(prevDistributionId < currentId,"GaugeProxyV2: voting for current period in progress");
+        require(
+            prevDistributionId < currentId,
+            "GaugeProxyV2: voting for current period in progress"
+        );
         collect();
         uint256 _balance = PICKLE.balanceOf(address(this));
-        if (_balance > 0 && totalWeight > 0) {
+        uint256 _totalWeight = totalWeightsPerPeriod[currentId];
+        if (_balance > 0 && _totalWeight > 0) {
             for (uint256 i = _start; i < _end; i++) {
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
                 uint256 _reward = _balance.mul(weights[_token]).div(
-                    totalWeight
+                    _totalWeight
                 );
                 if (_reward > 0) {
                     PICKLE.safeApprove(_gauge, 0);
