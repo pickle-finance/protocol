@@ -764,30 +764,28 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     IERC20 public TOKEN;
 
     uint256 public pid;
-    uint256 public totalWeight;
 
     address[] internal _tokens;
     mapping(address => address) public gauges; // token => gauge
-    mapping(address => uint256) public weights; // token => weight
-    mapping(address => mapping(address => uint256)) public votes; // msg.sender => votes
-    mapping(address => address[]) public tokenVote; // msg.sender => token
-    mapping(address => uint256) public usedWeights; // msg.sender => total voting weight of user
 
     uint256 public constant week = 7 days;
+    uint256 public constant weekSeconds = 604800;
     uint256 public firstDistribution; // epoch time stamp
     uint256 public prevDistributionId;
     uint256 public currentId;
 
     struct periodData {
-        mapping(address => mapping(address => uint256)) votes_;
-        mapping(address => uint256) weights_;
-        uint256 totalWeight_;
+        mapping(address => mapping(address => uint256)) votes; // msg.sender => votes
+        mapping(address => uint256) weights; // token => weight
+        mapping(address => address[]) tokenVote; // msg.sender => token
+        mapping(address => uint256) usedWeights; // msg.sender => total voting weight of user
+        uint256 totalWeight;
     }
     mapping(uint256 => periodData) public periods; // periodId => periodData
 
     modifier epochDistribute() {
         uint256 time = block.timestamp -
-            (prevDistributionId * 604800) +
+            (prevDistributionId * weekSeconds) +
             firstDistribution;
         require(
             time > week,
@@ -817,36 +815,50 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
     // Reset votes to 0
     function _reset(address _owner) internal {
+        if (
+            (firstDistribution + (currentId * weekSeconds)) > block.timestamp
+        ) {
+            currentId += 1;
+        }
+        periodData storage _periodData = periods[currentId];
+
         // lastVote[_owner] = 0;
-        address[] storage _tokenVote = tokenVote[_owner];
+        address[] storage _tokenVote = _periodData.tokenVote[_owner];
         uint256 _tokenVoteCnt = _tokenVote.length;
 
         for (uint256 i = 0; i < _tokenVoteCnt; i++) {
             address _token = _tokenVote[i];
-            uint256 _votes = votes[_owner][_token];
+            uint256 _votes = _periodData.votes[_owner][_token];
 
             if (_votes > 0) {
-                totalWeight = totalWeight.sub(_votes);
-                weights[_token] = weights[_token].sub(_votes);
+                _periodData.totalWeight = _periodData.totalWeight.sub(_votes);
+                _periodData.weights[_token] = _periodData.weights[_token].sub(_votes);
 
-                votes[_owner][_token] = 0;
+                _periodData.votes[_owner][_token] = 0;
             }
         }
 
-        delete tokenVote[_owner];
+        delete _periodData.tokenVote[_owner];
     }
 
     // Adjusts _owner's votes according to latest _owner's DILL balance
     function poke(address _owner) public {
-        address[] memory _tokenVote = tokenVote[_owner];
+        if (
+            (firstDistribution + (currentId * weekSeconds)) > block.timestamp
+        ) {
+            currentId += 1;
+        }
+        periodData storage _periodData = periods[currentId];
+
+        address[] memory _tokenVote = _periodData.tokenVote[_owner];
         uint256 _tokenCnt = _tokenVote.length;
         uint256[] memory _weights = new uint256[](_tokenCnt);
 
-        uint256 _prevUsedWeight = usedWeights[_owner];
+        uint256 _prevUsedWeight = _periodData.usedWeights[_owner];
         uint256 _weight = DILL.balanceOf(_owner);
 
         for (uint256 i = 0; i < _tokenCnt; i++) {
-            uint256 _prevWeight = votes[_owner][_tokenVote[i]];
+            uint256 _prevWeight = _periodData.votes[_owner][_tokenVote[i]];
             _weights[i] = _prevWeight.mul(_weight).div(_prevUsedWeight);
         }
         _vote(_owner, _tokenVote, _weights);
@@ -866,13 +878,16 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
         // check if voting cycle is over then update ballotId
         if (
-            (firstDistribution + (currentId * 604800)) > block.timestamp
+            (firstDistribution + (currentId * weekSeconds)) > block.timestamp
         ) {
             currentId += 1;
         }
+
         for (uint256 i = 0; i < _tokenCnt; i++) {
             _totalVoteWeight = _totalVoteWeight.add(_weights[i]);
         }
+
+        periodData storage _periodData = periods[currentId];
 
         for (uint256 i = 0; i < _tokenCnt; i++) {
             address _token = _tokenVote[i];
@@ -883,20 +898,20 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
             if (_gauge != address(0x0)) {
                 _usedWeight = _usedWeight.add(_tokenWeight);
-                totalWeight = totalWeight.add(_tokenWeight);
-                weights[_token] = weights[_token].add(_tokenWeight);
-                tokenVote[_owner].push(_token);
-                votes[_owner][_token] = _tokenWeight;
+                _periodData.totalWeight = _periodData.totalWeight.add(_tokenWeight);
+                // weights[_token] = weights[_token].add(_tokenWeight);
+                _periodData.tokenVote[_owner].push(_token);
+                // votes[_owner][_token] = _tokenWeight;
                 // store weights of current period
-                periods[currentId].weights_[_token] = weights[_token];
+                _periodData.weights[_token] = _periodData.weights[_token].add(_tokenWeight);
                 // store total weight of current period
-                periods[currentId].totalWeight_ = totalWeight;
+                _periodData.totalWeight = _periodData.totalWeight;
                 // add users vote to ballot
-                periods[currentId].votes_[_owner][_token] = _tokenWeight;
+                _periodData.votes[_owner][_token] = _tokenWeight;
             }
         }
 
-        usedWeights[_owner] = _usedWeight;
+        _periodData.usedWeights[_owner] = _usedWeight;
     }
 
     // Vote with DILL on a gauge
@@ -948,9 +963,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         require(_start < _end, "GaugeProxyV2: bad _start");
         require(_end <= _tokens.length, "GaugeProxyV2: bad _end");
         require(msg.sender == governance,"GaugeProxyV2: only governance can distribute");
-        if (_tokens.length == _end) {
-            prevDistributionId += 1;
-        }
         require(
             prevDistributionId < currentId,
             "GaugeProxyV2: voting for current period in progress"
@@ -958,12 +970,12 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         collect();
         uint256 _balance = PICKLE.balanceOf(address(this));
         periodData storage _periodData = periods[prevDistributionId + 1];
-        uint256 _totalWeight = _periodData.totalWeight_;
+        uint256 _totalWeight = _periodData.totalWeight;
         if (_balance > 0 && _totalWeight > 0) {
             for (uint256 i = _start; i < _end; i++) {
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
-                uint256 _reward = _balance.mul(_periodData.weights_[_token]).div(
+                uint256 _reward = _balance.mul(_periodData.weights[_token]).div(
                     _totalWeight
                 );
                 if (_reward > 0) {
@@ -972,6 +984,10 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
                     Gauge(_gauge).notifyRewardAmount(_reward);
                 }
             }
+        }
+    
+        if (_tokens.length == _end) {
+            prevDistributionId += 1;
         }
     }
 }
