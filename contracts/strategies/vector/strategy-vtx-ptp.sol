@@ -32,24 +32,25 @@ contract StrategyVtxPtp is StrategyVtxSingleSidedFarmBase{
             WAVAX(wavax).deposit{value: _avax}();
         }
 
-        uint256 _vtx = IERC20(vtx).balanceOf(address(this));      // get balance of VTX Tokens
-        uint256 _wavax = IERC20(wavax).balanceOf(address(this));  // get balance of AVAX Tokens
+        uint256 _vtx = IERC20(vtx).balanceOf(address(this));        // get balance of VTX Tokens
+        uint256 _ptp = IERC20(ptp).balanceOf(address(this));        // get balance of PTP Tokens
+        uint256 _wavax = IERC20(wavax).balanceOf(address(this));    // get balance of WAVAX Tokens
 
-        // In the case of VTX Rewards, swap for PTP 
+        // In the case of VTX Rewards, swap for WAVAX 
         if (_vtx > 0) {
-            uint256 _keep = _vtx.mul(keep).div(keepMax);
-            if (_keep > 0){
-                _takeFeeRewardToSnob(_keep, vtx);
-            }
-            
-            _vtx = IERC20(vtx).balanceOf(address(this));
-
-            IERC20(vtx).safeApprove(joeRouter, 0);
-            IERC20(vtx).safeApprove(joeRouter, _vtx);   
-            _swapTraderJoe(vtx, ptp, _vtx); 
+            _swapTraderJoe(vtx, wavax, _vtx); 
         }
 
-        // In the case of AVAX Rewards, swap for PTP
+        // In the case of PTP Rewards, take fee
+        if (_ptp > 0){
+            uint256 _keep = _ptp.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeeRewardToSnob(_keep, ptp);
+            }
+            _ptp = IERC20(ptp).balanceOf(address(this));
+        }
+
+        // In the case of AVAX Rewards take fee and swap for PTP
         if (_wavax > 0) {
             uint256 _keep = _wavax.mul(keep).div(keepMax);
             if (_keep > 0){

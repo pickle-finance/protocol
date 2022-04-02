@@ -5,6 +5,8 @@ import "../strategy-joe-base.sol";
 import "../../interfaces/vtx.sol";
 import "../../interfaces/wavax.sol";
 
+import "hardhat/console.sol";
+
 /// @notice This is a base contract for Vector single staking
 abstract contract StrategyVtxSingleSidedFarmBase is StrategyJoeBase {
     // Token addresses 
@@ -67,15 +69,37 @@ abstract contract StrategyVtxSingleSidedFarmBase is StrategyJoeBase {
         override
         returns (uint256)
     {
+
+        console.log("The amount we are looking to withdraw is", _amount); 
+        
+        uint256 _ptp = IERC20(ptp).balanceOf(address(this));
+        uint256 _xptp = IERC20(xptp).balanceOf(address(this));
+
+        console.log("the value of ptp before withdrawing", _ptp);
+        console.log("the value of xptp before withdrawing", _xptp);
+
         IMasterChefVTX(masterchefvtx).withdraw(xptp, _amount); 
+
+        _ptp = IERC20(ptp).balanceOf(address(this));
+        _xptp = IERC20(xptp).balanceOf(address(this));
+
+        console.log("the value of ptp before withdrawing", _ptp);
+        console.log("the value of xptp before withdrawing", _xptp);
+
         address[] memory path = new address[](2);
         path[0] = xptp;
         path[1] = ptp;
 
         IERC20(xptp).safeApprove(joeRouter, 0);
         IERC20(xptp).safeApprove(joeRouter, _amount);
-        _swapTraderJoeWithPath(path, _amount);
+        //_swapTraderJoeWithPath(path, _amount);
 
+        _ptp = IERC20(ptp).balanceOf(address(this));
+        _xptp = IERC20(xptp).balanceOf(address(this));
+
+        console.log("the value of ptp before withdrawing", _ptp);
+        console.log("the value of xptp before withdrawing", _xptp);
+        //swap
         uint256[] memory amounts = IJoeRouter(joeRouter).swapExactTokensForTokens(
             _amount,
             0,
@@ -84,7 +108,15 @@ abstract contract StrategyVtxSingleSidedFarmBase is StrategyJoeBase {
             now.add(60)
         );
 
-        return amounts[0];
+        _ptp = IERC20(ptp).balanceOf(address(this));
+        _xptp = IERC20(xptp).balanceOf(address(this));
+
+        console.log("the value of ptp before withdrawing", _ptp);
+        console.log("the value of xptp before withdrawing", _xptp);
+
+        console.log("the value of amount[0] in the array is", amounts[1]);
+
+        return amounts[1];
     }
 
     /// @notice takes a fee from any reward token to snob

@@ -3,14 +3,13 @@ import { TestableStrategy, LPTestDefault } from "./../strategy-test-case";
 
 const tests = [
     // {
-    //     //users not earning
+    //     //user not earning
     //     name: "VtxUsdcE",
     //     controller: "backup",
     //     timelockIsStrategist: true,
     //     slot: 0
     // },
     // {
-    //     //users not earning
     //     name: "VtxUsdc",
     //     controller: "backup",
     //     timelockIsStrategist: true,
@@ -23,14 +22,12 @@ const tests = [
     //     slot: 51
     // },
     // {
-    //     //user not earning
     //     name: "VtxUsdtE",
     //     controller: "backup",
     //     timelockIsStrategist: true,
     //     slot: 0
     // }, 
     // {
-    //     //user not earning
     //     name: "VtxDaiE",
     //     controller: "backup",
     //     timelockIsStrategist: true,
@@ -49,10 +46,16 @@ const tests = [
     //     timelockIsStrategist: true,
     //     slot: 1
     // },
+    // {
+    //     // ptp to xptp is not reversible
+    //     name: "VtxPtp",
+    //     controller: "vector",
+    //     slot: 4
+    // }, 
     {
-        name: "VtxPtp",
+        name: "VtxVtx",
         controller: "vector",
-        slot: 4
+        slot: 0
     }, 
 ];
 

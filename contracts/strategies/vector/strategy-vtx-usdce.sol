@@ -2,7 +2,6 @@
 pragma solidity ^0.6.7;
 
 import "../bases/strategy-vtx-farm-base.sol";
-import "hardhat/console.sol"; 
 
 contract StrategyVtxUsdcE is StrategyVtxFarmBase{
     address public usdce = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
@@ -28,10 +27,7 @@ contract StrategyVtxUsdcE is StrategyVtxFarmBase{
     {}
 
     // **** State Mutations ****
-    function harvest() public override onlyBenevolent {
-
-        uint256 _usdce = IERC20(usdce).balanceOf(address(this));
-        console.log("The balance of usdce before havresting is", _usdce); 
+    function harvest() public override onlyBenevolent { 
         // Collects Reward tokens
         IPoolHelper(poolHelper).getReward();
 
@@ -45,13 +41,9 @@ contract StrategyVtxUsdcE is StrategyVtxFarmBase{
         uint256 _ptp = IERC20(ptp).balanceOf(address(this));      // get balance of PTP Tokens
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));  // get balance of AVAX Tokens
 
-        console.log("the value of our vtx reward token after calling harvest is", _vtx);
-        console.log("the vlaue of our ptp reward token after calling harvest is", _ptp);
-        console.log("the vlaue of our avax reward token after calling harvest is", _wavax);
-
         // In the case of WAVAX Rewards, swap WAVAX for USDCE
         if (_wavax > 0) {
-            uint256 _keep = _wavax.mul(0).div(100);
+            uint256 _keep = _wavax.mul(keep).div(keepMax);
             if (_keep > 0){
                 _takeFeeRewardToSnob(_keep, wavax);
             }
@@ -65,7 +57,7 @@ contract StrategyVtxUsdcE is StrategyVtxFarmBase{
         
         // In the case of VTX Rewards, swap VTX for USDCE
         if (_vtx > 0) {
-            uint256 _keep = _vtx.mul(0).div(100);
+            uint256 _keep = _vtx.mul(keep).div(keepMax);
             if (_keep > 0){
                 _takeFeeRewardToSnob(_keep, vtx);
             }
@@ -80,7 +72,7 @@ contract StrategyVtxUsdcE is StrategyVtxFarmBase{
         // In the case of PTP Rewards, swap PTP for USDCE
         if (_ptp > 0) {
             // 10% is sent to treasury
-            uint256 _keep = _ptp.mul(0).div(100);
+            uint256 _keep = _ptp.mul(keep).div(keepMax);
             if (_keep > 0) {
                 _takeFeeRewardToSnob(_keep, ptp);
             }
@@ -92,9 +84,6 @@ contract StrategyVtxUsdcE is StrategyVtxFarmBase{
 
             _swapTraderJoe(ptp, usdce, _ptp);
         }
-
-       _usdce = IERC20(usdce).balanceOf(address(this));
-       console.log("The value of our usdce after calling harvest and swapping rewards is", _usdce);
 
         // Donates DUST
         _vtx = IERC20(vtx).balanceOf(address(this));
