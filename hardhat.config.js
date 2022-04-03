@@ -5,7 +5,7 @@ require("solidity-coverage");
 require("hardhat-deploy");
 require("hardhat-gas-reporter");
 require("hardhat-contract-sizer");
-const {removeConsoleLog} = require("hardhat-preprocessor");
+const { removeConsoleLog } = require("hardhat-preprocessor");
 require("dotenv").config();
 
 module.exports = {

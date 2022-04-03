@@ -2,13 +2,12 @@
 /*
 pragma solidity ^0.6.7;
 
-import "./strategy-beam-farm-base.sol";
+import "../strategy-spookyswap-base.sol";
 
-contract StrategyGlintGlmrLp is StrategyBeamFarmBase {
-    uint256 public glint_glmr_poolId = 0;
-
+contract StrategyBooFtmBooLp is StrategyBooFarmLPBase {
+    uint256 public wftm_boo_poolid = 0;
     // Token addresses
-    address public glint_glmr_lp = 0x99588867e817023162F4d4829995299054a5fC57;
+    address public wftm_boo_lp = 0xEc7178F4C41f346b2721907F5cF7628E388A7a58;
 
     constructor(
         address _governance,
@@ -17,22 +16,22 @@ contract StrategyGlintGlmrLp is StrategyBeamFarmBase {
         address _timelock
     )
         public
-        StrategyBeamFarmBase(
-            glint_glmr_lp,
-            glint_glmr_poolId,
+        StrategyBooFarmLPBase(
+            wftm_boo_lp,
+            wftm_boo_poolid,
             _governance,
             _strategist,
             _controller,
             _timelock
         )
     {
-        swapRoutes[glmr] = [glint, glmr];
+        swapRoutes[wftm] = [boo, wftm];
     }
 
     // **** Views ****
 
     function getName() external pure override returns (string memory) {
-        return "StrategyGlintGlmrLp";
+        return "StrategyBooFtmBooLp";
     }
 }
 */

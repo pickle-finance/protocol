@@ -1,9 +1,18 @@
-const {expect, increaseTime, getContractAt, increaseBlock} = require("../utils/testHelper");
-const {setup} = require("../utils/setupHelper");
-const {NULL_ADDRESS} = require("../utils/constants");
+const {expect, increaseTime, getContractAt, increaseBlock} = require("../../utils/testHelper");
+const {setup} = require("../../utils/setupHelper");
+const {NULL_ADDRESS} = require("../../utils/constants");
+const {BigNumber: BN} = require("ethers");
 
-const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isPolygon = false) => {
-  let alice, want;
+const doTestBehaviorBase = (
+  strategyName,
+  want_addr,
+  reward_addr,
+  performanceFee,
+  performanceFeeMax,
+  bIncreaseBlock = false,
+  isPolygon = false
+) => {
+  let alice, want, reward;
   let strategy, pickleJar, controller;
   let governance, strategist, devfund, treasury, timelock;
   let preTestSnapshotID;
@@ -16,6 +25,8 @@ const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isP
       timelock = alice;
 
       want = await getContractAt("ERC20", want_addr);
+
+      reward = await getContractAt("ERC20", reward_addr);
 
       [controller, strategy, pickleJar] = await setup(
         strategyName,
@@ -42,9 +53,9 @@ const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isP
       console.log("Alice pTokenBalance after deposit: %s\n", (await pickleJar.balanceOf(alice.address)).toString());
       await pickleJar.earn();
 
-      await increaseTime(60 * 60 * 24 * 6); //travel 6 days
+      await increaseTime(60 * 60 * 24 * 15); //travel 15 days
       if (bIncreaseBlock) {
-        await increaseBlock(1000);
+        await increaseBlock(97443); //roughly 15 days
       }
 
       console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
@@ -82,35 +93,33 @@ const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isP
       console.log("Alice pTokenBalance after deposit: %s\n", (await pickleJar.balanceOf(alice.address)).toString());
       await pickleJar.earn();
 
-      await increaseTime(60 * 60 * 24 * 6); //travel 6 days
+      await increaseTime(60 * 60 * 24 * 15); //travel 15 days
       if (bIncreaseBlock) {
-        await increaseBlock(1000);
+        await increaseBlock(97443); //roughly 15 days
       }
+      const pendingRewards = await strategy.getHarvestable();
       const _before = await pickleJar.balance();
-      let _treasuryBefore = await want.balanceOf(treasury.address);
+      let _treasuryBefore = await reward.balanceOf(treasury.address);
 
-      const ratioBefore = await pickleJar.getRatio();
-
+      console.log("Rewards harvestable amount: ", pendingRewards.toString());
       console.log("Picklejar balance before harvest: ", _before.toString());
-      console.log("💸 Treasury balance before harvest: ", _treasuryBefore.toString());
-      console.log("\nRatio before harvest: ", ratioBefore.toString());
+      console.log("💸 Treasury reward token balance before harvest: ", _treasuryBefore.toString());
+      console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
 
       await strategy.harvest();
 
       const _after = await pickleJar.balance();
-      const ratioAfter = await pickleJar.getRatio();
-      let _treasuryAfter = await want.balanceOf(treasury.address);
-      console.log("Ratio after harvest: ", (ratioAfter).toString());
+      let _treasuryAfter = await reward.balanceOf(treasury.address);
+      console.log("Ratio after harvest: ", (await pickleJar.getRatio()).toString());
       console.log("\nPicklejar balance after harvest: ", _after.toString());
-      console.log("💸 Treasury balance after harvest: ", _treasuryAfter.toString());
+      console.log("💸 Treasury reward token balance after harvest: ", _treasuryAfter.toString());
 
-      //20% performance fee is given
-      const earned = _after.sub(_before).mul(1000).div(800);
-      const earnedRewards = earned.mul(200).div(1000);
+      //performance fee is given
+      const earnedRewards = pendingRewards.mul(performanceFee).div(performanceFeeMax);
       const actualRewardsEarned = _treasuryAfter.sub(_treasuryBefore);
       console.log("\nActual reward earned by treasury: ", actualRewardsEarned.toString());
 
-      expect(+ratioAfter.toString()).to.be.greaterThan(+ratioBefore.toString(), "Ratio did not increase");
+      expect(earnedRewards).to.be.eqApprox(actualRewardsEarned, `${performanceFee/performanceFeeMax*100}% performance fee is not given`);
 
       //withdraw
       const _devBefore = await want.balanceOf(devfund.address);
@@ -145,13 +154,13 @@ const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isP
       await pickleJar.connect(alice).deposit(_wantHalved);
       await pickleJar.earn();
 
-      await increaseTime(60 * 60 * 24 * 6); //travel 6 days
+      await increaseTime(60 * 60 * 24 * 15); //travel 15 days
 
       await pickleJar.connect(strategist).deposit(_wantHalved);
 
       await pickleJar.earn();
 
-      await increaseTime(60 * 60 * 24 * 6); //travel 6 days
+      await increaseTime(60 * 60 * 24 * 15); //travel 15 days
 
       // Alice withdraws half
       await pickleJar.connect(alice).withdraw(_wantHalved.div(2));

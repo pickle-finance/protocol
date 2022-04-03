@@ -79,17 +79,28 @@ const whitelistHarvesters = async () => {
 const deployPickleJar = async () => {
   console.log("deploying Strategy...");
 
-  const governance = "0xf02CeB58d549E4b403e8F85FBBaEe4c5dfA47c01";
+  const governance = "0x9d074E37d408542FD38be78848e8814AFB38db17";
   const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const controller = "0x55d5bcef2bfd4921b8790525ff87919c2e26bd03";
-  const timelock = "0xf02CeB58d549E4b403e8F85FBBaEe4c5dfA47c01";
+  const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
+  const timelock = "0xd92c7faa0ca0e6ae4918f3a83d9832d9caeaa0d3";
+
+  const want = "0xF3A43307DcAFa93275993862Aae628fCB50dC768";
 
   const StrategyFactory = await ethers.getContractFactory(
-    "src/strategies/arbitrum/dodo/strategy-dodo-hnd-eth-lp-v3.sol:StrategyDodoHndEthLpV3"
+    "src/strategies/convex/strategy-convex-cvxfxs-lp.sol:StrategyConvexCvxfxsLp"
   );
   const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
 
   console.log("Strategy deployed at ", strategy.address);
+
+  const JarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
+  const jar = await JarFactory.deploy(want, governance, timelock, controller);
+  console.log("Jar deployed at ", jar.address);
+
+  await hre.run("verify:verify", {
+    address: strategy.address,
+    constructorArguments: [governance, strategist, controller, timelock],
+  });
 };
 
 const setJar = async () => {
