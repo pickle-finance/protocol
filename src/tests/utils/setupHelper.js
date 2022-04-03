@@ -21,16 +21,7 @@ const now = () => {
  * @param treasury treasury signeraddr
  * @returns controller, strategy and picklejar contract
  */
-const setup = async (
-  strategyName,
-  want,
-  governance,
-  strategist,
-  timelock,
-  devfund,
-  treasury,
-  isPolygon = false
-) => {
+const setup = async (strategyName, want, governance, strategist, timelock, devfund, treasury, isPolygon = false) => {
   const controller = await deployContract(
     isPolygon ? "src/polygon/controller-v4.sol:ControllerV4" : "src/controller-v4.sol:ControllerV4",
     governance.address,
@@ -52,6 +43,42 @@ const setup = async (
 
   const pickleJar = await deployContract(
     "PickleJar",
+    want.address,
+    governance.address,
+    timelock.address,
+    controller.address
+  );
+  console.log("✅ PickleJar is deployed at ", pickleJar.address);
+
+  await controller.setJar(want.address, pickleJar.address);
+  await controller.approveStrategy(want.address, strategy.address);
+  await controller.setStrategy(want.address, strategy.address);
+
+  return [controller, strategy, pickleJar];
+};
+
+const setupWithPickleJar = async (pickleJarName, strategyName, want, governance, strategist, timelock, devfund, treasury, isPolygon = false) => {
+  const controller = await deployContract(
+    isPolygon ? "src/polygon/controller-v4.sol:ControllerV4" : "src/controller-v4.sol:ControllerV4",
+    governance.address,
+    strategist.address,
+    timelock.address,
+    devfund.address,
+    treasury.address
+  );
+  console.log("✅ Controller is deployed at ", controller.address);
+
+  const strategy = await deployContract(
+    strategyName,
+    governance.address,
+    strategist.address,
+    controller.address,
+    timelock.address
+  );
+  console.log("✅ Strategy is deployed at ", strategy.address);
+
+  const pickleJar = await deployContract(
+    pickleJarName,
     want.address,
     governance.address,
     timelock.address,
@@ -138,12 +165,10 @@ const getLpToken = async (routerAddr, lpToken, ethAmount, from) => {
   const token1 = await lpTokenContract.token1();
   const wethContract = await getContractAt("WETH", WETH);
 
-  if (token0.toLowerCase() != WETH.toLowerCase())
-    await getERC20WithETH(routerAddr, token0, ethAmount.div(2), from);
+  if (token0.toLowerCase() != WETH.toLowerCase()) await getERC20WithETH(routerAddr, token0, ethAmount.div(2), from);
   else await wethContract.deposit({value: ethAmount.div(2)});
 
-  if (token1.toLowerCase() != WETH.toLowerCase())
-    await getERC20WithETH(routerAddr, token1, ethAmount.div(2), from);
+  if (token1.toLowerCase() != WETH.toLowerCase()) await getERC20WithETH(routerAddr, token1, ethAmount.div(2), from);
   else await wethContract.deposit({value: ethAmount.div(2)});
 
   const token0Contract = await getContractAt("ERC20", token0);
@@ -173,7 +198,7 @@ const getWantFromWhale = async (want_addr, amount, to, whaleAddr) => {
   const want = await getContractAt("ERC20", want_addr);
   await to.sendTransaction({
     to: whaleAddr,
-    value: toWei(10),
+    value: toWei(5),
   });
   await want.connect(whale).transfer(to.address, amount);
   const _balance = await want.balanceOf(to.address);
@@ -187,4 +212,5 @@ module.exports = {
   getERC20WithPath,
   getLpToken,
   setup,
+  setupWithPickleJar
 };

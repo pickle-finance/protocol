@@ -115,6 +115,10 @@ cache
 
 .DS_Store
 hardhat/
+out.sol
 
 # vscode
 .vscode
+
+out.sol
+pickleJarOut.sol

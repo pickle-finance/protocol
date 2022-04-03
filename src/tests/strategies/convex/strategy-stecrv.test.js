@@ -4,7 +4,7 @@ const {doTestBehaviorBase} = require("../testBehaviorBase");
 
 describe("StrategyConvexSteCRV", () => {
   const want_addr = "0x06325440D014e39736583c165C2963BA99fAf14E";
-  const whale_addr = "0x8835a35023c2fcf105e1f232e600385ed6db9bc6";
+  const whale_addr = "0x56c915758ad3f76fd287fff7563ee313142fb663";
 
   before("Get want token", async () => {
     [alice] = await hre.ethers.getSigners();

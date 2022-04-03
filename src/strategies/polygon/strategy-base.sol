@@ -17,7 +17,7 @@ abstract contract StrategyBase {
     using SafeMath for uint256;
 
     // Perfomance fees - start with 20%
-    uint256 public performanceTreasuryFee = 2000;
+    uint256 public performanceTreasuryFee = 0;
     uint256 public constant performanceTreasuryMax = 10000;
 
     uint256 public performanceDevFee = 0;
@@ -326,14 +326,14 @@ abstract contract StrategyBase {
 
         address[] memory path;
 
-        if (_from == weth || _to == weth) {
+        if (_from == wmatic || _to == wmatic) {
             path = new address[](2);
             path[0] = _from;
             path[1] = _to;
         } else {
             path = new address[](3);
             path[0] = _from;
-            path[1] = weth;
+            path[1] = wmatic;
             path[2] = _to;
         }
         
@@ -379,6 +379,30 @@ abstract contract StrategyBase {
             IERC20(want).safeTransfer(
                 IController(controller).devfund(),
                 _want.mul(performanceDevFee).div(performanceDevMax)
+            );
+
+            deposit();
+        }
+    }
+
+    function _distributePerformanceFeesBasedAmountAndDeposit(uint256 _amount) internal {
+        uint256 _want = IERC20(want).balanceOf(address(this));
+
+        if (_amount > _want) {
+            _amount = _want;
+        }
+
+        if (_amount > 0) {
+            // Treasury fees
+            IERC20(want).safeTransfer(
+                IController(controller).treasury(),
+                _amount.mul(performanceTreasuryFee).div(performanceTreasuryMax)
+            );
+
+            // Performance fee
+            IERC20(want).safeTransfer(
+                IController(controller).devfund(),
+                _amount.mul(performanceDevFee).div(performanceDevMax)
             );
 
             deposit();

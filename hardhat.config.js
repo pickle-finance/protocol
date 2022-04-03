@@ -1,12 +1,11 @@
 require("@nomiclabs/hardhat-waffle");
-require("@nomiclabs/hardhat-truffle5");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-ethers");
 require("solidity-coverage");
 require("hardhat-deploy");
 require("hardhat-gas-reporter");
 require("hardhat-contract-sizer");
-const {removeConsoleLog} = require("hardhat-preprocessor");
+const { removeConsoleLog } = require("hardhat-preprocessor");
 require("dotenv").config();
 
 module.exports = {
@@ -47,6 +46,7 @@ module.exports = {
       allowUnlimitedContractSize: true,
       hardfork: "london",
       gasPrice: "auto",
+      gas: 2500000,
     },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
@@ -66,6 +66,23 @@ module.exports = {
       url: "https://polygon-rpc.com/",
       accounts: [`0x${process.env.MNEMONIC}`],
     },
+    arbitrum: {
+      url: `https://arb1.arbitrum.io/rpc/`,
+      accounts: [`0x${process.env.MNEMONIC}`],
+    },
+    metis: {
+      url: `https://andromeda.metis.io/?owner=1088`,
+      accounts: [`0x${process.env.MNEMONIC}`],
+    },
+    moonbeam: {
+      url: `https://rpc.api.moonbeam.network`,
+      accounts: [`0x${process.env.MNEMONIC}`]
+    },
+    fantom: {
+      url: `https://rpc.ftm.tools/`,
+      accounts: [`0x${process.env.MNEMONIC}`],
+      gas: 4000000
+    }
   },
   contractSizer: {
     alphaSort: true,

@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
+pragma experimental ABIEncoderV2;
 
 import "../strategy-base.sol";
+import "../../interfaces/curve.sol";
 import "../../interfaces/lqty-staking.sol";
 import "../../interfaces/weth.sol";
 
@@ -11,6 +13,11 @@ contract StrategyLqty is StrategyBase {
 
     address public lusd = 0x5f98805A4E8be255a32880FDeC7F6728C6568bA0;
     address public lqty = 0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D;
+    address public usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+
+    address public lusd_pool = 0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA;
+    
+    uint24 public constant poolFee = 3000;
 
     constructor(
         address _governance,
@@ -24,7 +31,7 @@ contract StrategyLqty is StrategyBase {
 
     // **** Views ****
 
-    function getName() external pure override returns (string memory) {
+    function getName() external override pure returns (string memory) {
         return "StrategyLqty";
     }
 
@@ -33,25 +40,31 @@ contract StrategyLqty is StrategyBase {
         uint256 _lusd = IERC20(lusd).balanceOf(address(this));
 
         if (_lusd > 0) {
-            IERC20(lusd).safeApprove(univ2Router2, 0);
-            IERC20(lusd).safeApprove(univ2Router2, _lusd);
+            IERC20(lusd).safeApprove(lusd_pool, 0);
+            IERC20(lusd).safeApprove(lusd_pool, _lusd);
 
-            _swapUniswap(lusd, weth, _lusd);
+            // Swap to USDC because it's consistently the heaviest weighted 3pool token
+            ICurveFi_4(lusd_pool).exchange_underlying(0, 2, _lusd, 0);
         }
-        uint256 _eth = address(this).balance;
-        if (_eth > 0) {
-            WETH(weth).deposit{value: _eth}();
-        }
-        uint256 _weth = IERC20(weth).balanceOf(address(this));
-        if (_weth > 0) {
-            IERC20(weth).safeApprove(univ2Router2, 0);
-            IERC20(weth).safeApprove(univ2Router2, _weth);
-            _swapUniswap(weth, lqty, _weth);
+        uint256 _usdc = IERC20(usdc).balanceOf(address(this));
+        if (_usdc > 0) {
+            IERC20(usdc).safeApprove(univ3Router, 0);
+            IERC20(usdc).safeApprove(univ3Router, _usdc);
+
+            ISwapRouter(univ3Router).exactInput(
+                ISwapRouter.ExactInputParams({
+                    path: abi.encodePacked(usdc, poolFee, weth, poolFee, lqty),
+                    recipient: address(this),
+                    deadline: block.timestamp + 300,
+                    amountIn: _usdc,
+                    amountOutMinimum: 0
+                })
+            );
         }
         _distributePerformanceFeesAndDeposit();
     }
 
-    function balanceOfPool() public view override returns (uint256) {
+    function balanceOfPool() public override view returns (uint256) {
         return ILiquityStaking(lqty_staking).stakes(address(this));
     }
 

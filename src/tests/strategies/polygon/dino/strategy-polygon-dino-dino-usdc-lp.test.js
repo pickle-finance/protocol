@@ -12,5 +12,5 @@ describe("StrategyDinoDinoUsdcLp", () => {
     await getWantFromWhale(want_addr, toWei(1, 16), alice, whale_addr);
   });
 
-  doTestBehaviorBase("StrategyDinoDinoUsdcLp", want_addr, true);
+  doTestBehaviorBase("StrategyDinoDinoUsdcLp", want_addr, false, true);
 });

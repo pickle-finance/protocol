@@ -1,8 +1,8 @@
-const {expect, increaseTime, getContractAt} = require("../utils/testHelper");
+const {expect, increaseTime, getContractAt, increaseBlock} = require("../utils/testHelper");
 const {setup} = require("../utils/setupHelper");
 const {NULL_ADDRESS} = require("../utils/constants");
 
-const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
+const doTestBehaviorBase = (strategyName, want_addr, bIncreaseBlock = false, isPolygon = false) => {
   let alice, want;
   let strategy, pickleJar, controller;
   let governance, strategist, devfund, treasury, timelock;
@@ -12,7 +12,7 @@ const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
     before("Setup contracts", async () => {
       [alice, devfund, treasury] = await hre.ethers.getSigners();
       governance = alice;
-      strategist = alice;
+      strategist = devfund;
       timelock = alice;
 
       want = await getContractAt("ERC20", want_addr);
@@ -42,7 +42,10 @@ const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
       console.log("Alice pTokenBalance after deposit: %s\n", (await pickleJar.balanceOf(alice.address)).toString());
       await pickleJar.earn();
 
-      await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+      await increaseTime(60 * 60 * 24 * 6); //travel 6 days
+      if (bIncreaseBlock) {
+        await increaseBlock(1000);
+      }
 
       console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
 
@@ -79,19 +82,25 @@ const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
       console.log("Alice pTokenBalance after deposit: %s\n", (await pickleJar.balanceOf(alice.address)).toString());
       await pickleJar.earn();
 
-      await increaseTime(60 * 60 * 24 * 15); //travel 15 days
+      await increaseTime(60 * 60 * 24 * 6); //travel 6 days
+      if (bIncreaseBlock) {
+        await increaseBlock(1000);
+      }
       const _before = await pickleJar.balance();
       let _treasuryBefore = await want.balanceOf(treasury.address);
 
+      const ratioBefore = await pickleJar.getRatio();
+
       console.log("Picklejar balance before harvest: ", _before.toString());
       console.log("💸 Treasury balance before harvest: ", _treasuryBefore.toString());
-      console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
+      console.log("\nRatio before harvest: ", ratioBefore.toString());
 
       await strategy.harvest();
 
       const _after = await pickleJar.balance();
+      const ratioAfter = await pickleJar.getRatio();
       let _treasuryAfter = await want.balanceOf(treasury.address);
-      console.log("Ratio after harvest: ", (await pickleJar.getRatio()).toString());
+      console.log("Ratio after harvest: ", (ratioAfter).toString());
       console.log("\nPicklejar balance after harvest: ", _after.toString());
       console.log("💸 Treasury balance after harvest: ", _treasuryAfter.toString());
 
@@ -101,7 +110,7 @@ const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
       const actualRewardsEarned = _treasuryAfter.sub(_treasuryBefore);
       console.log("\nActual reward earned by treasury: ", actualRewardsEarned.toString());
 
-      expect(earnedRewards).to.be.eqApprox(actualRewardsEarned, "20% performance fee is not given");
+      expect(+ratioAfter.toString()).to.be.greaterThan(+ratioBefore.toString(), "Ratio did not increase");
 
       //withdraw
       const _devBefore = await want.balanceOf(devfund.address);
@@ -123,6 +132,50 @@ const doTestBehaviorBase = (strategyName, want_addr, isPolygon = false) => {
       //0% goes to treasury
       const _treasuryFund = _treasuryAfter.sub(_treasuryBefore);
       expect(_treasuryFund).to.be.eq(0, "treasury've stolen money!!!!");
+    });
+
+    it("Should perform multiple deposits and withdrawals correctly", async () => {
+      const _wantHalved = (await want.balanceOf(alice.address)).div(2);
+      await want.connect(alice).transfer(strategist.address, _wantHalved);
+      await want.connect(alice).approve(pickleJar.address, _wantHalved);
+      await want.connect(strategist).approve(pickleJar.address, _wantHalved);
+
+      console.log("\nAlice starting balance: %s\n", _wantHalved.toString());
+
+      await pickleJar.connect(alice).deposit(_wantHalved);
+      await pickleJar.earn();
+
+      await increaseTime(60 * 60 * 24 * 6); //travel 6 days
+
+      await pickleJar.connect(strategist).deposit(_wantHalved);
+
+      await pickleJar.earn();
+
+      await increaseTime(60 * 60 * 24 * 6); //travel 6 days
+
+      // Alice withdraws half
+      await pickleJar.connect(alice).withdraw(_wantHalved.div(2));
+
+      await pickleJar.earn();
+
+      // Strategist withdraws all
+      await pickleJar.connect(strategist).withdrawAll();
+
+      let _aliceBalanceAfter = await want.balanceOf(alice.address);
+      let _strategistBalanceAfter = await want.balanceOf(strategist.address);
+      console.log("\nAlice balance after half withdrawal: %s\n", _aliceBalanceAfter.toString());
+      console.log("\nStrategist balance after half withdrawal: %s\n", _strategistBalanceAfter.toString());
+
+      expect(_aliceBalanceAfter).to.be.eqApprox(_wantHalved.div(2), "Alice withdrawal amount incorrect");
+
+      expect(_strategistBalanceAfter).to.be.eqApprox(_wantHalved, "Strategist withdrawal amount incorrect");
+
+      // Alice withdraws remainder
+
+      await pickleJar.connect(alice).withdrawAll();
+      _aliceBalanceAfter = await want.balanceOf(alice.address);
+      console.log("\nAlice balance after full withdrawal: %s\n", _aliceBalanceAfter.toString());
+      expect(_aliceBalanceAfter).to.be.eqApprox(_wantHalved, "Alice withdrawal amount incorrect");
     });
 
     beforeEach(async () => {
