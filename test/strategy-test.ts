@@ -161,7 +161,7 @@ export function doStrategyTest(test_case: TestableStrategy) {
             await SnowGlobe.connect(walletSigner).earn();
 
             await fastForwardAWeek();
-            
+
             let harvestable_function = Strategy.functions['getHarvestable']? 'getHarvestable' : 'getWavaxAccrued';
             let harvestable = await Strategy.functions[harvestable_function]();
             log(`\tHarvestable, pre harvest: ${harvestable.toString()}`);

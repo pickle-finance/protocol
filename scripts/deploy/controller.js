@@ -3,7 +3,7 @@ require("@nomiclabs/hardhat-waffle");
 require('dotenv').config();
 
 async function main() {
-  const platform = "Vector";
+  const platform = "Kyber";
   const controller_name = platform+"ControllerV4";
   
   const [deployer] = await ethers.getSigners();

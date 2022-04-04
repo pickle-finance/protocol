@@ -40,6 +40,15 @@ export async function fastForwardAWeek() {
     } while (i < 8);
 }
 
+export async function fastForwardSixtyDays() {
+    let i = 0;
+    do {
+        await increaseTime(60 * 60 * 24);
+        await increaseBlock(60 * 60);
+        i++;
+    } while (i < 61);
+}
+
 /*
 function toWei(amount: string, decimal = 18) => {
   return BN.from(amount).mul(BN.from(10).pow(decimal));
@@ -94,6 +103,7 @@ export function returnController(controller: string): string {
         case "bankerJoe": address = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
         case "bankerJoe1": address = "0xF2FA11Fc9247C23b3B622C41992d8555f6D01D8f"; break;
         case "benqi": address = "0x252B5fD3B1Cb07A2109bF36D5bDE6a247c6f4B59"; break;
+        case "kyber": address = "0xee9797F49E729DdDCa58f357feBe5ba1ffaa6c1b"; break;
         case "echidna": address = "0x10A2B0cc29d36f2816cDC3F3db17a4f0f91E7313"; break;
         case "main": address = "0xf7B8D9f8a82a7a6dd448398aFC5c77744Bd6cb85"; break;
         case "oldBenqi": address = "0x8Ffa3c1547479B77D9524316D5192777bedA40a1"; break;

@@ -33,6 +33,7 @@ async function main() {
       case "BankerJoe": controller_addr = "0xFb7102506B4815a24e3cE3eAA6B834BE7a5f2807"; break;
       case "BankerJoe1": controller_addr = "0xF2FA11Fc9247C23b3B622C41992d8555f6D01D8f"; break;
       case "Benqi": controller_addr = "0x252B5fD3B1Cb07A2109bF36D5bDE6a247c6f4B59"; break;    
+      case "Kyber": controller_addr = "0xee9797F49E729DdDCa58f357feBe5ba1ffaa6c1b"; break;
       case "Echidna": controller_addr = "0x10A2B0cc29d36f2816cDC3F3db17a4f0f91E7313"; break; 
       case "TraderJoe": controller_addr = "0xCEB829a0881350689dAe8CBD77D0E012cf7a6a3f"; break;
       case "OldBenqi": controller_addr = "0x8Ffa3c1547479B77D9524316D5192777bedA40a1"; break;

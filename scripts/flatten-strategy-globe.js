@@ -1,9 +1,12 @@
 const {exec} = require('child_process');
 
 async function main() {
-  const platform = "vector";
+  const platform = "kyber";
   const names = [
-    "vtx-vtx"
+    "ky-savax-avax",
+    "ky-savax-knc",
+    "ky-avax-wethe",
+    "ky-avax-knc"
   ];
 
   const flatten = name => {
