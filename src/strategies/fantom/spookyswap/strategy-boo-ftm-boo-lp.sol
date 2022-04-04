@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: MIT
+
+/*
 pragma solidity ^0.6.7;
 
 import "../strategy-spookyswap-base.sol";
@@ -33,3 +34,4 @@ contract StrategyBooFtmBooLp is StrategyBooFarmLPBase {
         return "StrategyBooFtmBooLp";
     }
 }
+*/
