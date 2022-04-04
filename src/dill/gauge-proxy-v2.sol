@@ -810,16 +810,15 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
     // Reset votes to 0
     function reset() external {
+        // check if voting cycle is over then update ballotId
+        if ((firstDistribution + (currentId * weekSeconds)) > block.timestamp) {
+            currentId += 1;
+        }
         _reset(msg.sender);
     }
 
     // Reset votes to 0
     function _reset(address _owner) internal {
-        if (
-            (firstDistribution + (currentId * weekSeconds)) > block.timestamp
-        ) {
-            currentId += 1;
-        }
         periodData storage _periodData = periods[currentId];
 
         // lastVote[_owner] = 0;
@@ -832,7 +831,9 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
             if (_votes > 0) {
                 _periodData.totalWeight = _periodData.totalWeight.sub(_votes);
-                _periodData.weights[_token] = _periodData.weights[_token].sub(_votes);
+                _periodData.weights[_token] = _periodData.weights[_token].sub(
+                    _votes
+                );
 
                 _periodData.votes[_owner][_token] = 0;
             }
@@ -843,9 +844,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
     // Adjusts _owner's votes according to latest _owner's DILL balance
     function poke(address _owner) public {
-        if (
-            (firstDistribution + (currentId * weekSeconds)) > block.timestamp
-        ) {
+        // check if voting cycle is over then update ballotId
+        if ((firstDistribution + (currentId * weekSeconds)) > block.timestamp) {
             currentId += 1;
         }
         periodData storage _periodData = periods[currentId];
@@ -876,13 +876,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         uint256 _totalVoteWeight = 0;
         uint256 _usedWeight = 0;
 
-        // check if voting cycle is over then update ballotId
-        if (
-            (firstDistribution + (currentId * weekSeconds)) > block.timestamp
-        ) {
-            currentId += 1;
-        }
-
         for (uint256 i = 0; i < _tokenCnt; i++) {
             _totalVoteWeight = _totalVoteWeight.add(_weights[i]);
         }
@@ -898,12 +891,14 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
             if (_gauge != address(0x0)) {
                 _usedWeight = _usedWeight.add(_tokenWeight);
-                _periodData.totalWeight = _periodData.totalWeight.add(_tokenWeight);
-                // weights[_token] = weights[_token].add(_tokenWeight);
+                _periodData.totalWeight = _periodData.totalWeight.add(
+                    _tokenWeight
+                );
                 _periodData.tokenVote[_owner].push(_token);
-                // votes[_owner][_token] = _tokenWeight;
                 // store weights of current period
-                _periodData.weights[_token] = _periodData.weights[_token].add(_tokenWeight);
+                _periodData.weights[_token] = _periodData.weights[_token].add(
+                    _tokenWeight
+                );
                 // store total weight of current period
                 _periodData.totalWeight = _periodData.totalWeight;
                 // add users vote to ballot
@@ -919,6 +914,12 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         external
     {
         require(_tokenVote.length == _weights.length);
+
+        // check if voting cycle is over then update ballotId
+        if ((firstDistribution + (currentId * weekSeconds)) > block.timestamp) {
+            currentId += 1;
+        }
+
         _vote(msg.sender, _tokenVote, _weights);
     }
 
@@ -962,7 +963,10 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     function distribute(uint256 _start, uint256 _end) external epochDistribute {
         require(_start < _end, "GaugeProxyV2: bad _start");
         require(_end <= _tokens.length, "GaugeProxyV2: bad _end");
-        require(msg.sender == governance,"GaugeProxyV2: only governance can distribute");
+        require(
+            msg.sender == governance,
+            "GaugeProxyV2: only governance can distribute"
+        );
         require(
             prevDistributionId < currentId,
             "GaugeProxyV2: voting for current period in progress"
@@ -985,7 +989,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
                 }
             }
         }
-    
+
         if (_tokens.length == _end) {
             prevDistributionId += 1;
         }
