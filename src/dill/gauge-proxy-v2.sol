@@ -80,6 +80,70 @@ library SafeMath {
     }
 }
 
+/**
+ * @dev Wrappers over Solidity's arithmetic operations.
+ *
+ * NOTE: `SignedSafeMath` is no longer needed starting with Solidity 0.8. The compiler
+ * now has built in overflow checking.
+ */
+library SignedSafeMath {
+    /**
+     * @dev Returns the multiplication of two signed integers, reverting on
+     * overflow.
+     *
+     * Counterpart to Solidity's `*` operator.
+     *
+     * Requirements:
+     *
+     * - Multiplication cannot overflow.
+     */
+    function mul(int256 a, int256 b) internal pure returns (int256) {
+        return a * b;
+    }
+
+    /**
+     * @dev Returns the integer division of two signed integers. Reverts on
+     * division by zero. The result is rounded towards zero.
+     *
+     * Counterpart to Solidity's `/` operator.
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function div(int256 a, int256 b) internal pure returns (int256) {
+        return a / b;
+    }
+
+    /**
+     * @dev Returns the subtraction of two signed integers, reverting on
+     * overflow.
+     *
+     * Counterpart to Solidity's `-` operator.
+     *
+     * Requirements:
+     *
+     * - Subtraction cannot overflow.
+     */
+    function sub(int256 a, int256 b) internal pure returns (int256) {
+        return a - b;
+    }
+
+    /**
+     * @dev Returns the addition of two signed integers, reverting on
+     * overflow.
+     *
+     * Counterpart to Solidity's `+` operator.
+     *
+     * Requirements:
+     *
+     * - Addition cannot overflow.
+     */
+    function add(int256 a, int256 b) internal pure returns (int256) {
+        return a + b;
+    }
+}
+
 library Address {
     function isContract(address account) internal view returns (bool) {
         bytes32 codehash;
@@ -752,6 +816,7 @@ contract Initializable {
 
 contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     using SafeMath for uint256;
+    using SignedSafeMath for int256;
     using SafeERC20 for IERC20;
 
     MasterChef public constant MASTER =
@@ -767,6 +832,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
     address[] internal _tokens;
     mapping(address => address) public gauges; // token => gauge
+    mapping(address => mapping(address => uint256))
+        public gaugeWithNegativeWeight;
 
     uint256 public constant week = 7 days;
     uint256 public constant weekSeconds = 604800;
@@ -775,11 +842,11 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     uint256 public currentId;
 
     struct periodData {
-        mapping(address => mapping(address => uint256)) votes; // msg.sender => votes
-        mapping(address => uint256) weights; // token => weight
+        mapping(address => mapping(address => int256)) votes; // msg.sender => votes
+        mapping(address => int256) weights; // token => weight
         mapping(address => address[]) tokenVote; // msg.sender => token
-        mapping(address => uint256) usedWeights; // msg.sender => total voting weight of user
-        uint256 totalWeight;
+        mapping(address => int256) usedWeights; // msg.sender => total voting weight of user
+        int256 totalWeight;
     }
     mapping(uint256 => periodData) public periods; // periodId => periodData
 
@@ -808,12 +875,28 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         firstDistribution = _firstDistribution;
     }
 
+    function _updateCurrentId() internal {
+        uint256 lastPeriodTimestamp = (firstDistribution +
+            (currentId * weekSeconds));
+        uint256 prevPeriodId;
+        if (lastPeriodTimestamp < block.timestamp) {
+            uint256 weeksElapsed = (block.timestamp - lastPeriodTimestamp) /
+                60 /
+                60 /
+                24 /
+                7;
+            prevPeriodId = currentId;
+            currentId = currentId + weeksElapsed + 1;
+            for (uint256 i = prevPeriodId + 1; i <= currentId; i++) {
+                periods[i] = periods[i - 1];
+            }
+        }
+    }
+
     // Reset votes to 0
     function reset() external {
         // check if voting cycle is over then update ballotId
-        if ((firstDistribution + (currentId * weekSeconds)) > block.timestamp) {
-            currentId += 1;
-        }
+        _updateCurrentId();
         _reset(msg.sender);
     }
 
@@ -827,7 +910,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
         for (uint256 i = 0; i < _tokenVoteCnt; i++) {
             address _token = _tokenVote[i];
-            uint256 _votes = _periodData.votes[_owner][_token];
+            int256 _votes = _periodData.votes[_owner][_token];
 
             if (_votes > 0) {
                 _periodData.totalWeight = _periodData.totalWeight.sub(_votes);
@@ -844,21 +927,18 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
     // Adjusts _owner's votes according to latest _owner's DILL balance
     function poke(address _owner) public {
-        // check if voting cycle is over then update ballotId
-        if ((firstDistribution + (currentId * weekSeconds)) > block.timestamp) {
-            currentId += 1;
-        }
+        _updateCurrentId();
         periodData storage _periodData = periods[currentId];
 
         address[] memory _tokenVote = _periodData.tokenVote[_owner];
         uint256 _tokenCnt = _tokenVote.length;
-        uint256[] memory _weights = new uint256[](_tokenCnt);
+        int256[] memory _weights = new int256[](_tokenCnt);
 
-        uint256 _prevUsedWeight = _periodData.usedWeights[_owner];
-        uint256 _weight = DILL.balanceOf(_owner);
+        int256 _prevUsedWeight = _periodData.usedWeights[_owner];
+        int256 _weight = int256(DILL.balanceOf(_owner));
 
         for (uint256 i = 0; i < _tokenCnt; i++) {
-            uint256 _prevWeight = _periodData.votes[_owner][_tokenVote[i]];
+            int256 _prevWeight = _periodData.votes[_owner][_tokenVote[i]];
             _weights[i] = _prevWeight.mul(_weight).div(_prevUsedWeight);
         }
         _vote(_owner, _tokenVote, _weights);
@@ -867,17 +947,19 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     function _vote(
         address _owner,
         address[] memory _tokenVote,
-        uint256[] memory _weights
+        int256[] memory _weights
     ) internal {
         // _weights[i] = percentage * 100
         _reset(_owner);
         uint256 _tokenCnt = _tokenVote.length;
-        uint256 _weight = DILL.balanceOf(_owner);
-        uint256 _totalVoteWeight = 0;
-        uint256 _usedWeight = 0;
+        int256 _weight = int256(DILL.balanceOf(_owner));
+        int256 _totalVoteWeight = 0;
+        int256 _usedWeight = 0;
 
         for (uint256 i = 0; i < _tokenCnt; i++) {
-            _totalVoteWeight = _totalVoteWeight.add(_weights[i]);
+            _totalVoteWeight = _totalVoteWeight.add(
+                _weights[i] > 0 ? _weights[i] : -_weights[i]
+            );
         }
 
         periodData storage _periodData = periods[currentId];
@@ -885,7 +967,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         for (uint256 i = 0; i < _tokenCnt; i++) {
             address _token = _tokenVote[i];
             address _gauge = gauges[_token];
-            uint256 _tokenWeight = _weights[i].mul(_weight).div(
+            int256 _tokenWeight = _weights[i].mul(_weight).div(
                 _totalVoteWeight
             );
 
@@ -910,16 +992,11 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     }
 
     // Vote with DILL on a gauge
-    function vote(address[] calldata _tokenVote, uint256[] calldata _weights)
+    function vote(address[] calldata _tokenVote, int256[] calldata _weights)
         external
     {
         require(_tokenVote.length == _weights.length);
-
-        // check if voting cycle is over then update ballotId
-        if ((firstDistribution + (currentId * weekSeconds)) > block.timestamp) {
-            currentId += 1;
-        }
-
+        _updateCurrentId();
         _vote(msg.sender, _tokenVote, _weights);
     }
 
@@ -929,6 +1006,20 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         require(gauges[_token] == address(0x0), "exists");
         gauges[_token] = address(new Gauge(_token));
         _tokens.push(_token);
+    }
+
+    function removeAllCensoredGauges() external {
+        require(
+            msg.sender == governance,
+            "GaugeProxyV2: only governance can delist gauge"
+        );
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            address _token = _tokens[i];
+            address _gauge = gauges[_token];
+            if (gaugeWithNegativeWeight[_token][_gauge] >= 5) {
+                gauges[_token] = address(0x0);
+            }
+        }
     }
 
     // Sets MasterChef PID
@@ -972,20 +1063,22 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             "GaugeProxyV2: voting for current period in progress"
         );
         collect();
-        uint256 _balance = PICKLE.balanceOf(address(this));
+        int256 _balance = int256(PICKLE.balanceOf(address(this)));
         periodData storage _periodData = periods[prevDistributionId + 1];
-        uint256 _totalWeight = _periodData.totalWeight;
+        int256 _totalWeight = _periodData.totalWeight;
         if (_balance > 0 && _totalWeight > 0) {
             for (uint256 i = _start; i < _end; i++) {
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
-                uint256 _reward = _balance.mul(_periodData.weights[_token]).div(
-                    _totalWeight
+                uint256 _reward = uint256(
+                    _balance.mul(_periodData.weights[_token]).div(_totalWeight)
                 );
                 if (_reward > 0) {
                     PICKLE.safeApprove(_gauge, 0);
                     PICKLE.safeApprove(_gauge, _reward);
                     Gauge(_gauge).notifyRewardAmount(_reward);
+                } else if (_reward < 0) {
+                    gaugeWithNegativeWeight[_token][_gauge] += 1;
                 }
             }
         }
