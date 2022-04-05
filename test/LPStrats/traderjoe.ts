@@ -143,6 +143,27 @@ const tests = [
     //     name: "JoeAvaxVtx",
     //     controller: "traderJoe",
     //     slot: 1
+    // },
+    // {
+    //     name: "JoeAvaxMim",
+    //     controller: "traderJoe",
+    //     slot: 1,
+    //     lp_suffix: true
+    // },
+    // {
+    //     name: "JoeAvaxFly",
+    //     controller: "traderJoe",
+    //     slot: 1
+    // },
+    // {
+    //     name: "JoeAvaxApe",
+    //     controller: "traderJoe",
+    //     slot: 1
+    // },
+    // {
+    //     name: "JoeAvaxDeg",
+    //     controller: "traderJoe",
+    //     slot: 1
     // }
     {
         name: "JoeAvaxEthE",

@@ -4,13 +4,13 @@ pragma solidity ^0.6.7;
 // Import the appropriate base contract
 import "../strategy-joe-rush-farm-base.sol";
 
-/// @title LP Strategy Example Contract
+/// @title LP Strategy Example Contract for solidity v. 0.6.x contracts
 /// @author 0xYeti
 /// @notice Contracts use NatSpec Format comments. NatSpec documentation is located here: https://docs.soliditylang.org/en/develop/natspec-format.html
 /// @notice The strategy contract for TraderJoe's FirstToken/SecondToken Liquidity Pool with double rewards
 contract StrategyJoeFirstTokenSecondToken is StrategyJoeRushFarmBase {
     // LP and Token addresses
-    uint256 public lp_poolId = 10;
+    uint256 public lp_pool_id = 10;
     address public joe_token_lp_address = 0x1000000000;
     
     // Addresses for tokens not found in the base contracts
@@ -30,7 +30,7 @@ contract StrategyJoeFirstTokenSecondToken is StrategyJoeRushFarmBase {
     )
         public
         StrategyJoeRushFarmBase(
-            lp_poolId,
+            lp_pool_id,
             joe_token_lp_address,
             _governance,
             _strategist,

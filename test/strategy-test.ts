@@ -167,6 +167,8 @@ export function doStrategyTest(test_case: TestableStrategy) {
             log(`\tHarvestable, pre harvest: ${harvestable.toString()}`);
     
             let initialBalance = await Strategy.balanceOf();
+            let cost = (await Strategy.estimateGas.harvest()).toNumber();
+            console.log("cost %d", cost);
             await Strategy.connect(walletSigner).harvest();
             await increaseBlock(2);
 

@@ -146,4 +146,28 @@ abstract contract StrategyJoeRushFarmBase is StrategyBase {
             _snob.sub(_share)
         );
     }
+
+    function _swapFeeToWavax(uint256 _keep, address reward) internal {
+        address[] memory path = new address[](2);
+        path[0] = reward;
+        path[1] = wavax;
+        IERC20(reward).safeApprove(joeRouter, 0);
+        IERC20(reward).safeApprove(joeRouter, _keep);
+        _swapTraderJoeWithPath(path, _keep);
+    }
+
+    function _takeFeeToSnob(uint256 _keep) internal {
+        address[] memory path = new address[](2);
+        path[0] = wavax;
+        path[1] = snob;
+        IERC20(wavax).safeApprove(joeRouter, 0);
+        IERC20(wavax).safeApprove(joeRouter, _keep);
+        _swapTraderJoe(wavax, snob, _keep);
+        uint256 _snob = IERC20(snob).balanceOf(address(this));
+        uint256 _share = _snob.mul(revenueShare).div(revenueShareMax);
+        IERC20(snob).safeTransfer(feeDistributor, _share);
+        IERC20(snob).safeTransfer(
+        IController(controller).treasury(),
+        _snob.sub(_share));
+    }
 }
