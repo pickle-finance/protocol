@@ -832,14 +832,13 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
     address[] internal _tokens;
     mapping(address => address) public gauges; // token => gauge
-    mapping(address => mapping(address => uint256))
-        public gaugeWithNegativeWeight;
+    mapping(address => uint256) public gaugeWithNegativeWeight;
 
     uint256 public constant week = 7 days;
     uint256 public constant weekSeconds = 604800;
     uint256 public firstDistribution; // epoch time stamp
-    uint256 public prevDistributionId;
-    uint256 public currentId;
+    uint256 public prevDistributionId = 0;
+    uint256 public currentId = 1;
 
     struct periodData {
         mapping(address => mapping(address => int256)) votes; // msg.sender => votes
@@ -850,15 +849,18 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     }
     mapping(uint256 => periodData) public periods; // periodId => periodData
 
-    modifier epochDistribute() {
-        uint256 time = block.timestamp -
-            (prevDistributionId * weekSeconds) +
-            firstDistribution;
-        require(
-            time > week,
-            "GaugeProxyV2: distribution already done for this week"
-        );
-        _;
+    function getActualCurrentPeriodId() public view returns (uint256) {
+        uint256 lastPeriodEndTimestamp = (firstDistribution +
+            (currentId * weekSeconds));
+        if (lastPeriodEndTimestamp < block.timestamp) {
+            uint256 weeksElapsed = (block.timestamp - lastPeriodEndTimestamp) /
+                60 /
+                60 /
+                24 /
+                7;
+
+            return currentId + weeksElapsed + 1;
+        }
     }
 
     function tokens() external view returns (address[] memory) {
@@ -876,20 +878,10 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     }
 
     function _updateCurrentId() internal {
-        uint256 lastPeriodTimestamp = (firstDistribution +
-            (currentId * weekSeconds));
-        uint256 prevPeriodId;
-        if (lastPeriodTimestamp < block.timestamp) {
-            uint256 weeksElapsed = (block.timestamp - lastPeriodTimestamp) /
-                60 /
-                60 /
-                24 /
-                7;
-            prevPeriodId = currentId;
-            currentId = currentId + weeksElapsed + 1;
-            for (uint256 i = prevPeriodId + 1; i <= currentId; i++) {
-                periods[i] = periods[i - 1];
-            }
+        uint256 prevPeriodId = currentId;
+        currentId = getActualCurrentPeriodId();
+        for (uint256 i = prevPeriodId + 1; i <= currentId; i++) {
+            periods[i] = periods[i - 1];
         }
     }
 
@@ -912,8 +904,10 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             address _token = _tokenVote[i];
             int256 _votes = _periodData.votes[_owner][_token];
 
-            if (_votes > 0) {
-                _periodData.totalWeight = _periodData.totalWeight.sub(_votes);
+            if (_votes != 0) {
+                _periodData.totalWeight = _periodData.totalWeight.sub(
+                    _votes > 0 ? _votes : -_votes
+                );
                 _periodData.weights[_token] = _periodData.weights[_token].sub(
                     _votes
                 );
@@ -949,7 +943,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         address[] memory _tokenVote,
         int256[] memory _weights
     ) internal {
-        // _weights[i] = percentage * 100
         _reset(_owner);
         uint256 _tokenCnt = _tokenVote.length;
         int256 _weight = int256(DILL.balanceOf(_owner));
@@ -972,19 +965,20 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             );
 
             if (_gauge != address(0x0)) {
+                _periodData.weights[_token] = _periodData.weights[_token].add(
+                    _tokenWeight
+                );
+                _periodData.votes[_owner][_token] = _tokenWeight;
+                _periodData.tokenVote[_owner].push(_token);
+
+                if (_tokenWeight < 0) {
+                    _tokenWeight = -_tokenWeight;
+                }
+
                 _usedWeight = _usedWeight.add(_tokenWeight);
                 _periodData.totalWeight = _periodData.totalWeight.add(
                     _tokenWeight
                 );
-                _periodData.tokenVote[_owner].push(_token);
-                // store weights of current period
-                _periodData.weights[_token] = _periodData.weights[_token].add(
-                    _tokenWeight
-                );
-                // store total weight of current period
-                _periodData.totalWeight = _periodData.totalWeight;
-                // add users vote to ballot
-                _periodData.votes[_owner][_token] = _tokenWeight;
             }
         }
 
@@ -1008,18 +1002,31 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         _tokens.push(_token);
     }
 
-    function removeAllCensoredGauges() external {
+    function delistGauge(address _token) external {
+        require(msg.sender == governance, "!gov");
+        require(gauges[_token] != address(0x0), "!exists");
+
+        uint256 _actualCurrentId = getActualCurrentPeriodId();
         require(
-            msg.sender == governance,
-            "GaugeProxyV2: only governance can delist gauge"
+            prevDistributionId == _actualCurrentId - 1,
+            "! all distributions completed"
         );
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            address _token = _tokens[i];
-            address _gauge = gauges[_token];
-            if (gaugeWithNegativeWeight[_token][_gauge] >= 5) {
-                gauges[_token] = address(0x0);
-            }
+
+        address _gauge = gauges[_token];
+
+        require(gaugeWithNegativeWeight[_gauge] >= 5, "censors < 5");
+
+        delete gauges[_token];
+
+        address[] storage newTokenArray;
+        uint256 tokensLength = _tokens.length;
+
+        for (uint i = 0; i < tokensLength; i++){
+            if(_tokens[i] != _token)
+                newTokenArray.push(_tokens[i]);
         }
+
+        _tokens = newTokenArray;
     }
 
     // Sets MasterChef PID
@@ -1051,17 +1058,21 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         return _tokens.length;
     }
 
-    function distribute(uint256 _start, uint256 _end) external epochDistribute {
+    function distribute(uint256 _start, uint256 _end) external {
         require(_start < _end, "GaugeProxyV2: bad _start");
         require(_end <= _tokens.length, "GaugeProxyV2: bad _end");
         require(
             msg.sender == governance,
             "GaugeProxyV2: only governance can distribute"
         );
+
+        _updateCurrentId();
+
         require(
-            prevDistributionId < currentId,
-            "GaugeProxyV2: voting for current period in progress"
+            prevDistributionId < currentId - 1,
+            "GaugeProxyV2: all period distributions complete"
         );
+
         collect();
         int256 _balance = int256(PICKLE.balanceOf(address(this)));
         periodData storage _periodData = periods[prevDistributionId + 1];
@@ -1077,8 +1088,10 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
                     PICKLE.safeApprove(_gauge, 0);
                     PICKLE.safeApprove(_gauge, _reward);
                     Gauge(_gauge).notifyRewardAmount(_reward);
-                } else if (_reward < 0) {
-                    gaugeWithNegativeWeight[_token][_gauge] += 1;
+                }
+
+                if (_reward < 0) {
+                    gaugeWithNegativeWeight[_gauge] += 1;
                 }
             }
         }
