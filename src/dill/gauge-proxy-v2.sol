@@ -851,20 +851,18 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
     struct deligateData {
         address deligate;
-        uint256 periods;
+        int256 periods;
         bool canVoteForCurrentPeriod;
     }
     mapping (address => deligateData) public deligations;
-    // no. of periods 0 = none, 1 = indefinate , n = n-1 periods
+    // no. of periods 0 = none, <0 indefinate , >0 periods
 
-    function setVotingDelicate(address _delicate, uint256 _periodsCount) public {
+    function setVotingDelicate(address _delicate, int256 _periodsCount) public {
         require(_delicate != address(0), "GaugeProxyV2: cannot delicate zero address");
         require(_delicate != msg.sender, "GaugeProxyV2: delicating address cannot be delicated");
         deligations[msg.sender].deligate = _delicate;
         deligations[msg.sender].canVoteForCurrentPeriod = true;
-        if( _periodCount > 1) {
-            deligations[msg.sender].periods = _periodsCount + 1;
-        }
+        deligations[msg.sender].periods = _periodsCount;
     }
 
     function getActualCurrentPeriodId() public view returns (uint256) {
@@ -903,6 +901,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         for (uint256 i = prevPeriodId + 1; i <= currentId; i++) {
             periods[i] = periods[i - 1];
         }
+        deligations[msg.sender].canVoteForCurrentPeriod = true;
     }
 
     // Reset votes to 0
@@ -1020,13 +1019,10 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         require(_tokenVote.length == _weights.length);
         _updateCurrentId();
         deligateData memory deligate = deligations[_owner];
-        if(deligate.deligate == msg.sender && deligate.periods > 0  && deligate.canVoteForCurrentPeriod == true) {
+        if(deligate.deligate == msg.sender && deligate.periods != 0  && deligate.canVoteForCurrentPeriod == true) {
             _vote(_owner, _tokenVote, _weights);
-            if(deligate.periods > 2) {
+            if(deligate.periods > 0) {
                 deligate.periods -= 1;
-            }
-            if(deligate.periods == 2) {
-                deligate.periods = 0;
             }
         }
     }
