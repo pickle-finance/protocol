@@ -258,12 +258,16 @@ const tests = [
     //     name: "PngAvaxFeed",
     //     controller: "main"
     // },
+    // {
+    //     name: "PngAvaxBribe",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngUstDlaunch",
+    //     controller: "main"
+    // },
     {
-        name: "PngAvaxBribe",
-        controller: "main"
-    },
-    {
-        name: "PngUstDlaunch",
+        name: "PngAvaxLost",
         controller: "main"
     }
 ];

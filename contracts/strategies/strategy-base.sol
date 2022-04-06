@@ -9,7 +9,6 @@ import "../interfaces/staking-rewards.sol";
 import "../interfaces/icequeen.sol";
 import "../interfaces/pangolin.sol";
 import "../interfaces/controller.sol";
-import "hardhat/console.sol";
 
 // Strategy Contract Basics
 
@@ -212,9 +211,6 @@ abstract contract StrategyBase {
 
         address _globe = IController(controller).globes(address(want));
         require(_globe != address(0), "!globe"); // additional protection so we don't burn the funds
-
-        uint256 _balanceOfPool = balanceOfPool(); 
-        console.log("The balance of pool of which we can withdraw", _balanceOfPool);
 
         IERC20(want).safeTransfer(_globe, _amount.sub(_feeDev).sub(_feeTreasury));
     }
