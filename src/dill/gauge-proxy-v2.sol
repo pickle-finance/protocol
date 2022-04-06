@@ -837,8 +837,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     uint256 public constant week = 7 days;
     uint256 public constant weekSeconds = 604800;
     uint256 public firstDistribution; // epoch time stamp
-    uint256 public prevDistributionId = 0;
-    uint256 public currentId = 1;
+    uint256 public prevDistributionId;
+    uint256 public currentId;
 
     struct periodData {
         mapping(address => mapping(address => int256)) votes; // msg.sender => votes
@@ -848,6 +848,24 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         int256 totalWeight;
     }
     mapping(uint256 => periodData) public periods; // periodId => periodData
+
+    struct deligateData {
+        address deligate;
+        uint256 periods;
+        bool canVoteForCurrentPeriod;
+    }
+    mapping (address => deligateData) public deligations;
+    // no. of periods 0 = none, 1 = indefinate , n = n-1 periods
+
+    function setVotingDelicate(address _delicate, uint256 _periodsCount) public {
+        require(_delicate != address(0), "GaugeProxyV2: cannot delicate zero address");
+        require(_delicate != msg.sender, "GaugeProxyV2: delicating address cannot be delicated");
+        deligations[msg.sender].deligate = _delicate;
+        deligations[msg.sender].canVoteForCurrentPeriod = true;
+        if( _periodCount > 1) {
+            deligations[msg.sender].periods = _periodsCount + 1;
+        }
+    }
 
     function getActualCurrentPeriodId() public view returns (uint256) {
         uint256 lastPeriodEndTimestamp = (firstDistribution +
@@ -875,6 +893,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         TOKEN = IERC20(address(new MasterDill()));
         governance = msg.sender;
         firstDistribution = _firstDistribution;
+        currentId = 1;
+        prevDistributionId = 0;
     }
 
     function _updateCurrentId() internal {
@@ -992,6 +1012,23 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         require(_tokenVote.length == _weights.length);
         _updateCurrentId();
         _vote(msg.sender, _tokenVote, _weights);
+        deligations[msg.sender].canVoteForCurrentPeriod = false;
+    }
+
+    function voteFor(address _owner, address[] calldata _tokenVote, int256[] calldata _weights)
+        external{
+        require(_tokenVote.length == _weights.length);
+        _updateCurrentId();
+        deligateData memory deligate = deligations[_owner];
+        if(deligate.deligate == msg.sender && deligate.periods > 0  && deligate.canVoteForCurrentPeriod == true) {
+            _vote(_owner, _tokenVote, _weights);
+            if(deligate.periods > 2) {
+                deligate.periods -= 1;
+            }
+            if(deligate.periods == 2) {
+                deligate.periods = 0;
+            }
+        }
     }
 
     // Add new token gauge
