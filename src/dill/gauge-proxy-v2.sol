@@ -831,7 +831,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     uint256 public pid;
 
     address[] internal _tokens;
-    
+
     // token => gauge
     mapping(address => address) public gauges;
 
@@ -862,6 +862,10 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     struct delegateData {
         // delegated address
         address delegate;
+        // previous delegated address if updated, else zero address
+        address prevDelegate;
+        // period id when delegate address was updated
+        uint256 updatePeriodId;
         // endPeriod if defined. Else 0.
         uint256 endPeriod;
         // If no endPeriod
@@ -871,30 +875,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     }
 
     mapping(address => delegateData) public delegations;
-
-    function setVotingDelegate(
-        address _delegate,
-        uint256 _periodsCount,
-        bool _indefinite
-    ) external {
-        require(
-            _delegate != address(0),
-            "GaugeProxyV2: cannot delegate zero address"
-        );
-        require(
-            _delegate != msg.sender,
-            "GaugeProxyV2: delegate address cannot be delegating"
-        );
-        delegations[msg.sender].delegate = _delegate;
-
-        if (_indefinite == true) {
-            delegations[msg.sender].indefinite = true;
-        } else {
-            delegations[msg.sender].endPeriod =
-                getActualCurrentPeriodId() +
-                _periodsCount;
-        }
-    }
 
     function getActualCurrentPeriodId() public view returns (uint256) {
         uint256 lastPeriodEndTimestamp = (firstDistribution +
@@ -1042,6 +1022,36 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         delegations[msg.sender].blockDelegate[currentId] = true;
     }
 
+    function setVotingDelegate(
+        address _delegateAddress,
+        uint256 _periodsCount,
+        bool _indefinite
+    ) external {
+        require(
+            _delegateAddress != address(0),
+            "GaugeProxyV2: cannot delegate zero address"
+        );
+        require(
+            _delegateAddress != msg.sender,
+            "GaugeProxyV2: delegate address cannot be delegating"
+        );
+
+        delegateData storage _delegate = delegations[msg.sender];
+
+        uint256 actualCurrentPeriodId = getActualCurrentPeriodId();
+
+        address currentDelegate = _delegate.delegate;
+        _delegate.delegate = _delegateAddress;
+        _delegate.prevDelegate = currentDelegate;
+        _delegate.updatePeriodId = actualCurrentPeriodId;
+
+        if (_indefinite == true) {
+            _delegate.indefinite = true;
+        } else {
+            _delegate.endPeriod = actualCurrentPeriodId + _periodsCount;
+        }
+    }
+
     function voteFor(
         address _owner,
         address[] calldata _tokenVote,
@@ -1050,7 +1060,13 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         require(_tokenVote.length == _weights.length);
         _updateCurrentId();
         delegateData storage _delegate = delegations[_owner];
-        require(_delegate.delegate == msg.sender, "Sender not authorized");
+        require(
+            (_delegate.delegate == msg.sender &&
+                currentId > _delegate.updatePeriodId) ||
+                (_delegate.prevDelegate == msg.sender &&
+                    currentId == _delegate.updatePeriodId),
+            "Sender not authorized"
+        );
         require(
             _delegate.blockDelegate[currentId] == false,
             "Delegating address has already voted"
