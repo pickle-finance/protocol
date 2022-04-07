@@ -849,20 +849,28 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     }
     mapping(uint256 => periodData) public periods; // periodId => periodData
 
-    struct deligateData {
-        address deligate;
-        int256 periods;
-        bool canVoteForCurrentPeriod;
+    struct delegateData {
+        address delegate;
+        uint256 endPeriod;
+        mapping(uint256 => bool) blockDelegate; // Period => Boolean (if delegate address can vote in that period)
     }
-    mapping (address => deligateData) public deligations;
-    // no. of periods 0 = none, <0 indefinate , >0 periods
 
-    function setVotingDelicate(address _delicate, int256 _periodsCount) public {
-        require(_delicate != address(0), "GaugeProxyV2: cannot delicate zero address");
-        require(_delicate != msg.sender, "GaugeProxyV2: delicating address cannot be delicated");
-        deligations[msg.sender].deligate = _delicate;
-        deligations[msg.sender].canVoteForCurrentPeriod = true;
-        deligations[msg.sender].periods = _periodsCount;
+    mapping(address => delegateData) public delegations;
+
+    // no. of periods 0 = none, <0 indefinate , >0 periods
+    function setVotingDelegate(address _delegate, uint256 _periodsCount)
+        external
+    {
+        require(
+            _delegate != address(0),
+            "GaugeProxyV2: cannot delegate zero address"
+        );
+        require(
+            _delegate != msg.sender,
+            "GaugeProxyV2: delegate address cannot be delegating"
+        );
+        delegations[msg.sender].delegate = _delegate;
+        delegations[msg.sender].endPeriod = getActualCurrentPeriodId() + _periodsCount;
     }
 
     function getActualCurrentPeriodId() public view returns (uint256) {
@@ -901,7 +909,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         for (uint256 i = prevPeriodId + 1; i <= currentId; i++) {
             periods[i] = periods[i - 1];
         }
-        deligations[msg.sender].canVoteForCurrentPeriod = true;
     }
 
     // Reset votes to 0
@@ -1011,20 +1018,22 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         require(_tokenVote.length == _weights.length);
         _updateCurrentId();
         _vote(msg.sender, _tokenVote, _weights);
-        deligations[msg.sender].canVoteForCurrentPeriod = false;
+        delegations[msg.sender].blockDelegate[currentId] = true;
     }
 
-    function voteFor(address _owner, address[] calldata _tokenVote, int256[] calldata _weights)
-        external{
+    function voteFor(
+        address _owner,
+        address[] calldata _tokenVote,
+        int256[] calldata _weights
+    ) external {
         require(_tokenVote.length == _weights.length);
         _updateCurrentId();
-        deligateData memory deligate = deligations[_owner];
-        if(deligate.deligate == msg.sender && deligate.periods != 0  && deligate.canVoteForCurrentPeriod == true) {
-            _vote(_owner, _tokenVote, _weights);
-            if(deligate.periods > 0) {
-                deligate.periods -= 1;
-            }
-        }
+        delegateData storage _delegate = delegations[_owner];
+        require(_delegate.delegate == msg.sender, "Sender not authorized");
+        require(_delegate.blockDelegate[currentId] == false, "Delegating address has already voted");
+        require(_delegate.endPeriod <= currentId, "Delegating period expired");
+        
+        _vote(_owner, _tokenVote, _weights);
     }
 
     // Add new token gauge
@@ -1054,9 +1063,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         address[] storage newTokenArray;
         uint256 tokensLength = _tokens.length;
 
-        for (uint i = 0; i < tokensLength; i++){
-            if(_tokens[i] != _token)
-                newTokenArray.push(_tokens[i]);
+        for (uint256 i = 0; i < tokensLength; i++) {
+            if (_tokens[i] != _token) newTokenArray.push(_tokens[i]);
         }
 
         _tokens = newTokenArray;
