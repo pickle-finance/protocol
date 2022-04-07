@@ -2,7 +2,6 @@
 pragma solidity ^0.6.2;
 
 interface IStrategyV2 {
-
     function tick_lower() external view returns (int24);
 
     function tick_upper() external view returns (int24);

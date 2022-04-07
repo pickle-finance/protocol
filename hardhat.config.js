@@ -9,7 +9,7 @@ const { removeConsoleLog } = require("hardhat-preprocessor");
 require("dotenv").config();
 
 module.exports = {
-  defaultNetwork: "fantom",
+  defaultNetwork: "hardhat",
   solidity: {
     compilers: [
       {
@@ -33,20 +33,34 @@ module.exports = {
     ],
   },
   networks: {
+    localhost: {
+      url: "http://127.0.0.1:8545",
+    },
     hardhat: {
       forking: {
-        url: `https://ftmrpc.ultimatenodes.io/`,
+        url: `https://eth-mainnet.alchemyapi.io/v2/hryDcEe1YR3iSfKm1pZWyi5RwiUUznMX`,
       },
+      accounts: {
+        mnemonic: process.env.MNEMONIC,
+      },
+      allowUnlimitedContractSize: true,
+      hardfork: "london",
+      gasPrice: "auto",
+      gas: 2500000,
+    },
+    rinkeby: {
+      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },
       hardfork: "london",
       gasPrice: "auto",
-      gas: 2500000,
     },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: [`0x${process.env.MNEMONIC}`],
+      hardfork: "london",
+      gasPrice: "auto",
     },
     matic: {
       url: "https://polygon-rpc.com/",
@@ -92,13 +106,13 @@ module.exports = {
     enabled: true,
     coinmarketcap: process.env.COINMARKETCAP,
     currency: "USD",
-    gasPrice: 32,
+    gasPrice: 89,
   },
   preprocess: {
     eachLine: removeConsoleLog((hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"),
   },
   mocha: {
-    timeout: 20000000,
+    timeout: 200000000,
   },
   vyper: {
     version: "0.2.7",
