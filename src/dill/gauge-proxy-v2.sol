@@ -831,36 +831,52 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     uint256 public pid;
 
     address[] internal _tokens;
-    mapping(address => address) public gauges; // token => gauge
+    
+    // token => gauge
+    mapping(address => address) public gauges;
+
     mapping(address => uint256) public gaugeWithNegativeWeight;
 
     uint256 public constant week = 7 days;
     uint256 public constant weekSeconds = 604800;
-    uint256 public firstDistribution; // epoch time stamp
+    // epoch time stamp
+    uint256 public firstDistribution;
     uint256 public prevDistributionId;
     uint256 public currentId;
 
     struct periodData {
-        mapping(address => mapping(address => int256)) votes; // msg.sender => votes
-        mapping(address => int256) weights; // token => weight
-        mapping(address => address[]) tokenVote; // msg.sender => token
-        mapping(address => int256) usedWeights; // msg.sender => total voting weight of user
+        // msg.sender => votes
+        mapping(address => mapping(address => int256)) votes;
+        // token => weight
+        mapping(address => int256) weights;
+        // msg.sender => token
+        mapping(address => address[]) tokenVote;
+        // msg.sender => total voting weight of user
+        mapping(address => int256) usedWeights;
         int256 totalWeight;
     }
-    mapping(uint256 => periodData) public periods; // periodId => periodData
+
+    // periodId => periodData
+    mapping(uint256 => periodData) public periods;
 
     struct delegateData {
+        // delegated address
         address delegate;
+        // endPeriod if defined. Else 0.
         uint256 endPeriod;
-        mapping(uint256 => bool) blockDelegate; // Period => Boolean (if delegate address can vote in that period)
+        // If no endPeriod
+        bool indefinite;
+        // Period => Boolean (if delegate address can vote in that period)
+        mapping(uint256 => bool) blockDelegate;
     }
 
     mapping(address => delegateData) public delegations;
 
-    // no. of periods 0 = none, <0 indefinate , >0 periods
-    function setVotingDelegate(address _delegate, uint256 _periodsCount)
-        external
-    {
+    function setVotingDelegate(
+        address _delegate,
+        uint256 _periodsCount,
+        bool _indefinite
+    ) external {
         require(
             _delegate != address(0),
             "GaugeProxyV2: cannot delegate zero address"
@@ -870,7 +886,14 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             "GaugeProxyV2: delegate address cannot be delegating"
         );
         delegations[msg.sender].delegate = _delegate;
-        delegations[msg.sender].endPeriod = getActualCurrentPeriodId() + _periodsCount;
+
+        if (_indefinite == true) {
+            delegations[msg.sender].indefinite = true;
+        } else {
+            delegations[msg.sender].endPeriod =
+                getActualCurrentPeriodId() +
+                _periodsCount;
+        }
     }
 
     function getActualCurrentPeriodId() public view returns (uint256) {
@@ -921,8 +944,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     // Reset votes to 0
     function _reset(address _owner) internal {
         periodData storage _periodData = periods[currentId];
-
-        // lastVote[_owner] = 0;
         address[] storage _tokenVote = _periodData.tokenVote[_owner];
         uint256 _tokenVoteCnt = _tokenVote.length;
 
@@ -1030,9 +1051,15 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         _updateCurrentId();
         delegateData storage _delegate = delegations[_owner];
         require(_delegate.delegate == msg.sender, "Sender not authorized");
-        require(_delegate.blockDelegate[currentId] == false, "Delegating address has already voted");
-        require(_delegate.endPeriod <= currentId, "Delegating period expired");
-        
+        require(
+            _delegate.blockDelegate[currentId] == false,
+            "Delegating address has already voted"
+        );
+        require(
+            _delegate.indefinite == true || _delegate.endPeriod <= currentId,
+            "Delegating period expired"
+        );
+
         _vote(_owner, _tokenVote, _weights);
     }
 
