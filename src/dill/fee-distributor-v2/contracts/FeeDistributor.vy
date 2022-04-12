@@ -32,9 +32,13 @@ event CheckpointToken:
 event Claimed:
     recipient: indexed(address)
     amount: uint256
+    amount_eth: uint256
     claim_epoch: uint256
     max_epoch: uint256
 
+event EtherSent:
+    amount: uint256
+    sender: indexed(address)
 
 struct Point:
     bias: int128
@@ -53,11 +57,14 @@ user_epoch_of: public(HashMap[address, uint256])
 
 last_token_time: public(uint256)
 tokens_per_week: public(uint256[1000000000000000])
+eth_per_week: public(uint256[1000000000000000])
 
 voting_escrow: public(address)
 token: public(address)
 total_received: public(uint256)
+total_eth_received: public(uint256)
 token_last_balance: public(uint256)
+eth_last_balance: public(uint256)
 
 ve_supply: public(uint256[1000000000000000])  # VE total supply at week bounds
 
@@ -101,6 +108,10 @@ def _checkpoint_token():
     to_distribute: uint256 = token_balance - self.token_last_balance
     self.token_last_balance = token_balance
 
+    eth_balance: uint256 = self.balance
+    to_distribute_eth: uint256 = eth_balance - self.eth_last_balance
+    self.eth_last_balance = eth_balance
+
     t: uint256 = self.last_token_time
     since_last: uint256 = block.timestamp - t
     self.last_token_time = block.timestamp
@@ -112,14 +123,18 @@ def _checkpoint_token():
         if block.timestamp < next_week:
             if since_last == 0 and block.timestamp == t:
                 self.tokens_per_week[this_week] += to_distribute
+                self.eth_per_week[this_week] += to_distribute_eth
             else:
                 self.tokens_per_week[this_week] += to_distribute * (block.timestamp - t) / since_last
+                self.eth_per_week[this_week] += to_distribute_eth * (block.timestamp - t) / since_last
             break
         else:
             if since_last == 0 and next_week == t:
                 self.tokens_per_week[this_week] += to_distribute
+                self.eth_per_week[this_week] += to_distribute_eth
             else:
                 self.tokens_per_week[this_week] += to_distribute * (next_week - t) / since_last
+                self.eth_per_week[this_week] += to_distribute_eth * (next_week - t) / since_last
         t = next_week
         this_week = next_week
 
@@ -225,17 +240,18 @@ def checkpoint_total_supply():
 
 
 @internal
-def _claim(addr: address, ve: address, _last_token_time: uint256) -> uint256:
+def _claim(addr: address, ve: address, _last_token_time: uint256) -> (uint256, uint256):
     # Minimal user_epoch is 0 (if user had no point)
     user_epoch: uint256 = 0
-    to_distribute: uint256 = 0
+    to_distribute_tokens: uint256 = 0
+    to_distribute_eth: uint256 = 0
 
     max_user_epoch: uint256 = VotingEscrow(ve).user_point_epoch(addr)
     _start_time: uint256 = self.start_time
 
     if max_user_epoch == 0:
         # No lock = no fees
-        return 0
+        return 0, 0
 
     week_cursor: uint256 = self.time_cursor_of[addr]
     if week_cursor == 0:
@@ -253,7 +269,7 @@ def _claim(addr: address, ve: address, _last_token_time: uint256) -> uint256:
         week_cursor = (user_point.ts + WEEK - 1) / WEEK * WEEK
 
     if week_cursor >= _last_token_time:
-        return 0
+        return 0, 0
 
     if week_cursor < _start_time:
         week_cursor = _start_time
@@ -280,22 +296,22 @@ def _claim(addr: address, ve: address, _last_token_time: uint256) -> uint256:
             if balance_of == 0 and user_epoch > max_user_epoch:
                 break
             if balance_of > 0:
-                to_distribute += balance_of * self.tokens_per_week[week_cursor] / self.ve_supply[week_cursor]
-
+                to_distribute_tokens += balance_of * self.tokens_per_week[week_cursor] / self.ve_supply[week_cursor]
+                to_distribute_eth += balance_of * self.eth_per_week[week_cursor] / self.ve_supply[week_cursor]
             week_cursor += WEEK
 
     user_epoch = min(max_user_epoch, user_epoch - 1)
     self.user_epoch_of[addr] = user_epoch
     self.time_cursor_of[addr] = week_cursor
 
-    log Claimed(addr, to_distribute, user_epoch, max_user_epoch)
+    log Claimed(addr, to_distribute_tokens, to_distribute_eth, user_epoch, max_user_epoch)
 
-    return to_distribute
+    return to_distribute_tokens, to_distribute_eth
 
 
 @external
 @nonreentrant('lock')
-def claim(_addr: address = msg.sender) -> uint256:
+def claim(_addr: address = msg.sender) -> (uint256, uint256):
     """
     @notice Claim fees for `_addr`
     @dev Each call to claim look at a maximum of 50 user veCRV points.
@@ -319,13 +335,29 @@ def claim(_addr: address = msg.sender) -> uint256:
 
     last_token_time = last_token_time / WEEK * WEEK
 
-    amount: uint256 = self._claim(_addr, self.voting_escrow, last_token_time)
-    if amount != 0:
-        token: address = self.token
-        assert ERC20(token).transfer(_addr, amount)
-        self.token_last_balance -= amount
+    tokens_amount: uint256 = 0
+    eth_amount: uint256 = 0
 
-    return amount
+    tokens_amount, eth_amount = self._claim(_addr, self.voting_escrow, last_token_time)
+    if tokens_amount != 0:
+        token: address = self.token
+        assert ERC20(token).transfer(_addr, tokens_amount)
+        self.token_last_balance -= tokens_amount
+
+    if eth_amount != 0:
+        response: Bytes[32] = raw_call(
+            _addr,
+            0x00,
+            value=eth_amount,
+            max_outsize=32,
+        )
+
+        if len(response) != 0:
+            assert convert(response, bool)
+
+        self.eth_last_balance -= eth_amount
+
+    return tokens_amount, eth_amount
 
 
 @external
@@ -354,19 +386,38 @@ def claim_many(_receivers: address[20]) -> bool:
     last_token_time = last_token_time / WEEK * WEEK
     voting_escrow: address = self.voting_escrow
     token: address = self.token
-    total: uint256 = 0
+    total_tokens: uint256 = 0
+    total_eth: uint256 = 0
 
     for addr in _receivers:
         if addr == ZERO_ADDRESS:
             break
 
-        amount: uint256 = self._claim(addr, voting_escrow, last_token_time)
-        if amount != 0:
-            assert ERC20(token).transfer(addr, amount)
-            total += amount
+        tokens_amount: uint256 = 0
+        eth_amount: uint256 = 0
 
-    if total != 0:
-        self.token_last_balance -= total
+        tokens_amount, eth_amount = self._claim(addr, voting_escrow, last_token_time)
+        if tokens_amount != 0:
+            assert ERC20(token).transfer(addr, tokens_amount)
+            total_tokens += tokens_amount
+
+        if eth_amount != 0:
+            response: Bytes[32] = raw_call(
+                addr,
+                0x00,
+                value=eth_amount,
+                max_outsize=32,
+            )
+
+            if len(response) != 0:
+                assert convert(response, bool)
+
+            total_eth += eth_amount
+
+    if total_tokens != 0:
+        self.token_last_balance -= total_tokens
+    if total_eth != 0:
+        self.eth_last_balance -= total_eth
 
     return True
 
@@ -388,6 +439,17 @@ def burn(_coin: address) -> bool:
             self._checkpoint_token()
 
     return True
+
+
+@external
+@payable
+def __default__():
+    assert not self.is_killed
+
+    log EtherSent(msg.value, msg.sender)
+
+    if self.can_checkpoint_token and (block.timestamp > self.last_token_time + TOKEN_CHECKPOINT_DEADLINE):
+            self._checkpoint_token()
 
 
 @external
@@ -450,16 +512,20 @@ def recover_balance(_coin: address) -> bool:
     assert msg.sender == self.admin
     assert _coin != self.token
 
-    amount: uint256 = ERC20(_coin).balanceOf(self)
-    response: Bytes[32] = raw_call(
-        _coin,
-        concat(
+    amount: uint256 = self.balance
+    data: Bytes[68] = 0x00
+    to: address = self.emergency_return
+
+    if _coin != ZERO_ADDRESS:
+        amount = ERC20(_coin).balanceOf(self)
+        data = concat(
             method_id("transfer(address,uint256)"),
             convert(self.emergency_return, bytes32),
             convert(amount, bytes32),
-        ),
-        max_outsize=32,
-    )
+        )
+        to = _coin
+
+    response: Bytes[32] = raw_call(to, data, max_outsize=32)
     if len(response) != 0:
         assert convert(response, bool)
 
