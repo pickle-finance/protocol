@@ -55,8 +55,8 @@ def test_claim_many_same_account(
     chain.sleep(WEEK)
     fee_distributor.checkpoint_token()
 
-    expected = fee_distributor.claim.call({"from": alice})
+    expected_tokens, expected_eth = fee_distributor.claim.call({"from": alice})
 
     fee_distributor.claim_many([alice] * 20, {"from": alice})
 
-    assert coin_a.balanceOf(alice) == expected
+    assert coin_a.balanceOf(alice) == expected_tokens
