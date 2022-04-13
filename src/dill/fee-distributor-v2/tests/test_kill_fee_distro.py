@@ -27,13 +27,16 @@ def test_multi_kill(fee_distributor, accounts):
     assert fee_distributor.is_killed()
 
 
-def test_killing_xfers_tokens(fee_distributor, accounts, coin_a):
+def test_killing_xfers_tokens_and_eth(fee_distributor, accounts, coin_a):
     coin_a._mint_for_testing(fee_distributor, 31337)
+    accounts[2].transfer(fee_distributor, 31337)
 
+    init_eth_bal = accounts[1].balance()
     fee_distributor.kill_me({"from": accounts[0]})
 
     assert fee_distributor.emergency_return() == accounts[1]
     assert coin_a.balanceOf(accounts[1]) == 31337
+    assert accounts[1].balance() - init_eth_bal == 31337
 
 
 def test_multi_kill_token_xfer(fee_distributor, accounts, coin_a):
