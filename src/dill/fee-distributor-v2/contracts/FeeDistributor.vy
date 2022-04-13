@@ -345,16 +345,7 @@ def claim(_addr: address = msg.sender) -> (uint256, uint256):
         self.token_last_balance -= tokens_amount
 
     if eth_amount != 0:
-        response: Bytes[32] = raw_call(
-            _addr,
-            0x00,
-            value=eth_amount,
-            max_outsize=32,
-        )
-
-        if len(response) != 0:
-            assert convert(response, bool)
-
+        send(_addr, eth_amount)
         self.eth_last_balance -= eth_amount
 
     return tokens_amount, eth_amount
@@ -402,16 +393,7 @@ def claim_many(_receivers: address[20]) -> bool:
             total_tokens += tokens_amount
 
         if eth_amount != 0:
-            response: Bytes[32] = raw_call(
-                addr,
-                0x00,
-                value=eth_amount,
-                max_outsize=32,
-            )
-
-            if len(response) != 0:
-                assert convert(response, bool)
-
+            send(addr, eth_amount)
             total_eth += eth_amount
 
     if total_tokens != 0:
@@ -499,15 +481,7 @@ def kill_me():
 
     self.is_killed = True
 
-    response: Bytes[32] = raw_call(
-        self.emergency_return,
-        0x00,
-        value=self.balance,
-        max_outsize=32,
-    )
-
-    if len(response) != 0:
-        assert convert(response, bool)
+    send(self.emergency_return, self.balance)
 
     token: address = self.token
     assert ERC20(token).transfer(self.emergency_return, ERC20(token).balanceOf(self))
