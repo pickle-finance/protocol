@@ -46,14 +46,32 @@ const doUniV3TestBehaviorBase = (
       proxyAdmin = await deployContract("ProxyAdmin");
       console.log("✅ ProxyAdmin is deployed at ", proxyAdmin.address);
 
-      controller = await deployContract(
-        "ControllerV6",
+      const controllerImp = await deployContract("ControllerV5");
+
+      const controllerProxy = await deployContract(
+        "AdminUpgradeabilityProxy",
+        controllerImp.address,
+        proxyAdmin.address,
+        []
+      );
+
+      controller = await getContractAt("ControllerV5", controllerProxy.address);
+
+      await controller.initialize(
         governance.address,
         strategist.address,
         timelock.address,
         devfund.address,
         treasury.address
       );
+      console.log("✅ Controller is deployed at ", controller.address);
+
+      const upgradedController = await deployContract("ControllerV7");
+      console.log("✅ Controller V7 is deployed at ", upgradedController.address);
+
+      await proxyAdmin.upgrade(controllerProxy.address, upgradedController.address);
+
+      let newController = await getContractAt("ControllerV7", controllerProxy.address);
 
       console.log("✅ Controller is deployed at ", controller.address);
       if (swapFee != 0) {
