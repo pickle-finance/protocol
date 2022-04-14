@@ -86,11 +86,11 @@ def voting_escrow(VotingEscrow, accounts, token):
 
 
 @pytest.fixture(scope="module")
-def fee_distributor(FeeDistributor, voting_escrow, accounts, coin_a, chain):
+def fee_distributor(FeeDistributorV2, voting_escrow, accounts, coin_a, chain):
     def f(t=None):
         if not t:
             t = chain.time()
-        return FeeDistributor.deploy(
+        return FeeDistributorV2.deploy(
             voting_escrow, t, coin_a, accounts[0], accounts[0], {"from": accounts[0]}
         )
 

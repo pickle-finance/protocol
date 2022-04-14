@@ -415,7 +415,7 @@ def burn(_coin: address) -> bool:
     assert _coin == self.token
     assert not self.is_killed
     
-    amount: uint256 = ERC20(_coin).allowance(msg.sender, self)
+    amount: uint256 = ERC20(_coin).balanceOf(msg.sender)
     if amount != 0:
         ERC20(_coin).transferFrom(msg.sender, self, amount)
 

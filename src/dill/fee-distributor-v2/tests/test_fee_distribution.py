@@ -6,11 +6,11 @@ def test_burn(web3, accounts, fee_distributor, coin_a):
     fee_distributor = fee_distributor()
 
     coin_a._mint_for_testing(bob, 100 * 10 ** 18)
-    coin_a.approve(fee_distributor.address, 10**18, {"from": bob})
+    coin_a.approve(fee_distributor.address, 2**256-1, {"from": bob})
 
     fee_distributor.burn(coin_a, {"from": bob, "value": 10**18})
-    assert coin_a.balanceOf(fee_distributor.address) == 10**18
-    web3.eth.get_balance(fee_distributor.address) == 10**18
+    assert coin_a.balanceOf(fee_distributor.address) == 100 * 10**18
+    assert web3.eth.get_balance(fee_distributor.address) == 10**18
 
 
 def test_deposited_after(web3, chain, accounts, voting_escrow, fee_distributor, coin_a, token):
