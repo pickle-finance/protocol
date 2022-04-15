@@ -267,7 +267,15 @@ const tests = [
     //     controller: "main"
     // },
     {
-        name: "PngAvaxLost",
+        name: "PngUsdcUstW",
+        controller: "main"
+    },
+    {
+        name: "PngAvaxUstW",
+        controller: "main"
+    },
+    {
+        name: "PngUstWPng",
         controller: "main"
     }
 ];
