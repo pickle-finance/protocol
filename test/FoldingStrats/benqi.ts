@@ -39,14 +39,24 @@ const tests = [
     //   name: "BenqiUsdtE", 
     //   controller:"optimizer",
     // },
+    // {
+    //     name: "BenqiWavax",
+    //     slot: 3,
+    //     controller:"optimizer"
+    // },
+    // {
+    //     name: "BenqiDaiE",
+    //     controller:"optimizer"
+    // },
     {
-        name: "BenqiWavax",
-        slot: 3,
-        controller:"optimizer"
+        name: "BenqiUsdt",
+        controller: "benqi",
+        slot: 51
     },
     {
-        name: "BenqiDaiE",
-        controller:"optimizer"
+        name: "BenqiUsdc",
+        controller: "benqi",
+        slot: 9
     },
  
 ];
