@@ -2,6 +2,7 @@ pragma solidity ^0.6.7;
 
 import "../strategy-png-minichef-farm-base.sol";
 
+///@notice Strategy contract for Pangolin's AVAX/KLO liquidity pool with PNG and KLO rewards
 contract StrategyPngAvaxKlo is StrategyPngMiniChefFarmBase {
     uint256 public _poolId = 12;
 
@@ -27,36 +28,38 @@ contract StrategyPngAvaxKlo is StrategyPngMiniChefFarmBase {
     {}
 
     // **** State Mutations ****
-
+    ///@notice Swap rewards to WAVAX, take fee, then swap half WAVAX for KLO and add liquidity 
     function harvest() public override onlyBenevolent {
        // Collects Png tokens
         IMiniChef(miniChef).harvest(poolId, address(this));
 
+        // Check balance of PNG and swap to WAVAX
         uint256 _png = IERC20(png).balanceOf(address(this));
         if (_png > 0) {
-            // 10% is sent to treasury
-            uint256 _keep = _png.mul(keep).div(keepMax);
-            if (_keep > 0) {
-                _takeFeePngToSnob(_keep);
-            }
-
-            _png = IERC20(png).balanceOf(address(this));
-
-            IERC20(png).safeApprove(pangolinRouter, 0);
-            IERC20(png).safeApprove(pangolinRouter, _png);
-
             _swapPangolin(png, wavax, _png);     
         }
 
-        // Swap half WAVAX for KLO
+        // Check balance of KLO and swap to WAVAX
+        uint256 _klo = IERC20(klo).balanceOf(address(this));
+        if (_klo > 0) {
+            _swapPangolin(klo, wavax, _klo);     
+        }
+
+        // Take fee and swap half WAVAX for KLO
         uint256 _wavax = IERC20(wavax).balanceOf(address(this));
         if (_wavax > 0) {
+            uint256 _keep = _wavax.mul(keep).div(keepMax);
+            if (_keep > 0) {
+                _takeFeeWavaxToSnob(_keep);
+            }
+            
+            _wavax = IERC20(wavax).balanceOf(address(this));
             _swapPangolin(wavax, klo, _wavax.div(2));
         }
 
         // Adds in liquidity for AVAX/KLO
         _wavax = IERC20(wavax).balanceOf(address(this));
-        uint256 _klo = IERC20(klo).balanceOf(address(this));
+        _klo = IERC20(klo).balanceOf(address(this));
 
         if (_wavax > 0 && _klo > 0) {
             IERC20(wavax).safeApprove(pangolinRouter, 0);
@@ -76,14 +79,15 @@ contract StrategyPngAvaxKlo is StrategyPngMiniChefFarmBase {
                 now + 60
             );
 
-            _wavax = IERC20(wavax).balanceOf(address(this));
+            _png = IERC20(png).balanceOf(address(this));
             _klo = IERC20(klo).balanceOf(address(this));
+            _wavax = IERC20(wavax).balanceOf(address(this));
             
             // Donates DUST
-            if (_wavax > 0){
-                IERC20(wavax).transfer(
+            if (_png > 0){
+                IERC20(png).transfer(
                     IController(controller).treasury(),
-                    _wavax
+                    _png
                 );
             }
             if (_klo > 0){
@@ -92,13 +96,19 @@ contract StrategyPngAvaxKlo is StrategyPngMiniChefFarmBase {
                     _klo
                 );
             }
+            if (_wavax > 0){
+                IERC20(wavax).transfer(
+                    IController(controller).treasury(),
+                    _wavax
+                );
+            }
         }
 
         _distributePerformanceFeesAndDeposit();
     }
 
     // **** Views ****
-
+    ///@notice Return the strategy name
     function getName() external pure override returns (string memory) {
         return "StrategyPngAvaxKlo";
     }

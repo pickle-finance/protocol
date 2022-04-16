@@ -53,9 +53,9 @@ const tests = [
     //   {
     //     name: "PngAvaxJoe",
     //   },
-    //   {
-    //     name: "PngAvaxKlo",
-    //   },
+      {
+        name: "PngAvaxKlo",
+      },
     //   {
     //     name: "PngAvaxLinkE",
     //   },
@@ -266,18 +266,18 @@ const tests = [
     //     name: "PngUstDlaunch",
     //     controller: "main"
     // },
-    {
-        name: "PngUsdcUstW",
-        controller: "main"
-    },
-    {
-        name: "PngAvaxUstW",
-        controller: "main"
-    },
-    {
-        name: "PngUstWPng",
-        controller: "main"
-    }
+    // {
+    //     name: "PngUsdcUstW",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngAvaxUstW",
+    //     controller: "main"
+    // },
+    // {
+    //     name: "PngUstWPng",
+    //     controller: "main"
+    // }
 ];
 
 describe("Pangolin LP test", function() {

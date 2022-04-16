@@ -3,9 +3,7 @@ const {exec} = require('child_process');
 async function main() {
   const platform = "pangolin";
   const names = [
-    "png-avax-ustw",
-    "png-usdc-ustw",
-    "png-ustw-png"
+    "png-avax-klo"
   ];
 
   const flatten = name => {
