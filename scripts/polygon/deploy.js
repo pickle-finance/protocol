@@ -84,17 +84,19 @@ const deployPickleJar = async () => {
   const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
   const timelock = "0xd92c7faa0ca0e6ae4918f3a83d9832d9caeaa0d3";
 
-  const want = "0xF3A43307DcAFa93275993862Aae628fCB50dC768";
+  const want = "0x1054Ff2ffA34c055a13DCD9E0b4c0cA5b3aecEB9";
 
   const StrategyFactory = await ethers.getContractFactory(
-    "src/strategies/convex/strategy-convex-cvxfxs-lp.sol:StrategyConvexCvxfxsLp"
+    "src/strategies/convex/strategy-convex-cadc-usdc-lp.sol:StrategyConvexCadcUsdc"
   );
   const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
 
+  await strategy.deployed();
   console.log("Strategy deployed at ", strategy.address);
 
   const JarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
   const jar = await JarFactory.deploy(want, governance, timelock, controller);
+  await jar.deployed();
   console.log("Jar deployed at ", jar.address);
 
   await hre.run("verify:verify", {
