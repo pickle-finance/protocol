@@ -20,6 +20,7 @@ contract StrategyTriUsdoUsdtLp is StrategyTriDualFarmBaseV2 {
     )
         public
         StrategyTriDualFarmBaseV2(
+            near,
             tri_usdo_usdt_poolid,
             tri_usdo_usdt_lp,
             _governance,
@@ -28,8 +29,6 @@ contract StrategyTriUsdoUsdtLp is StrategyTriDualFarmBaseV2 {
             _timelock
         )
     {
-        // NEAR
-        extraReward = 0xC42C30aC6Cc15faC9bD938618BcaA1a1FaE8501d;
         swapRoutes[tri] = [extraReward, tri];
         swapRoutes[usdo] = [tri, usdt, usdo];
         swapRoutes[usdt] = [tri, usdt];
