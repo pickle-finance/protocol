@@ -24,8 +24,6 @@ abstract contract StrategyTriDualFarmBaseV2 is StrategyBase {
     mapping(address => address[]) public swapRoutes;
 
     constructor(
-        address _token0,
-        address _token1,
         uint256 _poolId,
         address _lp,
         address _governance,
@@ -37,8 +35,8 @@ abstract contract StrategyTriDualFarmBaseV2 is StrategyBase {
         StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
     {
         poolId = _poolId;
-        token0 = _token0;
-        token1 = _token1;
+        token0 = IUniswapV2Pair(_lp).token0();
+        token1 = IUniswapV2Pair(_lp).token1();
 
         IERC20(token0).approve(sushiRouter, uint256(-1));
         IERC20(token1).approve(sushiRouter, uint256(-1));
@@ -116,70 +114,56 @@ abstract contract StrategyTriDualFarmBaseV2 is StrategyBase {
 
     function harvestTwo() public onlyBenevolent {
         uint256 _extraReward = IERC20(extraReward).balanceOf(address(this));
-        if (_extraReward > 0) {
-            // swap all ExtraReward to TRI
-            address[] memory pathExtraReward = new address[](2);
-            pathExtraReward[0] = extraReward;
-            pathExtraReward[1] = tri;
-            UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-                _extraReward,
-                0,
-                pathExtraReward,
-                address(this),
-                now + 60
-            );
-        }
-
         uint256 _tri = IERC20(tri).balanceOf(address(this));
-        uint256 _keepTRI = _tri.mul(keepTRI).div(keepTRIMax);
 
-        IERC20(tri).safeTransfer(IController(controller).treasury(), _keepTRI);
+        if (extraReward == token0 || extraReward == token1) {
+            if (swapRoutes[extraReward].length > 1 && _tri > 0)
+                _swapSushiswapWithPath(swapRoutes[extraReward], _tri);
+
+            _extraReward = IERC20(extraReward).balanceOf(address(this));
+            uint256 _keepReward = _extraReward.mul(keepREWARD).div(
+                keepREWARDMax
+            );
+            IERC20(extraReward).safeTransfer(
+                IController(controller).treasury(),
+                _keepReward
+            );
+
+            _extraReward = IERC20(extraReward).balanceOf(address(this));
+            address toToken = extraReward == token0 ? token1 : token0;
+
+            if (swapRoutes[toToken].length > 1 && _extraReward > 0)
+                _swapSushiswapWithPath(
+                    swapRoutes[toToken],
+                    _extraReward.div(2)
+                );
+        }
+        // If extra reward not part of pair, swap to TRI
+        else {
+            if (swapRoutes[tri].length > 1 && _extraReward > 0)
+                _swapSushiswapWithPath(swapRoutes[tri], _extraReward);
+
+            _tri = IERC20(tri).balanceOf(address(this));
+            uint256 _keepReward = _tri.mul(keepREWARD).div(keepREWARDMax);
+            IERC20(tri).safeTransfer(
+                IController(controller).treasury(),
+                _keepReward
+            );
+
+            _tri = _tri.sub(_keepReward);
+            uint256 toToken0 = _tri.div(2);
+            uint256 toToken1 = _tri.sub(toToken0);
+
+            if (swapRoutes[token0].length > 1) {
+                _swapSushiswapWithPath(swapRoutes[token0], toToken0);
+            }
+            if (swapRoutes[token1].length > 1) {
+                _swapSushiswapWithPath(swapRoutes[token1], toToken1);
+            }
+        }
     }
 
     function harvestThree() public onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But ETH is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
-        uint256 _tri = IERC20(tri).balanceOf(address(this));
-        if (_tri > 0) {
-            uint256 toToken0 = _tri.div(2);
-
-            if (swapRoutes[token0].length > 1) {
-                UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-                    toToken0,
-                    0,
-                    swapRoutes[token0],
-                    address(this),
-                    now + 60
-                );
-            }
-        }
-    }
-
-    function harvestFour() public onlyBenevolent {
-        uint256 _tri = IERC20(tri).balanceOf(address(this));
-        if (_tri > 0) {
-            if (swapRoutes[token1].length > 1) {
-                // only swap half if token0 is TRI
-                uint256 swapAmount = swapRoutes[token0].length > 1
-                    ? _tri
-                    : _tri.div(2);
-
-                UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-                    swapAmount,
-                    0,
-                    swapRoutes[token1],
-                    address(this),
-                    now + 60
-                );
-            }
-        }
-    }
-
-    function harvestFive() public onlyBenevolent {
         // Adds in liquidity for token0/token1
         uint256 _token0 = IERC20(token0).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
@@ -207,7 +191,7 @@ abstract contract StrategyTriDualFarmBaseV2 is StrategyBase {
         }
     }
 
-    function harvestSix() public onlyBenevolent {
+    function harvestFour() public onlyBenevolent {
         // We want to get back Tri LP tokens
         _distributePerformanceFeesAndDeposit();
     }

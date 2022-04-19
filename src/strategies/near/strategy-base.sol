@@ -42,7 +42,7 @@ abstract contract StrategyBase {
     address public strategist;
     address public timelock;
 
-    // Dex 
+    // Dex - Trisolaris 
     address public sushiRouter = 0x2CB45Edb4517d5947aFdE3BEAbF95A582506858B;
 
     mapping(address => bool) public harvesters;

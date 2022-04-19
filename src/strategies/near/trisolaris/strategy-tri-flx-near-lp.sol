@@ -18,8 +18,6 @@ contract StrategyTriFlxNearLp is StrategyTriDualFarmBaseV2 {
     )
         public
         StrategyTriDualFarmBaseV2(
-            flx,
-            near,
             tri_flx_near_poolid,
             tri_flx_near_lp,
             _governance,
