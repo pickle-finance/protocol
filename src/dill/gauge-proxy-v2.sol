@@ -867,8 +867,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     // Vote with DILL on a gauge
     function vote(address[] calldata _tokenVote, int256[] calldata _weights)
         external
-    {
-        require(_tokenVote.length == _weights.length);
+    {   
+        require(_tokenVote.length == _weights.length, "GaugeProxy: token votes count does not match weights count");
         _updateCurrentId();
         _vote(msg.sender, _tokenVote, _weights);
         delegations[msg.sender].blockDelegate[currentId] = true;
@@ -909,7 +909,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         address[] calldata _tokenVote,
         int256[] calldata _weights
     ) external {
-        require(_tokenVote.length == _weights.length);
+        require(_tokenVote.length == _weights.length,"GaugeProxy: token votes count does not match weights count");
         _updateCurrentId();
         delegateData storage _delegate = delegations[_owner];
         require(
