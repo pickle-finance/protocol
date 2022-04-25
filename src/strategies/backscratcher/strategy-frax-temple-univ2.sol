@@ -13,7 +13,7 @@ contract StrategyFraxTempleUniV2 is StrategyBase {
     IERC20 public frax_temple_pool = IERC20(0x6021444f1706f15465bEe85463BCc7d7cC17Fc03);
     address public frax_temple_gauge = 0x10460d02226d6ef7B2419aE150E6377BdbB7Ef16;
 
-    address templeRouter = 0x8A5058100E60e8F7C42305eb505B12785bbA3BcA;
+    address public constant templeRouter = 0x8A5058100E60e8F7C42305eb505B12785bbA3BcA;
 
     address public constant FXS = 0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0;
     address public constant TEMPLE = 0x470EBf5f030Ed85Fc1ed4C2d36B9DD02e77CF1b7;
