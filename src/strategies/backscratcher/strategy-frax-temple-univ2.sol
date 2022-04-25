@@ -44,7 +44,6 @@ contract StrategyFraxTempleUniV2 is StrategyBase {
         IStrategyProxy(strategyProxy).harvest(frax_temple_gauge, rewardTokens);
 
         uint256 _fxs = IERC20(FXS).balanceOf(address(this));
-
         IERC20(FXS).safeApprove(univ2Router2, 0);
         IERC20(FXS).safeApprove(univ2Router2, _fxs);
 
@@ -54,6 +53,7 @@ contract StrategyFraxTempleUniV2 is StrategyBase {
         _swapUniswapWithPath(_path, _fxs);
 
         uint256 _frax = IERC20(FRAX).balanceOf(address(this));
+
         IERC20(FRAX).safeApprove(templeRouter, 0);
         IERC20(FRAX).safeApprove(templeRouter, _frax);
 
@@ -67,6 +67,17 @@ contract StrategyFraxTempleUniV2 is StrategyBase {
 
         ITempleRouter(templeRouter).swapExactTempleForFrax(_amount, 0, address(this), block.timestamp + 300);
 
+        uint256 _templeAmt = IERC20(TEMPLE).balanceOf(address(this));
+        uint256 _fraxAmt = IERC20(FRAX).balanceOf(address(this));
+
+        IERC20(TEMPLE).safeApprove(templeRouter, 0);
+        IERC20(TEMPLE).safeApprove(templeRouter, _templeAmt);
+
+        IERC20(FRAX).safeApprove(templeRouter, 0);
+        IERC20(FRAX).safeApprove(templeRouter, _fraxAmt);
+
+        ITempleRouter(templeRouter).addLiquidity(_templeAmt, _fraxAmt, 0, 0, address(this), now + 60);
+
         _distributePerformanceFeesAndDeposit();
     }
 
@@ -74,15 +85,15 @@ contract StrategyFraxTempleUniV2 is StrategyBase {
         return IStrategyProxy(strategyProxy).balanceOf(frax_temple_gauge);
     }
 
-    function getHarvestable() public view returns (uint256) {
-        return IFraxGaugeBase(frax_temple_gauge).earned(IStrategyProxy(strategyProxy).proxy());
+    function getHarvestable() public view returns (uint256[] memory) {
+        return IFraxGaugeUniV2(frax_temple_gauge).earned(IStrategyProxy(strategyProxy).proxy());
     }
 
     // **** Setters ****
 
     function deposit() public override {
         uint256 _amount = frax_temple_pool.balanceOf(address(this));
-        frax_temple_pool.safeTransferFrom(address(this), strategyProxy, _amount);
+        frax_temple_pool.safeTransfer(strategyProxy, _amount);
         IStrategyProxy(strategyProxy).depositV2(
             frax_temple_gauge,
             address(frax_temple_pool),
@@ -122,7 +133,7 @@ contract StrategyFraxTempleUniV2 is StrategyBase {
             uint128 _withdraw = uint128(uint256(lastStake.liquidity).sub(_sum.sub(_liquidity)));
             require(_withdraw <= lastStake.liquidity, "math error");
 
-            frax_temple_pool.safeTransferFrom(address(this), strategyProxy, _withdraw);
+            frax_temple_pool.safeTransfer(strategyProxy, _withdraw);
             IStrategyProxy(strategyProxy).depositV2(
                 frax_temple_gauge,
                 address(frax_temple_pool),

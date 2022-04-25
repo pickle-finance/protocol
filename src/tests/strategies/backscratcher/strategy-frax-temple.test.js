@@ -31,6 +31,8 @@ describe("StrategyFraxTemple", () => {
     strategist = alice;
     timelock = alice;
 
+    let lockerGovernance = await unlockAccount("0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C");
+
     proxyAdmin = await deployContract("ProxyAdmin");
     console.log("✅ ProxyAdmin is deployed at ", proxyAdmin.address);
 
@@ -61,7 +63,7 @@ describe("StrategyFraxTemple", () => {
 
     let newController = await getContractAt("ControllerV7", controllerProxy.address);
 
-    locker = await deployContract("FXSLocker");
+    locker = await getContractAt("FXSLocker", "0xd639C2eA4eEFfAD39b599410d00252E6c80008DF");
     console.log("✅ Locker is deployed at ", locker.address);
 
     escrow = await getContractAt("VoteEscrow", "0xc8418aF6358FFddA74e09Ca9CC3Fe03Ca6aDC5b0");
@@ -69,7 +71,7 @@ describe("StrategyFraxTemple", () => {
     strategyProxy = await deployContract("StrategyProxy");
     console.log("✅ StrategyProxy is deployed at ", strategyProxy.address);
 
-    await locker.setStrategy(strategyProxy.address);
+    await locker.connect(lockerGovernance).setStrategy(strategyProxy.address);
 
     await strategyProxy.setLocker(locker.address);
 
@@ -81,7 +83,11 @@ describe("StrategyFraxTemple", () => {
       timelock.address
     );
     await strategy.connect(governance).setStrategyProxy(strategyProxy.address);
-    await strategyProxy.approveStrategy(FRAX_TEMPLE_GAUGE, strategy.address);
+    await strategyProxy.approveStrategy(
+      FRAX_TEMPLE_GAUGE,
+      strategy.address,
+      "0xc00007b0000000000000000000000000d639c2ea4eeffad39b599410d00252e6c80008df"
+    );
 
     pickleJar = await deployContract(
       "PickleJar",
@@ -108,7 +114,7 @@ describe("StrategyFraxTemple", () => {
     frax = await getContractAt("ERC20", FraxToken);
     temple = await getContractAt("ERC20", TEMPLEToken);
     fxs = await getContractAt("ERC20", FXSToken);
-    pool = await getContractAt("ERC20", FXSToken);
+    pool = await getContractAt("ERC20", FRAX_TEMPLE_POOL);
     templeRouter = await getContractAt(poolABI, FRAX_TEMPLE_SWAP);
 
     await getWantFromWhale(FraxToken, toWei(10000), alice, "0x820A9eb227BF770A9dd28829380d53B76eAf1209");
@@ -123,14 +129,12 @@ describe("StrategyFraxTemple", () => {
 
     await getWantFromWhale(TEMPLEToken, toWei(10000), charles, "0x238eDaB57c91D1DB2f05FE85295B5F32d355567c");
 
-    await getWantFromWhale(FXSToken, toWei(10000), alice, "0xF977814e90dA44bFA03b6295A0616a897441aceC");
-
+    await getWantFromWhale(FXSToken, toWei(1000000), alice, "0xF977814e90dA44bFA03b6295A0616a897441aceC");
 
     // transfer FXS to distributor
     await fxs.connect(alice).transfer("0x278dc748eda1d8efef1adfb518542612b49fcd34", toWei(5000));
     // transfer FXS to gauge
-    await fxs.connect(alice).transfer("0xF22471AC2156B489CC4a59092c56713F813ff53e", toWei(5000));
-
+    await fxs.connect(alice).transfer(FRAX_TEMPLE_GAUGE, toWei(700000));
   });
 
   it("should harvest correctly", async () => {
@@ -140,7 +144,10 @@ describe("StrategyFraxTemple", () => {
 
     console.log("=============== Alice deposit ==============");
     await deposit(alice, depositAmount);
+    const _amt = await pool.balanceOf(pickleJar.address);
+    console.log("Calling Earn:", _amt.toString());
     await pickleJar.earn();
+    console.log("Calling Harvest:");
     await harvest();
 
     console.log("=============== Bob deposit ==============");
@@ -187,12 +194,18 @@ describe("StrategyFraxTemple", () => {
     await increaseTime(60 * 60 * 24 * 1); //travel 14 days
 
     console.log("=============== Controller withdraw ===============");
-    console.log("PickleJar temple balance before withdrawal => ", (await temple.balanceOf(pickleJar.address)).toString());
+    console.log(
+      "PickleJar temple balance before withdrawal => ",
+      (await temple.balanceOf(pickleJar.address)).toString()
+    );
     console.log("PickleJar frax balance before withdrawal => ", (await frax.balanceOf(pickleJar.address)).toString());
 
     await controller.withdrawAll(FRAX_TEMPLE_POOL);
 
-    console.log("PickleJar temple balance after withdrawal => ", (await temple.balanceOf(pickleJar.address)).toString());
+    console.log(
+      "PickleJar temple balance after withdrawal => ",
+      (await temple.balanceOf(pickleJar.address)).toString()
+    );
     console.log("PickleJar frax balance after withdrawal => ", (await frax.balanceOf(pickleJar.address)).toString());
 
     console.log("===============Alice Full withdraw==============");
@@ -284,22 +297,21 @@ describe("StrategyFraxTemple", () => {
   });
 */
   const deposit = async (user, depositAmount) => {
-    console.log("Starting Deposit");
     await depositing(user, depositAmount);
-    await pool.connect(user).approve(pickleJar.address, depositAmount);
-    console.log("depositAmount => ", depositAmount.toString());
+    const _amt = await pool.balanceOf(user.address);
+    await pool.connect(user).approve(pickleJar.address, _amt);
 
-    await pickleJar.connect(user).deposit(depositAmount);
+    await pickleJar.connect(user).deposit(_amt);
   };
 
   const harvest = async () => {
     console.log("============ Harvest Started ==============");
-
+    console.log("Harvest");
     console.log("Ratio before harvest => ", (await pickleJar.getRatio()).toString());
     await increaseTime(60 * 60 * 24 * 14); //travel 30 days
     await increaseBlock(1000);
     console.log("Amount Harvestable => ", (await strategy.getHarvestable()).toString());
-    await strategy.harvest();
+    await strategy.harvest({gasLimit: 10000000});
     console.log("Amount Harvestable after => ", (await strategy.getHarvestable()).toString());
     console.log("Ratio after harvest => ", (await pickleJar.getRatio()).toString());
     console.log("============ Harvest Ended ==============");
@@ -310,21 +322,9 @@ describe("StrategyFraxTemple", () => {
     const blockNumBefore = await ethers.provider.getBlockNumber();
     const blockBefore = await ethers.provider.getBlock(blockNumBefore);
     const timestampBefore = blockBefore.timestamp;
-    console.log("amount: ", amount.toString());
-    console.log("Starting depositing");
     await temple.connect(user).approve(FRAX_TEMPLE_SWAP, amount);
-    console.log("Approved temple");
     await frax.connect(user).approve(FRAX_TEMPLE_SWAP, amount);
-    console.log("Approved Frax");
-    await templeRouter.connect(user).addLiquidity(
-            amount,
-            amount,
-            0,
-            0,
-            user.address,
-            timestampBefore + 60
-        );
-    console.log("Finished Liquidity Add");
+    await templeRouter.connect(user).addLiquidity(amount, amount, 0, 0, user.address, timestampBefore + 60);
   };
 
   // beforeEach(async () => {
@@ -334,5 +334,472 @@ describe("StrategyFraxTemple", () => {
   // afterEach(async () => {
   //   await hre.network.provider.send("evm_revert", [preTestSnapshotID]);
   // });
-  const poolABI = [{"inputs":[{"internalType":"contract IUniswapV2Pair","name":"_pair","type":"address"},{"internalType":"contract TempleERC20Token","name":"_templeToken","type":"address"},{"internalType":"contract IERC20","name":"_fraxToken","type":"address"},{"internalType":"contract ITempleTreasury","name":"_templeTreasury","type":"address"},{"internalType":"address","name":"_protocolMintEarningsAccount","type":"address"},{"components":[{"internalType":"uint256","name":"frax","type":"uint256"},{"internalType":"uint256","name":"temple","type":"uint256"}],"internalType":"struct TempleFraxAMMRouter.Price","name":"_dynamicThresholdPrice","type":"tuple"},{"internalType":"uint256","name":"_dynamicThresholdDecayPerBlock","type":"uint256"},{"components":[{"internalType":"uint256","name":"frax","type":"uint256"},{"internalType":"uint256","name":"temple","type":"uint256"}],"internalType":"struct TempleFraxAMMRouter.Price","name":"_interpolateFromPrice","type":"tuple"},{"components":[{"internalType":"uint256","name":"frax","type":"uint256"},{"internalType":"uint256","name":"temple","type":"uint256"}],"internalType":"struct TempleFraxAMMRouter.Price","name":"_interpolateToPrice","type":"tuple"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"currDynamicThresholdTemple","type":"uint256"}],"name":"DynamicThresholdChange","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"blockNumber","type":"uint256"}],"name":"PriceCrossedBelowDynamicThreshold","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"previousAdminRole","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"newAdminRole","type":"bytes32"}],"name":"RoleAdminChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"},{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":true,"internalType":"address","name":"sender","type":"address"}],"name":"RoleGranted","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"},{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":true,"internalType":"address","name":"sender","type":"address"}],"name":"RoleRevoked","type":"event"},{"inputs":[],"name":"CAN_ADD_ALLOWED_USER","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"DEFAULT_ADMIN_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"DYNAMIC_THRESHOLD_INCREASE_DENOMINATOR","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"userAddress","type":"address"}],"name":"addAllowedUser","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amountADesired","type":"uint256"},{"internalType":"uint256","name":"amountBDesired","type":"uint256"},{"internalType":"uint256","name":"amountAMin","type":"uint256"},{"internalType":"uint256","name":"amountBMin","type":"uint256"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"deadline","type":"uint256"}],"name":"addLiquidity","outputs":[{"internalType":"uint256","name":"amountA","type":"uint256"},{"internalType":"uint256","name":"amountB","type":"uint256"},{"internalType":"uint256","name":"liquidity","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"allowed","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"dynamicThresholdDecayPerBlock","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"dynamicThresholdIncreasePct","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"dynamicThresholdPrice","outputs":[{"internalType":"uint256","name":"frax","type":"uint256"},{"internalType":"uint256","name":"temple","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"dynamicThresholdPriceWithDecay","outputs":[{"internalType":"uint256","name":"frax","type":"uint256"},{"internalType":"uint256","name":"temple","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"fraxToken","outputs":[{"internalType":"contract IERC20","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"reserveIn","type":"uint256"},{"internalType":"uint256","name":"reserveOut","type":"uint256"}],"name":"getAmountOut","outputs":[{"internalType":"uint256","name":"amountOut","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"}],"name":"getRoleAdmin","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"grantRole","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"hasRole","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"interpolateFromPrice","outputs":[{"internalType":"uint256","name":"frax","type":"uint256"},{"internalType":"uint256","name":"temple","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"interpolateToPrice","outputs":[{"internalType":"uint256","name":"frax","type":"uint256"},{"internalType":"uint256","name":"temple","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"temple","type":"uint256"},{"internalType":"uint256","name":"frax","type":"uint256"}],"name":"mintRatioAt","outputs":[{"internalType":"uint256","name":"numerator","type":"uint256"},{"internalType":"uint256","name":"denominator","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"openAccessEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pair","outputs":[{"internalType":"contract IUniswapV2Pair","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"priceCrossedBelowDynamicThresholdBlock","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amountA","type":"uint256"},{"internalType":"uint256","name":"reserveA","type":"uint256"},{"internalType":"uint256","name":"reserveB","type":"uint256"}],"name":"quote","outputs":[{"internalType":"uint256","name":"amountB","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"address","name":"userAddress","type":"address"}],"name":"removeAllowedUser","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"liquidity","type":"uint256"},{"internalType":"uint256","name":"amountAMin","type":"uint256"},{"internalType":"uint256","name":"amountBMin","type":"uint256"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"deadline","type":"uint256"}],"name":"removeLiquidity","outputs":[{"internalType":"uint256","name":"amountA","type":"uint256"},{"internalType":"uint256","name":"amountB","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"renounceRole","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"revokeRole","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_dynamicThresholdDecayPerBlock","type":"uint256"}],"name":"setDynamicThresholdDecayPerBlock","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_dynamicThresholdIncreasePct","type":"uint256"}],"name":"setDynamicThresholdIncreasePct","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"frax","type":"uint256"},{"internalType":"uint256","name":"temple","type":"uint256"}],"name":"setInterpolateFromPrice","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"frax","type":"uint256"},{"internalType":"uint256","name":"temple","type":"uint256"}],"name":"setInterpolateToPrice","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_protocolMintEarningsAccount","type":"address"}],"name":"setProtocolMintEarningsAccount","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"amountOutMin","type":"uint256"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"deadline","type":"uint256"}],"name":"swapExactFraxForTemple","outputs":[{"internalType":"uint256","name":"amountOut","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"}],"name":"swapExactFraxForTempleQuote","outputs":[{"internalType":"uint256","name":"amountInAMM","type":"uint256"},{"internalType":"uint256","name":"amountInProtocol","type":"uint256"},{"internalType":"uint256","name":"amountOutAMM","type":"uint256"},{"internalType":"uint256","name":"amountOutProtocol","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"amountOutMin","type":"uint256"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"deadline","type":"uint256"}],"name":"swapExactTempleForFrax","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"}],"name":"swapExactTempleForFraxQuote","outputs":[{"internalType":"bool","name":"priceBelowIV","type":"bool"},{"internalType":"bool","name":"willCrossDynamicThreshold","type":"bool"},{"internalType":"uint256","name":"amountOut","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"templeToken","outputs":[{"internalType":"contract TempleERC20Token","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"templeTreasury","outputs":[{"internalType":"contract ITempleTreasury","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"toggleOpenAccess","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"token","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"}];
+  const poolABI = [
+    {
+      inputs: [
+        {internalType: "contract IUniswapV2Pair", name: "_pair", type: "address"},
+        {internalType: "contract TempleERC20Token", name: "_templeToken", type: "address"},
+        {internalType: "contract IERC20", name: "_fraxToken", type: "address"},
+        {internalType: "contract ITempleTreasury", name: "_templeTreasury", type: "address"},
+        {internalType: "address", name: "_protocolMintEarningsAccount", type: "address"},
+        {
+          components: [
+            {internalType: "uint256", name: "frax", type: "uint256"},
+            {internalType: "uint256", name: "temple", type: "uint256"},
+          ],
+          internalType: "struct TempleFraxAMMRouter.Price",
+          name: "_dynamicThresholdPrice",
+          type: "tuple",
+        },
+        {internalType: "uint256", name: "_dynamicThresholdDecayPerBlock", type: "uint256"},
+        {
+          components: [
+            {internalType: "uint256", name: "frax", type: "uint256"},
+            {internalType: "uint256", name: "temple", type: "uint256"},
+          ],
+          internalType: "struct TempleFraxAMMRouter.Price",
+          name: "_interpolateFromPrice",
+          type: "tuple",
+        },
+        {
+          components: [
+            {internalType: "uint256", name: "frax", type: "uint256"},
+            {internalType: "uint256", name: "temple", type: "uint256"},
+          ],
+          internalType: "struct TempleFraxAMMRouter.Price",
+          name: "_interpolateToPrice",
+          type: "tuple",
+        },
+      ],
+      stateMutability: "nonpayable",
+      type: "constructor",
+    },
+    {
+      anonymous: false,
+      inputs: [{indexed: false, internalType: "uint256", name: "currDynamicThresholdTemple", type: "uint256"}],
+      name: "DynamicThresholdChange",
+      type: "event",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {indexed: true, internalType: "address", name: "previousOwner", type: "address"},
+        {indexed: true, internalType: "address", name: "newOwner", type: "address"},
+      ],
+      name: "OwnershipTransferred",
+      type: "event",
+    },
+    {
+      anonymous: false,
+      inputs: [{indexed: false, internalType: "uint256", name: "blockNumber", type: "uint256"}],
+      name: "PriceCrossedBelowDynamicThreshold",
+      type: "event",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {indexed: true, internalType: "bytes32", name: "role", type: "bytes32"},
+        {indexed: true, internalType: "bytes32", name: "previousAdminRole", type: "bytes32"},
+        {indexed: true, internalType: "bytes32", name: "newAdminRole", type: "bytes32"},
+      ],
+      name: "RoleAdminChanged",
+      type: "event",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {indexed: true, internalType: "bytes32", name: "role", type: "bytes32"},
+        {indexed: true, internalType: "address", name: "account", type: "address"},
+        {indexed: true, internalType: "address", name: "sender", type: "address"},
+      ],
+      name: "RoleGranted",
+      type: "event",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {indexed: true, internalType: "bytes32", name: "role", type: "bytes32"},
+        {indexed: true, internalType: "address", name: "account", type: "address"},
+        {indexed: true, internalType: "address", name: "sender", type: "address"},
+      ],
+      name: "RoleRevoked",
+      type: "event",
+    },
+    {
+      inputs: [],
+      name: "CAN_ADD_ALLOWED_USER",
+      outputs: [{internalType: "bytes32", name: "", type: "bytes32"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "DEFAULT_ADMIN_ROLE",
+      outputs: [{internalType: "bytes32", name: "", type: "bytes32"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "DYNAMIC_THRESHOLD_INCREASE_DENOMINATOR",
+      outputs: [{internalType: "uint256", name: "", type: "uint256"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [{internalType: "address", name: "userAddress", type: "address"}],
+      name: "addAllowedUser",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {internalType: "uint256", name: "amountADesired", type: "uint256"},
+        {internalType: "uint256", name: "amountBDesired", type: "uint256"},
+        {internalType: "uint256", name: "amountAMin", type: "uint256"},
+        {internalType: "uint256", name: "amountBMin", type: "uint256"},
+        {internalType: "address", name: "to", type: "address"},
+        {internalType: "uint256", name: "deadline", type: "uint256"},
+      ],
+      name: "addLiquidity",
+      outputs: [
+        {internalType: "uint256", name: "amountA", type: "uint256"},
+        {internalType: "uint256", name: "amountB", type: "uint256"},
+        {internalType: "uint256", name: "liquidity", type: "uint256"},
+      ],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [{internalType: "address", name: "", type: "address"}],
+      name: "allowed",
+      outputs: [{internalType: "bool", name: "", type: "bool"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "dynamicThresholdDecayPerBlock",
+      outputs: [{internalType: "uint256", name: "", type: "uint256"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "dynamicThresholdIncreasePct",
+      outputs: [{internalType: "uint256", name: "", type: "uint256"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "dynamicThresholdPrice",
+      outputs: [
+        {internalType: "uint256", name: "frax", type: "uint256"},
+        {internalType: "uint256", name: "temple", type: "uint256"},
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "dynamicThresholdPriceWithDecay",
+      outputs: [
+        {internalType: "uint256", name: "frax", type: "uint256"},
+        {internalType: "uint256", name: "temple", type: "uint256"},
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "fraxToken",
+      outputs: [{internalType: "contract IERC20", name: "", type: "address"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [
+        {internalType: "uint256", name: "amountIn", type: "uint256"},
+        {internalType: "uint256", name: "reserveIn", type: "uint256"},
+        {internalType: "uint256", name: "reserveOut", type: "uint256"},
+      ],
+      name: "getAmountOut",
+      outputs: [{internalType: "uint256", name: "amountOut", type: "uint256"}],
+      stateMutability: "pure",
+      type: "function",
+    },
+    {
+      inputs: [{internalType: "bytes32", name: "role", type: "bytes32"}],
+      name: "getRoleAdmin",
+      outputs: [{internalType: "bytes32", name: "", type: "bytes32"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [
+        {internalType: "bytes32", name: "role", type: "bytes32"},
+        {internalType: "address", name: "account", type: "address"},
+      ],
+      name: "grantRole",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {internalType: "bytes32", name: "role", type: "bytes32"},
+        {internalType: "address", name: "account", type: "address"},
+      ],
+      name: "hasRole",
+      outputs: [{internalType: "bool", name: "", type: "bool"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "interpolateFromPrice",
+      outputs: [
+        {internalType: "uint256", name: "frax", type: "uint256"},
+        {internalType: "uint256", name: "temple", type: "uint256"},
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "interpolateToPrice",
+      outputs: [
+        {internalType: "uint256", name: "frax", type: "uint256"},
+        {internalType: "uint256", name: "temple", type: "uint256"},
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [
+        {internalType: "uint256", name: "temple", type: "uint256"},
+        {internalType: "uint256", name: "frax", type: "uint256"},
+      ],
+      name: "mintRatioAt",
+      outputs: [
+        {internalType: "uint256", name: "numerator", type: "uint256"},
+        {internalType: "uint256", name: "denominator", type: "uint256"},
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "openAccessEnabled",
+      outputs: [{internalType: "bool", name: "", type: "bool"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "owner",
+      outputs: [{internalType: "address", name: "", type: "address"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "pair",
+      outputs: [{internalType: "contract IUniswapV2Pair", name: "", type: "address"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "priceCrossedBelowDynamicThresholdBlock",
+      outputs: [{internalType: "uint256", name: "", type: "uint256"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [
+        {internalType: "uint256", name: "amountA", type: "uint256"},
+        {internalType: "uint256", name: "reserveA", type: "uint256"},
+        {internalType: "uint256", name: "reserveB", type: "uint256"},
+      ],
+      name: "quote",
+      outputs: [{internalType: "uint256", name: "amountB", type: "uint256"}],
+      stateMutability: "pure",
+      type: "function",
+    },
+    {
+      inputs: [{internalType: "address", name: "userAddress", type: "address"}],
+      name: "removeAllowedUser",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {internalType: "uint256", name: "liquidity", type: "uint256"},
+        {internalType: "uint256", name: "amountAMin", type: "uint256"},
+        {internalType: "uint256", name: "amountBMin", type: "uint256"},
+        {internalType: "address", name: "to", type: "address"},
+        {internalType: "uint256", name: "deadline", type: "uint256"},
+      ],
+      name: "removeLiquidity",
+      outputs: [
+        {internalType: "uint256", name: "amountA", type: "uint256"},
+        {internalType: "uint256", name: "amountB", type: "uint256"},
+      ],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {inputs: [], name: "renounceOwnership", outputs: [], stateMutability: "nonpayable", type: "function"},
+    {
+      inputs: [
+        {internalType: "bytes32", name: "role", type: "bytes32"},
+        {internalType: "address", name: "account", type: "address"},
+      ],
+      name: "renounceRole",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {internalType: "bytes32", name: "role", type: "bytes32"},
+        {internalType: "address", name: "account", type: "address"},
+      ],
+      name: "revokeRole",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [{internalType: "uint256", name: "_dynamicThresholdDecayPerBlock", type: "uint256"}],
+      name: "setDynamicThresholdDecayPerBlock",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [{internalType: "uint256", name: "_dynamicThresholdIncreasePct", type: "uint256"}],
+      name: "setDynamicThresholdIncreasePct",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {internalType: "uint256", name: "frax", type: "uint256"},
+        {internalType: "uint256", name: "temple", type: "uint256"},
+      ],
+      name: "setInterpolateFromPrice",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {internalType: "uint256", name: "frax", type: "uint256"},
+        {internalType: "uint256", name: "temple", type: "uint256"},
+      ],
+      name: "setInterpolateToPrice",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [{internalType: "address", name: "_protocolMintEarningsAccount", type: "address"}],
+      name: "setProtocolMintEarningsAccount",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [{internalType: "bytes4", name: "interfaceId", type: "bytes4"}],
+      name: "supportsInterface",
+      outputs: [{internalType: "bool", name: "", type: "bool"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [
+        {internalType: "uint256", name: "amountIn", type: "uint256"},
+        {internalType: "uint256", name: "amountOutMin", type: "uint256"},
+        {internalType: "address", name: "to", type: "address"},
+        {internalType: "uint256", name: "deadline", type: "uint256"},
+      ],
+      name: "swapExactFraxForTemple",
+      outputs: [{internalType: "uint256", name: "amountOut", type: "uint256"}],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [{internalType: "uint256", name: "amountIn", type: "uint256"}],
+      name: "swapExactFraxForTempleQuote",
+      outputs: [
+        {internalType: "uint256", name: "amountInAMM", type: "uint256"},
+        {internalType: "uint256", name: "amountInProtocol", type: "uint256"},
+        {internalType: "uint256", name: "amountOutAMM", type: "uint256"},
+        {internalType: "uint256", name: "amountOutProtocol", type: "uint256"},
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [
+        {internalType: "uint256", name: "amountIn", type: "uint256"},
+        {internalType: "uint256", name: "amountOutMin", type: "uint256"},
+        {internalType: "address", name: "to", type: "address"},
+        {internalType: "uint256", name: "deadline", type: "uint256"},
+      ],
+      name: "swapExactTempleForFrax",
+      outputs: [{internalType: "uint256", name: "", type: "uint256"}],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [{internalType: "uint256", name: "amountIn", type: "uint256"}],
+      name: "swapExactTempleForFraxQuote",
+      outputs: [
+        {internalType: "bool", name: "priceBelowIV", type: "bool"},
+        {internalType: "bool", name: "willCrossDynamicThreshold", type: "bool"},
+        {internalType: "uint256", name: "amountOut", type: "uint256"},
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "templeToken",
+      outputs: [{internalType: "contract TempleERC20Token", name: "", type: "address"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "templeTreasury",
+      outputs: [{internalType: "contract ITempleTreasury", name: "", type: "address"}],
+      stateMutability: "view",
+      type: "function",
+    },
+    {inputs: [], name: "toggleOpenAccess", outputs: [], stateMutability: "nonpayable", type: "function"},
+    {
+      inputs: [{internalType: "address", name: "newOwner", type: "address"}],
+      name: "transferOwnership",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {internalType: "address", name: "token", type: "address"},
+        {internalType: "address", name: "to", type: "address"},
+        {internalType: "uint256", name: "amount", type: "uint256"},
+      ],
+      name: "withdraw",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+  ];
 });

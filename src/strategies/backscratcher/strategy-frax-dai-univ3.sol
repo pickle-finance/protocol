@@ -101,7 +101,7 @@ contract StrategyFraxDaiUniV3 is StrategyFraxUniV3Base {
     }
 
     function getHarvestable() public view returns (uint256) {
-        return IFraxGaugeBase(frax_dai_gauge).earned(IStrategyProxy(strategyProxy).proxy());
+        return IFraxGaugeUniV3(frax_dai_gauge).earned(IStrategyProxy(strategyProxy).proxy());
     }
 
     // **** Setters ****

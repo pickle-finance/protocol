@@ -53,6 +53,7 @@ contract StrategyProxy {
     // gauge => strategies
     mapping(address => address) public strategies;
     mapping(address => bool) public voters;
+    mapping(address => bytes) private claimRewardsString;
     address public governance;
 
     // TODO How much FXS tokens to give to backscratcher?
@@ -93,14 +94,20 @@ contract StrategyProxy {
         feeDistribution = _feeDistribution;
     }
 
-    function approveStrategy(address _gauge, address _strategy) external {
+    function approveStrategy(
+        address _gauge,
+        address _strategy,
+        bytes calldata claimString
+    ) external {
         require(msg.sender == governance, "!governance");
         strategies[_gauge] = _strategy;
+        claimRewardsString[_gauge] = claimString;
     }
 
     function revokeStrategy(address _gauge) external {
         require(msg.sender == governance, "!governance");
         strategies[_gauge] = address(0);
+        claimRewardsString[_gauge] = "";
     }
 
     function approveVoter(address _voter) external {
@@ -283,13 +290,14 @@ contract StrategyProxy {
 
     function harvest(address _gauge, address[] calldata _tokens) external {
         require(strategies[_gauge] == msg.sender, "!strategy");
+
         uint256[] memory _balances = new uint256[](_tokens.length);
 
         for (uint256 i = 0; i < _tokens.length; i++) {
             _balances[i] = IERC20(_tokens[i]).balanceOf(address(proxy));
         }
 
-        proxy.safeExecute(_gauge, 0, abi.encodeWithSignature("getReward()"));
+        proxy.safeExecute(_gauge, 0, claimRewardsString[_gauge]);
 
         for (uint256 i = 0; i < _tokens.length; i++) {
             _balances[i] = (IERC20(_tokens[i]).balanceOf(address(proxy))).sub(_balances[i]);
@@ -298,6 +306,7 @@ contract StrategyProxy {
                 if (_tokens[i] == fxs) {
                     uint256 _amountKeep = _balances[i].mul(keepFXS).div(keepFXSMax);
                     _swapAmount = _balances[i].sub(_amountKeep);
+
                     proxy.safeExecute(
                         _tokens[i],
                         0,
@@ -328,7 +337,7 @@ contract StrategyProxy {
     function claimRewards(address _gauge, address _token) external {
         require(strategies[_gauge] == msg.sender, "!strategy");
 
-        proxy.safeExecute(_gauge, 0, abi.encodeWithSignature("getReward()"));
+        proxy.safeExecute(_gauge, 0, claimRewardsString[_gauge]);
 
         proxy.safeExecute(
             _token,
