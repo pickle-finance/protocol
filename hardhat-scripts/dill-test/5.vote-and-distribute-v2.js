@@ -20,7 +20,7 @@ async function main() {
     method: "evm_unlockUnknownAccount",
     params: [governanceAddr],
   });
-  console.log("impersonation gov");
+
   const governanceSigner = ethers.provider.getSigner(governanceAddr);
   const userSigner = ethers.provider.getSigner(userAddr);
   const masterChef = await ethers.getContractAt(
@@ -30,10 +30,19 @@ async function main() {
   );
   masterChef.connect(governanceSigner);
 
+  /** *************************************setting up gauge proxy****************************************** */
+
+  // const blockNumBefore = await ethers.provider.getBlockNumber();
+  // const blockBefore = await ethers.provider.getBlock(blockNumBefore);
+  // const timestampBefore = blockBefore.timestamp;
+
+  // console.log(Math.round(new Date().getTime()/1000));
+  // console.log(timestampBefore);
+
   console.log("-- Deploying GaugeProxy v2 contract --");
-  const gaugeProxyV2 = await ethers.getContractFactory("/src/dill/gauge-proxy-v2.sol:GaugeProxyV2");
+  const gaugeProxyV2 = await ethers.getContractFactory("/src/dill/gauge-proxy-v2.sol:GaugeProxyV2", governanceSigner);
   console.log("Deploying GaugeProxyV2...");
-  const GaugeProxyV2 = await upgrades.deployProxy(gaugeProxyV2, [Date.now()], {
+  const GaugeProxyV2 = await upgrades.deployProxy(gaugeProxyV2, [Math.round(new Date().getTime() / 1000)], {
     initializer: "initialize",
   });
   await GaugeProxyV2.deployed();
@@ -50,22 +59,29 @@ async function main() {
   );
   await governanceSigner.sendTransaction(populatedTx);
 
+  /** *************************************add gauges****************************************** */
+
   console.log("-- Adding PICKLE LP Gauge --");
   await GaugeProxyV2.addGauge(pickleLP);
 
   console.log("-- Adding pyveCRVETH Gauge --");
   await GaugeProxyV2.addGauge(pyveCRVETH);
 
-  console.log("-- Voting on LP Gauge with 100% weight --");
-
   await hre.network.provider.request({
     method: "evm_unlockUnknownAccount",
     params: [userAddr],
   });
-  console.log("impersonating user");
+  // await GaugeProxyV2.updateCurrentId();
+  console.log("currentId ", (await GaugeProxyV2.currentId()).toString());
+
+  // console.log("first period time stamp ", (await GaugeProxyV2.firstDistribution()).toString());
+
+  /** ************************************* VOTING ****************************************** */
+
+  console.log("-- Voting on LP Gauge with 100% weight --");
   const gaugeProxyFromUser = GaugeProxyV2.connect(userAddr);
   populatedTx = await gaugeProxyFromUser.populateTransaction.vote([pickleLP, pyveCRVETH], [6000000, 4000000], {
-    gasLimit: 900000,
+    gasLimit: 9000000,
   });
   await userSigner.sendTransaction(populatedTx);
   console.log("voted");
@@ -73,38 +89,39 @@ async function main() {
   await GaugeProxyV2.setPID(pidDill);
   await GaugeProxyV2.deposit();
 
-  console.log("-- Wait for 10 blocks to be mined --");
-  for (let i = 0; i < 10; i++) {
-    await hre.network.provider.request({
-      method: "evm_mine",
-    });
-  }
+  /** ************************************* increase time by 7 days ****************************************** */
   console.log("-- Wait 7 days to accumulate");
   await hre.network.provider.request({
     method: "evm_increaseTime",
     params: [3600 * 24 * 7],
   });
+
+  /** ************************************* mine block ****************************************** */
+  console.log("-- Wait for 1 block to be mined --");
   await hre.network.provider.request({
     method: "evm_mine",
   });
 
-  await hre.network.provider.request({
-    method: "evm_unlockUnknownAccount",
-    params: [governanceAddr],
-  });
-
+  /** ************************************* DISTRIBUTE ****************************************** */
+  await GaugeProxyV2.updateCurrentId();
+  console.log("currentId", (await GaugeProxyV2.currentId()).toString());
   console.log("-- Distribute PICKLE to gauges --");
-  await GaugeProxyV2.distribute(0,1);
+  await GaugeProxyV2.distribute(0, 2);
+
+  /** ************************************* get gauge address ****************************************** */
 
   const pickleGaugeAddr = await GaugeProxyV2.getGauge(pickleLP);
   const yvecrvGaugeAddr = await GaugeProxyV2.getGauge(pyveCRVETH);
-  // const pickle = await ethers.getContractAt("PickleToken", pickleAddr);
-  const pickle = await ethers.getContractAt("src/yield-farming/pickle-token.sol:PickleToken", pickleAddr);
-  const pickleRewards = await pickle.balanceOf(pickleGaugeAddr);
-  console.log("rewards to Pickle gauge", pickleRewards);
 
-  const yvecrvRewards = await pickle.balanceOf(yvecrvGaugeAddr);
-  console.log("rewards to pyveCRV gauge", yvecrvRewards);
+  /** *************************************get PICKLE contract ****************************************** */
+  const pickle = await ethers.getContractAt("src/yield-farming/pickle-token.sol:PickleToken", pickleAddr);
+
+  /** *************************************check rewards ****************************************** */
+  let pickleRewards = await pickle.balanceOf(pickleGaugeAddr);
+  console.log("rewards to Pickle gauge", pickleRewards.toString());
+
+  let yvecrvRewards = await pickle.balanceOf(yvecrvGaugeAddr);
+  console.log("rewards to pyveCRV gauge", yvecrvRewards.toString());
 }
 
 // We recommend this pattern to be able to use async/await everywhere

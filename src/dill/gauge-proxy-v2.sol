@@ -19,7 +19,6 @@ library Address {
     {
         // return address(uint160(account));
         return payable(address(uint160(account)));
-
     }
 
     function sendValue(address payable recipient, uint256 amount) internal {
@@ -61,7 +60,6 @@ interface IERC20 {
 }
 
 library SafeERC20 {
-    
     using Address for address;
 
     function safeTransfer(
@@ -107,9 +105,8 @@ library SafeERC20 {
         address spender,
         uint256 value
     ) internal {
-        uint256 newAllowance = token.allowance(address(this), spender) + (
-            value
-        );
+        uint256 newAllowance = token.allowance(address(this), spender) +
+            (value);
         callOptionalReturn(
             token,
             abi.encodeWithSelector(
@@ -125,11 +122,12 @@ library SafeERC20 {
         address spender,
         uint256 value
     ) internal {
-        uint256 newAllowance = token.allowance(address(this), spender) - (
-            value
-            // ,
-            // "SafeERC20: decreased allowance below zero"
-        );
+        uint256 newAllowance = token.allowance(address(this), spender) -
+            (
+                value
+                // ,
+                // "SafeERC20: decreased allowance below zero"
+            );
         callOptionalReturn(
             token,
             abi.encodeWithSelector(
@@ -217,7 +215,7 @@ abstract contract ReentrancyGuard {
     uint256 private _status;
 
     // constructor() public {
-        constructor() {
+    constructor() {
         _status = _NOT_ENTERED;
     }
 
@@ -244,7 +242,6 @@ abstract contract ReentrancyGuard {
 }
 
 contract Gauge is ReentrancyGuard {
-    
     using SafeERC20 for IERC20;
 
     IERC20 public constant PICKLE =
@@ -302,21 +299,17 @@ contract Gauge is ReentrancyGuard {
             return rewardPerTokenStored;
         }
         return
-            rewardPerTokenStored + (
-                ((lastTimeRewardApplicable()
-                    - (lastUpdateTime))
-                    * (rewardRate)
-                    * (1e18))
-                    / (derivedSupply)
-            );
+            rewardPerTokenStored +
+            (((lastTimeRewardApplicable() - (lastUpdateTime)) *
+                (rewardRate) *
+                (1e18)) / (derivedSupply));
     }
 
     function derivedBalance(address account) public view returns (uint256) {
         uint256 _balance = _balances[account];
-        uint256 _derived = _balance * (40) / (100);
-        uint256 _adjusted = (
-            _totalSupply * (DILL.balanceOf(account)) / (DILL.totalSupply())
-        ) * (60) / (100);
+        uint256 _derived = (_balance * (40)) / (100);
+        uint256 _adjusted = (((_totalSupply * (DILL.balanceOf(account))) /
+            (DILL.totalSupply())) * (60)) / (100);
         return Math.min(_derived + (_adjusted), _balance);
     }
 
@@ -330,10 +323,9 @@ contract Gauge is ReentrancyGuard {
 
     function earned(address account) public view returns (uint256) {
         return
-            (derivedBalances[account]
-                * (rewardPerToken() - (userRewardPerTokenPaid[account]))
-                / (1e18))
-                + (rewards[account]);
+            ((derivedBalances[account] *
+                (rewardPerToken() - (userRewardPerTokenPaid[account]))) /
+                (1e18)) + (rewards[account]);
     }
 
     function getRewardForDuration() external view returns (uint256) {
@@ -417,10 +409,7 @@ contract Gauge is ReentrancyGuard {
         // very high values of rewardRate in the earned and rewardsPerToken functions;
         // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
         uint256 balance = PICKLE.balanceOf(address(this));
-        require(
-            rewardRate <= balance / (DURATION),
-            "Provided reward too high"
-        );
+        require(rewardRate <= balance / (DURATION), "Provided reward too high");
 
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp + DURATION;
@@ -484,8 +473,6 @@ contract ProtocolGovernance {
 }
 
 contract MasterDill {
-    
-
     /// @notice EIP-20 token name for this token
     string public constant name = "Master DILL";
 
@@ -582,11 +569,12 @@ contract MasterDill {
 
         // if (spender != src && spenderAllowance != uint256(-1)) { // type(uint256).max
         if (spender != src && spenderAllowance != type(uint256).max) {
-            uint256 newAllowance = spenderAllowance - (
-                amount
-                // ,
-                // "transferFrom: exceeds spender allowance"
-            );
+            uint256 newAllowance = spenderAllowance -
+                (
+                    amount
+                    // ,
+                    // "transferFrom: exceeds spender allowance"
+                );
             allowances[src][spender] = newAllowance;
 
             emit Approval(src, spender, newAllowance);
@@ -604,15 +592,18 @@ contract MasterDill {
         require(src != address(0), "_transferTokens: zero address");
         require(dst != address(0), "_transferTokens: zero address");
 
-        balances[src] = balances[src] - (
+        balances[src] =
+            balances[src] -
+            (
+                amount
+                // ,
+                // "_transferTokens: exceeds balance"
+            );
+        balances[dst] += (
             amount
             // ,
-            // "_transferTokens: exceeds balance"
+            //  "_transferTokens: overflows"
         );
-        balances[dst] += (amount
-        // ,
-        //  "_transferTokens: overflows"
-         );
         emit Transfer(src, dst, amount);
     }
 }
@@ -682,7 +673,6 @@ contract Initializable {
 }
 
 contract GaugeProxyV2 is ProtocolGovernance, Initializable {
-    
     using SafeERC20 for IERC20;
 
     MasterChef public constant MASTER =
@@ -707,8 +697,9 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     uint256 public constant weekSeconds = 604800;
     // epoch time stamp
     uint256 public firstDistribution;
-    uint256 public prevDistributionId;
+    uint256 public distributionId;
     uint256 public currentId;
+    address public _sender;
     address[] internal _tokensTemp;
 
     mapping(address => int256) public usedWeights; // msg.sender => total voting weight of user
@@ -737,15 +728,16 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     function getActualCurrentPeriodId() public view returns (uint256) {
         uint256 lastPeriodEndTimestamp = (firstDistribution +
             (currentId * weekSeconds));
-        if (lastPeriodEndTimestamp < block.timestamp) {
+        if (lastPeriodEndTimestamp + weekSeconds < block.timestamp) {
             uint256 weeksElapsed = (block.timestamp - lastPeriodEndTimestamp) /
                 60 /
                 60 /
                 24 /
                 7;
 
-            return currentId + weeksElapsed + 1;
+            return currentId + weeksElapsed ;
         }
+        return currentId;
     }
 
     function tokens() external view returns (address[] memory) {
@@ -760,15 +752,21 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         TOKEN = IERC20(address(new MasterDill()));
         governance = msg.sender;
         firstDistribution = _firstDistribution;
-        currentId = 0; //1;
-        prevDistributionId = 0;
+        currentId = 0;
+        distributionId = 0;
     }
-
+    function updateCurrentId() public {
+        _updateCurrentId();
+    }
     function _updateCurrentId() internal {
         uint256 prevPeriodId = currentId;
         currentId = getActualCurrentPeriodId();
-        for (uint256 i = prevPeriodId + 1; i <= currentId; i++) {
-            totalWeight[i] = totalWeight[i-1];
+        if (currentId == 0) {
+            totalWeight.push(0);
+        } else {
+            for (uint256 i = prevPeriodId + 1; i <= currentId; i++) {
+                totalWeight.push(totalWeight[i - 1]);
+            }
         }
     }
 
@@ -788,12 +786,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             int256 _votes = votes[_owner][_token];
 
             if (_votes != 0) {
-                totalWeight[currentId] -= (
-                    _votes > 0 ? _votes : -_votes
-                );
-                weights[_token][currentId] -= (
-                    _votes
-                );
+                totalWeight[currentId] -= (_votes > 0 ? _votes : -_votes);
+                weights[_token][currentId] -= (_votes);
 
                 votes[_owner][_token] = 0;
             }
@@ -814,7 +808,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
         for (uint256 i = 0; i < _tokenCnt; i++) {
             int256 _prevWeight = votes[_owner][_tokenVote[i]];
-            _weights[i] = _prevWeight * (_weight) / (_prevUsedWeight);
+            _weights[i] = (_prevWeight * (_weight)) / (_prevUsedWeight);
         }
         _vote(_owner, _tokenVote, _weights);
     }
@@ -831,22 +825,20 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         int256 _usedWeight = 0;
 
         for (uint256 i = 0; i < _tokenCnt; i++) {
-            _totalVoteWeight += (
-                _weights[i] > 0 ? _weights[i] : -_weights[i]
-            );
+            _totalVoteWeight += (_weights[i] > 0 ? _weights[i] : -_weights[i]);
         }
-
+        // uint256 i = 0;
         for (uint256 i = 0; i < _tokenCnt; i++) {
             address _token = _tokenVote[i];
             address _gauge = gauges[_token];
-            int256 _tokenWeight = _weights[i] * (_weight) / (
-                _totalVoteWeight
-            );
-            weights[_token][currentId] = weights[_token][currentId - 1];
+            int256 _tokenWeight = (_weights[i] * _weight) / _totalVoteWeight;
+            if (currentId == 0) {
+                weights[_token].push(0);
+            } else {
+                weights[_token].push(weights[_token][currentId - 1]);
+            }
             if (_gauge != address(0x0)) {
-                weights[_token][currentId] += (
-                    _tokenWeight
-                );
+                weights[_token][currentId] += _tokenWeight;
                 votes[_owner][_token] = _tokenWeight;
                 tokenVote[_owner].push(_token);
 
@@ -854,10 +846,9 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
                     _tokenWeight = -_tokenWeight;
                 }
 
-                _usedWeight += (_tokenWeight);
-                totalWeight[currentId] += (
-                    _tokenWeight
-                );
+                _usedWeight += _tokenWeight;
+                // totalWeight.push(0);
+                totalWeight[currentId] += _tokenWeight;
             }
         }
 
@@ -867,8 +858,11 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     // Vote with DILL on a gauge
     function vote(address[] calldata _tokenVote, int256[] calldata _weights)
         external
-    {   
-        require(_tokenVote.length == _weights.length, "GaugeProxy: token votes count does not match weights count");
+    {
+        require(
+            _tokenVote.length == _weights.length,
+            "GaugeProxy: token votes count does not match weights count"
+        );
         _updateCurrentId();
         _vote(msg.sender, _tokenVote, _weights);
         delegations[msg.sender].blockDelegate[currentId] = true;
@@ -909,7 +903,10 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         address[] calldata _tokenVote,
         int256[] calldata _weights
     ) external {
-        require(_tokenVote.length == _weights.length,"GaugeProxy: token votes count does not match weights count");
+        require(
+            _tokenVote.length == _weights.length,
+            "GaugeProxy: token votes count does not match weights count"
+        );
         _updateCurrentId();
         delegateData storage _delegate = delegations[_owner];
         require(
@@ -945,7 +942,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
         uint256 _actualCurrentId = getActualCurrentPeriodId();
         require(
-            prevDistributionId == _actualCurrentId - 1,
+            distributionId == _actualCurrentId - 1,
             "! all distributions completed"
         );
 
@@ -1000,23 +997,35 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             msg.sender == governance,
             "GaugeProxyV2: only governance can distribute"
         );
+        _sender = msg.sender;
 
         _updateCurrentId();
-
+        require(currentId > 0, "initial voting in progress");
         require(
-            prevDistributionId < currentId - 1,
+            // currentId == 0 ?
+            // distributionId == 0 :
+            distributionId < currentId,
             "GaugeProxyV2: all period distributions complete"
         );
 
         collect();
         int256 _balance = int256(PICKLE.balanceOf(address(this)));
-        int256 _totalWeight = totalWeight[prevDistributionId + 1];
+        // int256 _totalWeight = currentId == 0
+        //     ? totalWeight[distributionId]
+        //     : totalWeight[distributionId + 1];
+        int256 _totalWeight =  totalWeight[distributionId];
         if (_balance > 0 && _totalWeight > 0) {
             for (uint256 i = _start; i < _end; i++) {
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
                 uint256 _reward = uint256(
-                    _balance * (weights[_token][prevDistributionId + 1]) / (_totalWeight)
+                    (_balance *
+                        (
+                            weights[_token][distributionId]
+                            // currentId == 0
+                            //     ? weights[_token][distributionId]
+                            //     : weights[_token][distributionId + 1]
+                        )) / (_totalWeight)
                 );
                 if (_reward > 0) {
                     PICKLE.safeApprove(_gauge, 0);
@@ -1031,7 +1040,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         }
 
         if (_tokens.length == _end) {
-            prevDistributionId += 1;
+            distributionId += 1;
         }
     }
 }
