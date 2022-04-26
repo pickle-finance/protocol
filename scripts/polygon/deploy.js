@@ -84,10 +84,10 @@ const deployPickleJar = async () => {
   const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
   const timelock = "0xd92c7faa0ca0e6ae4918f3a83d9832d9caeaa0d3";
 
-  const want = "0x1054Ff2ffA34c055a13DCD9E0b4c0cA5b3aecEB9";
+  const want = "0xdf55670e27bE5cDE7228dD0A6849181891c9ebA1";
 
   const StrategyFactory = await ethers.getContractFactory(
-    "src/strategies/convex/strategy-convex-cadc-usdc-lp.sol:StrategyConvexCadcUsdc"
+    "src/strategies/curve/strategy-curve-stg-usdc.sol:StrategyCurveStgUsdc"
   );
   const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
 

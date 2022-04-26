@@ -27,7 +27,7 @@ abstract contract StrategyCurveBase is StrategyBase {
     address public crv = 0xD533a949740bb3306d119CC777fa900bA034cd52;
 
     // How much CRV tokens to keep
-    uint256 public keepCRV = 1000;
+    uint256 public keepCRV = 2000;
     uint256 public keepCRVMax = 10000;
 
     constructor(

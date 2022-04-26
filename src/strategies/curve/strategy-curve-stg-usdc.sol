@@ -11,8 +11,6 @@ import "../../interfaces/controller.sol";
 
 import "../strategy-curve-base.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyCurveStgUsdc is StrategyCurveBase {
     // Curve stuff
     address public stg_usdc_pool = 0x3211C6cBeF1429da3D0d58494938299C92Ad5860;
@@ -52,7 +50,6 @@ contract StrategyCurveStgUsdc is StrategyCurveBase {
         ICurveMintr(mintr).mint(gauge);
 
         uint256 _crv = IERC20(crv).balanceOf(address(this));
-        console.log("crv balance1:", _crv);
         if (_crv > 0) {
             uint256 _keepCRV = _crv.mul(keepCRV).div(keepCRVMax);
             IERC20(crv).safeTransfer(IController(controller).treasury(), _keepCRV);
@@ -63,18 +60,18 @@ contract StrategyCurveStgUsdc is StrategyCurveBase {
             route[2] = usdc;
 
             _crv = IERC20(crv).balanceOf(address(this));
-            _swapSushiswapWithPath(route, _crv);
+
+            _swapSushiswap(crv, usdc, _crv.div(2));
         }
 
         uint256 _usdc = IERC20(usdc).balanceOf(address(this));
         // Adds liquidity to curve.fi's pool
         if (_usdc > 0) {
-            console.log("usdc balance:", _usdc);
             uint256[2] memory liquidity;
             liquidity[1] = _usdc;
             ICurveFi_2(curve).add_liquidity(liquidity, 0);
         }
 
-        _distributePerformanceFeesAndDeposit();
+        deposit();
     }
 }
