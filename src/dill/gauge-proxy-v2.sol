@@ -693,20 +693,19 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
     mapping(address => uint256) public gaugeWithNegativeWeight;
 
-    uint256 public constant week = 7 days;
-    uint256 public constant weekSeconds = 604800;
+    uint256 public constant WEEK_SECONDS = 604800;
     // epoch time stamp
     uint256 public firstDistribution;
     uint256 public distributionId;
-    uint256 public currentId;
+    uint256 public lastVotedPeriodId;
     address public _sender;
-    address[] internal _tokensTemp;
 
+    mapping(address => uint256) public tokenLastVotedPeriodId; // token => last voted period id
     mapping(address => int256) public usedWeights; // msg.sender => total voting weight of user
     mapping(address => address[]) public tokenVote; // msg.sender => token
     mapping(address => mapping(address => int256)) public votes; // msg.sender => votes
-    mapping(address => int256[]) public weights; // token => weight [period id]
-    int256[] public totalWeight; // [period id]
+    mapping(uint256 => mapping(address => int256)) public weights; // period id => token => weight
+    mapping(uint256 => int256) public totalWeight; // period id => TotalWeight
 
     struct delegateData {
         // delegated address
@@ -725,19 +724,11 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
     mapping(address => delegateData) public delegations;
 
-    function getActualCurrentPeriodId() public view returns (uint256) {
-        uint256 lastPeriodEndTimestamp = (firstDistribution +
-            (currentId * weekSeconds));
-        if (lastPeriodEndTimestamp + weekSeconds < block.timestamp) {
-            uint256 weeksElapsed = (block.timestamp - lastPeriodEndTimestamp) /
-                60 /
-                60 /
-                24 /
-                7;
-
-            return currentId + weeksElapsed ;
-        }
-        return currentId;
+    function getCurrentPeriodId() public view returns (uint256) {
+        return
+            block.timestamp > firstDistribution
+                ? block.timestamp - firstDistribution / WEEK_SECONDS
+                : 0;
     }
 
     function tokens() external view returns (address[] memory) {
@@ -752,28 +743,12 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         TOKEN = IERC20(address(new MasterDill()));
         governance = msg.sender;
         firstDistribution = _firstDistribution;
-        currentId = 0;
         distributionId = 0;
-    }
-    function updateCurrentId() public {
-        _updateCurrentId();
-    }
-    function _updateCurrentId() internal {
-        uint256 prevPeriodId = currentId;
-        currentId = getActualCurrentPeriodId();
-        if (currentId == 0) {
-            totalWeight.push(0);
-        } else {
-            for (uint256 i = prevPeriodId + 1; i <= currentId; i++) {
-                totalWeight.push(totalWeight[i - 1]);
-            }
-        }
+        lastVotedPeriodId = 0;
     }
 
     // Reset votes to 0
     function reset() external {
-        // check if voting cycle is over then update ballotId
-        _updateCurrentId();
         _reset(msg.sender);
     }
 
@@ -781,14 +756,29 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     function _reset(address _owner) internal {
         address[] storage _tokenVote = tokenVote[_owner];
         uint256 _tokenVoteCnt = _tokenVote.length;
+        uint256 currentId = getCurrentPeriodId();
+
+        if (currentId > lastVotedPeriodId) {
+            totalWeight[currentId] = totalWeight[lastVotedPeriodId];
+            lastVotedPeriodId = currentId;
+        }
+
         for (uint256 i = 0; i < _tokenVoteCnt; i++) {
             address _token = _tokenVote[i];
             int256 _votes = votes[_owner][_token];
 
             if (_votes != 0) {
                 totalWeight[currentId] -= (_votes > 0 ? _votes : -_votes);
-                weights[_token][currentId] -= (_votes);
 
+                if (currentId > tokenLastVotedPeriodId[_token]) {
+                    weights[currentId][_token] = weights[
+                        tokenLastVotedPeriodId[_token]
+                    ][_token];
+
+                    tokenLastVotedPeriodId[_token] = currentId;
+                }
+
+                weights[currentId][_token] -= _votes;
                 votes[_owner][_token] = 0;
             }
         }
@@ -798,10 +788,10 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
     // Adjusts _owner's votes according to latest _owner's DILL balance
     function poke(address _owner) public {
-        _updateCurrentId();
         address[] memory _tokenVote = tokenVote[_owner];
         uint256 _tokenCnt = _tokenVote.length;
         int256[] memory _weights = new int256[](_tokenCnt);
+        uint256 currentId = getCurrentPeriodId();
 
         int256 _prevUsedWeight = usedWeights[_owner];
         int256 _weight = int256(DILL.balanceOf(_owner));
@@ -810,13 +800,14 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             int256 _prevWeight = votes[_owner][_tokenVote[i]];
             _weights[i] = (_prevWeight * (_weight)) / (_prevUsedWeight);
         }
-        _vote(_owner, _tokenVote, _weights);
+        _vote(_owner, _tokenVote, _weights, currentId);
     }
 
     function _vote(
         address _owner,
         address[] memory _tokenVote,
-        int256[] memory _weights
+        int256[] memory _weights,
+        uint256 _currentId
     ) internal {
         _reset(_owner);
         uint256 _tokenCnt = _tokenVote.length;
@@ -827,28 +818,34 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         for (uint256 i = 0; i < _tokenCnt; i++) {
             _totalVoteWeight += (_weights[i] > 0 ? _weights[i] : -_weights[i]);
         }
-        // uint256 i = 0;
+
+        if (_currentId > lastVotedPeriodId) {
+            totalWeight[_currentId] = totalWeight[lastVotedPeriodId];
+            lastVotedPeriodId = _currentId;
+        }
+
         for (uint256 i = 0; i < _tokenCnt; i++) {
             address _token = _tokenVote[i];
             address _gauge = gauges[_token];
             int256 _tokenWeight = (_weights[i] * _weight) / _totalVoteWeight;
-            if (currentId == 0) {
-                weights[_token].push(0);
-            } else {
-                weights[_token].push(weights[_token][currentId - 1]);
-            }
+
             if (_gauge != address(0x0)) {
-                weights[_token][currentId] += _tokenWeight;
+                if (_currentId > tokenLastVotedPeriodId[_token]) {
+                    weights[_currentId][_token] = weights[
+                        tokenLastVotedPeriodId[_token]
+                    ][_token];
+
+                    tokenLastVotedPeriodId[_token] = _currentId;
+                }
+
+                weights[_currentId][_token] += _tokenWeight;
                 votes[_owner][_token] = _tokenWeight;
                 tokenVote[_owner].push(_token);
 
-                if (_tokenWeight < 0) {
-                    _tokenWeight = -_tokenWeight;
-                }
+                if (_tokenWeight < 0) _tokenWeight = -_tokenWeight;
 
                 _usedWeight += _tokenWeight;
-                // totalWeight.push(0);
-                totalWeight[currentId] += _tokenWeight;
+                totalWeight[_currentId] += _tokenWeight;
             }
         }
 
@@ -863,8 +860,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             _tokenVote.length == _weights.length,
             "GaugeProxy: token votes count does not match weights count"
         );
-        _updateCurrentId();
-        _vote(msg.sender, _tokenVote, _weights);
+        uint256 currentId = getCurrentPeriodId();
+        _vote(msg.sender, _tokenVote, _weights, currentId);
         delegations[msg.sender].blockDelegate[currentId] = true;
     }
 
@@ -884,17 +881,17 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
         delegateData storage _delegate = delegations[msg.sender];
 
-        uint256 actualCurrentPeriodId = getActualCurrentPeriodId();
+        uint256 currentPeriodId = getCurrentPeriodId();
 
         address currentDelegate = _delegate.delegate;
         _delegate.delegate = _delegateAddress;
         _delegate.prevDelegate = currentDelegate;
-        _delegate.updatePeriodId = actualCurrentPeriodId;
+        _delegate.updatePeriodId = currentPeriodId;
 
         if (_indefinite == true) {
             _delegate.indefinite = true;
         } else {
-            _delegate.endPeriod = actualCurrentPeriodId + _periodsCount;
+            _delegate.endPeriod = currentPeriodId + _periodsCount;
         }
     }
 
@@ -907,7 +904,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             _tokenVote.length == _weights.length,
             "GaugeProxy: token votes count does not match weights count"
         );
-        _updateCurrentId();
+
+        uint256 currentId = getCurrentPeriodId();
         delegateData storage _delegate = delegations[_owner];
         require(
             (_delegate.delegate == msg.sender &&
@@ -925,7 +923,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             "Delegating period expired"
         );
 
-        _vote(_owner, _tokenVote, _weights);
+        _vote(_owner, _tokenVote, _weights, currentId);
     }
 
     // Add new token gauge
@@ -940,11 +938,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         require(msg.sender == governance, "!gov");
         require(gauges[_token] != address(0x0), "!exists");
 
-        uint256 _actualCurrentId = getActualCurrentPeriodId();
-        require(
-            distributionId == _actualCurrentId - 1,
-            "! all distributions completed"
-        );
+        uint256 currentId = getCurrentPeriodId();
+        require(distributionId == currentId, "! all distributions completed");
 
         address _gauge = gauges[_token];
 
@@ -952,13 +947,18 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
         delete gauges[_token];
 
-        // address[] storage newTokenArray = new address[]();
         uint256 tokensLength = _tokens.length;
+        address[] memory newTokenArray = new address[](tokensLength - 1);
 
+        uint256 j = 0;
         for (uint256 i = 0; i < tokensLength; i++) {
-            if (_tokens[i] != _token) _tokensTemp.push(_tokens[i]);
+            if (_tokens[i] != _token) {
+                newTokenArray[j] = _tokens[i];
+                j++;
+            }
         }
-        _tokens = _tokensTemp;
+
+        _tokens = newTokenArray;
     }
 
     // Sets MasterChef PID
@@ -990,6 +990,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         return _tokens.length;
     }
 
+    // WIP: Need to improve distribute syncing. Logic does not work if votes are skipped without calling distribute
     function distribute(uint256 _start, uint256 _end) external {
         require(_start < _end, "GaugeProxyV2: bad _start");
         require(_end <= _tokens.length, "GaugeProxyV2: bad _end");
@@ -999,33 +1000,28 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         );
         _sender = msg.sender;
 
-        _updateCurrentId();
-        require(currentId > 0, "initial voting in progress");
+        uint256 currentId = getCurrentPeriodId();
         require(
-            // currentId == 0 ?
-            // distributionId == 0 :
             distributionId < currentId,
             "GaugeProxyV2: all period distributions complete"
         );
 
         collect();
         int256 _balance = int256(PICKLE.balanceOf(address(this)));
-        // int256 _totalWeight = currentId == 0
-        //     ? totalWeight[distributionId]
-        //     : totalWeight[distributionId + 1];
-        int256 _totalWeight =  totalWeight[distributionId];
+        int256 _totalWeight = distributionId > lastVotedPeriodId
+            ? totalWeight[lastVotedPeriodId]
+            : totalWeight[distributionId];
+
         if (_balance > 0 && _totalWeight > 0) {
             for (uint256 i = _start; i < _end; i++) {
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
+                int256 tokenWeight = distributionId >
+                    tokenLastVotedPeriodId[_token]
+                    ? weights[tokenLastVotedPeriodId[_token]][_token]
+                    : weights[distributionId][_token];
                 uint256 _reward = uint256(
-                    (_balance *
-                        (
-                            weights[_token][distributionId]
-                            // currentId == 0
-                            //     ? weights[_token][distributionId]
-                            //     : weights[_token][distributionId + 1]
-                        )) / (_totalWeight)
+                    (_balance * tokenWeight) / (_totalWeight)
                 );
                 if (_reward > 0) {
                     PICKLE.safeApprove(_gauge, 0);
