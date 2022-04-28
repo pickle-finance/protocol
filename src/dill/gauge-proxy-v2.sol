@@ -727,7 +727,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     function getCurrentPeriodId() public view returns (uint256) {
         return
             block.timestamp > firstDistribution
-                ? (block.timestamp - firstDistribution / WEEK_SECONDS) + 1
+                ? ((block.timestamp - firstDistribution) / WEEK_SECONDS) + 1
                 : 0;
     }
 
