@@ -697,7 +697,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     uint256 public firstDistribution;
     uint256 public distributionId;
     uint256 public lastVotedPeriodId;
-    address public _sender;
 
     mapping(address => uint256) public tokenLastVotedPeriodId; // token => last voted period id
     mapping(address => int256) public usedWeights; // msg.sender => total voting weight of user
@@ -751,19 +750,20 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
     // Reset votes to 0
     function reset() external {
-        _reset(msg.sender);
+        uint256 currentId = getCurrentPeriodId();
+        require(currentId > 0, "Voting not started yet");
+        _reset(msg.sender, currentId);
     }
 
     // Reset votes to 0
-    function _reset(address _owner) internal {
+    function _reset(address _owner, uint256 _currentId) internal {
         address[] storage _tokenVote = tokenVote[_owner];
         uint256 _tokenVoteCnt = _tokenVote.length;
-        uint256 currentId = getCurrentPeriodId();
-        require(currentId > 0, "Voting not started");
+        require(_currentId > 0, "Voting not started");
 
-        if (currentId > lastVotedPeriodId) {
-            totalWeight[currentId] = totalWeight[lastVotedPeriodId];
-            lastVotedPeriodId = currentId;
+        if (_currentId > lastVotedPeriodId) {
+            totalWeight[_currentId] = totalWeight[lastVotedPeriodId];
+            lastVotedPeriodId = _currentId;
         }
 
         for (uint256 i = 0; i < _tokenVoteCnt; i++) {
@@ -771,23 +771,24 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             int256 _votes = votes[_owner][_token];
 
             if (_votes != 0) {
-                totalWeight[currentId] -= (_votes > 0 ? _votes : -_votes);
+                totalWeight[_currentId] -= (_votes > 0 ? _votes : -_votes);
 
-                if (currentId > tokenLastVotedPeriodId[_token]) {
-                    weights[currentId][_token] = weights[
+                if (_currentId > tokenLastVotedPeriodId[_token]) {
+                    weights[_currentId][_token] = weights[
                         tokenLastVotedPeriodId[_token]
                     ][_token];
 
-                    tokenLastVotedPeriodId[_token] = currentId;
+                    tokenLastVotedPeriodId[_token] = _currentId;
                 }
 
-                weights[currentId][_token] -= _votes;
+                weights[_currentId][_token] -= _votes;
                 votes[_owner][_token] = 0;
             }
         }
 
         delete tokenVote[_owner];
-        periodForDistribute[currentId] = currentId;
+        // Ensure distribute rewards are for current period 
+        periodForDistribute[_currentId] = _currentId;
     }
 
     // Adjusts _owner's votes according to latest _owner's DILL balance
@@ -813,8 +814,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         int256[] memory _weights,
         uint256 _currentId
     ) internal {
-        require(_currentId > 0, "Voting not started");
-        _reset(_owner);
+        _reset(_owner, _currentId);
         uint256 _tokenCnt = _tokenVote.length;
         int256 _weight = int256(DILL.balanceOf(_owner));
         int256 _totalVoteWeight = 0;
@@ -822,11 +822,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
         for (uint256 i = 0; i < _tokenCnt; i++) {
             _totalVoteWeight += (_weights[i] > 0 ? _weights[i] : -_weights[i]);
-        }
-
-        if (_currentId > lastVotedPeriodId) {
-            totalWeight[_currentId] = totalWeight[lastVotedPeriodId];
-            lastVotedPeriodId = _currentId;
         }
 
         for (uint256 i = 0; i < _tokenCnt; i++) {
@@ -855,7 +850,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         }
 
         usedWeights[_owner] = _usedWeight;
-        periodForDistribute[_currentId] = _currentId;
     }
 
     // Vote with DILL on a gauge
@@ -867,6 +861,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             "GaugeProxy: token votes count does not match weights count"
         );
         uint256 currentId = getCurrentPeriodId();
+        require(currentId > 0, "Voting not started yet");
         _vote(msg.sender, _tokenVote, _weights, currentId);
         delegations[msg.sender].blockDelegate[currentId] = true;
     }
@@ -912,6 +907,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         );
 
         uint256 currentId = getCurrentPeriodId();
+        require(currentId > 0, "Voting not started yet");
         delegateData storage _delegate = delegations[_owner];
         require(
             (_delegate.delegate == msg.sender &&
@@ -1003,7 +999,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             msg.sender == governance,
             "GaugeProxyV2: only governance can distribute"
         );
-        _sender = msg.sender;
 
         uint256 currentId = getCurrentPeriodId();
         require(
