@@ -36,32 +36,15 @@ describe("StrategyFraxTemple", () => {
     proxyAdmin = await deployContract("ProxyAdmin");
     console.log("✅ ProxyAdmin is deployed at ", proxyAdmin.address);
 
-    const controllerImp = await deployContract("ControllerV5");
 
-    const controllerProxy = await deployContract(
-      "AdminUpgradeabilityProxy",
-      controllerImp.address,
-      proxyAdmin.address,
-      []
-    );
+    controller = await deployContract("src/controller-v4.sol:ControllerV4",
+         governance.address,
+          strategist.address,
+          timelock.address,
+          devfund.address,
+          treasury.address);
 
-    controller = await getContractAt("ControllerV5", controllerProxy.address);
-
-    await controller.initialize(
-      governance.address,
-      strategist.address,
-      timelock.address,
-      devfund.address,
-      treasury.address
-    );
     console.log("✅ Controller is deployed at ", controller.address);
-
-    const upgradedController = await deployContract("ControllerV7");
-    console.log("✅ Controller V7 is deployed at ", upgradedController.address);
-
-    await proxyAdmin.upgrade(controllerProxy.address, upgradedController.address);
-
-    let newController = await getContractAt("ControllerV7", controllerProxy.address);
 
     locker = await getContractAt("FXSLocker", "0xd639C2eA4eEFfAD39b599410d00252E6c80008DF");
     console.log("✅ Locker is deployed at ", locker.address);
@@ -79,7 +62,7 @@ describe("StrategyFraxTemple", () => {
       "StrategyFraxTempleUniV2",
       governance.address,
       strategist.address,
-      newController.address,
+      controller.address,
       timelock.address
     );
     await strategy.connect(governance).setStrategyProxy(strategyProxy.address);
@@ -94,13 +77,13 @@ describe("StrategyFraxTemple", () => {
       FRAX_TEMPLE_POOL,
       governance.address,
       timelock.address,
-      newController.address
+      controller.address
     );
     console.log("✅ PickleJar is deployed at ", pickleJar.address);
 
-    await newController.connect(governance).setJar(FRAX_TEMPLE_POOL, pickleJar.address);
-    await newController.connect(governance).approveStrategy(FRAX_TEMPLE_POOL, strategy.address);
-    await newController.connect(governance).setStrategy(FRAX_TEMPLE_POOL, strategy.address);
+    await controller.connect(governance).setJar(FRAX_TEMPLE_POOL, pickleJar.address);
+    await controller.connect(governance).approveStrategy(FRAX_TEMPLE_POOL, strategy.address);
+    await controller.connect(governance).setStrategy(FRAX_TEMPLE_POOL, strategy.address);
 
     veFxsVault = await deployContract("veFXSVault");
     console.log("✅ veFxsVault is deployed at ", veFxsVault.address);
@@ -200,7 +183,7 @@ describe("StrategyFraxTemple", () => {
     );
     console.log("PickleJar frax balance before withdrawal => ", (await frax.balanceOf(pickleJar.address)).toString());
 
-    await controller.withdrawAll(FRAX_TEMPLE_POOL);
+    await controller.withdrawAll(FRAX_TEMPLE_POOL,{gasLimit:2000000});
 
     console.log(
       "PickleJar temple balance after withdrawal => ",
@@ -251,6 +234,7 @@ describe("StrategyFraxTemple", () => {
 
     console.log("Treasury temple balance => ", (await temple.balanceOf(treasury.address)).toString());
     console.log("Treasury frax balance => ", (await frax.balanceOf(treasury.address)).toString());
+    console.log("Treasury Frax/Temple LP balance => ", (await pool.balanceOf(treasury.address)).toString());
 
     console.log("Strategy temple balance => ", (await temple.balanceOf(strategy.address)).toString());
     console.log("Strategy frax balance => ", (await frax.balanceOf(strategy.address)).toString());
@@ -308,12 +292,14 @@ describe("StrategyFraxTemple", () => {
     console.log("============ Harvest Started ==============");
     console.log("Harvest");
     console.log("Ratio before harvest => ", (await pickleJar.getRatio()).toString());
+    console.log("Amount in Treasury before: ", (await pool.balanceOf(treasury.address)).toString());
     await increaseTime(60 * 60 * 24 * 14); //travel 30 days
     await increaseBlock(1000);
     console.log("Amount Harvestable => ", (await strategy.getHarvestable()).toString());
     await strategy.harvest({gasLimit: 10000000});
     console.log("Amount Harvestable after => ", (await strategy.getHarvestable()).toString());
     console.log("Ratio after harvest => ", (await pickleJar.getRatio()).toString());
+    console.log("Amount in Treasury after: ", (await pool.balanceOf(treasury.address)).toString());
     console.log("============ Harvest Ended ==============");
   };
 

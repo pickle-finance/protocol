@@ -113,34 +113,33 @@ contract StrategyFraxTempleUniV2 is StrategyBase {
                 _count++;
                 continue;
             }
-            _sum = _sum.add(
-                IStrategyProxy(strategyProxy).withdrawV2(
-                    frax_temple_gauge,
-                    address(frax_temple_pool),
-                    lockedStakes[i].kek_id,
-                    rewardTokens
-                )
-            );
+
+            _sum = _sum.add(IStrategyProxy(strategyProxy).withdrawV2(
+                frax_temple_gauge,
+                address(frax_temple_pool),
+                lockedStakes[i].kek_id,
+                rewardTokens
+            ));
+
             _count++;
             if (_sum >= _liquidity) break;
         }
-
         require(_sum >= _liquidity, "insufficient liquidity");
 
         LockedStake memory lastStake = lockedStakes[_count - 1];
 
         if (_sum > _liquidity) {
-            uint128 _withdraw = uint128(uint256(lastStake.liquidity).sub(_sum.sub(_liquidity)));
+            uint256 _withdraw = _sum.sub(_liquidity);
             require(_withdraw <= lastStake.liquidity, "math error");
 
             frax_temple_pool.safeTransfer(strategyProxy, _withdraw);
+
             IStrategyProxy(strategyProxy).depositV2(
                 frax_temple_gauge,
                 address(frax_temple_pool),
                 IFraxGaugeBase(frax_temple_gauge).lock_time_min()
             );
         }
-
         return (_liquidity);
     }
 }

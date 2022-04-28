@@ -188,7 +188,6 @@ contract StrategyProxy {
             _balances[i] = IERC20(_rewardTokens[i]).balanceOf(address(proxy));
         }
 
-        proxy.safeExecute(_gauge, 0, abi.encodeWithSignature("withdrawLocked(bytes32)", _kek_id));
         LockedStake[] memory lockedStakes = IFraxGaugeUniV2(_gauge).lockedStakesOf(address(proxy));
         LockedStake memory thisStake;
 
@@ -201,6 +200,7 @@ contract StrategyProxy {
         require(thisStake.liquidity != 0, "kek_id not found");
 
         if (thisStake.liquidity > 0) {
+            proxy.safeExecute(_gauge, 0, abi.encodeWithSignature("withdrawLocked(bytes32,address)", _kek_id, address(proxy)));
             proxy.safeExecute(
                 _token,
                 0,
