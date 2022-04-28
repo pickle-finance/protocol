@@ -690,7 +690,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
     // token => gauge
     mapping(address => address) public gauges;
-
     mapping(address => uint256) public gaugeWithNegativeWeight;
 
     uint256 public constant WEEK_SECONDS = 604800;
@@ -706,6 +705,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     mapping(address => mapping(address => int256)) public votes; // msg.sender => votes
     mapping(uint256 => mapping(address => int256)) public weights; // period id => token => weight
     mapping(uint256 => int256) public totalWeight; // period id => TotalWeight
+
+    mapping(uint256 => uint256) public periodForDistribute; // dist id => which period id votes to use
 
     struct delegateData {
         // delegated address
@@ -727,7 +728,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     function getCurrentPeriodId() public view returns (uint256) {
         return
             block.timestamp > firstDistribution
-                ? block.timestamp - firstDistribution / WEEK_SECONDS
+                ? (block.timestamp - firstDistribution / WEEK_SECONDS) + 1
                 : 0;
     }
 
@@ -743,8 +744,9 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         TOKEN = IERC20(address(new MasterDill()));
         governance = msg.sender;
         firstDistribution = _firstDistribution;
-        distributionId = 0;
-        lastVotedPeriodId = 0;
+        distributionId = 1;
+        lastVotedPeriodId = 1;
+        periodForDistribute[1] = 1;
     }
 
     // Reset votes to 0
@@ -757,6 +759,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         address[] storage _tokenVote = tokenVote[_owner];
         uint256 _tokenVoteCnt = _tokenVote.length;
         uint256 currentId = getCurrentPeriodId();
+        require(currentId > 0, "Voting not started");
 
         if (currentId > lastVotedPeriodId) {
             totalWeight[currentId] = totalWeight[lastVotedPeriodId];
@@ -784,6 +787,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         }
 
         delete tokenVote[_owner];
+        periodForDistribute[currentId] = currentId;
     }
 
     // Adjusts _owner's votes according to latest _owner's DILL balance
@@ -809,6 +813,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         int256[] memory _weights,
         uint256 _currentId
     ) internal {
+        require(_currentId > 0, "Voting not started");
         _reset(_owner);
         uint256 _tokenCnt = _tokenVote.length;
         int256 _weight = int256(DILL.balanceOf(_owner));
@@ -850,6 +855,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         }
 
         usedWeights[_owner] = _usedWeight;
+        periodForDistribute[_currentId] = _currentId;
     }
 
     // Vote with DILL on a gauge
@@ -990,7 +996,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         return _tokens.length;
     }
 
-    // WIP: Need to improve distribute syncing. Logic does not work if votes are skipped without calling distribute
     function distribute(uint256 _start, uint256 _end) external {
         require(_start < _end, "GaugeProxyV2: bad _start");
         require(_end <= _tokens.length, "GaugeProxyV2: bad _end");
@@ -1006,22 +1011,28 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             "GaugeProxyV2: all period distributions complete"
         );
 
+        uint256 periodToUse = 0;
+        if (periodForDistribute[distributionId] == 0) {
+            // If period does not exist means no votes in this period
+            // Use previous period's votes and update dist. period
+            periodToUse = periodForDistribute[distributionId - 1];
+            periodForDistribute[distributionId] = periodForDistribute[
+                distributionId - 1
+            ];
+        } else {
+            periodToUse = periodForDistribute[distributionId];
+        }
+
         collect();
         int256 _balance = int256(PICKLE.balanceOf(address(this)));
-        int256 _totalWeight = distributionId > lastVotedPeriodId
-            ? totalWeight[lastVotedPeriodId]
-            : totalWeight[distributionId];
+        int256 _totalWeight = totalWeight[periodToUse];
 
         if (_balance > 0 && _totalWeight > 0) {
             for (uint256 i = _start; i < _end; i++) {
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
-                int256 tokenWeight = distributionId >
-                    tokenLastVotedPeriodId[_token]
-                    ? weights[tokenLastVotedPeriodId[_token]][_token]
-                    : weights[distributionId][_token];
                 uint256 _reward = uint256(
-                    (_balance * tokenWeight) / (_totalWeight)
+                    (_balance * weights[periodToUse][_token]) / (_totalWeight)
                 );
                 if (_reward > 0) {
                     PICKLE.safeApprove(_gauge, 0);
