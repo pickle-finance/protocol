@@ -80,7 +80,7 @@ describe("StrategyFraxDAI", () => {
       timelock.address
     );
     await strategy.connect(governance).setStrategyProxy(strategyProxy.address);
-    await strategyProxy.approveStrategy(FRAX_DAI_GAUGE, strategy.address);
+    await strategyProxy.approveStrategy(FRAX_DAI_GAUGE, strategy.address, "0x3d18b912");
 
     pickleJar = await deployContract(
       "PickleJarStablesUniV3",

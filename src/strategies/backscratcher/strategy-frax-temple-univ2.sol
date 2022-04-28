@@ -26,7 +26,11 @@ contract StrategyFraxTempleUniV2 is StrategyBase {
         address _strategist,
         address _controller,
         address _timelock
-    ) public StrategyBase(address(frax_temple_pool), _governance, _strategist, _controller, _timelock) {}
+    ) public StrategyBase(address(frax_temple_pool), _governance, _strategist, _controller, _timelock) {
+      IERC20(FXS).safeApprove(univ2Router2, uint(-1));
+      IERC20(FRAX).safeApprove(templeRouter, uint(-1));
+      IERC20(TEMPLE).safeApprove(templeRouter, uint(-1));
+    }
 
     // **** Views ****
     function setStrategyProxy(address _proxy) external {
@@ -44,8 +48,8 @@ contract StrategyFraxTempleUniV2 is StrategyBase {
         IStrategyProxy(strategyProxy).harvest(frax_temple_gauge, rewardTokens);
 
         uint256 _fxs = IERC20(FXS).balanceOf(address(this));
-        IERC20(FXS).safeApprove(univ2Router2, 0);
-        IERC20(FXS).safeApprove(univ2Router2, _fxs);
+
+
 
         address[] memory _path = new address[](2);
         _path[0] = FXS;
@@ -54,27 +58,15 @@ contract StrategyFraxTempleUniV2 is StrategyBase {
 
         uint256 _frax = IERC20(FRAX).balanceOf(address(this));
 
-        IERC20(FRAX).safeApprove(templeRouter, 0);
-        IERC20(FRAX).safeApprove(templeRouter, _frax);
-
         ITempleRouter(templeRouter).swapExactFraxForTemple(_frax, 0, address(this), block.timestamp + 300);
 
         uint256 _temple = IERC20(TEMPLE).balanceOf(address(this));
         uint256 _amount = _temple.div(2);
 
-        IERC20(TEMPLE).safeApprove(templeRouter, 0);
-        IERC20(TEMPLE).safeApprove(templeRouter, _amount);
-
         ITempleRouter(templeRouter).swapExactTempleForFrax(_amount, 0, address(this), block.timestamp + 300);
 
         uint256 _templeAmt = IERC20(TEMPLE).balanceOf(address(this));
         uint256 _fraxAmt = IERC20(FRAX).balanceOf(address(this));
-
-        IERC20(TEMPLE).safeApprove(templeRouter, 0);
-        IERC20(TEMPLE).safeApprove(templeRouter, _templeAmt);
-
-        IERC20(FRAX).safeApprove(templeRouter, 0);
-        IERC20(FRAX).safeApprove(templeRouter, _fraxAmt);
 
         ITempleRouter(templeRouter).addLiquidity(_templeAmt, _fraxAmt, 0, 0, address(this), now + 60);
 
