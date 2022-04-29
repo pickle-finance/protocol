@@ -35,28 +35,22 @@ contract StrategyProxy {
     using SafeMath for uint256;
     using SafeProxy for IProxy;
 
-    IProxy public proxy;
-
-    address public veFxsVault;
-
-    // address public constant gaugeFXSRewardsDistributor =
-    //     0x278dC748edA1d8eFEf1aDFB518542612b49Fcd34;
-
     IUniswapV3PositionsNFT public constant nftManager =
         IUniswapV3PositionsNFT(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
 
+    IProxy public proxy = IProxy(0xd639C2eA4eEFfAD39b599410d00252E6c80008DF);
+
+    address public veFxsVault = 0x62826760CC53AE076a7523Fd9dCF4f8Dbb1dA140;
     address public constant fxs = address(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
     address public constant rewards = address(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
     address public gauge = address(0x3669C421b77340B2979d1A00a792CC2ee0FcE737);
     address public feeDistribution = 0xc6764e58b36e26b08Fd1d2AeD4538c02171fA872;
 
-    // gauge => strategies
+    address public governance;
     mapping(address => address) public strategies;
     mapping(address => bool) public voters;
     mapping(address => bytes) private claimRewardsString;
-    address public governance;
 
-    // TODO How much FXS tokens to give to backscratcher?
     uint256 public keepFXS = 1000;
     uint256 public constant keepFXSMax = 10000;
 
