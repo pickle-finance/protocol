@@ -71,6 +71,8 @@ describe("vote & distribute : chunk and onlyGov distribution", () => {
       method: "evm_unlockUnknownAccount",
       params: [userAddr],
     });
+  });
+
 
     it("should vote successfully (first voting)", async () => {
       console.log("-- Voting on LP Gauge with 100% weight --");
@@ -158,5 +160,4 @@ describe("vote & distribute : chunk and onlyGov distribution", () => {
       let yvecrvRewards = await pickle.balanceOf(yvecrvGaugeAddr);
       console.log("rewards to pyveCRV gauge", yvecrvRewards.toString());
     });
-  });
 });
