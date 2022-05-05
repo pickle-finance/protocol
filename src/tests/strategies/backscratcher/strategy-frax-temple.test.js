@@ -51,7 +51,7 @@ describe("StrategyFraxTemple", () => {
 
     escrow = await getContractAt("VoteEscrow", "0xc8418aF6358FFddA74e09Ca9CC3Fe03Ca6aDC5b0");
 
-    strategyProxy = await deployContract("StrategyProxy");
+    strategyProxy = await deployContract("StrategyProxyV2");
     console.log("✅ StrategyProxy is deployed at ", strategyProxy.address);
 
     await locker.connect(lockerGovernance).setStrategy(strategyProxy.address);
@@ -102,15 +102,15 @@ describe("StrategyFraxTemple", () => {
 
     await getWantFromWhale(FraxToken, toWei(10000), alice, "0x820A9eb227BF770A9dd28829380d53B76eAf1209");
 
-    await getWantFromWhale(TEMPLEToken, toWei(10000), alice, "0x238eDaB57c91D1DB2f05FE85295B5F32d355567c");
+    await getWantFromWhale(TEMPLEToken, toWei(10000), alice, "0xf6C75d85Ef66d57339f859247C38f8F47133BD39");
 
     await getWantFromWhale(FraxToken, toWei(10000), bob, "0x820A9eb227BF770A9dd28829380d53B76eAf1209");
 
-    await getWantFromWhale(TEMPLEToken, toWei(10000), bob, "0x238eDaB57c91D1DB2f05FE85295B5F32d355567c");
+    await getWantFromWhale(TEMPLEToken, toWei(10000), bob, "0xf6C75d85Ef66d57339f859247C38f8F47133BD39");
 
     await getWantFromWhale(FraxToken, toWei(10000), charles, "0x820A9eb227BF770A9dd28829380d53B76eAf1209");
 
-    await getWantFromWhale(TEMPLEToken, toWei(10000), charles, "0x238eDaB57c91D1DB2f05FE85295B5F32d355567c");
+    await getWantFromWhale(TEMPLEToken, toWei(10000), charles, "0xf6C75d85Ef66d57339f859247C38f8F47133BD39");
 
     await getWantFromWhale(FXSToken, toWei(1000000), alice, "0xF977814e90dA44bFA03b6295A0616a897441aceC");
 
