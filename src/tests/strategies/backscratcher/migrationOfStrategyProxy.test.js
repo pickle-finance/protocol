@@ -28,6 +28,10 @@ describe("StrategyFraxTemple", () => {
   const FRAX_TEMPLE_POOL = "0x6021444f1706f15465bEe85463BCc7d7cC17Fc03";
   const FRAX_TEMPLE_SWAP = "0x8A5058100E60e8F7C42305eb505B12785bbA3BcA";
   const FRAX_TEMPLE_GAUGE = "0x10460d02226d6ef7B2419aE150E6377BdbB7Ef16";
+  const FRAX_DAI_POOL = "0x97e7d56A0408570bA1a7852De36350f7713906ec";
+  const FRAX_DAI_GAUGE = "0xF22471AC2156B489CC4a59092c56713F813ff53e";
+  const FRAX_USDC_POOL = "0xc63B0708E2F7e69CB8A1df0e1389A98C35A76D52";
+  const FRAX_USDC_GAUGE = "0x3EF26504dbc8Dd7B7aa3E97Bc9f3813a9FC0B4B0";
   const FraxToken = "0x853d955acef822db058eb8505911ed77f175b99e";
   const TEMPLEToken = "0x470EBf5f030Ed85Fc1ed4C2d36B9DD02e77CF1b7";
   const FXSToken = "0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0";
@@ -94,6 +98,7 @@ describe("StrategyFraxTemple", () => {
       "0xc00007b0000000000000000000000000d639c2ea4eeffad39b599410d00252e6c80008df"
     );
 
+
     pickleJar = await deployContract(
       "PickleJar",
       FRAX_TEMPLE_POOL,
@@ -108,6 +113,17 @@ describe("StrategyFraxTemple", () => {
     usdcJar = await getContractAt("PickleJarStablesUniV3","0x7f3514CBC6825410Ca3fA4deA41d46964a953Afb");
     daiJar = await getContractAt("PickleJarStablesUniV3","0xe7b69a17B3531d01FCEAd66FaF7d9f7655469267");
 
+    await strategyProxy.connect(governance).approveStrategy(
+      FRAX_USDC_GAUGE,
+      "0x68d467443529f4cC24055ff244826F624dbEff19",
+      "0x3d18b912"
+    );
+
+    await strategyProxy.connect(governance).approveStrategy(
+      FRAX_DAI_GAUGE,
+      "0x219747CA16907330FAe76673facB6e67860ED4C9",
+      "0x3d18b912"
+    );
     await alice.sendTransaction({
       to: "0x9d074E37d408542FD38be78848e8814AFB38db17",
       value: toWei(5),
@@ -170,14 +186,14 @@ describe("StrategyFraxTemple", () => {
     console.log("Calling Earn:", _amt.toString());
     await pickleJar.earn();
     console.log("Calling Harvest:");
-    await harvest();
+    await harvest(pickleJar, strategy);
 
     console.log("=============== Bob deposit ==============");
     depositAmount = toWei(400);
 
     await deposit(bob, depositAmount);
     await pickleJar.earn();
-    await harvest();
+    await harvest(pickleJar, strategy);
 
     await increaseTime(60 * 60 * 24 * 1); //travel 14 days
 
@@ -208,7 +224,7 @@ describe("StrategyFraxTemple", () => {
     console.log("Bob temple balance after withdrawal => ", (await temple.balanceOf(bob.address)).toString());
     console.log("Bob frax balance after withdrawal => ", (await frax.balanceOf(bob.address)).toString());
 
-    await harvest();
+    await harvest(pickleJar, strategy);
     await increaseTime(60 * 60 * 24 * 1); //travel 14 days
 
     await pickleJar.earn();
@@ -239,9 +255,6 @@ describe("StrategyFraxTemple", () => {
     console.log("Alice temple balance after withdrawal => ", (await temple.balanceOf(alice.address)).toString());
     console.log("Alice frax balance after withdrawal => ", (await frax.balanceOf(alice.address)).toString());
 
-    // await harvest();
-    // await increaseTime(60 * 60 * 24 * 1); //travel 14 days
-
     console.log("=============== charles withdraw ==============");
     console.log("Charles temple balance before withdrawal => ", (await temple.balanceOf(charles.address)).toString());
     console.log("Charles frax balance before withdrawal => ", (await frax.balanceOf(charles.address)).toString());
@@ -249,25 +262,6 @@ describe("StrategyFraxTemple", () => {
 
     console.log("Charles temple balance after withdrawal => ", (await temple.balanceOf(charles.address)).toString());
     console.log("Charles frax balance after withdrawal => ", (await frax.balanceOf(charles.address)).toString());
-
-    // console.log("=============== Alice redeposit ==============");
-    // depositA = toWei(50000);
-    // depositB = await getAmountB(depositA);
-
-    // await deposit(alice, depositA, depositB);
-    // await pickleJar.earn();
-
-    // await harvest();
-    // await increaseTime(60 * 60 * 24 * 1); //travel 14 days
-
-    // console.log("===============Alice final withdraw==============");
-
-    // console.log("Alice temple balance before withdrawal => ", (await temple.balanceOf(alice.address)).toString());
-    // console.log("Alice frax balance before withdrawal => ", (await frax.balanceOf(alice.address)).toString());
-    // await pickleJar.connect(alice).withdrawAll();
-
-    // console.log("Alice temple balance after withdrawal => ", (await temple.balanceOf(alice.address)).toString());
-    // console.log("Alice frax balance after withdrawal => ", (await frax.balanceOf(alice.address)).toString());
 
     console.log("------------------ Finished -----------------------");
 
@@ -311,46 +305,18 @@ describe("StrategyFraxTemple", () => {
     console.log("=============== Alice deposit Frax/USDC ==============");
 
     let depositA = toWei(20000);
-    let depositB = await getAmountB(depositA);
+    let depositB = await getAmountB(daiJar, depositA);
 
-    await depositV3(alice, depositA, depositB);
+    await depositV3(daiJar, alice, depositA, depositB);
     console.log("Deposit V3 Done");
-    await usdcJar.earn();
+    await daiJar.earn();
     console.log("Earn Complete");
-    await harvest();
+    await harvest(daiJar, daiStrategy);
     console.log("Harvest complete");
   });
-  /*
-  it("should withdraw correctly", async () => {
-    let depositA = toWei(50000);
-    let depositB = await getAmountB(depositA);
 
-    console.log("=============== Alice deposit ==============");
-    await deposit(alice, depositA, depositB);
-    await pickleJar.earn();
-    await harvest();
-
-    await increaseTime(60 * 60 * 24 * 1); //travel 14 days
-    console.log("PickleJar temple balance before withdrawal => ", (await temple.balanceOf(pickleJar.address)).toString());
-    console.log("PickleJar frax balance before withdrawal => ", (await frax.balanceOf(pickleJar.address)).toString());
-
-    await controller.withdrawAll(FRAX_TEMPLE_POOL);
-
-    console.log("PickleJar temple balance after withdrawal => ", (await temple.balanceOf(pickleJar.address)).toString());
-    console.log("PickleJar frax balance after withdrawal => ", (await frax.balanceOf(pickleJar.address)).toString());
-
-    console.log("Alice temple balance before withdrawal => ", (await temple.balanceOf(alice.address)).toString());
-    console.log("Alice frax balance before withdrawal => ", (await frax.balanceOf(alice.address)).toString());
-
-    await pickleJar.connect(alice).withdrawAll();
-
-    console.log("Alice temple balance after withdrawal => ", (await temple.balanceOf(alice.address)).toString());
-    console.log("Alice frax balance after withdrawal => ", (await frax.balanceOf(alice.address)).toString());
-  });
-*/
-
-const getAmountB = async (amountA) => {
-  const proportion = await usdcJar.getProportion();
+const getAmountB = async (jar, amountA) => {
+  const proportion = await jar.getProportion();
   const amountB = amountA.mul(proportion).div(hre.ethers.BigNumber.from("1000000000000000000"));
   return amountB;
 };
@@ -362,27 +328,24 @@ const getAmountB = async (amountA) => {
 
     await pickleJar.connect(user).deposit(_amt);
   };
-  const depositV3 = async (user, depositA, depositB) => {
-    await frax.connect(user).approve(usdcJar.address, depositA);
-    await usdc.connect(user).approve(usdcJar.address, depositB);
+  const depositV3 = async (jar, user, depositA, depositB) => {
+    await frax.connect(user).approve(jar.address, depositA);
+    await usdc.connect(user).approve(jar.address, depositB);
     console.log("depositA => ", depositA.toString());
     console.log("depositB => ", depositB.toString());
 
-    await usdcJar.connect(user).deposit(depositA, depositB);
+    await jar.connect(user).deposit(depositA, depositB);
   };
 
-  const harvest = async () => {
+  const harvest = async (jar, strat) => {
     console.log("============ Harvest Started ==============");
-    console.log("Harvest");
-    console.log("Ratio before harvest => ", (await pickleJar.getRatio()).toString());
-    console.log("Amount in Treasury before: ", (await pool.balanceOf(treasury.address)).toString());
+    console.log("Ratio before harvest => ", (await jar.getRatio()).toString());
     await increaseTime(60 * 60 * 24 * 14); //travel 30 days
     await increaseBlock(1000);
-    console.log("Amount Harvestable => ", (await strategy.getHarvestable()).toString());
-    await strategy.connect(governance).harvest({gasLimit: 10000000});
-    console.log("Amount Harvestable after => ", (await strategy.getHarvestable()).toString());
-    console.log("Ratio after harvest => ", (await pickleJar.getRatio()).toString());
-    console.log("Amount in Treasury after: ", (await pool.balanceOf(treasury.address)).toString());
+    console.log("Amount Harvestable => ", (await strat.getHarvestable()).toString());
+    await strat.connect(governance).harvest({gasLimit: 10000000});
+    console.log("Amount Harvestable after => ", (await strat.getHarvestable()).toString());
+    console.log("Ratio after harvest => ", (await jar.getRatio()).toString());
     console.log("============ Harvest Ended ==============");
   };
 
@@ -396,13 +359,6 @@ const getAmountB = async (amountA) => {
     await templeRouter.connect(user).addLiquidity(amount, amount, 0, 0, user.address, timestampBefore + 60);
   };
 
-  // beforeEach(async () => {
-  //   preTestSnapshotID = await hre.network.provider.send("evm_snapshot");
-  // });
-
-  // afterEach(async () => {
-  //   await hre.network.provider.send("evm_revert", [preTestSnapshotID]);
-  // });
   const poolABI = [
     {
       inputs: [
