@@ -215,6 +215,12 @@ describe("StrategyFraxTemple", () => {
     console.log("Earn Complete");
     await harvest(usdcJar, usdcStrategy);
     console.log("Harvest complete");
+
+    await daiJar.connect(alice).withdrawAll();
+    console.log("Dai WithdrawAll complete");
+
+    await usdcJar.connect(alice).withdrawAll();
+    console.log("USDC WithdrawAll complete");
   });
 
 const getAmountB = async (jar, amountA) => {
