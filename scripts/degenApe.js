@@ -1,19 +1,25 @@
-const { verify } = require("crypto");
-const { BigNumber } = require("ethers");
-const { formatEther, parseEther } = require("ethers/lib/utils");
+const {verify} = require("crypto");
+const {BigNumber} = require("ethers");
+const {formatEther, parseEther} = require("ethers/lib/utils");
 const hre = require("hardhat");
 const ethers = hre.ethers;
 const fs = require("fs");
-const { outputFolderSetup, incrementJar, generateJarBehaviorDiscovery, generateJarsAndFarms, generateImplementations } = require("./pfcoreUtils.js");
-const { sleep, fastVerifyContracts, slowVerifyContracts } = require("./degenUtils.js");
+const {
+  outputFolderSetup,
+  incrementJar,
+  generateJarBehaviorDiscovery,
+  generateJarsAndFarms,
+  generateImplementations,
+} = require("./pfcoreUtils.js");
+const {sleep, fastVerifyContracts, slowVerifyContracts} = require("./degenUtils.js");
 
 // Script configs
-const sleepConfigurations = { sleepToggle: true, sleepTime: 10000 }
+const sleepConfigurations = {sleepToggle: true, sleepTime: 10000};
 const callAttempts = 3;
 const generatePfcore = true;
 
 // Pf-core generation configs
-const outputFolder = 'scripts/degenApe/degenApeOutputs';
+const outputFolder = "scripts/degenApe/degenApeOutputs";
 
 // These arguments need to be set manually before the script can make pf-core
 // @param - chain: The chain on which the script is running
@@ -27,7 +33,17 @@ const outputFolder = 'scripts/degenApe/degenApeOutputs';
 // @param - componentNames: The underlying tokens names of the lp. These will be added
 // by the script from the strategy address.
 // @param - componentAddresses: The underlying token addresses of the lp. These will be added
-const pfcoreArgs = { chain: "optimism", protocols: ["zipswap"], extraTags: [], liquidityURL: "https://zipswap.fi/#/add/", rewardTokens: ["zip", "gohm"], jarCode: "1e", farmAddress: "", componentNames: [], componentAddresses: [] };
+const pfcoreArgs = {
+  chain: "optimism",
+  protocols: ["zipswap"],
+  extraTags: [],
+  liquidityURL: "https://zipswap.fi/#/add/",
+  rewardTokens: ["zip", "gohm"],
+  jarCode: "1e",
+  farmAddress: "",
+  componentNames: [],
+  componentAddresses: [],
+};
 
 // Addresses & Contracts
 const governance = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
@@ -36,18 +52,15 @@ const controller = "0xe5E231De20C68AabB8D669f87971aE57E2AbF680";
 const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const harvester = ["0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf"];
 
-const contracts = [
-  "src/strategies/gnosis/curve/strategy-curve-3pool-lp.sol:StrategyXdaiCurve3CRV"
-];
+const contracts = ["src/strategies/gnosis/curve/strategy-curve-3pool-lp.sol:StrategyXdaiCurve3CRV"];
 
-const testedStrategies = [
-];
+const testedStrategies = [];
 
 const executeTx = async (sleepConfigs, calls, fn, ...args) => {
   let transaction;
   await sleep(sleepConfigs);
   try {
-    transaction = await fn(..args);
+    transaction = await fn(...args);
     await transaction.wait();
   } catch (e) {
     console.error(e);
@@ -55,19 +68,19 @@ const executeTx = async (sleepConfigs, calls, fn, ...args) => {
       console.log(`Trying again. ${calls} more attempts left.`);
       await executeTx(sleepConfigs, calls - 1, fn, ...args);
     } else {
-      console.log('Looks like something is broken!');
+      console.log("Looks like something is broken!");
       return;
     }
   }
   await sleep(sleepConfigs);
   return transaction;
-}
+};
 
 const deployContract = async (sleepConfigs, calls, fn, ...args) => {
   let transaction;
   await sleep(sleepConfigs);
   try {
-    transaction = await fn(..args);
+    transaction = await fn(...args);
     await transaction.deployTransaction.wait();
   } catch (e) {
     console.error(e);
@@ -75,13 +88,13 @@ const deployContract = async (sleepConfigs, calls, fn, ...args) => {
       console.log(`Trying again. ${calls} more attempts left.`);
       await executeTx(sleepConfigs, calls - 1, fn, ...args);
     } else {
-      console.log('Looks like something is broken!');
+      console.log("Looks like something is broken!");
       return;
     }
   }
   await sleep(sleepConfigs);
   return transaction;
-}
+};
 
 const deployContractsAndGeneratePfcore = async () => {
   // References
@@ -95,7 +108,15 @@ const deployContractsAndGeneratePfcore = async () => {
     try {
       // Deploy Strategy contract
       console.log(`Deploying ${name}...`);
-      const strategy = await deployContract(sleepConfigurations, callAttempts, StrategyFactory.deploy.bind(StrategyFactory), governance, strategist, controller, timelock);
+      const strategy = await deployContract(
+        sleepConfigurations,
+        callAttempts,
+        StrategyFactory.deploy.bind(StrategyFactory),
+        governance,
+        strategist,
+        controller,
+        timelock
+      );
       console.log(`✔️ Strategy deployed at: ${strategy.address} `);
 
       // Get Want
@@ -113,7 +134,15 @@ const deployContractsAndGeneratePfcore = async () => {
 
       if (jar) {
         // Deploy PickleJar contract
-        const jar = await deployContract(sleepConfigurations, callAttempts, PickleJarFactory.deploy.bind(PickleJarFactory), want, governance, timelock, controller);
+        const jar = await deployContract(
+          sleepConfigurations,
+          callAttempts,
+          PickleJarFactory.deploy.bind(PickleJarFactory),
+          want,
+          governance,
+          timelock,
+          controller
+        );
         console.log(`✔️ PickleJar deployed at: ${jar.address} `);
 
         // Set Jar
@@ -122,24 +151,42 @@ const deployContractsAndGeneratePfcore = async () => {
 
         // Approve Want
         console.log(`Approving want token for deposit...`);
-        const approveTx = await executeTx(sleepConfigurations, callAttempts, wantContract.approve, jar.address, ethers.constants.MaxUint256);
+        const approveTx = await executeTx(
+          sleepConfigurations,
+          callAttempts,
+          wantContract.approve,
+          jar.address,
+          ethers.constants.MaxUint256
+        );
         console.log(`✔️ Successfully approved Jar to spend want`);
       } else {
         console.log(`Jar for this want already exists`);
       }
 
       // Approve Strategy
-      const approveStratTx = await executeTx(sleepConfigurations, callAttempts, Controller.approveStrategy, want, strategy.address);
+      const approveStratTx = await executeTx(
+        sleepConfigurations,
+        callAttempts,
+        Controller.approveStrategy,
+        want,
+        strategy.address
+      );
       console.log(`Strategy Approved!`);
 
       // Set Strategy
-      const setStratTx = await executeTx(sleepConfigurations, callAttempts, Controller.setStrategy, want, strategy.address);
+      const setStratTx = await executeTx(
+        sleepConfigurations,
+        callAttempts,
+        Controller.setStrategy,
+        want,
+        strategy.address
+      );
       console.log(`Strategy Set!`);
       console.log(`✔️ Controller params all set!`);
 
       // Deposit Want
       console.log(`Depositing in Jar...`);
-      const depositTx = await executeTx(sleepConfigurations, callAttempts, jar.depositAll)
+      const depositTx = await executeTx(sleepConfigurations, callAttempts, jar.depositAll);
       console.log(`✔️ Successfully deposited want in Jar`);
 
       // Call Earn
@@ -148,10 +195,10 @@ const deployContractsAndGeneratePfcore = async () => {
       console.log(`✔️ Successfully called earn`);
 
       //Push Strategy to be verified
-      testedStrategies.push(strategy.address)
+      testedStrategies.push(strategy.address);
 
       // Call Harvest
-      console.log(`Waiting for ${sleepConfigs.sleepTime * 4 / 1000} seconds before harvesting...`);
+      console.log(`Waiting for ${(sleepConfigs.sleepTime * 4) / 1000} seconds before harvesting...`);
       await sleep(sleepConfigurations.sleepTime * 4);
       const harvestTx = await executeTx(sleepConfigurations, callAttempts, strategy.harvest);
 
@@ -183,11 +230,15 @@ const deployContractsAndGeneratePfcore = async () => {
       }
 
       console.log(`Whitelisting harvester at ${harvester} `);
-      const whitelistHarvestersTx = await executeTx(sleepConfigurations, callAttempts, strategy.whitelistHarvesters, harvester);
+      const whitelistHarvestersTx = await executeTx(
+        sleepConfigurations,
+        callAttempts,
+        strategy.whitelistHarvesters,
+        harvester
+      );
 
       // Script Report
-      const report =
-        `
+      const report = `
 Jar Info -
 name: ${name}
 want: ${want}
@@ -196,9 +247,8 @@ strategy: ${strategy.address}
 controller: ${controller}
 ratio: ${ratio.toString()}
 `;
-      console.log(report)
+      console.log(report);
       allReports.push(report);
-
     } catch (e) {
       console.log(`Oops something went wrong...`);
       console.error(e);
@@ -209,7 +259,7 @@ ratio: ${ratio.toString()}
     ----------------------------
       Here's the full report -
     ----------------------------
-      ${allReports.join('\n')}
+      ${allReports.join("\n")}
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       (> '-') > < ('-' <) ^ ('-') ^ v('-')v
     '''''''''''''''''''''''''''''
