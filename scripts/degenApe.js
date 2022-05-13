@@ -14,7 +14,7 @@ const {
 const {sleep, fastVerifyContracts, slowVerifyContracts} = require("./degenUtils.js");
 
 // Script configs
-const sleepConfigurations = {sleepToggle: true, sleepTime: 10000};
+const sleepConfig = {sleepToggle: true, sleepTime: 10000};
 const callAttempts = 3;
 const generatePfcore = true;
 
@@ -56,44 +56,27 @@ const contracts = ["src/strategies/gnosis/curve/strategy-curve-3pool-lp.sol:Stra
 
 const testedStrategies = [];
 
-const executeTx = async (sleepConfigs, calls, fn, ...args) => {
-  let transaction;
-  await sleep(sleepConfigs);
+const executeTx = async (calls, fn, ...args) => {
+  await sleep(sleepConfig);
   try {
-    transaction = await fn(...args);
-    await transaction.wait();
-  } catch (e) {
-    console.error(e);
-    if (calls > 0) {
-      console.log(`Trying again. ${calls} more attempts left.`);
-      await executeTx(sleepConfigs, calls - 1, fn, ...args);
-    } else {
-      console.log("Looks like something is broken!");
-      return;
-    }
-  }
-  await sleep(sleepConfigs);
-  return transaction;
-};
+    const transaction = await fn(...args);
 
-const deployContract = async (sleepConfigs, calls, fn, ...args) => {
-  let transaction;
-  await sleep(sleepConfigs);
-  try {
-    transaction = await fn(...args);
-    await transaction.deployTransaction.wait();
+    // If deployTransaction property is empty, call normal wait()
+    if (transaction.deployTransaction) {
+      await transaction.deployTransaction.wait();
+    } else {
+      await transaction.wait();
+    }
   } catch (e) {
     console.error(e);
     if (calls > 0) {
       console.log(`Trying again. ${calls} more attempts left.`);
-      await executeTx(sleepConfigs, calls - 1, fn, ...args);
+      await executeTx(calls - 1, fn, ...args);
     } else {
       console.log("Looks like something is broken!");
-      return;
+      return Error;
     }
   }
-  await sleep(sleepConfigs);
-  return transaction;
 };
 
 const deployContractsAndGeneratePfcore = async () => {
@@ -108,8 +91,7 @@ const deployContractsAndGeneratePfcore = async () => {
     try {
       // Deploy Strategy contract
       console.log(`Deploying ${name}...`);
-      const strategy = await deployContract(
-        sleepConfigurations,
+      const strategy = await executeTx(
         callAttempts,
         StrategyFactory.deploy.bind(StrategyFactory),
         governance,
@@ -120,22 +102,22 @@ const deployContractsAndGeneratePfcore = async () => {
       console.log(`✔️ Strategy deployed at: ${strategy.address} `);
 
       // Get Want
-      await sleep(sleepConfigurations);
+      await sleep(sleepConfig);
       const want = await strategy.want();
 
       // Log Want
       console.log(`Want address is: ${want} `);
-      await sleep(sleepConfigurations);
+      await sleep(sleepConfig);
       const wantContract = await ethers.getContractAt("ERC20", want);
 
       // Check if Want already has a Jar on Controller
-      await sleep(sleepConfigurations);
-      const jar = await Controller.jars(want);
+      await sleep(sleepConfig);
+      const currentControllerJar = await Controller.jars(want);
 
-      if (jar) {
+      // Only do shit if there's not already an active jar
+      if (currentControllerJar === ethers.constants.AddressZero) {
         // Deploy PickleJar contract
-        const jar = await deployContract(
-          sleepConfigurations,
+        const jar = await executeTx(
           callAttempts,
           PickleJarFactory.deploy.bind(PickleJarFactory),
           want,
@@ -146,63 +128,48 @@ const deployContractsAndGeneratePfcore = async () => {
         console.log(`✔️ PickleJar deployed at: ${jar.address} `);
 
         // Set Jar
-        const setJarTx = await executeTx(sleepConfigurations, callAttempts, Controller.setJar, want, jar.address);
+        await executeTx(callAttempts, Controller.setJar, want, jar.address);
         console.log(`Jar Set!`);
-
-        // Approve Want
-        console.log(`Approving want token for deposit...`);
-        const approveTx = await executeTx(
-          sleepConfigurations,
-          callAttempts,
-          wantContract.approve,
-          jar.address,
-          ethers.constants.MaxUint256
-        );
-        console.log(`✔️ Successfully approved Jar to spend want`);
       } else {
         console.log(`Jar for this want already exists`);
       }
 
+      // Approve Want
+      console.log(`Approving want token for deposit...`);
+      await executeTx(callAttempts, wantContract.approve, jar.address, ethers.constants.MaxUint256);
+      console.log(`✔️ Successfully approved Jar to spend want`);
+
       // Approve Strategy
-      const approveStratTx = await executeTx(
-        sleepConfigurations,
-        callAttempts,
-        Controller.approveStrategy,
-        want,
-        strategy.address
-      );
+      await executeTx(callAttempts, Controller.approveStrategy, want, strategy.address);
       console.log(`Strategy Approved!`);
 
       // Set Strategy
-      const setStratTx = await executeTx(
-        sleepConfigurations,
-        callAttempts,
-        Controller.setStrategy,
-        want,
-        strategy.address
-      );
+      await executeTx(callAttempts, Controller.setStrategy, want, strategy.address);
       console.log(`Strategy Set!`);
       console.log(`✔️ Controller params all set!`);
 
       // Deposit Want
       console.log(`Depositing in Jar...`);
-      const depositTx = await executeTx(sleepConfigurations, callAttempts, jar.depositAll);
+      await executeTx(callAttempts, jar.depositAll);
       console.log(`✔️ Successfully deposited want in Jar`);
 
       // Call Earn
       console.log(`Calling earn...`);
-      const earnTx = await executeTx(sleepConfigurations, callAttempts, jar.earn);
+      await executeTx(callAttempts, jar.earn);
       console.log(`✔️ Successfully called earn`);
 
       //Push Strategy to be verified
       testedStrategies.push(strategy.address);
 
       // Call Harvest
-      console.log(`Waiting for ${(sleepConfigs.sleepTime * 4) / 1000} seconds before harvesting...`);
-      await sleep(sleepConfigurations.sleepTime * 4);
-      const harvestTx = await executeTx(sleepConfigurations, callAttempts, strategy.harvest);
+      console.log(`Waiting for ${(sleepConfig.sleepTime * 4) / 1000} seconds before harvesting...`);
+      await sleep({
+        ...sleepConfig,
+        sleepTime: sleepConfig.sleepTime * 4,
+      });
+      await executeTx(callAttempts, strategy.harvest);
 
-      await sleep(sleepConfigurations);
+      await sleep(sleepConfig);
       const ratio = await jar.getRatio();
 
       if (ratio.gt(BigNumber.from(parseEther("1")))) {
@@ -230,12 +197,7 @@ const deployContractsAndGeneratePfcore = async () => {
       }
 
       console.log(`Whitelisting harvester at ${harvester} `);
-      const whitelistHarvestersTx = await executeTx(
-        sleepConfigurations,
-        callAttempts,
-        strategy.whitelistHarvesters,
-        harvester
-      );
+      const whitelistHarvestersTx = await executeTx(callAttempts, strategy.whitelistHarvesters, harvester);
 
       // Script Report
       const report = `
