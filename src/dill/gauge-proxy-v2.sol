@@ -704,7 +704,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     mapping(address => mapping(address => int256)) public votes; // msg.sender => votes
     mapping(uint256 => mapping(address => int256)) public weights; // period id => token => weight
     mapping(uint256 => int256) public totalWeight; // period id => TotalWeight
-
+    mapping(uint256 => mapping(uint256 => bool)) public distributed;
     mapping(uint256 => uint256) public periodForDistribute; // dist id => which period id votes to use
 
     struct delegateData {
@@ -787,7 +787,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         }
 
         delete tokenVote[_owner];
-        // Ensure distribute rewards are for current period 
+        // Ensure distribute rewards are for current period
         periodForDistribute[_currentId] = _currentId;
     }
 
@@ -891,6 +891,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
         if (_indefinite == true) {
             _delegate.indefinite = true;
+        } else if (_delegate.prevDelegate == address(0)) {
+            _delegate.endPeriod = currentPeriodId + _periodsCount - 1;
         } else {
             _delegate.endPeriod = currentPeriodId + _periodsCount;
         }
@@ -913,6 +915,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             (_delegate.delegate == msg.sender &&
                 currentId > _delegate.updatePeriodId) ||
                 (_delegate.prevDelegate == msg.sender &&
+                    currentId == _delegate.updatePeriodId) ||
+                (_delegate.prevDelegate == address(0) &&
                     currentId == _delegate.updatePeriodId),
             "Sender not authorized"
         );
@@ -921,7 +925,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             "Delegating address has already voted"
         );
         require(
-            _delegate.indefinite == true || _delegate.endPeriod <= currentId,
+            (_delegate.indefinite || currentId <= _delegate.endPeriod),
             "Delegating period expired"
         );
 
@@ -1024,6 +1028,9 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
         if (_balance > 0 && _totalWeight > 0) {
             for (uint256 i = _start; i < _end; i++) {
+                if (distributed[distributionId][i]) {
+                    continue;
+                }
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
                 uint256 _reward = uint256(
@@ -1038,6 +1045,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
                 if (_reward < 0) {
                     gaugeWithNegativeWeight[_gauge] += 1;
                 }
+                distributed[distributionId][i] = true;
             }
         }
 
