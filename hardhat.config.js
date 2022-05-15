@@ -1,3 +1,5 @@
+
+
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-ethers");
@@ -8,8 +10,9 @@ require("hardhat-contract-sizer");
 const { removeConsoleLog } = require("hardhat-preprocessor");
 require("dotenv").config();
 
+
 module.exports = {
-  defaultNetwork: "hardhat",
+  defaultNetwork: "aurora",
   solidity: {
     compilers: [
       {
@@ -33,34 +36,20 @@ module.exports = {
     ],
   },
   networks: {
-    localhost: {
-      url: "http://127.0.0.1:8545",
-    },
     hardhat: {
       forking: {
-        url: `https://eth-mainnet.alchemyapi.io/v2/hryDcEe1YR3iSfKm1pZWyi5RwiUUznMX`,
+        url: `https://ftmrpc.ultimatenodes.io/`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },
-      allowUnlimitedContractSize: true,
       hardfork: "london",
       gasPrice: "auto",
       gas: 2500000,
     },
-    rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
-      hardfork: "london",
-      gasPrice: "auto",
-    },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: [`0x${process.env.MNEMONIC}`],
-      hardfork: "london",
-      gasPrice: "auto",
     },
     matic: {
       url: "https://polygon-rpc.com/",
@@ -81,7 +70,20 @@ module.exports = {
     fantom: {
       url: `https://rpc.ftm.tools/`,
       accounts: [`0x${process.env.MNEMONIC}`],
-      gas: 4000000
+      // gas: 40000000
+    },
+    aurora: {
+      url: `https://mainnet.aurora.dev/`,
+      accounts: [`0x${process.env.MNEMONIC}`],
+    },
+    xdai: {
+      url: `https://rpc.xdaichain.com/`,
+      accounts: [`0x${process.env.MNEMONIC}`],
+      gasPrice: 10000000000,
+    },
+    optimism: {
+      url: `https://mainnet.optimism.io`,
+      accounts: [`0x${process.env.MNEMONIC}`],
     }
   },
   contractSizer: {
@@ -89,7 +91,11 @@ module.exports = {
     runOnCompile: false,
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_APIKEY,
+    apiKey: {
+      mainnet: `${process.env.ETHERSCAN_APIKEY}`,
+      aurora: `${process.env.AURORASCAN_APIKEY}`,
+      xdai: `${process.env.GNOSIS_APIKEY}`,
+    },
   },
   paths: {
     sources: "./src",
@@ -106,13 +112,13 @@ module.exports = {
     enabled: true,
     coinmarketcap: process.env.COINMARKETCAP,
     currency: "USD",
-    gasPrice: 89,
+    gasPrice: 32,
   },
   preprocess: {
     eachLine: removeConsoleLog((hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"),
   },
   mocha: {
-    timeout: 200000000,
+    timeout: 20000000,
   },
   vyper: {
     version: "0.2.7",
