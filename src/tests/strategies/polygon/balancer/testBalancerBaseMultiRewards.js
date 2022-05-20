@@ -2,8 +2,8 @@ const {expect, increaseTime, getContractAt, toWei} = require("../../../utils/tes
 const {setupWithPickleJar} = require("../../../utils/setupHelper");
 const {NULL_ADDRESS} = require("../../../utils/constants");
 
-const doTestBalancerBehaviorBase = (strategyName, want_addr, reward_token_addr, isPolygon = false) => {
-  let alice, want, rewardToken;
+const doTestBalancerBehaviorBase = (strategyName, want_addr, reward_tokens_addr, isPolygon = false) => {
+  let alice, want, rewardTokens;
   let strategy, pickleJar, controller;
   let governance, strategist, devfund, treasury, timelock;
   let preTestSnapshotID;
@@ -16,7 +16,11 @@ const doTestBalancerBehaviorBase = (strategyName, want_addr, reward_token_addr, 
       timelock = alice;
 
       want = await getContractAt("ERC20", want_addr);
-      rewardToken = await getContractAt("ERC20", reward_token_addr);
+      rewardTokens = await Promise.all(
+        reward_tokens_addr.map(async (reward_token) => {
+          return getContractAt("ERC20", reward_token);
+        })
+      );
 
       [controller, strategy, pickleJar] = await setupWithPickleJar(
         "PickleJarCooldown",
@@ -46,7 +50,11 @@ const doTestBalancerBehaviorBase = (strategyName, want_addr, reward_token_addr, 
 
       console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
 
-      await rewardToken.transfer(strategy.address, toWei(100));
+      await Promise.all(
+        rewardTokens.map(async (rewardToken) => {
+          return rewardToken.transfer(strategy.address, toWei(100));
+        })
+      );
 
       await strategy.harvest();
 
@@ -90,7 +98,11 @@ const doTestBalancerBehaviorBase = (strategyName, want_addr, reward_token_addr, 
       console.log("💸 Treasury balance before harvest: ", _treasuryBefore.toString());
       console.log("\nRatio before harvest: ", (await pickleJar.getRatio()).toString());
 
-      await rewardToken.transfer(strategy.address, toWei(1));
+      await Promise.all(
+        rewardTokens.map(async (rewardToken) => {
+          return rewardToken.transfer(strategy.address, toWei(1));
+        })
+      );
 
       await strategy.harvest();
 
@@ -132,8 +144,8 @@ const doTestBalancerBehaviorBase = (strategyName, want_addr, reward_token_addr, 
       expect(_treasuryFund).to.be.eq(0, "treasury've stolen money!!!!");
 
       const _devFund = _devAfter.sub(_devBefore);
-      console.log("\nExpected Dev Fund: ", expectedDevFund.toString());
-      console.log("\nDev Fund: ", _devFund.toString());
+      console.log("\nExpected Dev Fund: ", expectedDevFund);
+      console.log("\nDev Fund: ", _devFund);
       expect(_devFund).to.be.eqApprox(expectedDevFund, "dev've stolen money!!!!");
     });
 
