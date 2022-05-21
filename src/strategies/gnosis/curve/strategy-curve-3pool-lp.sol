@@ -14,7 +14,7 @@ import "../strategy-curve-base.sol";
 contract StrategyXdaiCurve3CRV is StrategyCurveBase {
     // Curve stuff
     address public three_pool = 0x7f90122BF0700F9E7e1F688fe926940E8839F353;
-    address public three_gauge = 0x78CF256256C8089d68Cde634Cf7cDEFb39286470;
+    address public three_gauge = 0xB721Cc32160Ab0da2614CC6aB16eD822Aeebc101;
     address public three_crv = 0x1337BedC9D22ecbe766dF105c9623922A27963EC;
 
     address public honeyRouter = 0x1C232F01118CB8B424793ae03F870aa7D0ac7f77;

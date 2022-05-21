@@ -27,7 +27,8 @@ contract StrategySwaprWethWbtcLp is StrategySwaprFarmBase {
             _timelock
         )
     {
-        swapRoutes[gno] = [swapr, xdai, gno];
+        rewardRoutes[swapr] = [swapr, xdai, gno];
+        rewardRoutes[gno] = [gno];
         swapRoutes[weth] = [gno, weth];
         swapRoutes[wbtc] = [gno, weth, wbtc];
     }

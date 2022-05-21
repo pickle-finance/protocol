@@ -22,11 +22,7 @@ const fastVerifyContracts = async (strategies) => {
 }
 
 // Use this for verificationof 5 contracts or more
-<<<<<<< HEAD
-const slowVerifyContracts = async (strategies) => {
-=======
 const slowVerifyContracts = async (strategies, governance, strategist, controller, timelock) => {
->>>>>>> 231245f (add swapr jar)
   for (strategy of strategies) {
     try {
       await hre.run("verify:verify", {

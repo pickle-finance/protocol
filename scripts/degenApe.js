@@ -57,7 +57,7 @@ const contracts = [
 ];
 
 const testedStrategies = [
-  "0x6C1A93162cFa01C1071f3186d8b32B216800aa18"
+  "0x1f84E30b463fE22FC26D1806149bE1e3E848Cfd9"
 ];
 
 const executeTx = async (calls, fn, ...args) => {
