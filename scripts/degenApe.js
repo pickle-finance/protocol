@@ -16,10 +16,10 @@ const { sleep, fastVerifyContracts, slowVerifyContracts } = require("./degenUtil
 // Script configs
 const sleepConfig = { sleepToggle: true, sleepTime: 10000 };
 const callAttempts = 3;
-const generatePfcore = false;
+const generatePfcore = true;
 
 // Pf-core generation configs
-const outputFolder = "scripts/degenApe/degenApeOutputs";
+const outputFolder = "scripts/degenApeOutputs";
 
 // These arguments need to be set manually before the script can make pf-core
 // @param - chain: The chain on which the script is running
@@ -48,12 +48,12 @@ const pfcoreArgs = {
 // Addresses & Contracts
 const governance = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const strategist = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
-const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";
+const controller = "0x95ca4584eA2007D578fa2693CCC76D930a96d165";
 const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const harvester = ["0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf"];
 
 const contracts = [
-  "src/strategies/optimism/zipswap/strategy-zip-$gohm-$weth-lp.sol:StrategyZipEthGohmLp"
+  "src/strategies/moonbeam/stella/strategy-stella-ETHmad-GLMR-lp.sol:StrategyStellaETHmadGLMRLp"
 ];
 
 const testedStrategies = [];

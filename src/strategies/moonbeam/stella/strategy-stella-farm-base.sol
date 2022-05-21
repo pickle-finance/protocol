@@ -7,8 +7,7 @@ import "../../../interfaces/stella-chef.sol";
 abstract contract StrategyStellaFarmBase is StrategyBase {
     // Token addresses
     address public constant stella = 0x0E358838ce72d5e61E0018a2ffaC4bEC5F4c88d2;
-    address public constant stellaChef =
-        0xEDFB330F5FA216C9D2039B99C8cE9dA85Ea91c1E;
+    address public constant stellaChef = 0xEDFB330F5FA216C9D2039B99C8cE9dA85Ea91c1E;
 
     address public token0;
     address public token1;
@@ -27,10 +26,7 @@ abstract contract StrategyStellaFarmBase is StrategyBase {
         address _strategist,
         address _controller,
         address _timelock
-    )
-        public
-        StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
-    {
+    ) public StrategyBase(_lp, _governance, _strategist, _controller, _timelock) {
         // Stellaswap router
         sushiRouter = 0xd0A01ec574D1fC6652eDF79cb2F880fd47D34Ab1;
         poolId = _poolId;
@@ -39,10 +35,7 @@ abstract contract StrategyStellaFarmBase is StrategyBase {
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        (uint256 amount, , , ) = IStellaChef(stellaChef).userInfo(
-            poolId,
-            address(this)
-        );
+        (uint256 amount, , , ) = IStellaChef(stellaChef).userInfo(poolId, address(this));
         return amount;
     }
 
@@ -61,11 +54,7 @@ abstract contract StrategyStellaFarmBase is StrategyBase {
         }
     }
 
-    function _withdrawSome(uint256 _amount)
-        internal
-        override
-        returns (uint256)
-    {
+    function _withdrawSome(uint256 _amount) internal override returns (uint256) {
         IStellaChef(stellaChef).withdraw(poolId, _amount);
         return _amount;
     }
@@ -84,10 +73,7 @@ abstract contract StrategyStellaFarmBase is StrategyBase {
 
         if (_stella > 0) {
             uint256 _keepSTELLA = _stella.mul(keepSTELLA).div(keepSTELLAMax);
-            IERC20(stella).safeTransfer(
-                IController(controller).treasury(),
-                _keepSTELLA
-            );
+            IERC20(stella).safeTransfer(IController(controller).treasury(), _keepSTELLA);
             _stella = _stella.sub(_keepSTELLA);
             uint256 toToken0 = _stella.div(2);
             uint256 toToken1 = _stella.sub(toToken0);
@@ -110,26 +96,11 @@ abstract contract StrategyStellaFarmBase is StrategyBase {
             IERC20(token1).safeApprove(sushiRouter, 0);
             IERC20(token1).safeApprove(sushiRouter, _token1);
 
-            UniswapRouterV2(sushiRouter).addLiquidity(
-                token0,
-                token1,
-                _token0,
-                _token1,
-                0,
-                0,
-                address(this),
-                now + 60
-            );
+            UniswapRouterV2(sushiRouter).addLiquidity(token0, token1, _token0, _token1, 0, 0, address(this), now + 60);
 
             // Donates DUST
-            IERC20(token0).transfer(
-                IController(controller).treasury(),
-                IERC20(token0).balanceOf(address(this))
-            );
-            IERC20(token1).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(token1).balanceOf(address(this))
-            );
+            IERC20(token0).transfer(IController(controller).treasury(), IERC20(token0).balanceOf(address(this)));
+            IERC20(token1).safeTransfer(IController(controller).treasury(), IERC20(token1).balanceOf(address(this)));
         }
 
         _distributePerformanceFeesAndDeposit();
