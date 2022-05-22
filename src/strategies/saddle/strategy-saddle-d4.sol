@@ -32,16 +32,7 @@ contract StrategySaddleD4 is StrategyBase {
         address _strategist,
         address _controller,
         address _timelock
-    )
-        public
-        StrategyBase(
-            saddle_d4lp,
-            _governance,
-            _strategist,
-            _controller,
-            _timelock
-        )
-    {
+    ) public StrategyBase(saddle_d4lp, _governance, _strategist, _controller, _timelock) {
         fxs_frax_path = new address[](2);
         fxs_frax_path[0] = fxs;
         fxs_frax_path[1] = frax;
@@ -73,13 +64,8 @@ contract StrategySaddleD4 is StrategyBase {
         }
     }
 
-    function _withdrawSome(uint256 _amount)
-        internal
-        override
-        returns (uint256)
-    {
-        LockedStake[] memory lockedStakes = ICommunalFarm(staking)
-            .lockedStakesOf(address(this));
+    function _withdrawSome(uint256 _amount) internal override returns (uint256) {
+        LockedStake[] memory lockedStakes = ICommunalFarm(staking).lockedStakesOf(address(this));
         uint256 _sum = 0;
         uint256 count = 0;
         uint256 i;
@@ -91,7 +77,7 @@ contract StrategySaddleD4 is StrategyBase {
         require(_sum >= _amount, "insufficient amount");
 
         for (i = 0; i < count; i++) {
-            ICommunalFarm(staking).withdrawLocked(lockedStakes[i].kek_id);
+            if (lockedStakes[i].liquidity > 0) ICommunalFarm(staking).withdrawLocked(lockedStakes[i].kek_id);
         }
         uint256 _balance = IERC20(want).balanceOf(address(this));
         require(_balance >= _amount, "withdraw-failed");
@@ -145,9 +131,7 @@ contract StrategySaddleD4 is StrategyBase {
         amounts[2] = IERC20(frax).balanceOf(address(this));
         amounts[3] = IERC20(lusd).balanceOf(address(this));
 
-        if (
-            amounts[0] > 0 || amounts[1] > 0 || amounts[2] > 0 || amounts[3] > 0
-        ) {
+        if (amounts[0] > 0 || amounts[1] > 0 || amounts[2] > 0 || amounts[3] > 0) {
             if (amounts[0] > 0) {
                 IERC20(alusd).safeApprove(flashLoan, 0);
                 IERC20(alusd).safeApprove(flashLoan, amounts[0]);
@@ -165,11 +149,7 @@ contract StrategySaddleD4 is StrategyBase {
                 IERC20(lusd).safeApprove(flashLoan, amounts[3]);
             }
 
-            SwapFlashLoan(flashLoan).addLiquidity(
-                amounts,
-                0,
-                block.timestamp.add(300)
-            );
+            SwapFlashLoan(flashLoan).addLiquidity(amounts, 0, block.timestamp.add(300));
         }
         _distributePerformanceFeesAndDeposit();
     }
