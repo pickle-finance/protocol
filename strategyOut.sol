@@ -818,194 +818,189 @@ interface IJar is IERC20 {
 }
 
 
-// File src/interfaces/curve.sol
+// File src/interfaces/staking-rewards.sol
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.2;
+
+interface IStakingRewards {
+    function balanceOf(address account) external view returns (uint256);
+
+    function balances(address account) external view returns (uint256);
+
+    function earned(address account) external view returns (uint256);
+
+    function exit() external;
+
+    function getReward() external;
+
+    function getRewardForDuration() external view returns (uint256);
+
+    function lastTimeRewardApplicable() external view returns (uint256);
+
+    function lastUpdateTime() external view returns (uint256);
+
+    function notifyRewardAmount(uint256 reward) external;
+
+    function periodFinish() external view returns (uint256);
+
+    function rewardPerToken() external view returns (uint256);
+
+    function rewardPerTokenStored() external view returns (uint256);
+
+    function rewardRate() external view returns (uint256);
+
+    function rewards(address) external view returns (uint256);
+
+    function rewardsDistribution() external view returns (address);
+
+    function rewardsDuration() external view returns (uint256);
+
+    function rewardsToken() external view returns (address);
+
+    function stake(uint256 amount) external;
+
+    function deposit(uint256 amount) external;
+
+    function stakeWithPermit(
+        uint256 amount,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external;
+
+    function stakingToken() external view returns (address);
+
+    function totalSupply() external view returns (uint256);
+
+    function userRewardPerTokenPaid(address) external view returns (uint256);
+
+    function withdraw(uint256 amount) external;
+}
+
+interface IStakingRewardsFactory {
+    function deploy(address stakingToken, uint256 rewardAmount) external;
+
+    function isOwner() external view returns (bool);
+
+    function notifyRewardAmount(address stakingToken) external;
+
+    function notifyRewardAmounts() external;
+
+    function owner() external view returns (address);
+
+    function renounceOwnership() external;
+
+    function rewardsToken() external view returns (address);
+
+    function stakingRewardsGenesis() external view returns (uint256);
+
+    function stakingRewardsInfoByStakingToken(address)
+        external
+        view
+        returns (address stakingRewards, uint256 rewardAmount);
+
+    function stakingTokens(uint256) external view returns (address);
+
+    function transferOwnership(address newOwner) external;
+}
+
+
+// File src/interfaces/masterchef.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-interface ICurveFi_2 {
-    function get_virtual_price() external view returns (uint256);
+interface IMasterchef {
+    function BONUS_MULTIPLIER() external view returns (uint256);
 
-    function add_liquidity(uint256[2] calldata amounts, uint256 min_mint_amount) external;
-
-    function remove_liquidity_imbalance(uint256[2] calldata amounts, uint256 max_burn_amount) external;
-
-    function remove_liquidity(uint256 _amount, uint256[2] calldata amounts) external;
-
-    function exchange(
-        int128 from,
-        int128 to,
-        uint256 _from_amount,
-        uint256 _min_to_amount
+    function add(
+        uint256 _allocPoint,
+        address _lpToken,
+        bool _withUpdate
     ) external;
 
-    function balances(int128) external view returns (uint256);
-}
+    function bonusEndBlock() external view returns (uint256);
 
-interface ICurveFi_3 {
-    function get_virtual_price() external view returns (uint256);
+    function deposit(uint256 _pid, uint256 _amount) external;
 
-    function add_liquidity(uint256[3] calldata amounts, uint256 min_mint_amount) external;
+    function dev(address _devaddr) external;
 
-    function remove_liquidity_imbalance(uint256[3] calldata amounts, uint256 max_burn_amount) external;
+    function devFundDivRate() external view returns (uint256);
 
-    function remove_liquidity(uint256 _amount, uint256[3] calldata amounts) external;
+    function devaddr() external view returns (address);
 
-    function exchange(
-        int128 from,
-        int128 to,
-        uint256 _from_amount,
-        uint256 _min_to_amount
+    function emergencyWithdraw(uint256 _pid) external;
+
+    function getMultiplier(uint256 _from, uint256 _to)
+        external
+        view
+        returns (uint256);
+
+    function massUpdatePools() external;
+
+    function owner() external view returns (address);
+
+    function pendingPickle(uint256 _pid, address _user)
+        external
+        view
+        returns (uint256);
+
+    function pendingReward(uint256 _pid, address _user)
+        external
+        view
+        returns (uint256);
+
+    function pending(uint256 _pid, address _user)
+        external
+        view
+        returns (uint256);
+
+    function pickle() external view returns (address);
+
+    function picklePerBlock() external view returns (uint256);
+
+    function poolInfo(uint256)
+        external
+        view
+        returns (
+            address lpToken,
+            uint256 allocPoint,
+            uint256 lastRewardBlock,
+            uint256 accPicklePerShare
+        );
+
+    function poolLength() external view returns (uint256);
+
+    function renounceOwnership() external;
+
+    function set(
+        uint256 _pid,
+        uint256 _allocPoint,
+        bool _withUpdate
     ) external;
 
-    function balances(uint256) external view returns (uint256);
-}
+    function setBonusEndBlock(uint256 _bonusEndBlock) external;
 
-interface ICurveFi_4 {
-    function get_virtual_price() external view returns (uint256);
+    function setDevFundDivRate(uint256 _devFundDivRate) external;
 
-    function add_liquidity(uint256[4] calldata amounts, uint256 min_mint_amount) external;
+    function setPicklePerBlock(uint256 _picklePerBlock) external;
 
-    // stETH pool
-    function add_liquidity(uint256[2] calldata amounts, uint256 min_mint_amount) external payable;
+    function startBlock() external view returns (uint256);
 
-    function remove_liquidity_imbalance(uint256[4] calldata amounts, uint256 max_burn_amount) external;
+    function totalAllocPoint() external view returns (uint256);
 
-    function remove_liquidity(uint256 _amount, uint256[4] calldata amounts) external;
+    function transferOwnership(address newOwner) external;
 
-    function exchange(
-        int128 from,
-        int128 to,
-        uint256 _from_amount,
-        uint256 _min_to_amount
-    ) external;
+    function updatePool(uint256 _pid) external;
 
-    function exchange_underlying(
-        int128 from,
-        int128 to,
-        uint256 _from_amount,
-        uint256 _min_to_amount
-    ) external;
+    function userInfo(uint256, address)
+        external
+        view
+        returns (uint256 amount, uint256 rewardDebt);
 
-    function balances(int128) external view returns (uint256);
-}
-
-interface ICurveZap_4 {
-    function add_liquidity(uint256[4] calldata uamounts, uint256 min_mint_amount) external;
-
-    function remove_liquidity(uint256 _amount, uint256[4] calldata min_uamounts) external;
-
-    function remove_liquidity_imbalance(uint256[4] calldata uamounts, uint256 max_burn_amount) external;
-
-    function calc_withdraw_one_coin(uint256 _token_amount, int128 i) external returns (uint256);
-
-    function remove_liquidity_one_coin(
-        uint256 _token_amount,
-        int128 i,
-        uint256 min_uamount
-    ) external;
-
-    function remove_liquidity_one_coin(
-        uint256 _token_amount,
-        int128 i,
-        uint256 min_uamount,
-        bool donate_dust
-    ) external;
-
-    function withdraw_donated_dust() external;
-
-    function coins(int128 arg0) external returns (address);
-
-    function underlying_coins(int128 arg0) external returns (address);
-
-    function curve() external returns (address);
-
-    function token() external returns (address);
-}
-
-interface ICurveZap {
-    function remove_liquidity_one_coin(
-        uint256 _token_amount,
-        int128 i,
-        uint256 min_uamount
-    ) external;
-}
-
-interface ICurveFi_Polygon_3 {
-    function get_virtual_price() external view returns (uint256);
-
-    function add_liquidity(uint256[3] calldata amounts, uint256 min_mint_amount) external;
-
-    function add_liquidity(
-        uint256[3] calldata amounts,
-        uint256 min_mint_amount,
-        bool use_underlying
-    ) external;
-
-    function remove_liquidity_imbalance(uint256[3] calldata amounts, uint256 max_burn_amount) external;
-
-    function remove_liquidity(uint256 _amount, uint256[3] calldata amounts) external;
-
-    function exchange(
-        int128 from,
-        int128 to,
-        uint256 _from_amount,
-        uint256 _min_to_amount
-    ) external;
-
-    function balances(uint256) external view returns (uint256);
-}
-
-interface ICurveGauge {
-    function deposit(uint256 _value) external;
-
-    function deposit(uint256 _value, address addr) external;
-
-    function balanceOf(address arg0) external view returns (uint256);
-
-    function withdraw(uint256 _value) external;
-
-    function withdraw(uint256 _value, bool claim_rewards) external;
-
-    function claim_rewards() external;
-
-    function claim_rewards(address addr) external;
-
-    function claimable_tokens(address addr) external returns (uint256);
-
-    function claimable_reward(address addr) external view returns (uint256);
-
-    function claimable_reward(address, address) external view returns (uint256);
-
-    function integrate_fraction(address arg0) external view returns (uint256);
-}
-
-interface ICurveMintr {
-    function mint(address) external;
-
-    function minted(address arg0, address arg1) external view returns (uint256);
-}
-
-interface ICurveVotingEscrow {
-    function locked(address arg0) external view returns (int128 amount, uint256 end);
-
-    function locked__end(address _addr) external view returns (uint256);
-
-    function create_lock(uint256, uint256) external;
-
-    function increase_amount(uint256) external;
-
-    function increase_unlock_time(uint256 _unlock_time) external;
-
-    function withdraw() external;
-
-    function smart_wallet_checker() external returns (address);
-}
-
-interface ICurveSmartContractChecker {
-    function wallets(address) external returns (bool);
-
-    function approveWallet(address _wallet) external;
+    function withdraw(uint256 _pid, uint256 _amount) external;
 }
 
 
@@ -1249,192 +1244,6 @@ interface IController {
     function earn(address, uint256) external;
 
     function strategies(address) external view returns (address);
-}
-
-
-// File src/interfaces/staking-rewards.sol
-
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.6.2;
-
-interface IStakingRewards {
-    function balanceOf(address account) external view returns (uint256);
-
-    function balances(address account) external view returns (uint256);
-
-    function earned(address account) external view returns (uint256);
-
-    function exit() external;
-
-    function getReward() external;
-
-    function getRewardForDuration() external view returns (uint256);
-
-    function lastTimeRewardApplicable() external view returns (uint256);
-
-    function lastUpdateTime() external view returns (uint256);
-
-    function notifyRewardAmount(uint256 reward) external;
-
-    function periodFinish() external view returns (uint256);
-
-    function rewardPerToken() external view returns (uint256);
-
-    function rewardPerTokenStored() external view returns (uint256);
-
-    function rewardRate() external view returns (uint256);
-
-    function rewards(address) external view returns (uint256);
-
-    function rewardsDistribution() external view returns (address);
-
-    function rewardsDuration() external view returns (uint256);
-
-    function rewardsToken() external view returns (address);
-
-    function stake(uint256 amount) external;
-
-    function deposit(uint256 amount) external;
-
-    function stakeWithPermit(
-        uint256 amount,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external;
-
-    function stakingToken() external view returns (address);
-
-    function totalSupply() external view returns (uint256);
-
-    function userRewardPerTokenPaid(address) external view returns (uint256);
-
-    function withdraw(uint256 amount) external;
-}
-
-interface IStakingRewardsFactory {
-    function deploy(address stakingToken, uint256 rewardAmount) external;
-
-    function isOwner() external view returns (bool);
-
-    function notifyRewardAmount(address stakingToken) external;
-
-    function notifyRewardAmounts() external;
-
-    function owner() external view returns (address);
-
-    function renounceOwnership() external;
-
-    function rewardsToken() external view returns (address);
-
-    function stakingRewardsGenesis() external view returns (uint256);
-
-    function stakingRewardsInfoByStakingToken(address)
-        external
-        view
-        returns (address stakingRewards, uint256 rewardAmount);
-
-    function stakingTokens(uint256) external view returns (address);
-
-    function transferOwnership(address newOwner) external;
-}
-
-
-// File src/interfaces/masterchef.sol
-
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
-
-interface IMasterchef {
-    function BONUS_MULTIPLIER() external view returns (uint256);
-
-    function add(
-        uint256 _allocPoint,
-        address _lpToken,
-        bool _withUpdate
-    ) external;
-
-    function bonusEndBlock() external view returns (uint256);
-
-    function deposit(uint256 _pid, uint256 _amount) external;
-
-    function dev(address _devaddr) external;
-
-    function devFundDivRate() external view returns (uint256);
-
-    function devaddr() external view returns (address);
-
-    function emergencyWithdraw(uint256 _pid) external;
-
-    function getMultiplier(uint256 _from, uint256 _to)
-        external
-        view
-        returns (uint256);
-
-    function massUpdatePools() external;
-
-    function owner() external view returns (address);
-
-    function pendingPickle(uint256 _pid, address _user)
-        external
-        view
-        returns (uint256);
-
-    function pendingReward(uint256 _pid, address _user)
-        external
-        view
-        returns (uint256);
-
-    function pending(uint256 _pid, address _user)
-        external
-        view
-        returns (uint256);
-
-    function pickle() external view returns (address);
-
-    function picklePerBlock() external view returns (uint256);
-
-    function poolInfo(uint256)
-        external
-        view
-        returns (
-            address lpToken,
-            uint256 allocPoint,
-            uint256 lastRewardBlock,
-            uint256 accPicklePerShare
-        );
-
-    function poolLength() external view returns (uint256);
-
-    function renounceOwnership() external;
-
-    function set(
-        uint256 _pid,
-        uint256 _allocPoint,
-        bool _withUpdate
-    ) external;
-
-    function setBonusEndBlock(uint256 _bonusEndBlock) external;
-
-    function setDevFundDivRate(uint256 _devFundDivRate) external;
-
-    function setPicklePerBlock(uint256 _picklePerBlock) external;
-
-    function startBlock() external view returns (uint256);
-
-    function totalAllocPoint() external view returns (uint256);
-
-    function transferOwnership(address newOwner) external;
-
-    function updatePool(uint256 _pid) external;
-
-    function userInfo(uint256, address)
-        external
-        view
-        returns (uint256 amount, uint256 rewardDebt);
-
-    function withdraw(uint256 _pid, uint256 _amount) external;
 }
 
 
@@ -1688,8 +1497,6 @@ abstract contract StrategyBase {
         uint256 _amount
     ) internal {
         require(path[1] != address(0));
-        IERC20(path[0]).safeApprove(router, 0);
-        IERC20(path[0]).safeApprove(router, _amount);
         UniswapRouterV2(router).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
     }
 
@@ -1715,193 +1522,259 @@ abstract contract StrategyBase {
 }
 
 
-// File src/strategies/gnosis/strategy-curve-base.sol
-
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
-
-// Base contract for Curve based staking contract interfaces
-
-abstract contract StrategyCurveBase is StrategyBase {
-    // curve dao
-    address public gauge;
-    address public curve;
-    address public mintr = 0xd061D61a4d941c39E5453435B6345Dc261C2fcE0;
-
-    // stablecoins
-    address public usdc = 0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83;
-    address public usdt = 0x4ECaBa5870353805a9F068101A40E0f32ed605C6;
-
-    // bitcoins
-    address public wbtc = 0x8e5bBbb09Ed1ebdE8674Cda39A0c169401db4252;
-
-    // rewards
-    address public crv = 0x712b3d230F3C1c19db860d80619288b1F0BDd0Bd;
-
-    // How much REWARD tokens to keep
-    uint256 public keepREWARD = 420;
-    uint256 public keepREWARDMax = 10000;
-
-    mapping(address => address[]) public swapRoutes;
-
-    constructor(
-        address _curve,
-        address _gauge,
-        address _want,
-        address _governance,
-        address _strategist,
-        address _controller,
-        address _timelock
-    ) public StrategyBase(_want, _governance, _strategist, _controller, _timelock) {
-        curve = _curve;
-        gauge = _gauge;
-    }
-
-    // **** Getters ****
-
-    function balanceOfPool() public view override returns (uint256) {
-        return ICurveGauge(gauge).balanceOf(address(this));
-    }
-
-    function getHarvestable() external returns (uint256) {
-        return ICurveGauge(gauge).claimable_tokens(address(this));
-    }
-
-    function getMostPremium() public view virtual returns (address, uint256);
-
-    // **** Setters ****
-
-    function setKeepREWARD(uint256 _keepREWARD) external {
-        require(msg.sender == governance, "!governance");
-        keepREWARD = _keepREWARD;
-    }
-
-    // **** State Mutation functions ****
-
-    function deposit() public override {
-        uint256 _want = IERC20(want).balanceOf(address(this));
-        if (_want > 0) {
-            IERC20(want).safeApprove(gauge, 0);
-            IERC20(want).safeApprove(gauge, _want);
-            ICurveGauge(gauge).deposit(_want);
-        }
-    }
-
-    function _withdrawSome(uint256 _amount) internal override returns (uint256) {
-        ICurveGauge(gauge).withdraw(_amount);
-        return _amount;
-    }
-}
-
-
-// File src/strategies/gnosis/curve/strategy-curve-3pool-lp.sol
+// File src/interfaces/swapr-rewarder.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.2;
 
+interface ISwaprRewarder {
+    function rewards() external view returns (address);
+
+    function claimableRewards(address) external view returns (uint256[] memory);
+
+    function stake(uint256) external;
+
+    function withdraw(uint256) external;
+
+    function claimAll(address) external;
+
+    function stakedTokensOf(address) external view returns (uint256);
+
+    function getRewardTokens() external view returns (address[] memory);
+}
+
+
+// File src/lib/BoringERC20.sol
+
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.6.0;
+
+library BoringERC20 {
+    function safeSymbol(IERC20 token) internal view returns(string memory) {
+        (bool success, bytes memory data) = address(token).staticcall(abi.encodeWithSelector(0x95d89b41));
+        return success && data.length > 0 ? abi.decode(data, (string)) : "???";
+    }
+
+    function safeName(IERC20 token) internal view returns(string memory) {
+        (bool success, bytes memory data) = address(token).staticcall(abi.encodeWithSelector(0x06fdde03));
+        return success && data.length > 0 ? abi.decode(data, (string)) : "???";
+    }
+
+    function safeDecimals(IERC20 token) internal view returns (uint8) {
+        (bool success, bytes memory data) = address(token).staticcall(abi.encodeWithSelector(0x313ce567));
+        return success && data.length == 32 ? abi.decode(data, (uint8)) : 18;
+    }
+
+    function safeTransfer(IERC20 token, address to, uint256 amount) internal {
+        (bool success, bytes memory data) = address(token).call(abi.encodeWithSelector(0xa9059cbb, to, amount));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "BoringERC20: Transfer failed");
+    }
+
+    function safeTransferFrom(IERC20 token, address from, address to, uint256 amount) internal {
+        (bool success, bytes memory data) = address(token).call(abi.encodeWithSelector(0x23b872dd, from, to, amount));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "BoringERC20: TransferFrom failed");
+    }
+}
+
+
+// File src/interfaces/IRewarder.sol
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.6.7;
+
+interface IRewarder {
+    using BoringERC20 for IERC20;
+    function onSushiReward(uint256 pid, address user, address recipient, uint256 sushiAmount, uint256 newLpAmount) external;
+    function pendingTokens(uint256 pid, address user, uint256 sushiAmount) external view returns (IERC20[] memory, uint256[] memory);
+}
+
+
+// File src/strategies/gnosis/strategy-swapr-base.sol
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.7;
 
 
 
+abstract contract StrategySwaprFarmBase is StrategyBase {
+    // Token addresses
+    address public constant swapr = 0x532801ED6f82FFfD2DAB70A19fC2d7B2772C4f4b;
+    address public rewarder;
+    uint256 public rewardsCount;
+    address public constant swaprRouter = 0xE43e60736b1cb4a75ad25240E2f9a62Bff65c0C0;
 
-contract StrategyXdaiCurve3CRV is StrategyCurveBase {
-    // Curve stuff
-    address public three_pool = 0x7f90122BF0700F9E7e1F688fe926940E8839F353;
-    address public three_gauge = 0x78CF256256C8089d68Cde634Cf7cDEFb39286470;
-    address public three_crv = 0x1337BedC9D22ecbe766dF105c9623922A27963EC;
+    // WETH/<token1> pair
+    address public token0;
+    address public token1;
 
-    address public honeyRouter = 0x1C232F01118CB8B424793ae03F870aa7D0ac7f77;
+    uint256 public keepREWARD = 420;
+    uint256 public constant keepREWARDMax = 10000;
+
+    uint256 public poolId;
+    mapping(address => address[]) public swapRoutes;
+    mapping(address => address[]) public rewardRoutes;
+
+    constructor(
+        address _rewarder,
+        uint256 _rewardsCount,
+        address _lp,
+        address _governance,
+        address _strategist,
+        address _controller,
+        address _timelock
+    ) public StrategyBase(_lp, _governance, _strategist, _controller, _timelock) {
+        rewarder = _rewarder;
+        rewardsCount = _rewardsCount;
+        token0 = IUniswapV2Pair(_lp).token0();
+        token1 = IUniswapV2Pair(_lp).token1();
+
+        IERC20(token0).approve(swaprRouter, uint256(-1));
+        IERC20(token1).approve(swaprRouter, uint256(-1));
+        IERC20(gno).approve(swaprRouter, uint256(-1));
+        IERC20(want).approve(rewarder, uint256(-1));
+
+        // Approve all tokens in the rewards contract.
+        address[] memory rewardTokens = ISwaprRewarder(rewarder).getRewardTokens();
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            if (rewardRoutes[rewardTokens[i]].length > 0) {
+                IERC20(rewardTokens[i]).approve(swaprRouter, uint256(-1));
+            }
+        }
+    }
+
+    function balanceOfPool() public view override returns (uint256) {
+        uint256 _amount = ISwaprRewarder(rewarder).stakedTokensOf(address(this));
+        return _amount;
+    }
+
+    function getHarvestable() external view virtual returns (uint256[] memory) {
+        uint256[] memory _claimableRewards = ISwaprRewarder(rewarder).claimableRewards(address(this));
+        address[] memory rewardTokens = ISwaprRewarder(rewarder).getRewardTokens();
+        uint256[] memory PendingRewards = new uint256[](rewardsCount);
+
+        uint256 j;
+        for (uint256 i = 0; i < _claimableRewards.length; i++) {
+            PendingRewards[j] = _claimableRewards[i];
+            j++;
+        }
+        return PendingRewards;
+    }
+
+    // **** Setters ****
+
+    function deposit() public override {
+        uint256 _want = IERC20(want).balanceOf(address(this));
+        if (_want > 0) {
+            ISwaprRewarder(rewarder).stake(_want);
+        }
+    }
+
+    function _withdrawSome(uint256 _amount) internal override returns (uint256) {
+        ISwaprRewarder(rewarder).withdraw(_amount);
+        return _amount;
+    }
+
+    // **** State Mutations ****
+
+    function setKeepREWARD(uint256 _keepREWARD) external {
+        require(msg.sender == timelock, "!timelock");
+        keepREWARD = _keepREWARD;
+    }
+
+    function harvest() public override onlyBenevolent {
+        ISwaprRewarder(rewarder).claimAll(address(this));
+
+        // loop through all rewards tokens and swap the ones with
+        // rewardRoutes to GNO.
+        address[] memory rewardTokens = ISwaprRewarder(rewarder).getRewardTokens();
+        for (uint256 i = 0; i > rewardTokens.length; i++) {
+            uint256 _rewardToken = IERC20(rewardTokens[i]).balanceOf(address(this));
+            if (rewardRoutes[rewardTokens[i]].length > 1 && _rewardToken > 0) {
+                _swap(swaprRouter, rewardRoutes[rewardTokens[i]], _rewardToken);
+            }
+        }
+
+        // Collect Fees
+        uint256 _gno = IERC20(gno).balanceOf(address(this));
+        uint256 _keepReward = _gno.mul(keepREWARD).div(keepREWARDMax);
+        IERC20(gno).safeTransfer(IController(controller).treasury(), _keepReward);
+
+        _gno = IERC20(gno).balanceOf(address(this));
+
+        if (_gno > 0) {
+            if (gno == token0 || gno == token1) {
+                address toToken = gno == token0 ? token1 : token0;
+                _swap(swaprRouter, swapRoutes[toToken], _gno.div(2));
+            } else {
+                // Swap GNO to token0 & token1
+                uint256 _toToken0 = _gno.div(2);
+                uint256 _toToken1 = _gno.sub(_toToken0);
+
+                if (swapRoutes[token0].length > 1) {
+                    _swap(swaprRouter, swapRoutes[token0], _toToken0);
+                }
+                if (swapRoutes[token1].length > 1) {
+                    _swap(swaprRouter, swapRoutes[token1], _toToken1);
+                }
+            }
+        }
+
+        // Adds in liquidity for token0/token1
+        uint256 _token0 = IERC20(token0).balanceOf(address(this));
+        uint256 _token1 = IERC20(token1).balanceOf(address(this));
+        if (_token0 > 0 && _token1 > 0) {
+            UniswapRouterV2(swaprRouter).addLiquidity(token0, token1, _token0, _token1, 0, 0, address(this), now + 60);
+
+            // Donates DUST
+            IERC20(token0).transfer(IController(controller).treasury(), IERC20(token0).balanceOf(address(this)));
+            IERC20(token1).transfer(IController(controller).treasury(), IERC20(token1).balanceOf(address(this)));
+        }
+
+        // We want to get back Swapr LP tokens
+        _distributePerformanceFeesAndDeposit();
+    }
+}
+
+
+// File src/strategies/gnosis/swapr/strategy-swapr-weth-wbtc-lp.sol
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.7;
+
+contract StrategySwaprWethWbtcLp is StrategySwaprFarmBase {
+    // Token addresses
+    address public swapr_weth_wbtc_lp = 0xf6Be7AD58F4BAA454666b0027839a01BcD721Ac3;
+    address public wbtc = 0x8e5bBbb09Ed1ebdE8674Cda39A0c169401db4252;
+    address public rewarderContract = 0x60eC5c7Ddfe17203c706D7082224f67d0e005fcC;
+    uint256 public rewards = 2;
 
     constructor(
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
-    ) public StrategyCurveBase(three_pool, three_gauge, three_crv, _governance, _strategist, _controller, _timelock) {
-        swapRoutes[gno] = [crv, gno];
-        swapRoutes[xdai] = [gno, xdai];
-        swapRoutes[usdc] = [gno, xdai, usdc];
-        swapRoutes[usdt] = [gno, xdai, usdt];
+    )
+        public
+        StrategySwaprFarmBase(
+            rewarderContract,
+            rewards,
+            swapr_weth_wbtc_lp,
+            _governance,
+            _strategist,
+            _controller,
+            _timelock
+        )
+    {
+        rewardRoutes[swapr] = [swapr, xdai, gno];
+        rewardRoutes[gno] = [gno];
+        swapRoutes[weth] = [gno, weth];
+        swapRoutes[wbtc] = [gno, weth, wbtc];
     }
 
     // **** Views ****
 
-    function getMostPremium() public view override returns (address, uint256) {
-        uint256[] memory balances = new uint256[](3);
-        balances[0] = ICurveFi_3(curve).balances(0); // DAI
-        balances[1] = ICurveFi_3(curve).balances(1).mul(10**12); // USDC
-        balances[2] = ICurveFi_3(curve).balances(2).mul(10**12); // USDT
-
-        // DAI
-        if (balances[0] < balances[1] && balances[0] < balances[2]) {
-            return (xdai, 0);
-        }
-
-        // USDC
-        if (balances[1] < balances[0] && balances[1] < balances[2]) {
-            return (usdc, 1);
-        }
-
-        // USDT
-        if (balances[2] < balances[0] && balances[2] < balances[1]) {
-            return (usdt, 2);
-        }
-
-        // If they're somehow equal, we just want DAI
-        return (xdai, 0);
-    }
-
     function getName() external pure override returns (string memory) {
-        return "StrategyCurve3CRV";
-    }
-
-    // **** State Mutations ****
-
-    function harvest() public override onlyBenevolent {
-        // Anyone can harvest it at any given time.
-        // I understand the possibility of being frontrun
-        // But ETH is a dark forest, and I wanna see how this plays out
-        // i.e. will be be heavily frontrunned?
-        //      if so, a new strategy will be deployed.
-
-        // stablecoin we want to convert to
-        (address to, uint256 toIndex) = getMostPremium();
-
-        // Collects tokens
-        ICurveGauge(three_gauge).claim_rewards();
-        uint256 _crv = IERC20(crv).balanceOf(address(this));
-        // Swap CRV to GNO through Honeyswap
-        _swap(honeyRouter, swapRoutes[gno], _crv);
-        uint256 _gno = IERC20(gno).balanceOf(address(this));
-        if (_gno > 0) {
-            // x% is sent back to the rewards holder
-            // to be used to lock up in as veCRV in a future date
-            uint256 _keepREWARD = _gno.mul(keepREWARD).div(keepREWARDMax);
-            if (_keepREWARD > 0) {
-                IERC20(gno).safeTransfer(IController(controller).treasury(), _keepREWARD);
-                _gno = _gno.sub(_keepREWARD);
-            }
-            if (to == xdai) {
-                _swap(sushiRouter, swapRoutes[xdai], _gno);
-            }
-            if (to == usdc) {
-                _swap(sushiRouter, swapRoutes[usdc], _gno);
-            }
-            if (to == usdt) {
-                _swap(sushiRouter, swapRoutes[usdt], _gno);
-            }
-        }
-
-        // Adds liquidity to curve.fi's pool
-        // to get back want (scrv)
-        uint256 _to = IERC20(to).balanceOf(address(this));
-        if (_to > 0) {
-            IERC20(to).approve(curve, 0);
-            IERC20(to).approve(curve, _to);
-            uint256[3] memory liquidity;
-            liquidity[toIndex] = _to;
-            ICurveFi_3(curve).add_liquidity(liquidity, 0);
-        }
-
-        _distributePerformanceFeesAndDeposit();
+        return "StrategySwaprWethWbtcLp";
     }
 }

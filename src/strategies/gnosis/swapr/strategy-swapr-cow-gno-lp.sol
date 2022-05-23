@@ -5,8 +5,8 @@ import "../strategy-swapr-base.sol";
 
 contract StrategySwaprCowGnoLp is StrategySwaprFarmBase {
     // Token addresses
-    address public swapr_cow_gno_lp = 0x8028457E452D7221dB69B1e0563AA600A059fab1;
-    address public rewarderContract = 0xDa72E71f84DC15c80941D70494D6BD8a623DCBB4;
+    address public swapr_cow_gno_lp = 0xDBF14bce36F661B29F6c8318a1D8944650c73F38;
+    address public rewarderContract = 0x95DBc58bCBB3Bc866EdFFC107d65D479d83799E5;
     uint256 public rewards = 3;
     address public cow = 0x177127622c4A00F3d409B75571e12cB3c8973d3c;
 

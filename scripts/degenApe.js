@@ -53,7 +53,8 @@ const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const harvester = ["0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf"];
 
 const contracts = [
-  "src/strategies/gnosis/swapr/strategy-swapr-weth-wbtc-lp.sol:StrategySwaprWethWbtcLp"
+  "src/strategies/gnosis/swapr/strategy-swapr-cow-weth-lp.sol:StrategySwaprCowWethLp",
+  "src/strategies/gnosis/swapr/strategy-swapr-cow-gno-lp.sol:StrategySwaprCowGnoLp"
 ];
 
 const testedStrategies = [
@@ -238,7 +239,7 @@ ratio: ${ratio.toString()}
 };
 
 const main = async () => {
-  // await deployContractsAndGeneratePfcore();
+  await deployContractsAndGeneratePfcore();
   // await fastVerifyContracts(testedStrategies);
   await slowVerifyContracts(testedStrategies, governance, strategist, controller, timelock);
 };
