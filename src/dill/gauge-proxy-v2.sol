@@ -828,7 +828,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             address _token = _tokenVote[i];
             address _gauge = gauges[_token];
             int256 _tokenWeight = (_weights[i] * _weight) / _totalVoteWeight;
-
             if (_gauge != address(0x0)) {
                 if (_currentId > tokenLastVotedPeriodId[_token]) {
                     weights[_currentId][_token] = weights[
@@ -848,7 +847,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
                 totalWeight[_currentId] += _tokenWeight;
             }
         }
-
         usedWeights[_owner] = _usedWeight;
     }
 
@@ -1033,13 +1031,12 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
                 }
                 address _token = _tokens[i];
                 address _gauge = gauges[_token];
-                uint256 _reward = uint256(
-                    (_balance * weights[periodToUse][_token]) / (_totalWeight)
-                );
+                int256 _reward = (_balance * weights[periodToUse][_token]) /
+                    _totalWeight;
                 if (_reward > 0) {
                     PICKLE.safeApprove(_gauge, 0);
-                    PICKLE.safeApprove(_gauge, _reward);
-                    Gauge(_gauge).notifyRewardAmount(_reward);
+                    PICKLE.safeApprove(_gauge, uint256(_reward));
+                    Gauge(_gauge).notifyRewardAmount(uint256(_reward));
                 }
 
                 if (_reward < 0) {
