@@ -45,12 +45,9 @@ abstract contract StrategyBase {
     address public univ2Router2 = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
     address public sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
 
-    address public constant nonFungiblePositionManager =
-        0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
-    address public constant univ3Factory =
-        0x1F98431c8aD98523631AE4a59f267346ea31F984;
-    address public constant univ3Router =
-        0xE592427A0AEce92De3Edee1F18E0157C05861564;
+    address public constant nonFungiblePositionManager = 0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
+    address public constant univ3Factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
+    address public constant univ3Router = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
 
     mapping(address => bool) public harvesters;
 
@@ -76,12 +73,8 @@ abstract contract StrategyBase {
 
     // **** Modifiers **** //
 
-    modifier onlyBenevolent {
-        require(
-            harvesters[msg.sender] ||
-                msg.sender == governance ||
-                msg.sender == strategist
-        );
+    modifier onlyBenevolent() {
+        require(harvesters[msg.sender] || msg.sender == governance || msg.sender == strategist);
         _;
     }
 
@@ -102,12 +95,7 @@ abstract contract StrategyBase {
     // **** Setters **** //
 
     function whitelistHarvesters(address[] calldata _harvesters) external {
-        require(
-            msg.sender == governance ||
-                msg.sender == strategist ||
-                harvesters[msg.sender],
-            "not authorized"
-        );
+        require(msg.sender == governance || msg.sender == strategist || harvesters[msg.sender], "not authorized");
 
         for (uint256 i = 0; i < _harvesters.length; i++) {
             harvesters[_harvesters[i]] = true;
@@ -115,10 +103,7 @@ abstract contract StrategyBase {
     }
 
     function revokeHarvesters(address[] calldata _harvesters) external {
-        require(
-            msg.sender == governance || msg.sender == strategist,
-            "not authorized"
-        );
+        require(msg.sender == governance || msg.sender == strategist, "not authorized");
 
         for (uint256 i = 0; i < _harvesters.length; i++) {
             harvesters[_harvesters[i]] = false;
@@ -140,9 +125,7 @@ abstract contract StrategyBase {
         performanceDevFee = _performanceDevFee;
     }
 
-    function setPerformanceTreasuryFee(uint256 _performanceTreasuryFee)
-        external
-    {
+    function setPerformanceTreasuryFee(uint256 _performanceTreasuryFee) external {
         require(msg.sender == timelock, "!timelock");
         performanceTreasuryFee = _performanceTreasuryFee;
     }
@@ -187,21 +170,14 @@ abstract contract StrategyBase {
             _amount = _amount.add(_balance);
         }
 
-        uint256 _feeDev = _amount.mul(withdrawalDevFundFee).div(
-            withdrawalDevFundMax
-        );
+        uint256 _feeDev = _amount.mul(withdrawalDevFundFee).div(withdrawalDevFundMax);
         if (_feeDev > 0) {
             IERC20(want).safeTransfer(IController(controller).devfund(), _feeDev);
         }
 
-        uint256 _feeTreasury = _amount.mul(withdrawalTreasuryFee).div(
-            withdrawalTreasuryMax
-        );
+        uint256 _feeTreasury = _amount.mul(withdrawalTreasuryFee).div(withdrawalTreasuryMax);
         if (_feeTreasury > 0) {
-            IERC20(want).safeTransfer(
-                IController(controller).treasury(),
-                _feeTreasury
-            );
+            IERC20(want).safeTransfer(IController(controller).treasury(), _feeTreasury);
         }
 
         address _jar = IController(controller).jars(address(want));
@@ -211,10 +187,7 @@ abstract contract StrategyBase {
     }
 
     // Withdraw funds, used to swap between strategies
-    function withdrawForSwap(uint256 _amount)
-        external
-        returns (uint256 balance)
-    {
+    function withdrawForSwap(uint256 _amount) external returns (uint256 balance) {
         require(msg.sender == controller, "!controller");
         _withdrawSome(_amount);
 
@@ -247,31 +220,17 @@ abstract contract StrategyBase {
 
     // **** Emergency functions ****
 
-    function execute(address _target, bytes memory _data)
-        public
-        payable
-        returns (bytes memory response)
-    {
+    function execute(address _target, bytes memory _data) public payable returns (bytes memory response) {
         require(msg.sender == timelock, "!timelock");
         require(_target != address(0), "!target");
 
         // call contract in current context
         assembly {
-            let succeeded := delegatecall(
-                sub(gas(), 5000),
-                _target,
-                add(_data, 0x20),
-                mload(_data),
-                0,
-                0
-            )
+            let succeeded := delegatecall(sub(gas(), 5000), _target, add(_data, 0x20), mload(_data), 0, 0)
             let size := returndatasize()
 
             response := mload(0x40)
-            mstore(
-                0x40,
-                add(response, and(add(add(size, 0x20), 0x1f), not(0x1f)))
-            )
+            mstore(0x40, add(response, and(add(add(size, 0x20), 0x1f), not(0x1f))))
             mstore(response, size)
             returndatacopy(add(response, 0x20), 0, size)
 
@@ -304,27 +263,13 @@ abstract contract StrategyBase {
             path[2] = _to;
         }
 
-        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            now.add(60)
-        );
+        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
     }
 
-    function _swapUniswapWithPath(address[] memory path, uint256 _amount)
-        internal
-    {
+    function _swapUniswapWithPath(address[] memory path, uint256 _amount) internal {
         require(path[1] != address(0));
 
-        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            now.add(60)
-        );
+        UniswapRouterV2(univ2Router2).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
     }
 
     function _swapSushiswap(
@@ -347,27 +292,22 @@ abstract contract StrategyBase {
             path[2] = _to;
         }
 
-        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            now.add(60)
-        );
+        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
     }
 
-    function _swapSushiswapWithPath(address[] memory path, uint256 _amount)
-        internal
-    {
+    function _swapSushiswapWithPath(address[] memory path, uint256 _amount) internal {
         require(path[1] != address(0));
 
-        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(
-            _amount,
-            0,
-            path,
-            address(this),
-            now.add(60)
-        );
+        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
+    }
+
+    function _swap(
+        address router,
+        address[] memory path,
+        uint256 _amount
+    ) internal {
+        require(path[1] != address(0));
+        UniswapRouterV2(router).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
     }
 
     function _distributePerformanceFeesAndDeposit() internal {

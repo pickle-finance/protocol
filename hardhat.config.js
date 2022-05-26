@@ -38,7 +38,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://ftmrpc.ultimatenodes.io/`,
+        url: `https://rpc.api.moonbeam.network`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -95,6 +95,7 @@ module.exports = {
       mainnet: `${process.env.ETHERSCAN_APIKEY}`,
       aurora: `${process.env.AURORASCAN_APIKEY}`,
       xdai: `${process.env.GNOSIS_APIKEY}`,
+      moonbeam: `${process.env.MOONBEAM_APIKEY}`
     },
   },
   paths: {
