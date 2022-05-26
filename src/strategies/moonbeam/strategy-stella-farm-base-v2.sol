@@ -10,7 +10,7 @@ abstract contract StrategyStellaFarmBaseV2 is StrategyBase {
     // Token addresses
     address public constant stella = 0x0E358838ce72d5e61E0018a2ffaC4bEC5F4c88d2;
     address public constant stellaChef = 0xF3a5454496E26ac57da879bf3285Fa85DEBF0388;
-    address public constant stellaRouter = 0xd0A01ec574D1fC6652eDF79cb2F880fd47D34Ab1;
+    address public constant stellaRouter = 0x70085a09D30D6f8C4ecF6eE10120d1847383BB57;
     address public rewarder;
 
     address public token0;
@@ -82,7 +82,9 @@ abstract contract StrategyStellaFarmBaseV2 is StrategyBase {
         IStellaChef(stellaChef).deposit(poolId, 0);
 
         uint256 _nakedGlmr = address(this).balance;
-        WETH(glmr).deposit{value: _nakedGlmr}();
+        if (_nakedGlmr > 0) {
+            WETH(glmr).deposit{value: _nakedGlmr}();
+        }
 
         uint256 _stella = IERC20(stella).balanceOf(address(this));
 

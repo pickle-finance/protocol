@@ -53,10 +53,11 @@ const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const harvester = ["0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf"];
 
 const contracts = [
-  "src/strategies/moonbeam/stella/strategy-stella-ETHmad-GLMR-lp.sol:StrategyStellaETHmadGLMRLp"
+  "src/strategies/moonbeam/stella/strategy-stella-USDCmad-GLMR-lp.sol:StrategyStellaUSDCmadGLMRLp"
 ];
 
-const testedStrategies = [];
+const testedStrategies = [
+];
 
 const executeTx = async (calls, fn, ...args) => {
   let transaction;
@@ -238,7 +239,7 @@ ratio: ${ratio.toString()}
 const main = async () => {
   await deployContractsAndGeneratePfcore();
   // await fastVerifyContracts(testedStrategies);
-  await slowVerifyContracts(testedStrategies);
+  await slowVerifyContracts(testedStrategies, governance, strategist, controller, timelock);
 };
 
 main()
