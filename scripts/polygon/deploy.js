@@ -87,17 +87,12 @@ const deployPickleJar = async () => {
   const want = "0x1054Ff2ffA34c055a13DCD9E0b4c0cA5b3aecEB9";
 
   const StrategyFactory = await ethers.getContractFactory(
-    "src/strategies/convex/strategy-convex-cadc-usdc-lp.sol:StrategyConvexCadcUsdc"
+    "src/strategies/saddle/strategy-saddle-d4.sol:StrategySaddleD4"
   );
   const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
 
   await strategy.deployed();
   console.log("Strategy deployed at ", strategy.address);
-
-  const JarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
-  const jar = await JarFactory.deploy(want, governance, timelock, controller);
-  await jar.deployed();
-  console.log("Jar deployed at ", jar.address);
 
   await hre.run("verify:verify", {
     address: strategy.address,
@@ -115,10 +110,10 @@ const setJar = async () => {
   console.log("deploying strategy...");
 
   const StrategyFactory = await ethers.getContractFactory(
-    "src/strategies/polygon/uniswapv3/strategy-univ3-matic-eth-lp.sol:StrategyMaticEthUniV3Poly"
+    "src/strategies/saddle/strategy-saddle-d4.sol:StrategySaddleD4"
   );
 
-  const strategy = await StrategyFactory.deploy(100, governance, governance, controller, governance);
+  const strategy = await StrategyFactory.deploy(governance, governance, controller, governance);
   await strategy.deployed();
 
   console.log("strategy deployed at: ", strategy.address);

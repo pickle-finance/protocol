@@ -9,10 +9,10 @@ interface ISolarChef {
         external
         view
         returns (
-            address[] calldata addresses,
-            address[] calldata symbols,
-            uint256[] calldata decimals,
-            uint256[] calldata amounts
+            address[] memory addresses,
+            address[] memory symbols,
+            uint256[] memory decimals,
+            uint256[] memory amounts
         );
 
     function userInfo(uint256, address)
