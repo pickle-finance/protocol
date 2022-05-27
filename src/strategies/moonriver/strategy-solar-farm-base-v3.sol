@@ -3,6 +3,7 @@ pragma solidity ^0.6.7;
 
 import "./strategy-base.sol";
 import "../../interfaces/solar-chefv2.sol";
+import "../../interfaces/weth.sol";
 
 abstract contract StrategySolarFarmBaseV3 is StrategyBase {
     // Token addresses
@@ -108,6 +109,12 @@ abstract contract StrategySolarFarmBaseV3 is StrategyBase {
         ISolarChef(solarChef).deposit(poolId, 0);
         uint256 _solar = IERC20(solar).balanceOf(address(this));
 
+        // if any one of token0 or token1 is MOVR, wrap it to WMOVR
+        if (token0 == movr || token1 == movr) {
+            uint256 _native = address(this).balance;
+            if (_native > 0) WETH(movr).deposit{value: _native}();
+        } 
+        
         if (_solar > 0) {
             uint256 _keepReward = _solar.mul(keepReward).div(keepRewardMax);
             IERC20(solar).safeTransfer(IController(controller).treasury(), _keepReward);
