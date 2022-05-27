@@ -109,10 +109,6 @@ abstract contract StrategySolarFarmBaseV3 is StrategyBase {
         ISolarChef(solarChef).deposit(poolId, 0);
         uint256 _solar = IERC20(solar).balanceOf(address(this));
 
-        // Wrap MOVR to WMOVR
-        uint256 _native = address(this).balance;
-        if (_native > 0) WETH(movr).deposit{value: _native}();
-
         if (_solar > 0) {
             uint256 _keepReward = _solar.mul(keepReward).div(keepRewardMax);
             IERC20(solar).safeTransfer(IController(controller).treasury(), _keepReward);
@@ -127,6 +123,10 @@ abstract contract StrategySolarFarmBaseV3 is StrategyBase {
                 _swapSushiswapWithPath(swapRoutes[token1], toToken1);
             }
         }
+
+        // Wrap MOVR to WMOVR
+        uint256 _native = address(this).balance;
+        if (_native > 0) WETH(movr).deposit{value: _native}();
 
         // Adds in liquidity for token0/token1
         uint256 _token0 = IERC20(token0).balanceOf(address(this));
