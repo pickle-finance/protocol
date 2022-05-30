@@ -19,7 +19,7 @@ contract StrategyMovrXcksmLp is StrategySolarFarmBaseV3 {
     ) public StrategySolarFarmBaseV3(_poolId, _lp, _governance, _strategist, _controller, _timelock) {
 
         swapRoutes[movr] = [solar, movr]; 
-        swapRoutes[xcksm] = [solar, movr, xcksm]; 
+        swapRoutes[xcksm] = [movr, xcksm]; 
 
     }
 
