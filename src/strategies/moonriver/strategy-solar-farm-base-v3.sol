@@ -3,6 +3,7 @@ pragma solidity ^0.6.7;
 
 import "./strategy-base.sol";
 import "../../interfaces/solar-chefv2.sol";
+import "../../interfaces/weth.sol";
 
 abstract contract StrategySolarFarmBaseV3 is StrategyBase {
     // Token addresses
@@ -106,20 +107,40 @@ abstract contract StrategySolarFarmBaseV3 is StrategyBase {
     function harvest() public virtual override {
         // Collects SOLAR tokens
         ISolarChef(solarChef).deposit(poolId, 0);
+
+        // Wrap MOVR to WMOVR
+        uint256 _native = address(this).balance;
+        if (_native > 0) WETH(movr).deposit{value: _native}();
+
         uint256 _solar = IERC20(solar).balanceOf(address(this));
 
         if (_solar > 0) {
-            uint256 _keepReward = _solar.mul(keepReward).div(keepRewardMax);
-            IERC20(solar).safeTransfer(IController(controller).treasury(), _keepReward);
-            _solar = _solar.sub(_keepReward);
-            uint256 toToken0 = _solar.div(2);
-            uint256 toToken1 = _solar.sub(toToken0);
-
-            if (swapRoutes[token0].length > 1) {
-                _swapSushiswapWithPath(swapRoutes[token0], toToken0);
+            if (swapRoutes[movr].length > 1) {
+               _swapSushiswapWithPath(swapRoutes[movr], _solar);
             }
-            if (swapRoutes[token1].length > 1) {
-                _swapSushiswapWithPath(swapRoutes[token1], toToken1);
+
+            uint256 _movr = IERC20(movr).balanceOf(address(this));
+            uint256 _keepReward = _movr.mul(keepReward).div(keepRewardMax);
+            IERC20(solar).safeTransfer(IController(controller).treasury(), _keepReward);
+            
+            _movr = IERC20(movr).balanceOf(address(this));
+
+            if (movr == token0 || movr == token1) {
+                address toToken = movr == token0 ? token1 : token0;
+
+                if (swapRoutes[toToken].length > 1 && _movr > 0) {
+                    _swapSushiswapWithPath(swapRoutes[toToken], _movr.div(2));
+                }
+            } else {
+                uint256 toToken0 = _movr.div(2);
+                uint256 toToken1 = _movr.sub(toToken0);
+
+                if (swapRoutes[token0].length > 1) {
+                    _swapSushiswapWithPath(swapRoutes[token0], toToken0);
+                }
+                if (swapRoutes[token1].length > 1) {
+                    _swapSushiswapWithPath(swapRoutes[token1], toToken1);
+                }
             }
         }
 
