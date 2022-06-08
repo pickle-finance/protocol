@@ -311,6 +311,10 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     // Stake tracking
     mapping(address => LockedStake[]) private lockedStakes;
 
+    // Administrative booleans
+    bool public stakesUnlocked; // Release locked stakes in case of emergency
+    mapping(address => bool) public stakesUnlockedForAccount; // Release locked stakes of an account in case of emergency
+
     /* ========== STRUCTS ========== */
 
     struct LockedStake {
@@ -362,9 +366,10 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(address _token) {
+    constructor(address _token, address _governance) {
         TOKEN = IERC20(_token);
         DISTRIBUTION = msg.sender;
+        governance = _governance;
     }
 
     /* ========== VIEWS ========== */
@@ -575,7 +580,9 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         thisStake = lockedStakes[msg.sender][index];
 
         require(
-            block.timestamp >= thisStake.ending_timestamp,
+            block.timestamp >= thisStake.ending_timestamp 
+                || stakesUnlocked == true
+                || stakesUnlockedForAccount[msg.sender] == true,
             "Stake is still locked!"
         );
 
@@ -658,6 +665,14 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         );
         lock_time_for_max_multiplier = _lock_time_for_max_multiplier;
         emit MaxRewardsDurationUpdated(lock_time_for_max_multiplier);
+    }
+
+    function unlockStakes() external onlyGov {
+        stakesUnlocked = !stakesUnlocked;
+    }
+
+    function unlockStakeForAccount(address account) external onlyGov {
+        stakesUnlockedForAccount[account] = !stakesUnlockedForAccount[account];
     }
 
     /* ========== EVENTS ========== */
@@ -1148,7 +1163,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     function addGauge(address _token) external {
         require(msg.sender == governance, "!gov");
         require(gauges[_token] == address(0x0), "exists");
-        gauges[_token] = address(new GaugeV2(_token));
+        gauges[_token] = address(new GaugeV2(_token, governance));
         _tokens.push(_token);
     }
 
