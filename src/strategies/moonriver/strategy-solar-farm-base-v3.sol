@@ -121,7 +121,7 @@ abstract contract StrategySolarFarmBaseV3 is StrategyBase {
 
             uint256 _movr = IERC20(movr).balanceOf(address(this));
             uint256 _keepReward = _movr.mul(keepReward).div(keepRewardMax);
-            IERC20(solar).safeTransfer(IController(controller).treasury(), _keepReward);
+            IERC20(movr).safeTransfer(IController(controller).treasury(), _keepReward);
             
             _movr = IERC20(movr).balanceOf(address(this));
 
