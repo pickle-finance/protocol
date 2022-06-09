@@ -299,7 +299,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     mapping(address => uint256) public rewards;
     uint256 public rewardPerTokenStored;
     uint256 public rewardRate = 0;
-    uint256 public multiplierDecayPerPeriod = uint256(2876712e10);
+    uint256 public multiplierDecayPerSecond = uint256(48e9);
     mapping(address => uint256) private lastusedMultiplier;
     mapping(address => uint256) private lastRewardClaimTime; // staker addr -> timestamp
 
@@ -429,15 +429,15 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         return lock_multiplier;
     }
 
-    function _decayedLockMultiplier(address account, uint256 elapsedPeriods)
+    function _decayedLockMultiplier(address account, uint256 elapsedSeconds)
         internal
         view
         returns (uint256)
     {
         return
             (lastusedMultiplier[account] +
-                (elapsedPeriods - 1) *
-                multiplierDecayPerPeriod) / 2;
+                (elapsedSeconds - 1) *
+                multiplierDecayPerSecond) / 2;
     }
 
     function derivedBalance(address account) public returns (uint256) {
@@ -477,11 +477,11 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
                     lock_multiplier = MULTIPLIER_PRECISION;
                 }
             } else {
-                uint256 elapsedPeriods = (block.timestamp - lastUpdateTime) / 7;
-                if (elapsedPeriods > 0) {
+                uint256 elapsedSeconds = (block.timestamp - lastUpdateTime);
+                if (elapsedSeconds > 0) {
                     lock_multiplier = _decayedLockMultiplier(
                         account,
-                        elapsedPeriods
+                        elapsedSeconds
                     );
                     lastusedMultiplier[account] = lock_multiplier;
                 }
