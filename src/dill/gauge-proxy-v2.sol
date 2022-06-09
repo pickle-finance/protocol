@@ -299,6 +299,8 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     mapping(address => uint256) public rewards;
     uint256 public rewardPerTokenStored;
     uint256 public rewardRate = 0;
+    uint256 public multiplierDecayPerPeriod = uint256(2876712e10);
+    mapping(address => uint256) private lastusedMultiplier;
     mapping(address => uint256) private lastRewardClaimTime; // staker addr -> timestamp
 
     // Balance tracking
@@ -337,7 +339,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     modifier onlyGov() {
         require(
             msg.sender == governance,
-            "Caller is not RewardsDistribution contract"
+            "Operation allowed by only governance"
         );
         _;
     }
@@ -397,7 +399,48 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
                 1e18) / derivedSupply);
     }
 
-    function derivedBalance(address account) public view returns (uint256) {
+    // All the locked stakes for a given account
+    function lockedStakesOf(address account)
+        external
+        view
+        returns (LockedStake[] memory)
+    {
+        return lockedStakes[account];
+    }
+
+    function earned(address account) public view returns (uint256) {
+        return
+            ((derivedBalances[account] *
+                (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) +
+            rewards[account];
+    }
+
+    function getRewardForDuration() external view returns (uint256) {
+        return rewardRate * DURATION;
+    }
+
+    // Multiplier amount, given the length of the lock
+    function lockMultiplier(uint256 secs) public view returns (uint256) {
+        uint256 lock_multiplier = uint256(MULTIPLIER_PRECISION) +
+            ((secs * (lock_max_multiplier - MULTIPLIER_PRECISION)) /
+                (lock_time_for_max_multiplier));
+        if (lock_multiplier > lock_max_multiplier)
+            lock_multiplier = lock_max_multiplier;
+        return lock_multiplier;
+    }
+
+    function _decayedLockMultiplier(address account, uint256 elapsedPeriods)
+        internal
+        view
+        returns (uint256)
+    {
+        return
+            (lastusedMultiplier[account] +
+                (elapsedPeriods - 1) *
+                multiplierDecayPerPeriod) / 2;
+    }
+
+    function derivedBalance(address account) public returns (uint256) {
         uint256 _balance = _balances[account];
         uint256 _derived = (_balance * 40) / 100;
         uint256 _adjusted = (((_totalSupply * DILL.balanceOf(account)) /
@@ -433,6 +476,15 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
                 else {
                     lock_multiplier = MULTIPLIER_PRECISION;
                 }
+            } else {
+                uint256 elapsedPeriods = (block.timestamp - lastUpdateTime) / 7;
+                if (elapsedPeriods > 0) {
+                    lock_multiplier = _decayedLockMultiplier(
+                        account,
+                        elapsedPeriods
+                    );
+                    lastusedMultiplier[account] = lock_multiplier;
+                }
             }
 
             uint256 liquidity = thisStake.liquidity;
@@ -444,36 +496,6 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         }
 
         return dillBoostedDerivedBal + lockBoostedDerivedBal;
-    }
-
-    // All the locked stakes for a given account
-    function lockedStakesOf(address account)
-        external
-        view
-        returns (LockedStake[] memory)
-    {
-        return lockedStakes[account];
-    }
-
-    function earned(address account) public view returns (uint256) {
-        return
-            ((derivedBalances[account] *
-                (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) +
-            rewards[account];
-    }
-
-    function getRewardForDuration() external view returns (uint256) {
-        return rewardRate * DURATION;
-    }
-
-    // Multiplier amount, given the length of the lock
-    function lockMultiplier(uint256 secs) public view returns (uint256) {
-        uint256 lock_multiplier = uint256(MULTIPLIER_PRECISION) +
-            ((secs * (lock_max_multiplier - MULTIPLIER_PRECISION)) /
-                (lock_time_for_max_multiplier));
-        if (lock_multiplier > lock_max_multiplier)
-            lock_multiplier = lock_max_multiplier;
-        return lock_multiplier;
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
@@ -529,13 +551,13 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         uint256 start_timestamp
     ) internal nonReentrant updateReward(account) {
         require(amount > 0, "Cannot stake 0");
-        uint256 lock_multiplier = lockMultiplier(secs);
+        lastusedMultiplier[account] = lockMultiplier(secs);
         lockedStakes[account].push(
             LockedStake(
                 start_timestamp,
                 amount,
                 start_timestamp + secs,
-                lock_multiplier
+                lastusedMultiplier[account]
             )
         );
 
@@ -580,9 +602,9 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         thisStake = lockedStakes[msg.sender][index];
 
         require(
-            block.timestamp >= thisStake.ending_timestamp 
-                || stakesUnlocked == true
-                || stakesUnlockedForAccount[msg.sender] == true,
+            block.timestamp >= thisStake.ending_timestamp ||
+                stakesUnlocked == true ||
+                stakesUnlockedForAccount[msg.sender] == true,
             "Stake is still locked!"
         );
 
