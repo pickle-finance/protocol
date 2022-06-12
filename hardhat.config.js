@@ -1,5 +1,3 @@
-
-
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-ethers");
@@ -7,9 +5,8 @@ require("solidity-coverage");
 require("hardhat-deploy");
 require("hardhat-gas-reporter");
 require("hardhat-contract-sizer");
-const { removeConsoleLog } = require("hardhat-preprocessor");
+const {removeConsoleLog} = require("hardhat-preprocessor");
 require("dotenv").config();
-
 
 module.exports = {
   defaultNetwork: "aurora",
@@ -38,7 +35,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://ftmrpc.ultimatenodes.io/`,
+        url: `https://moonriver.public.blastapi.io`,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -65,7 +62,7 @@ module.exports = {
     },
     moonbeam: {
       url: `https://rpc.api.moonbeam.network`,
-      accounts: [`0x${process.env.MNEMONIC}`]
+      accounts: [`0x${process.env.MNEMONIC}`],
     },
     fantom: {
       url: `https://rpc.ftm.tools/`,
@@ -84,7 +81,7 @@ module.exports = {
     optimism: {
       url: `https://mainnet.optimism.io`,
       accounts: [`0x${process.env.MNEMONIC}`],
-    }
+    },
   },
   contractSizer: {
     alphaSort: true,
@@ -98,7 +95,7 @@ module.exports = {
     },
   },
   paths: {
-    sources: "./src",
+    sources: "./src/strategies/moonriver",
     tests: "./src/tests/strategies",
     cache: "./cache",
     artifacts: "./artifacts",
