@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "./strategy-base.sol";
+import "../strategy-base.sol";
 
-import "../../interfaces/curve.sol";
+import "../../../interfaces/curve.sol";
+
 
 // Base contract for Curve based staking contract interfaces
 
@@ -11,10 +12,7 @@ abstract contract StrategyCurveBase is StrategyBase {
     // curve dao
     address public gauge;
     address public curve;
-
-    // token addresses
-    address public usdt = 0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9;
-    address public wbtc = 0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f;
+    address public mintr = 0xabC000d88f23Bb45525E447528DBF656A9D55bf5;
 
     // rewards
     address public crv = 0x11cDb42B0EB46D95f990BeDD4695A6e3fA034978;
@@ -33,6 +31,8 @@ abstract contract StrategyCurveBase is StrategyBase {
     {
         curve = _curve;
         gauge = _gauge;
+        IERC20(want).safeApprove(gauge, type(uint256).max);
+        IERC20(weth).safeApprove(curve, type(uint256).max);
     }
 
     // **** Getters ****
@@ -50,8 +50,6 @@ abstract contract StrategyCurveBase is StrategyBase {
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(gauge, 0);
-            IERC20(want).safeApprove(gauge, _want);
             ICurveGauge(gauge).deposit(_want);
         }
     }
