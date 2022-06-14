@@ -279,29 +279,29 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         address(0x066419EaEf5DE53cc5da0d8702b990c5bc7D1AB3);
 
     // Constant for various precisions
-    uint256 private constant MULTIPLIER_PRECISION = 1e18;
+    uint256 private constant _MultiplierPrecision = 1e18;
 
     IERC20 public immutable TOKEN;
     address public immutable DISTRIBUTION;
     uint256 public constant DURATION = 7 days;
 
     // Lock time and multiplier settings
-    uint256 public lock_max_multiplier = uint256(25e17); // E18. 1x = e18
-    uint256 public lock_time_for_max_multiplier = 1 * 365 * 86400; // 1 year
-    uint256 public lock_time_min = 86400; // 1 * 86400  (1 day)
+    uint256 public lockMaxMultiplier = uint256(25e17); // E18. 1x = e18
+    uint256 public lockTimeForMaxMultiplier = 1 * 365 * 86400; // 1 year
+    uint256 public lockTimeMin = 86400; // 1 * 86400  (1 day)
 
     // Time tracking
     uint256 public periodFinish = 0;
     uint256 public lastUpdateTime;
-
+    mapping(address => uint256) public lastUpdateTimeForAccount;
     // Rewards tracking
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
     uint256 public rewardPerTokenStored;
     uint256 public rewardRate = 0;
     uint256 public multiplierDecayPerSecond = uint256(48e9);
-    mapping(address => uint256) private lastusedMultiplier;
-    mapping(address => uint256) private lastRewardClaimTime; // staker addr -> timestamp
+    mapping(address => mapping(uint256 => uint256)) private _lastusedMultiplier;
+    mapping(address => uint256) private _lastRewardClaimTime; // staker addr -> timestamp
 
     // Balance tracking
     uint256 private _totalSupply;
@@ -311,7 +311,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     mapping(address => uint256) private _base;
 
     // Stake tracking
-    mapping(address => LockedStake[]) private lockedStakes;
+    mapping(address => LockedStake[]) private _lockedStakes;
 
     // Administrative booleans
     bool public stakesUnlocked; // Release locked stakes in case of emergency
@@ -345,9 +345,9 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     }
 
     modifier lockable(uint256 secs) {
-        require(secs >= lock_time_min, "Minimum stake time not met");
+        require(secs >= lockTimeMin, "Minimum stake time not met");
         require(
-            secs <= lock_time_for_max_multiplier,
+            secs <= lockTimeForMaxMultiplier,
             "Trying to lock for too long"
         );
         _;
@@ -356,6 +356,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
+        lastUpdateTimeForAccount[account] = lastUpdateTime;
         if (account != address(0)) {
             rewards[account] = earned(account);
             userRewardPerTokenPaid[account] = rewardPerTokenStored;
@@ -405,7 +406,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         view
         returns (LockedStake[] memory)
     {
-        return lockedStakes[account];
+        return _lockedStakes[account];
     }
 
     function earned(address account) public view returns (uint256) {
@@ -421,21 +422,22 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
 
     // Multiplier amount, given the length of the lock
     function lockMultiplier(uint256 secs) public view returns (uint256) {
-        uint256 lock_multiplier = uint256(MULTIPLIER_PRECISION) +
-            ((secs * (lock_max_multiplier - MULTIPLIER_PRECISION)) /
-                (lock_time_for_max_multiplier));
-        if (lock_multiplier > lock_max_multiplier)
-            lock_multiplier = lock_max_multiplier;
+        uint256 lock_multiplier = uint256(_MultiplierPrecision) +
+            ((secs * (lockMaxMultiplier - _MultiplierPrecision)) /
+                (lockTimeForMaxMultiplier));
+        if (lock_multiplier > lockMaxMultiplier)
+            lock_multiplier = lockMaxMultiplier;
         return lock_multiplier;
     }
 
-    function _decayedLockMultiplier(address account, uint256 elapsedSeconds)
-        internal
-        view
-        returns (uint256)
-    {
+    function _decayedLockMultiplier(
+        address account,
+        uint256 index,
+        uint256 elapsedSeconds
+    ) internal view returns (uint256) {
         return
-            (lastusedMultiplier[account] +
+            (2 *
+                _lastusedMultiplier[account][index] +
                 (elapsedSeconds - 1) *
                 multiplierDecayPerSecond) / 2;
     }
@@ -452,44 +454,49 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
 
         // Loop through the locked stakes, first by getting the liquidity * lock_multiplier portion
         uint256 lockBoostedDerivedBal = 0;
-        for (uint256 i = 0; i < lockedStakes[account].length; i++) {
-            LockedStake memory thisStake = lockedStakes[account][i];
+        for (uint256 i = 0; i < _lockedStakes[account].length; i++) {
+            LockedStake memory thisStake = _lockedStakes[account][i];
             uint256 lock_multiplier = thisStake.lock_multiplier;
 
             // If the lock is expired
             if (thisStake.ending_timestamp <= block.timestamp) {
                 // If the lock expired in the time since the last claim, the weight needs to be proportionately averaged this time
-                if (lastRewardClaimTime[account] < thisStake.ending_timestamp) {
+                if (_lastRewardClaimTime[account] < thisStake.ending_timestamp) {
                     uint256 time_before_expiry = thisStake.ending_timestamp -
-                        lastRewardClaimTime[account];
+                        _lastRewardClaimTime[account];
                     uint256 time_after_expiry = block.timestamp -
                         thisStake.ending_timestamp;
 
                     // Get the weighted-average lock_multiplier
                     uint256 numerator = (lock_multiplier * time_before_expiry) +
-                        (MULTIPLIER_PRECISION * time_after_expiry);
+                        (_MultiplierPrecision * time_after_expiry);
                     lock_multiplier =
                         numerator /
                         (time_before_expiry + time_after_expiry);
                 }
                 // Otherwise, it needs to just be 1x
                 else {
-                    lock_multiplier = MULTIPLIER_PRECISION;
+                    lock_multiplier = _MultiplierPrecision;
                 }
             } else {
-                uint256 elapsedSeconds = (block.timestamp - lastUpdateTime);
+                uint256 elapsedSeconds = (block.timestamp -
+                    lastUpdateTimeForAccount[account]);
                 if (elapsedSeconds > 0) {
                     lock_multiplier = _decayedLockMultiplier(
                         account,
+                        i,
                         elapsedSeconds
                     );
-                    lastusedMultiplier[account] = lock_multiplier;
+                    _lastusedMultiplier[account][i] =
+                        _lastusedMultiplier[account][i] +
+                        (elapsedSeconds - 1) *
+                        multiplierDecayPerSecond;
                 }
             }
 
             uint256 liquidity = thisStake.liquidity;
             uint256 combined_boosted_amount = (liquidity * lock_multiplier) /
-                MULTIPLIER_PRECISION;
+                _MultiplierPrecision;
             lockBoostedDerivedBal =
                 lockBoostedDerivedBal +
                 combined_boosted_amount;
@@ -551,26 +558,28 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         uint256 start_timestamp
     ) internal nonReentrant updateReward(account) {
         require(amount > 0, "Cannot stake 0");
-        lastusedMultiplier[account] = lockMultiplier(secs);
-        lockedStakes[account].push(
+        uint256 MaxMultiplier = lockMultiplier(secs);
+        _lockedStakes[account].push(
             LockedStake(
                 start_timestamp,
                 amount,
                 start_timestamp + secs,
-                lastusedMultiplier[account]
+                MaxMultiplier
             )
         );
-
-        TOKEN.safeTransferFrom(account, address(this), amount);
+        _lastusedMultiplier[account][
+            _lockedStakes[account].length - 1
+        ] = MaxMultiplier;
 
         _totalSupply = _totalSupply + amount;
         _balances[account] = _balances[account] + amount;
 
         // Needed for edge case if the staker only claims once, and after the lock expired
-        if (lastRewardClaimTime[account] == 0)
-            lastRewardClaimTime[account] = block.timestamp;
+        if (_lastRewardClaimTime[account] == 0)
+            _lastRewardClaimTime[account] = block.timestamp;
 
-        emit Staked(account, amount, secs, lockedStakes[account].length - 1);
+        TOKEN.safeTransferFrom(account, address(this), amount);
+        emit Staked(account, amount, secs, _lockedStakes[account].length - 1);
     }
 
     function withdraw(uint256 index) external {
@@ -578,15 +587,19 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     }
 
     function withdrawAll() public nonReentrant updateReward(msg.sender) {
-        for (uint256 i = 0; i < lockedStakes[msg.sender].length; i++) {
-            uint256 liquidity = lockedStakes[msg.sender][i].liquidity;
+        uint256 amount;
+        for (uint256 i = 0; i < _lockedStakes[msg.sender].length; i++) {
+            uint256 liquidity = _lockedStakes[msg.sender][i].liquidity;
             if (liquidity > 0) {
                 _totalSupply = _totalSupply - liquidity;
                 _balances[msg.sender] = _balances[msg.sender] - liquidity;
-                delete lockedStakes[msg.sender][i];
-                TOKEN.safeTransfer(msg.sender, liquidity);
-                emit Withdrawn(msg.sender, liquidity, i);
+                delete _lockedStakes[msg.sender][i];
+                amount += liquidity;
             }
+        }
+        if (amount > 0) {
+            TOKEN.safeTransfer(msg.sender, amount);
+            emit WithdrawnAll(msg.sender, amount);
         }
     }
 
@@ -597,9 +610,9 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     {
         LockedStake memory thisStake;
         thisStake.liquidity = 0;
-        require(index < lockedStakes[msg.sender].length, "Stake not found");
+        require(index < _lockedStakes[msg.sender].length, "Stake not found");
 
-        thisStake = lockedStakes[msg.sender][index];
+        thisStake = _lockedStakes[msg.sender][index];
 
         require(
             block.timestamp >= thisStake.ending_timestamp ||
@@ -613,22 +626,20 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         if (liquidity > 0) {
             _totalSupply = _totalSupply - liquidity;
             _balances[msg.sender] = _balances[msg.sender] - liquidity;
-            delete lockedStakes[msg.sender][index];
+            delete _lockedStakes[msg.sender][index];
             TOKEN.safeTransfer(msg.sender, liquidity);
+            emit Withdrawn(msg.sender, liquidity, index);
         }
-
-        emit Withdrawn(msg.sender, liquidity, index);
     }
 
     function getReward() public nonReentrant updateReward(msg.sender) {
         uint256 reward = rewards[msg.sender];
+        _lastRewardClaimTime[msg.sender] = block.timestamp;
         if (reward > 0) {
             rewards[msg.sender] = 0;
             PICKLE.safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
-
-        lastRewardClaimTime[msg.sender] = block.timestamp;
     }
 
     function exit() external {
@@ -669,24 +680,24 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
             _lock_max_multiplier >= uint256(1e18),
             "Multiplier must be greater than or equal to 1e18"
         );
-        lock_max_multiplier = _lock_max_multiplier;
-        emit LockedStakeMaxMultiplierUpdated(lock_max_multiplier);
+        lockMaxMultiplier = _lock_max_multiplier;
+        emit LockedStakeMaxMultiplierUpdated(lockMaxMultiplier);
     }
 
-    function setMaxRewardsDuration(uint256 _lock_time_for_max_multiplier)
+    function setMaxRewardsDuration(uint256 _lockTimeForMaxMultiplier)
         external
         onlyGov
     {
         require(
-            _lock_time_for_max_multiplier >= 86400,
+            _lockTimeForMaxMultiplier >= 86400,
             "Rewards duration too short"
         );
         require(
             periodFinish == 0 || block.timestamp > periodFinish,
             "Reward period incomplete"
         );
-        lock_time_for_max_multiplier = _lock_time_for_max_multiplier;
-        emit MaxRewardsDurationUpdated(lock_time_for_max_multiplier);
+        lockTimeForMaxMultiplier = _lockTimeForMaxMultiplier;
+        emit MaxRewardsDurationUpdated(lockTimeForMaxMultiplier);
     }
 
     function unlockStakes() external onlyGov {
@@ -707,6 +718,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         uint256 index
     );
     event Withdrawn(address indexed user, uint256 amount, uint256 index);
+    event WithdrawnAll(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
     event LockedStakeMaxMultiplierUpdated(uint256 multiplier);
     event MaxRewardsDurationUpdated(uint256 newDuration);

@@ -1,30 +1,32 @@
 const hre = require("hardhat");
 const {ethers} = require("hardhat");
 
-// const pickleLP = "0xdc98556Ce24f007A5eF6dC1CE96322d65832A819";
 const pickleAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5";
-// const pyveCRVETH = "0x5eff6d166d66bacbc1bf52e2c54dd391ae6b1f48";
 
-async function advanceSevenDays() {
-  /** ************************************* increase time by 7 days ****************************************** */
-  console.log("-- Advancing 7 dyas --");
+async function advanceNDays(days) {
+  /**************** increase time by 7 days ******************* */
+  console.log(`-- Advancing ${days} dyas --`);
   await hre.network.provider.request({
     method: "evm_increaseTime",
-    params: [3600 * 24 * 7],
+    params: [3600 * 24 * days],
   });
 
-  /** ************************************* mine block ****************************************** */
+  /** ******************* mine block ************************* */
   await hre.network.provider.request({
     method: "evm_mine",
   });
 }
 
+async function advanceSevenDays() {
+  advanceNDays(7);
+}
+
 /**
- * 
- * @param {contract} GaugeProxyV2 
- * @param {array} lpAddr 
- * @param {number} start 
- * @param {number} end 
+ *
+ * @param {contract} GaugeProxyV2
+ * @param {array} lpAddr
+ * @param {number} start
+ * @param {number} end
  * @returns array
  */
 async function distribute(GaugeProxyV2, lpAddr, start, end) {
@@ -42,11 +44,12 @@ async function distribute(GaugeProxyV2, lpAddr, start, end) {
     const rewardsGauge = await pickle.balanceOf(gaugeAddr);
     rewards.push(Number(rewardsGauge));
   });
-  
+
   return rewards;
 }
 
 module.exports = {
+  advanceNDays,
   advanceSevenDays,
   distribute,
 };
