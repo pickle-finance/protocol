@@ -294,9 +294,10 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     uint256 public periodFinish = 0;
     uint256 public lastUpdateTime;
     mapping(address => uint256) public lastUpdateTimeForAccount;
+
     // Rewards tracking
     mapping(address => uint256) public userRewardPerTokenPaid;
-    mapping(address => uint256) public rewards;
+    mapping(address => uint256) private _rewards;
     uint256 public rewardPerTokenStored;
     uint256 public rewardRate = 0;
     uint256 public multiplierDecayPerSecond = uint256(48e9);
@@ -309,6 +310,9 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     mapping(address => uint256) private _balances;
     mapping(address => uint256) public derivedBalances;
     mapping(address => uint256) private _base;
+
+    // Deligate Tracting
+    mapping(address => mapping(address => bool)) public stakingDeligates;
 
     // Stake tracking
     mapping(address => LockedStake[]) private _lockedStakes;
@@ -324,6 +328,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         uint256 liquidity;
         uint256 ending_timestamp;
         uint256 lock_multiplier; // 6 decimals of precision. 1x = 1000000
+        bool isPermanentlyLocked;
     }
 
     /* ========== MODIFIERS ========== */
@@ -358,7 +363,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         lastUpdateTime = lastTimeRewardApplicable();
         lastUpdateTimeForAccount[account] = lastUpdateTime;
         if (account != address(0)) {
-            rewards[account] = earned(account);
+            _rewards[account] = earned(account);
             userRewardPerTokenPaid[account] = rewardPerTokenStored;
         }
         _;
@@ -413,7 +418,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         return
             ((derivedBalances[account] *
                 (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) +
-            rewards[account];
+            _rewards[account];
     }
 
     function getRewardForDuration() external view returns (uint256) {
@@ -459,9 +464,14 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
             uint256 lock_multiplier = thisStake.lock_multiplier;
 
             // If the lock is expired
-            if (thisStake.ending_timestamp <= block.timestamp) {
+            if (
+                thisStake.ending_timestamp <= block.timestamp &&
+                !thisStake.isPermanentlyLocked
+            ) {
                 // If the lock expired in the time since the last claim, the weight needs to be proportionately averaged this time
-                if (_lastRewardClaimTime[account] < thisStake.ending_timestamp) {
+                if (
+                    _lastRewardClaimTime[account] < thisStake.ending_timestamp
+                ) {
                     uint256 time_before_expiry = thisStake.ending_timestamp -
                         _lastRewardClaimTime[account];
                     uint256 time_after_expiry = block.timestamp -
@@ -482,11 +492,9 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
                 uint256 elapsedSeconds = (block.timestamp -
                     lastUpdateTimeForAccount[account]);
                 if (elapsedSeconds > 0) {
-                    lock_multiplier = _decayedLockMultiplier(
-                        account,
-                        i,
-                        elapsedSeconds
-                    );
+                    lock_multiplier = thisStake.isPermanentlyLocked
+                        ? lockMaxMultiplier
+                        : _decayedLockMultiplier(account, i, elapsedSeconds);
                     _lastusedMultiplier[account][i] =
                         _lastusedMultiplier[account][i] +
                         (elapsedSeconds - 1) *
@@ -515,47 +523,74 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         derivedSupply = derivedSupply + _derivedBalance;
     }
 
-    function depositAllAndLock(uint256 secs) external lockable(secs) {
+    function depositAllAndLock(uint256 secs, bool isPermanentlyLocked)
+        external
+        lockable(secs)
+    {
         _deposit(
             TOKEN.balanceOf(msg.sender),
             msg.sender,
             secs,
-            block.timestamp
+            block.timestamp,
+            isPermanentlyLocked
         );
     }
 
     function depositAll() external {
-        _deposit(TOKEN.balanceOf(msg.sender), msg.sender, 0, block.timestamp);
+        _deposit(
+            TOKEN.balanceOf(msg.sender),
+            msg.sender,
+            0,
+            block.timestamp,
+            false
+        );
     }
 
     function depositFor(uint256 amount, address account) external {
-        _deposit(amount, account, 0, block.timestamp);
+        require(
+            stakingDeligates[account][msg.sender],
+            "Only registerd deligates can deposit for their deligator"
+        );
+        _deposit(amount, account, 0, block.timestamp, false);
     }
 
     function depositForAndLock(
         uint256 amount,
         address account,
-        uint256 secs
+        uint256 secs,
+        bool isPermanentlyLocked
     ) external lockable(secs) {
-        _deposit(amount, account, secs, block.timestamp);
+        require(
+            stakingDeligates[account][msg.sender],
+            "Only registerd deligates can stake for their deligator"
+        );
+        _deposit(amount, account, secs, block.timestamp, isPermanentlyLocked);
     }
 
     function deposit(uint256 amount) external {
-        _deposit(amount, msg.sender, 0, block.timestamp);
+        _deposit(amount, msg.sender, 0, block.timestamp, false);
     }
 
-    function depositAndLock(uint256 amount, uint256 secs)
-        external
-        lockable(secs)
-    {
-        _deposit(amount, msg.sender, secs, block.timestamp);
+    function depositAndLock(
+        uint256 amount,
+        uint256 secs,
+        bool isPermanentlyLocked
+    ) external lockable(secs) {
+        _deposit(
+            amount,
+            msg.sender,
+            secs,
+            block.timestamp,
+            isPermanentlyLocked
+        );
     }
 
     function _deposit(
         uint256 amount,
         address account,
         uint256 secs,
-        uint256 start_timestamp
+        uint256 start_timestamp,
+        bool isPermanentlyLocked
     ) internal nonReentrant updateReward(account) {
         require(amount > 0, "Cannot stake 0");
         uint256 MaxMultiplier = lockMultiplier(secs);
@@ -564,7 +599,8 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
                 start_timestamp,
                 amount,
                 start_timestamp + secs,
-                MaxMultiplier
+                MaxMultiplier,
+                isPermanentlyLocked
             )
         );
         _lastusedMultiplier[account][
@@ -589,8 +625,18 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     function withdrawAll() public nonReentrant updateReward(msg.sender) {
         uint256 amount;
         for (uint256 i = 0; i < _lockedStakes[msg.sender].length; i++) {
-            uint256 liquidity = _lockedStakes[msg.sender][i].liquidity;
-            if (liquidity > 0) {
+            LockedStake memory thisStake = _lockedStakes[msg.sender][i];
+            uint256 liquidity = thisStake.liquidity;
+            if (
+                liquidity > 0 &&
+                (stakesUnlocked ||
+                    stakesUnlockedForAccount[msg.sender] ||
+                    (
+                        thisStake.isPermanentlyLocked
+                            ? false
+                            : block.timestamp >= thisStake.ending_timestamp
+                    ))
+            ) {
                 _totalSupply = _totalSupply - liquidity;
                 _balances[msg.sender] = _balances[msg.sender] - liquidity;
                 delete _lockedStakes[msg.sender][i];
@@ -615,9 +661,13 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         thisStake = _lockedStakes[msg.sender][index];
 
         require(
-            block.timestamp >= thisStake.ending_timestamp ||
-                stakesUnlocked == true ||
-                stakesUnlockedForAccount[msg.sender] == true,
+            stakesUnlocked ||
+                stakesUnlockedForAccount[msg.sender] ||
+                (
+                    thisStake.isPermanentlyLocked
+                        ? false
+                        : block.timestamp >= thisStake.ending_timestamp
+                ),
             "Stake is still locked!"
         );
 
@@ -633,10 +683,10 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     }
 
     function getReward() public nonReentrant updateReward(msg.sender) {
-        uint256 reward = rewards[msg.sender];
+        uint256 reward = _rewards[msg.sender];
         _lastRewardClaimTime[msg.sender] = block.timestamp;
         if (reward > 0) {
-            rewards[msg.sender] = 0;
+            _rewards[msg.sender] = 0;
             PICKLE.safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
@@ -709,7 +759,9 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     }
 
     /* ========== EVENTS ========== */
-
+    event approvedTokenReceipt(address _spender, uint256 _amount);
+    event stakeTransferd(address _to, uint256 _index);
+    event allStakesTransferd(address _to);
     event RewardAdded(uint256 reward);
     event Staked(
         address indexed user,
@@ -761,7 +813,7 @@ contract MasterDill {
         uint256 amount
     );
 
-    constructor() public {
+    constructor() {
         balances[msg.sender] = 1e18;
         emit Transfer(address(0x0), msg.sender, 1e18);
     }
@@ -1050,7 +1102,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         }
 
         delete tokenVote[_owner];
-        // Ensure distribute rewards are for current period
+        // Ensure distribute _rewards are for current period
         periodForDistribute[_currentId] = _currentId;
     }
 
