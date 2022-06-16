@@ -311,8 +311,8 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     mapping(address => uint256) public derivedBalances;
     mapping(address => uint256) private _base;
 
-    // Deligate Tracting
-    mapping(address => mapping(address => bool)) public stakingDeligates;
+    // Delegate tracking
+    mapping(address => mapping(address => bool)) public stakingDelegates;
 
     // Stake tracking
     mapping(address => LockedStake[]) private _lockedStakes;
@@ -447,6 +447,12 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
                 multiplierDecayPerSecond) / 2;
     }
 
+    function setStakingDelegate(address _delegate) public{
+        require(stakingDelegates[msg.sender][_delegate], "Already a staking delegate for user!");
+        require(_delegate != msg.sender, "Cannot delegate to self");
+        stakingDelegates[msg.sender][_delegate] = true;
+    }
+
     function derivedBalance(address account) public returns (uint256) {
         uint256 _balance = _balances[account];
         uint256 _derived = (_balance * 40) / 100;
@@ -548,8 +554,8 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
 
     function depositFor(uint256 amount, address account) external {
         require(
-            stakingDeligates[account][msg.sender],
-            "Only registerd deligates can deposit for their deligator"
+            stakingDelegates[account][msg.sender],
+            "Only registerd delegates can deposit for their deligator"
         );
         _deposit(amount, account, 0, block.timestamp, false);
     }
@@ -561,8 +567,8 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         bool isPermanentlyLocked
     ) external lockable(secs) {
         require(
-            stakingDeligates[account][msg.sender],
-            "Only registerd deligates can stake for their deligator"
+            stakingDelegates[account][msg.sender],
+            "Only registerd delegates can stake for their deligator"
         );
         _deposit(amount, account, secs, block.timestamp, isPermanentlyLocked);
     }
@@ -631,11 +637,8 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
                 liquidity > 0 &&
                 (stakesUnlocked ||
                     stakesUnlockedForAccount[msg.sender] ||
-                    (
-                        thisStake.isPermanentlyLocked
-                            ? false
-                            : block.timestamp >= thisStake.ending_timestamp
-                    ))
+                    (!thisStake.isPermanentlyLocked &&
+                        block.timestamp >= thisStake.ending_timestamp))
             ) {
                 _totalSupply = _totalSupply - liquidity;
                 _balances[msg.sender] = _balances[msg.sender] - liquidity;
