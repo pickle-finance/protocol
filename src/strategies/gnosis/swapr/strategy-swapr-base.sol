@@ -79,6 +79,7 @@ abstract contract StrategySwaprFarmBase is StrategyBase {
         for (uint256 i = 0; i < harvestableAmounts.length; i++) {
             if (harvestableAmounts[i] > 0) {
                 shouldClaimFirst = true;
+                break;
             }
         }
         if (shouldClaimFirst) {
@@ -111,7 +112,6 @@ abstract contract StrategySwaprFarmBase is StrategyBase {
         for (uint256 i = 0; i < activeRewardsTokens.length; i++) {
             if (activeRewardsTokens[i] == reward) {
                 activeRewardsTokens[i] = activeRewardsTokens[activeRewardsTokens.length - 1];
-                delete activeRewardsTokens[activeRewardsTokens.length - 1];
                 activeRewardsTokens.pop();
             }
         }
