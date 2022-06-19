@@ -1,6 +1,6 @@
-const {expect, increaseTime, getContractAt, increaseBlock} = require("../../utils/testHelper");
-const {setup} = require("../../utils/setupHelper");
-const {NULL_ADDRESS} = require("../../utils/constants");
+const {expect, increaseTime, getContractAt, increaseBlock} = require("../../../utils/testHelper");
+const {setup} = require("../../../utils/setupHelper");
+const {NULL_ADDRESS} = require("../../../utils/constants");
 const {BigNumber: BN} = require("ethers");
 
 const doTestBehaviorBase = (strategyName, want_addr, reward_addr, bIncreaseBlock = false, isPolygon = false) => {
@@ -187,9 +187,20 @@ const doTestBehaviorBase = (strategyName, want_addr, reward_addr, bIncreaseBlock
       await strategy
         .connect(alice)
         .addToNativeRoute(["0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d", "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d"]);
+      await strategy
+        .connect(alice)
+        .addToNativeRoute([
+          "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",
+          "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",
+          "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",
+        ]);
       const rewardsAfterAdd = await strategy.getActiveRewardsTokens();
 
       expect(rewardsAfterAdd.length).to.be.eq(rewardsBeforeAdd.length + 1, "Adding reward failed");
+      expect(rewardsAfterAdd.filter((z) => z === "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d").length).to.be.eq(
+        1,
+        "Updating reward path results in redundance in activeRewardsTokens"
+      );
 
       await strategy.connect(alice).deactivateReward("0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d");
       const rewardsAfterRemove = await strategy.getActiveRewardsTokens();

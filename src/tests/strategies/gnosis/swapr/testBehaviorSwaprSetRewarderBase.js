@@ -1,6 +1,6 @@
-const {expect, increaseTime, getContractAt, increaseBlock} = require("../../utils/testHelper");
-const {setup} = require("../../utils/setupHelper");
-const {NULL_ADDRESS} = require("../../utils/constants");
+const {expect, increaseTime, getContractAt, increaseBlock} = require("../../../utils/testHelper");
+const {setup} = require("../../../utils/setupHelper");
+const {NULL_ADDRESS} = require("../../../utils/constants");
 const {BigNumber: BN, getDefaultProvider} = require("ethers");
 
 const doTestBehaviorBase = (

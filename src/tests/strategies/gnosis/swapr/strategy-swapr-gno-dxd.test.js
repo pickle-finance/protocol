@@ -1,6 +1,5 @@
-const {toWei} = require("../../../utils/testHelper");
 const {getWantFromWhale} = require("../../../utils/setupHelper");
-const {doTestBehaviorBase} = require("../testBehaviorSwaprBase");
+const {doTestBehaviorBase} = require("./testBehaviorSwaprBase");
 
 describe("StrategySwaprDxdGnoLp", () => {
   const want_addr = "0x558d777B24366f011E35A9f59114D1b45110d67B";
@@ -12,5 +11,5 @@ describe("StrategySwaprDxdGnoLp", () => {
     await getWantFromWhale(want_addr, 0.002 * 10 ** 18, alice, whale_addr);
   });
 
-  doTestBehaviorBase("StrategySwaprDxdGnoLp", want_addr, native_token_addr, true, true);
+  doTestBehaviorBase("StrategySwaprDxdGnoLp", want_addr, native_token_addr);
 });
