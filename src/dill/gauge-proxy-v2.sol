@@ -290,18 +290,24 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     uint256 public lockTimeForMaxMultiplier = 1 * 365 * 86400; // 1 year
     uint256 public lockTimeMin = 86400; // 1 * 86400  (1 day)
 
+    //Reward addresses, rates, and symbols
+    address[] public rewardTokens;
+    uint256[] public rewardRates;
+    string[] public rewardSymbols;
+    mapping(address => uint256) public rewardTokenAddrToIdx;
+
     // Time tracking
     uint256 public periodFinish = 0;
     uint256 public lastUpdateTime;
     mapping(address => uint256) public lastUpdateTimeForAccount;
 
     // Rewards tracking
-    mapping(address => uint256) public userRewardPerTokenPaid;
-    mapping(address => uint256) private _rewards;
-    uint256 public rewardPerTokenStored;
-    uint256 public rewardRate = 0;
+    mapping(address => mapping(uint256 => uint256))
+        private userRewardPerTokenPaid;
+    mapping(address => mapping(uint256 => uint256)) private _rewards;
+    uint256[] private rewardPerTokenStored;
     uint256 public multiplierDecayPerSecond = uint256(48e9);
-    mapping(address => mapping(uint256 => uint256)) private _lastusedMultiplier;
+    mapping(address => mapping(uint256 => uint256)) private _lastUsedMultiplier;
     mapping(address => uint256) private _lastRewardClaimTime; // staker addr -> timestamp
 
     // Balance tracking
@@ -361,10 +367,13 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
-        lastUpdateTimeForAccount[account] = lastUpdateTime;
+        lastUpdateTimeForAccount[account] = block.timestamp;
         if (account != address(0)) {
-            _rewards[account] = earned(account);
-            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+            uint256[] memory earnedArr = earned(account);
+            for (uint256 i = 0; i < rewardPerTokenStored.length; i++) {
+                _rewards[account][i] = earnedArr[i];
+                userRewardPerTokenPaid[account][i] = rewardPerTokenStored[i];
+            }
         }
         _;
         if (account != address(0)) {
@@ -374,10 +383,28 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(address _token, address _governance) {
+    constructor(
+        address _token,
+        address _governance,
+        string[] memory _rewardSymbols,
+        address[] memory _rewardTokens
+    ) {
         TOKEN = IERC20(_token);
+
+        rewardTokens = _rewardTokens;
+        rewardSymbols = _rewardSymbols;
+
         DISTRIBUTION = msg.sender;
         governance = _governance;
+
+        for (uint256 i = 0; i < _rewardTokens.length; i++) {
+            // For fast token address -> token ID lookups later
+            rewardTokenAddrToIdx[_rewardTokens[i]] = i;
+
+            // Initialize the stored rewards
+            rewardRates.push(0);
+            rewardPerTokenStored.push(0);
+        }
     }
 
     /* ========== VIEWS ========== */
@@ -394,15 +421,23 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         return Math.min(block.timestamp, periodFinish);
     }
 
-    function rewardPerToken() public view returns (uint256) {
+    function rewardPerToken()
+        public
+        view
+        returns (uint256[] memory newRewardsPerTokenStored)
+    {
         if (_totalSupply == 0) {
             return rewardPerTokenStored;
+        } else {
+            newRewardsPerTokenStored = new uint256[](rewardTokens.length);
+            for (uint256 i = 0; i < rewardPerTokenStored.length; i++) {
+                rewardPerTokenStored[i] +
+                    (((lastTimeRewardApplicable() - lastUpdateTime) *
+                        rewardRates[i] *
+                        1e18) / derivedSupply);
+            }
+            return newRewardsPerTokenStored;
         }
-        return
-            rewardPerTokenStored +
-            (((lastTimeRewardApplicable() - lastUpdateTime) *
-                rewardRate *
-                1e18) / derivedSupply);
     }
 
     // All the locked stakes for a given account
@@ -414,15 +449,39 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         return _lockedStakes[account];
     }
 
-    function earned(address account) public view returns (uint256) {
-        return
-            ((derivedBalances[account] *
-                (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) +
-            _rewards[account];
+    function earned(address account)
+        public
+        view
+        returns (uint256[] memory newEarned)
+    {
+        uint256[] memory rewardArr = rewardPerToken();
+        newEarned = new uint256[](rewardTokens.length);
+
+        if (derivedBalances[account] == 0) {
+            for (uint256 i = 0; i < rewardTokens.length; i++) {
+                newEarned[i] = 0;
+            }
+        } else {
+            for (uint256 i = 0; i < rewardTokens.length; i++) {
+                newEarned[i] =
+                    ((derivedBalances[account] *
+                        (rewardArr[i] - userRewardPerTokenPaid[account][i])) /
+                        1e18) +
+                    _rewards[account][i];
+            }
+        }
     }
 
-    function getRewardForDuration() external view returns (uint256) {
-        return rewardRate * DURATION;
+    function getRewardForDuration()
+        external
+        view
+        returns (uint256[] memory rewardsPerDurationArr)
+    {
+        rewardsPerDurationArr = new uint256[](rewardRates.length);
+
+        for (uint256 i = 0; i < rewardRates.length; i++) {
+            rewardsPerDurationArr[i] = rewardRates[i] * DURATION;
+        }
     }
 
     // Multiplier amount, given the length of the lock
@@ -435,20 +494,23 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         return lock_multiplier;
     }
 
-    function _decayedLockMultiplier(
+    function _averageDecayedLockMultiplier(
         address account,
         uint256 index,
         uint256 elapsedSeconds
     ) internal view returns (uint256) {
         return
             (2 *
-                _lastusedMultiplier[account][index] +
+                _lastUsedMultiplier[account][index] -
                 (elapsedSeconds - 1) *
                 multiplierDecayPerSecond) / 2;
     }
 
-    function setStakingDelegate(address _delegate) public{
-        require(stakingDelegates[msg.sender][_delegate], "Already a staking delegate for user!");
+    function setStakingDelegate(address _delegate) public {
+        require(
+            stakingDelegates[msg.sender][_delegate],
+            "Already a staking delegate for user!"
+        );
         require(_delegate != msg.sender, "Cannot delegate to self");
         stakingDelegates[msg.sender][_delegate] = true;
     }
@@ -478,17 +540,17 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
                 if (
                     _lastRewardClaimTime[account] < thisStake.ending_timestamp
                 ) {
-                    uint256 time_before_expiry = thisStake.ending_timestamp -
+                    uint256 timeBeforeExpiry = thisStake.ending_timestamp -
                         _lastRewardClaimTime[account];
-                    uint256 time_after_expiry = block.timestamp -
+                    uint256 timeAfterExpiry = block.timestamp -
                         thisStake.ending_timestamp;
 
                     // Get the weighted-average lock_multiplier
-                    uint256 numerator = (lock_multiplier * time_before_expiry) +
-                        (_MultiplierPrecision * time_after_expiry);
+                    uint256 numerator = (lock_multiplier * timeBeforeExpiry) +
+                        (_MultiplierPrecision * timeAfterExpiry);
                     lock_multiplier =
                         numerator /
-                        (time_before_expiry + time_after_expiry);
+                        (timeBeforeExpiry + timeAfterExpiry);
                 }
                 // Otherwise, it needs to just be 1x
                 else {
@@ -500,9 +562,13 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
                 if (elapsedSeconds > 0) {
                     lock_multiplier = thisStake.isPermanentlyLocked
                         ? lockMaxMultiplier
-                        : _decayedLockMultiplier(account, i, elapsedSeconds);
-                    _lastusedMultiplier[account][i] =
-                        _lastusedMultiplier[account][i] +
+                        : _averageDecayedLockMultiplier(
+                            account,
+                            i,
+                            elapsedSeconds
+                        );
+                    _lastUsedMultiplier[account][i] =
+                        _lastUsedMultiplier[account][i] -
                         (elapsedSeconds - 1) *
                         multiplierDecayPerSecond;
                 }
@@ -609,7 +675,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
                 isPermanentlyLocked
             )
         );
-        _lastusedMultiplier[account][
+        _lastUsedMultiplier[account][
             _lockedStakes[account].length - 1
         ] = MaxMultiplier;
 
@@ -686,12 +752,15 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     }
 
     function getReward() public nonReentrant updateReward(msg.sender) {
-        uint256 reward = _rewards[msg.sender];
+        uint256[] memory reward = new uint256[](rewardTokens.length);
         _lastRewardClaimTime[msg.sender] = block.timestamp;
-        if (reward > 0) {
-            _rewards[msg.sender] = 0;
-            PICKLE.safeTransfer(msg.sender, reward);
-            emit RewardPaid(msg.sender, reward);
+
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            if (reward[i] > 0) {
+                _rewards[msg.sender][i] = 0;
+                PICKLE.safeTransfer(msg.sender, reward[i]);
+                emit RewardPaid(msg.sender, reward[i]);
+            }
         }
     }
 
@@ -707,21 +776,43 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         onlyDistribution
         updateReward(address(0))
     {
-        PICKLE.safeTransferFrom(DISTRIBUTION, address(this), reward);
-        if (block.timestamp >= periodFinish) {
-            rewardRate = reward / DURATION;
-        } else {
-            uint256 remaining = periodFinish - block.timestamp;
-            uint256 leftover = remaining * rewardRate;
-            rewardRate = (reward + leftover) / DURATION;
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            IERC20(rewardTokens[i]).safeTransferFrom(
+                DISTRIBUTION,
+                address(this),
+                reward
+            );
+
+            if (block.timestamp >= periodFinish) {
+                rewardRates[i] = reward / DURATION;
+            } else {
+                uint256 remaining = periodFinish - block.timestamp;
+                uint256 leftover = remaining * rewardRates[i];
+                rewardRates[i] = (reward + leftover) / DURATION;
+            }
         }
 
         // Ensure the provided reward amount is not more than the balance in the contract.
         // This keeps the reward rate in the right range, preventing overflows due to
         // very high values of rewardRate in the earned and rewardsPerToken functions;
         // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
-        uint256 balance = PICKLE.balanceOf(address(this));
-        require(rewardRate <= balance / DURATION, "Provided reward too high");
+
+        uint256 numPeriodsElapsed = uint256(block.timestamp - periodFinish) /
+            DURATION; // Floor division to the nearest period
+
+        // Make sure there are enough tokens to renew the reward period
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            require(
+                rewardRates[i] * DURATION * (numPeriodsElapsed + 1) <=
+                    IERC20(rewardTokens[i]).balanceOf(address(this)),
+                string(
+                    abi.encodePacked(
+                        "Not enough reward tokens available: ",
+                        rewardTokens[i]
+                    )
+                )
+            );
+        }
 
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp + DURATION;
@@ -1249,10 +1340,16 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     }
 
     // Add new token gauge
-    function addGauge(address _token) external {
+    function addGauge(
+        address _token,
+        string[] memory _rewardSymbols,
+        address[] memory _rewardTokens
+    ) external {
         require(msg.sender == governance, "!gov");
         require(gauges[_token] == address(0x0), "exists");
-        gauges[_token] = address(new GaugeV2(_token, governance));
+        gauges[_token] = address(
+            new GaugeV2(_token, governance, _rewardSymbols, _rewardTokens)
+        );
         _tokens.push(_token);
     }
 
