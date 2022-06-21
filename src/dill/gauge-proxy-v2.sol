@@ -293,8 +293,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     //Reward addresses, rates, and symbols
     address[] public rewardTokens;
     uint256[] public rewardRates;
-    string[] public rewardSymbols;
-    mapping(address => uint256) public rewardTokenAddrToIdx;
+    bytes32[] public rewardSymbols;
 
     // Time tracking
     uint256 public periodFinish = 0;
@@ -386,7 +385,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     constructor(
         address _token,
         address _governance,
-        string[] memory _rewardSymbols,
+        bytes32[] memory _rewardSymbols,
         address[] memory _rewardTokens
     ) {
         TOKEN = IERC20(_token);
@@ -398,9 +397,6 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         governance = _governance;
 
         for (uint256 i = 0; i < _rewardTokens.length; i++) {
-            // For fast token address -> token ID lookups later
-            rewardTokenAddrToIdx[_rewardTokens[i]] = i;
-
             // Initialize the stored rewards
             rewardRates.push(0);
             rewardPerTokenStored.push(0);
@@ -759,7 +755,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
             if (reward[i] > 0) {
                 _rewards[msg.sender][i] = 0;
                 PICKLE.safeTransfer(msg.sender, reward[i]);
-                emit RewardPaid(msg.sender, reward[i]);
+                emit RewardPaid(msg.sender, rewardSymbols[i], reward[i]);
             }
         }
     }
@@ -771,25 +767,30 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function notifyRewardAmount(uint256 reward)
+    function notifyRewardAmount(uint256[] memory rewards)
         external
         onlyDistribution
         updateReward(address(0))
     {
+        require(
+            rewards.length == rewardTokens.length,
+            "Rewards count do not match reward token count"
+        );
         for (uint256 i = 0; i < rewardTokens.length; i++) {
             IERC20(rewardTokens[i]).safeTransferFrom(
                 DISTRIBUTION,
                 address(this),
-                reward
+                rewards[i]
             );
 
             if (block.timestamp >= periodFinish) {
-                rewardRates[i] = reward / DURATION;
+                rewardRates[i] = rewards[i] / DURATION;
             } else {
                 uint256 remaining = periodFinish - block.timestamp;
                 uint256 leftover = remaining * rewardRates[i];
-                rewardRates[i] = (reward + leftover) / DURATION;
+                rewardRates[i] = (rewards[i] + leftover) / DURATION;
             }
+            emit RewardAdded(rewardSymbols[i], rewards[i]);
         }
 
         // Ensure the provided reward amount is not more than the balance in the contract.
@@ -816,7 +817,6 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
 
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp + DURATION;
-        emit RewardAdded(reward);
     }
 
     function setMultipliers(uint256 _lock_max_multiplier) external onlyGov {
@@ -856,7 +856,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     event approvedTokenReceipt(address _spender, uint256 _amount);
     event stakeTransferd(address _to, uint256 _index);
     event allStakesTransferd(address _to);
-    event RewardAdded(uint256 reward);
+    event RewardAdded(bytes32 rewardSymbol, uint256 reward);
     event Staked(
         address indexed user,
         uint256 amount,
@@ -865,7 +865,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     );
     event Withdrawn(address indexed user, uint256 amount, uint256 index);
     event WithdrawnAll(address indexed user, uint256 amount);
-    event RewardPaid(address indexed user, uint256 reward);
+    event RewardPaid(address indexed user, bytes32 rewardSymbol, uint256 reward);
     event LockedStakeMaxMultiplierUpdated(uint256 multiplier);
     event MaxRewardsDurationUpdated(uint256 newDuration);
 }
@@ -1340,13 +1340,15 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     }
 
     // Add new token gauge
-    function addGauge(
-        address _token,
-        string[] memory _rewardSymbols,
-        address[] memory _rewardTokens
-    ) external {
+    function addGauge(address _token) external {
         require(msg.sender == governance, "!gov");
         require(gauges[_token] == address(0x0), "exists");
+
+        bytes32[] memory _rewardSymbols = new bytes32[](1);
+        address[] memory _rewardTokens = new address[](1);
+        _rewardSymbols[0] = "PICKLE";
+        _rewardTokens[0] = _token;
+
         gauges[_token] = address(
             new GaugeV2(_token, governance, _rewardSymbols, _rewardTokens)
         );
@@ -1449,9 +1451,14 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
                 int256 _reward = (_balance * weights[periodToUse][_token]) /
                     _totalWeight;
                 if (_reward > 0) {
+                    uint256 reward_ = uint256(_reward);
+                    uint256[] memory rewardArr = new uint256[](1);
+                    rewardArr[0] = reward_;
+
                     PICKLE.safeApprove(_gauge, 0);
-                    PICKLE.safeApprove(_gauge, uint256(_reward));
-                    GaugeV2(_gauge).notifyRewardAmount(uint256(_reward));
+                    PICKLE.safeApprove(_gauge, reward_);
+
+                    GaugeV2(_gauge).notifyRewardAmount(rewardArr);
                 }
 
                 if (_reward < 0) {
