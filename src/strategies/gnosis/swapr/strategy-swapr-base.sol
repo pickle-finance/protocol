@@ -117,7 +117,7 @@ abstract contract StrategySwaprFarmBase is StrategyBase {
         }
     }
 
-    function harvest() public override onlyBenevolent {
+    function harvest() public override {
         ISwaprRewarder(rewarder).claimAll(address(this));
 
         // loop through all rewards tokens and swap the ones with
