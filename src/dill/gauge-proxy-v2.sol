@@ -293,7 +293,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     //Reward addresses, rates, and symbols
     address[] public rewardTokens;
     uint256[] public rewardRates;
-    bytes32[] public rewardSymbols;
+    string[] public rewardSymbols;
 
     // Time tracking
     uint256 public periodFinish = 0;
@@ -385,7 +385,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     constructor(
         address _token,
         address _governance,
-        bytes32[] memory _rewardSymbols,
+        string[] memory _rewardSymbols,
         address[] memory _rewardTokens
     ) {
         TOKEN = IERC20(_token);
@@ -427,7 +427,8 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         } else {
             newRewardsPerTokenStored = new uint256[](rewardTokens.length);
             for (uint256 i = 0; i < rewardPerTokenStored.length; i++) {
-                rewardPerTokenStored[i] +
+                newRewardsPerTokenStored[i] =
+                    rewardPerTokenStored[i] +
                     (((lastTimeRewardApplicable() - lastUpdateTime) *
                         rewardRates[i] *
                         1e18) / derivedSupply);
@@ -526,18 +527,16 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         for (uint256 i = 0; i < _lockedStakes[account].length; i++) {
             LockedStake memory thisStake = _lockedStakes[account][i];
             uint256 lock_multiplier = thisStake.lock_multiplier;
-
+            uint256 lastRewardClaimTime = _lastRewardClaimTime[account];
             // If the lock is expired
             if (
                 thisStake.ending_timestamp <= block.timestamp &&
                 !thisStake.isPermanentlyLocked
             ) {
                 // If the lock expired in the time since the last claim, the weight needs to be proportionately averaged this time
-                if (
-                    _lastRewardClaimTime[account] < thisStake.ending_timestamp
-                ) {
+                if (lastRewardClaimTime < thisStake.ending_timestamp) {
                     uint256 timeBeforeExpiry = thisStake.ending_timestamp -
-                        _lastRewardClaimTime[account];
+                        lastRewardClaimTime;
                     uint256 timeAfterExpiry = block.timestamp -
                         thisStake.ending_timestamp;
 
@@ -748,14 +747,15 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     }
 
     function getReward() public nonReentrant updateReward(msg.sender) {
-        uint256[] memory reward = new uint256[](rewardTokens.length);
+        uint256 reward;
         _lastRewardClaimTime[msg.sender] = block.timestamp;
 
         for (uint256 i = 0; i < rewardTokens.length; i++) {
-            if (reward[i] > 0) {
+            reward = _rewards[msg.sender][i];
+            if (reward > 0) {
                 _rewards[msg.sender][i] = 0;
-                PICKLE.safeTransfer(msg.sender, reward[i]);
-                emit RewardPaid(msg.sender, rewardSymbols[i], reward[i]);
+                IERC20(rewardTokens[i]).safeTransfer(msg.sender, reward);
+                emit RewardPaid(msg.sender, rewardSymbols[i], reward);
             }
         }
     }
@@ -790,29 +790,18 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
                 uint256 leftover = remaining * rewardRates[i];
                 rewardRates[i] = (rewards[i] + leftover) / DURATION;
             }
-            emit RewardAdded(rewardSymbols[i], rewards[i]);
-        }
 
-        // Ensure the provided reward amount is not more than the balance in the contract.
-        // This keeps the reward rate in the right range, preventing overflows due to
-        // very high values of rewardRate in the earned and rewardsPerToken functions;
-        // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
-
-        uint256 numPeriodsElapsed = uint256(block.timestamp - periodFinish) /
-            DURATION; // Floor division to the nearest period
-
-        // Make sure there are enough tokens to renew the reward period
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            // Ensure the provided reward amount is not more than the balance in the contract.
+            // This keeps the reward rate in the right range, preventing overflows due to
+            // very high values of rewardRate in the earned and rewardsPerToken functions;
+            // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
+            uint256 balance = IERC20(rewardTokens[i]).balanceOf(address(this));
             require(
-                rewardRates[i] * DURATION * (numPeriodsElapsed + 1) <=
-                    IERC20(rewardTokens[i]).balanceOf(address(this)),
-                string(
-                    abi.encodePacked(
-                        "Not enough reward tokens available: ",
-                        rewardTokens[i]
-                    )
-                )
+                rewardRates[i] <= balance / DURATION,
+                "Provided reward too high"
             );
+
+            emit RewardAdded(rewardSymbols[i], rewards[i]);
         }
 
         lastUpdateTime = block.timestamp;
@@ -856,7 +845,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     event approvedTokenReceipt(address _spender, uint256 _amount);
     event stakeTransferd(address _to, uint256 _index);
     event allStakesTransferd(address _to);
-    event RewardAdded(bytes32 rewardSymbol, uint256 reward);
+    event RewardAdded(string rewardSymbol, uint256 reward);
     event Staked(
         address indexed user,
         uint256 amount,
@@ -865,7 +854,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     );
     event Withdrawn(address indexed user, uint256 amount, uint256 index);
     event WithdrawnAll(address indexed user, uint256 amount);
-    event RewardPaid(address indexed user, bytes32 rewardSymbol, uint256 reward);
+    event RewardPaid(address indexed user, string rewardSymbol, uint256 reward);
     event LockedStakeMaxMultiplierUpdated(uint256 multiplier);
     event MaxRewardsDurationUpdated(uint256 newDuration);
 }
@@ -1344,7 +1333,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         require(msg.sender == governance, "!gov");
         require(gauges[_token] == address(0x0), "exists");
 
-        bytes32[] memory _rewardSymbols = new bytes32[](1);
+        string[] memory _rewardSymbols = new string[](1);
         address[] memory _rewardTokens = new address[](1);
         _rewardSymbols[0] = "PICKLE";
         _rewardTokens[0] = _token;
