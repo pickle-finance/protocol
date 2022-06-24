@@ -39,7 +39,7 @@ abstract contract StrategyZipFarmBase is StrategyBase {
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        (uint256 amount, , , ) = IZipChef(zipChef).userInfo(
+        (uint256 amount, ) = IZipChef(zipChef).userInfo(
             poolId,
             address(this)
         );
@@ -47,7 +47,7 @@ abstract contract StrategyZipFarmBase is StrategyBase {
     }
 
     function getHarvestable() external view returns (uint256) {
-        return IZipChef(zipChef).pendingZip(poolId, address(this));
+        return IZipChef(zipChef).pendingReward(poolId, address(this));
     }
 
     // **** Setters ****
@@ -57,7 +57,7 @@ abstract contract StrategyZipFarmBase is StrategyBase {
         if (_want > 0) {
             IERC20(want).safeApprove(zipChef, 0);
             IERC20(want).safeApprove(zipChef, _want);
-            IZipChef(zipChef).deposit(poolId, _want);
+            IZipChef(zipChef).deposit(poolId, uint128(_want), address(this));
         }
     }
 
@@ -66,7 +66,7 @@ abstract contract StrategyZipFarmBase is StrategyBase {
         override
         returns (uint256)
     {
-        IZipChef(zipChef).withdraw(poolId, _amount);
+        IZipChef(zipChef).withdraw(poolId, uint128(_amount), address(this));
         return _amount;
     }
 
@@ -79,7 +79,7 @@ abstract contract StrategyZipFarmBase is StrategyBase {
 
     function harvest() public override {
         // Collects ZIP tokens
-        IZipChef(zipChef).deposit(poolId, 0);
+        IZipChef(zipChef).deposit(poolId, 0, address(this));
         uint256 _zip = IERC20(zip).balanceOf(address(this));
 
         if (_zip > 0) {
