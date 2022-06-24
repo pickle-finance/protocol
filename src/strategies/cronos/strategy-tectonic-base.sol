@@ -11,7 +11,7 @@ import "../../interfaces/uniswapv2.sol";
 import "../../interfaces/controller.sol";
 import "../../interfaces/tectonic.sol";
 
-contract StrategyTectonicBase is StrategyBase, Exponential {
+abstract contract StrategyTectonicBase is StrategyBase, Exponential {
     address public constant comptroller =
         0xb3831584acb95ED9cCb0C11f677B5AD01DeaeEc0;
     address public constant tonic = 0xDD73dEa10ABC2Bff99c60882EC5b2B81Bb1Dc5B2;
