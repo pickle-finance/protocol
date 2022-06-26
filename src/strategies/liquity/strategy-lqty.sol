@@ -27,7 +27,12 @@ contract StrategyLqty is StrategyBase {
     )
         public
         StrategyBase(lqty, _governance, _strategist, _controller, _timelock)
-    {}
+    {
+        IERC20(lusd).safeApprove(lusd_pool, uint256(-1));
+        IERC20(usdc).safeApprove(univ3Router, uint256(-1));
+        IERC20(weth).safeApprove(univ3Router, uint256(-1));
+        IERC20(want).safeApprove(lqty_staking, uint256(-1));
+    }
 
     // **** Views ****
 
@@ -37,26 +42,39 @@ contract StrategyLqty is StrategyBase {
 
     function harvest() public override onlyBenevolent {
         ILiquityStaking(lqty_staking).unstake(0);
+
         uint256 _lusd = IERC20(lusd).balanceOf(address(this));
-
         if (_lusd > 0) {
-            IERC20(lusd).safeApprove(lusd_pool, 0);
-            IERC20(lusd).safeApprove(lusd_pool, _lusd);
-
             // Swap to USDC because it's consistently the heaviest weighted 3pool token
             ICurveFi_4(lusd_pool).exchange_underlying(0, 2, _lusd, 0);
         }
+
         uint256 _usdc = IERC20(usdc).balanceOf(address(this));
         if (_usdc > 0) {
-            IERC20(usdc).safeApprove(univ3Router, 0);
-            IERC20(usdc).safeApprove(univ3Router, _usdc);
-
             ISwapRouter(univ3Router).exactInput(
                 ISwapRouter.ExactInputParams({
-                    path: abi.encodePacked(usdc, poolFee, weth, poolFee, lqty),
+                    path: abi.encodePacked(usdc, uint24(500), weth),
                     recipient: address(this),
                     deadline: block.timestamp + 300,
                     amountIn: _usdc,
+                    amountOutMinimum: 0
+                })
+            );
+        }
+
+        uint256 _eth = address(this).balance;
+        if(_eth > 0){
+            WETH(weth).deposit{value: _eth}();
+        }
+
+        uint256 _weth = WETH(weth).balanceOf(address(this));
+        if(_weth > 0) {
+            ISwapRouter(univ3Router).exactInput(
+                ISwapRouter.ExactInputParams({
+                    path: abi.encodePacked(weth, poolFee, lqty),
+                    recipient: address(this),
+                    deadline: block.timestamp + 300,
+                    amountIn: _weth,
                     amountOutMinimum: 0
                 })
             );
@@ -80,8 +98,6 @@ contract StrategyLqty is StrategyBase {
     function deposit() public override {
         uint256 _want = IERC20(want).balanceOf(address(this));
         if (_want > 0) {
-            IERC20(want).safeApprove(lqty_staking, 0);
-            IERC20(want).safeApprove(lqty_staking, _want);
             ILiquityStaking(lqty_staking).stake(_want);
         }
     }
