@@ -20,7 +20,7 @@ const doUniV3TestBehaviorBase = (
   poolAddr,
   chain = "mainnet", // mainnet, polygon or optimism
   depositNative = false,
-  depositNativeTokenIs1 = false,
+  depositNativeTokenIs1 = false
 ) => {
   describe(`${strategyName}`, () => {
     let alice;
@@ -36,33 +36,14 @@ const doUniV3TestBehaviorBase = (
       devfund = alice;
       treasury = fred;
 
-      proxyAdmin = await deployContract("ProxyAdmin");
-      console.log("✅ ProxyAdmin is deployed at ", proxyAdmin.address);
-
-      const controllerImp = await deployContract("ControllerV5");
-
-      const controllerProxy = await deployContract(
-        "AdminUpgradeabilityProxy",
-        controllerImp.address,
-        proxyAdmin.address,
-        []
-      );
-
-      controller = await getContractAt("ControllerV5", controllerProxy.address);
-
-      await controller.initialize(
+      controller = await deployContract(
+        "/src/optimism/controller-v7.sol:ControllerV7",
         governance.address,
         strategist.address,
         timelock.address,
         devfund.address,
         treasury.address
       );
-      console.log("✅ Controller is deployed at ", controller.address);
-
-      const upgradedController = await deployContract("ControllerV7");
-      console.log("✅ Controller V7 is deployed at ", upgradedController.address);
-
-      await proxyAdmin.upgrade(controllerProxy.address, upgradedController.address);
 
       console.log("✅ Controller is deployed at ", controller.address);
 
