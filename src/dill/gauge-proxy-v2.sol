@@ -1347,8 +1347,10 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         address _gauge = gauges[_token];
 
         require(gaugeWithNegativeWeight[_gauge] >= 5, "censors < 5");
-
+        
+        delete isVirtualGauge[_gauge];
         delete gauges[_token];
+
 
         uint256 tokensLength = _tokens.length;
         address[] memory newTokenArray = new address[](tokensLength - 1);
