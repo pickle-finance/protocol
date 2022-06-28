@@ -1072,6 +1072,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     // token => gauge
     mapping(address => address) public gauges;
     mapping(address => uint256) public gaugeWithNegativeWeight;
+    mapping(address => bool) public isVirtualGauge;
 
     uint256 public constant WEEK_SECONDS = 604800;
     // epoch time stamp
@@ -1312,7 +1313,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     }
 
     // Add new token gauge
-    function addGauge(address _token) external {
+    function addGauge(address _token, bool _isVirtual) external {
         require(msg.sender == governance, "!gov");
         require(gauges[_token] == address(0x0), "exists");
 
@@ -1324,6 +1325,15 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         gauges[_token] = address(
             new GaugeV2(_token, governance, _rewardSymbols, _rewardTokens)
         );
+        _tokens.push(_token);
+    }
+
+    function addVirtualGauge(address _token, address _jar) external {
+        require(msg.sender == governance, "!gov");
+        require(gauges[_token] == address(0x0), "exists");
+        address vgauge= address(new VirtualGauge(_token, _jar, msg.sender));
+        gauges[_token] = vgauge;
+        isVirtual[vgauge] = true;
         _tokens.push(_token);
     }
 
