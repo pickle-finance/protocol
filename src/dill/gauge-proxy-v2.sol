@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.1; // ^0.6.7; //^0.7.5;
+pragma solidity ^0.8.1;
 
 library Address {
     function isContract(address account) internal view returns (bool) {
@@ -122,12 +122,7 @@ library SafeERC20 {
         address spender,
         uint256 value
     ) internal {
-        uint256 newAllowance = token.allowance(address(this), spender) -
-            (
-                value
-                // ,
-                // "SafeERC20: decreased allowance below zero"
-            );
+        uint256 newAllowance = token.allowance(address(this), spender) - value;
         callOptionalReturn(
             token,
             abi.encodeWithSelector(
@@ -214,7 +209,6 @@ abstract contract ReentrancyGuard {
 
     uint256 private _status;
 
-    // constructor() public {
     constructor() {
         _status = _NOT_ENTERED;
     }
@@ -285,10 +279,10 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     address public immutable DISTRIBUTION;
     uint256 public constant DURATION = 7 days;
 
-    // Lock time and multiplier settings
+    // Lock time and multiplier
     uint256 public lockMaxMultiplier = uint256(25e17); // E18. 1x = e18
-    uint256 public lockTimeForMaxMultiplier = 1 * 365 * 86400; // 1 year
-    uint256 public lockTimeMin = 86400; // 1 * 86400  (1 day)
+    uint256 public lockTimeForMaxMultiplier = 365 * 86400; // 1 year
+    uint256 public lockTimeMin = 86400; // 1 day
 
     //Reward addresses, rates, and symbols
     address[] public rewardTokens;
@@ -298,12 +292,11 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     // Time tracking
     uint256 public periodFinish = 0;
     uint256 public lastUpdateTime;
-    mapping(address => uint256) public lastUpdateTimeForAccount;
 
     // Rewards tracking
     mapping(address => mapping(uint256 => uint256))
         private userRewardPerTokenPaid;
-    mapping(address => mapping(uint256 => uint256)) private _rewards;
+    mapping(address => mapping(uint256 => uint256)) public _rewards;
     uint256[] private rewardPerTokenStored;
     uint256 public multiplierDecayPerSecond = uint256(48e9);
     mapping(address => mapping(uint256 => uint256)) private _lastUsedMultiplier;
@@ -363,10 +356,10 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         _;
     }
 
-    modifier updateReward(address account) {
+    modifier updateReward(address account, bool isClaimReward) {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
-        lastUpdateTimeForAccount[account] = block.timestamp;
+
         if (account != address(0)) {
             uint256[] memory earnedArr = earned(account);
             for (uint256 i = 0; i < rewardPerTokenStored.length; i++) {
@@ -377,6 +370,9 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         _;
         if (account != address(0)) {
             kick(account);
+            if (isClaimReward) {
+                _lastRewardClaimTime[account] = block.timestamp;
+            }
         }
     }
 
@@ -552,8 +548,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
                     lock_multiplier = _MultiplierPrecision;
                 }
             } else {
-                uint256 elapsedSeconds = (block.timestamp -
-                    lastUpdateTimeForAccount[account]);
+                uint256 elapsedSeconds = block.timestamp - lastRewardClaimTime;
                 if (elapsedSeconds > 0) {
                     lock_multiplier = thisStake.isPermanentlyLocked
                         ? lockMaxMultiplier
@@ -568,7 +563,6 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
                         multiplierDecayPerSecond;
                 }
             }
-
             uint256 liquidity = thisStake.liquidity;
             uint256 combined_boosted_amount = (liquidity * lock_multiplier) /
                 _MultiplierPrecision;
@@ -658,7 +652,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         uint256 secs,
         uint256 start_timestamp,
         bool isPermanentlyLocked
-    ) internal nonReentrant updateReward(account) {
+    ) internal nonReentrant updateReward(account, false) {
         require(amount > 0, "Cannot stake 0");
         uint256 MaxMultiplier = lockMultiplier(secs);
         _lockedStakes[account].push(
@@ -689,7 +683,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         _withdraw(index);
     }
 
-    function withdrawAll() public nonReentrant updateReward(msg.sender) {
+    function withdrawAll() public nonReentrant updateReward(msg.sender, false) {
         uint256 amount;
         for (uint256 i = 0; i < _lockedStakes[msg.sender].length; i++) {
             LockedStake memory thisStake = _lockedStakes[msg.sender][i];
@@ -716,7 +710,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     function _withdraw(uint256 index)
         internal
         nonReentrant
-        updateReward(msg.sender)
+        updateReward(msg.sender, false)
     {
         LockedStake memory thisStake;
         thisStake.liquidity = 0;
@@ -746,9 +740,9 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         }
     }
 
-    function getReward() public nonReentrant updateReward(msg.sender) {
+    function getReward() public nonReentrant updateReward(msg.sender, true) {
         uint256 reward;
-        _lastRewardClaimTime[msg.sender] = block.timestamp;
+        // _lastRewardClaimTime[msg.sender] = block.timestamp;
 
         for (uint256 i = 0; i < rewardTokens.length; i++) {
             reward = _rewards[msg.sender][i];
@@ -770,7 +764,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     function notifyRewardAmount(uint256[] memory rewards)
         external
         onlyDistribution
-        updateReward(address(0))
+        updateReward(address(0), false)
     {
         require(
             rewards.length == rewardTokens.length,
@@ -964,15 +958,13 @@ contract MasterDill {
     ) external returns (bool) {
         address spender = msg.sender;
         uint256 spenderAllowance = allowances[src][spender];
-
-        // if (spender != src && spenderAllowance != uint256(-1)) { // type(uint256).max
+        require(
+            amount <= spenderAllowance,
+            "transferFrom: exceeds spender allowance"
+        );
+        
         if (spender != src && spenderAllowance != type(uint256).max) {
-            uint256 newAllowance = spenderAllowance -
-                (
-                    amount
-                    // ,
-                    // "transferFrom: exceeds spender allowance"
-                );
+            uint256 newAllowance = spenderAllowance - amount;
             allowances[src][spender] = newAllowance;
 
             emit Approval(src, spender, newAllowance);
@@ -989,19 +981,10 @@ contract MasterDill {
     ) internal {
         require(src != address(0), "_transferTokens: zero address");
         require(dst != address(0), "_transferTokens: zero address");
+        require(amount <= balances[src], "_transferTokens: exceeds balance");
 
-        balances[src] =
-            balances[src] -
-            (
-                amount
-                // ,
-                // "_transferTokens: exceeds balance"
-            );
-        balances[dst] += (
-            amount
-            // ,
-            //  "_transferTokens: overflows"
-        );
+        balances[src] -= amount;
+        balances[dst] += amount;
         emit Transfer(src, dst, amount);
     }
 }
