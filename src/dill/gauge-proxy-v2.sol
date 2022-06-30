@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.1;
 
+
 library Address {
     function isContract(address account) internal view returns (bool) {
         bytes32 codehash;
@@ -58,6 +59,17 @@ interface IERC20 {
         uint256 amount
     ) external returns (bool);
 }
+
+interface IGaugeMiddleware {
+    function addGauge(address _token) external returns (address);
+
+    function addVirtualGauge(
+        address _token,
+        address _jar,
+        address _governance
+    ) external returns (address);
+}
+
 
 library SafeERC20 {
     using Address for address;
@@ -1088,6 +1100,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     mapping(uint256 => int256) public totalWeight; // period id => TotalWeight
     mapping(uint256 => mapping(uint256 => bool)) public distributed;
     mapping(uint256 => uint256) public periodForDistribute; // dist id => which period id votes to use
+    IGaugeMiddleware public gaugeMiddleware
 
     struct delegateData {
         // delegated address
@@ -1128,6 +1141,12 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         distributionId = 1;
         lastVotedPeriodId = 1;
         periodForDistribute[1] = 1;
+    }
+
+    function addGaugeMiddleware(address _gaugeMiddleware) external  {
+        require(_gaugeMiddleware != address(0), "gaugeMiddleware cannot set to zero")
+        require(_gaugeMiddleware != gaugeMiddleware, "current and new gaugeMiddleware are same");
+        gaugeMiddleware = IGaugeMiddleware(_gaugeMiddleware);
     }
 
     // Reset votes to 0
@@ -1313,25 +1332,27 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     }
 
     // Add new token gauge
-    function addGauge(address _token, bool _isVirtual) external {
+    function addGauge(address _token) external {
         require(msg.sender == governance, "!gov");
+        require(address(gaugeMiddleware) != address(0), "cannot add new gauge without initializing gaugeMiddleware");
         require(gauges[_token] == address(0x0), "exists");
-
         string[] memory _rewardSymbols = new string[](1);
         address[] memory _rewardTokens = new address[](1);
         _rewardSymbols[0] = "PICKLE";
         _rewardTokens[0] = _token;
-
-        gauges[_token] = address(
-            new GaugeV2(_token, governance, _rewardSymbols, _rewardTokens)
-        );
+        gauges[_token] = gaugeMiddleware.addGauge(_token, governance, _rewardSymbols, _rewardTokens);
         _tokens.push(_token);
     }
 
     function addVirtualGauge(address _token, address _jar) external {
         require(msg.sender == governance, "!gov");
+        require(address(gaugeMiddleware) != address(0), "cannot add new gauge without initializing gaugeMiddleware");
         require(gauges[_token] == address(0x0), "exists");
-        address vgauge= address(new VirtualGauge(_token, _jar, msg.sender));
+        string[] memory _rewardSymbols = new string[](1);
+        address[] memory _rewardTokens = new address[](1);
+        _rewardSymbols[0] = "PICKLE";
+        _rewardTokens[0] = _token;
+        address vgauge = gaugeMiddleware.addVirtualGauge(_jar, governance,  _rewardSymbols, _rewardTokens);
         gauges[_token] = vgauge;
         isVirtual[vgauge] = true;
         _tokens.push(_token);
