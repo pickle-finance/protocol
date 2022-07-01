@@ -61,11 +61,16 @@ interface IERC20 {
 }
 
 interface IGaugeMiddleware {
-    function addGauge(address _token) external returns (address);
+    function addGauge(address _token,
+        address _governance,
+        string[] memory _rewardSymbols,
+        address[] memory _rewardTokens) external returns (address);
 
     function addVirtualGauge(
         address _jar,
         address _governance,
+        string[] memory _rewardSymbols,
+        address[] memory _rewardTokens
 
     ) external returns (address);
 }
