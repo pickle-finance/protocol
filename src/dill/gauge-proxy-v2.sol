@@ -64,9 +64,9 @@ interface IGaugeMiddleware {
     function addGauge(address _token) external returns (address);
 
     function addVirtualGauge(
-        address _token,
         address _jar,
-        address _governance
+        address _governance,
+
     ) external returns (address);
 }
 
@@ -271,6 +271,542 @@ contract ProtocolGovernance {
         );
         governance = pendingGovernance;
     }
+}
+
+interface IJar {
+    function balanceOf(address account) external view returns (uint256);
+    function totalSupply() external view returns (uint256);
+}
+
+contract VirtualBalanceWrapper {
+    IJar public jar;
+
+    function totalSupply() external view returns (uint256) {
+        return jar.totalSupply();
+    }
+
+    function balanceOf(address account) external view returns (uint256) {
+        return jar.balanceOf(account);
+    }
+}
+
+contract VirtualGaugeV2 is ProtocolGovernance, ReentrancyGuard, VirtualBalanceWrapper {
+    // Token addresses
+    IERC20 public constant DILL =
+        IERC20(0xbBCf169eE191A1Ba7371F30A1C344bFC498b29Cf);
+
+    // Constant for various precisions
+    uint256 private constant _MultiplierPrecision = 1e18;
+
+    address public immutable DISTRIBUTION;
+    uint256 public constant DURATION = 7 days;
+
+    // Lock time and multiplier
+    uint256 public lockMaxMultiplier = uint256(25e17); // E18. 1x = e18
+    uint256 public lockTimeForMaxMultiplier = 365 * 86400; // 1 year
+    uint256 public lockTimeMin = 86400; // 1 day
+
+    //Reward addresses, rates, and symbols
+    address[] public rewardTokens;
+    uint256[] public rewardRates;
+    string[] public rewardSymbols;
+
+    // Time tracking
+    uint256 public periodFinish = 0;
+    uint256 public lastUpdateTime;
+
+    // Rewards tracking
+    mapping(address => mapping(uint256 => uint256))
+        private userRewardPerTokenPaid;
+    mapping(address => mapping(uint256 => uint256)) public _rewards;
+    mapping(address => bool) public authorisedAddress;
+    uint256[] private rewardPerTokenStored;
+    uint256 public multiplierDecayPerSecond = uint256(48e9);
+    mapping(address => mapping(uint256 => uint256)) private _lastUsedMultiplier;
+    mapping(address => uint256) private _lastRewardClaimTime; // staker addr -> timestamp
+
+    // Balance tracking
+    uint256 public derivedSupply;
+    mapping(address => uint256) public derivedBalances;
+    mapping(address => uint256) private _base;
+
+    // Stake tracking
+    mapping(address => LockedStake[]) private _lockedStakes;
+
+    // Administrative booleans
+    bool public stakesUnlocked; // Release locked stakes in case of emergency
+    mapping(address => bool) public stakesUnlockedForAccount; // Release locked stakes of an account in case of emergency
+
+    /* ========== STRUCTS ========== */
+
+    struct LockedStake {
+        uint256 start_timestamp;
+        uint256 liquidity;
+        uint256 ending_timestamp;
+        uint256 lock_multiplier; // 6 decimals of precision. 1x = 1000000
+        bool isPermanentlyLocked;
+    }
+
+    /* ========== MODIFIERS ========== */
+
+    modifier onlyDistribution() {
+        require(
+            msg.sender == DISTRIBUTION,
+            "Caller is not RewardsDistribution contract"
+        );
+        _;
+    }
+
+    modifier onlyGov() {
+        require(
+            msg.sender == governance,
+            "Operation allowed by only governance"
+        );
+        _;
+    }
+
+    modifier lockable(uint256 secs) {
+        require(secs >= lockTimeMin, "Minimum stake time not met");
+        require(
+            secs <= lockTimeForMaxMultiplier,
+            "Trying to lock for too long"
+        );
+        _;
+    }
+
+    modifier updateReward(address account, bool isClaimReward) {
+        rewardPerTokenStored = rewardPerToken();
+        lastUpdateTime = lastTimeRewardApplicable();
+
+        if (account != address(0)) {
+            uint256[] memory earnedArr = earned(account);
+            for (uint256 i = 0; i < rewardPerTokenStored.length; i++) {
+                _rewards[account][i] = earnedArr[i];
+                userRewardPerTokenPaid[account][i] = rewardPerTokenStored[i];
+            }
+        }
+        _;
+        if (account != address(0)) {
+            kick(account);
+            if (isClaimReward) {
+                _lastRewardClaimTime[account] = block.timestamp;
+            }
+        }
+    }
+
+    modifier onlyJarAndAuthorised() {
+        require(msg.sender == address(jar) || authorisedAddress[msg.sender]);
+        _;
+    }
+
+    /* ========== CONSTRUCTOR ========== */
+
+    constructor(
+        address _jar,
+        address _governance,
+        string[] memory _rewardSymbols,
+        address[] memory _rewardTokens
+    ) {
+        require(_jar == address(0), "cannot set zero address");
+        jar = IJar(_jar);
+        rewardTokens = _rewardTokens;
+        rewardSymbols = _rewardSymbols;
+
+        DISTRIBUTION = msg.sender;
+        governance = _governance;
+
+        for (uint256 i = 0; i < _rewardTokens.length; i++) {
+            // Initialize the stored rewards
+            rewardRates.push(0);
+            rewardPerTokenStored.push(0);
+        }
+    }
+
+    /* ========== VIEWS ========== */
+    function lastTimeRewardApplicable() public view returns (uint256) {
+        return Math.min(block.timestamp, periodFinish);
+    }
+
+    function rewardPerToken()
+        public
+        view
+        returns (uint256[] memory newRewardsPerTokenStored)
+    {
+        if (totalSupply() == 0) {
+            return rewardPerTokenStored;
+        } else {
+            newRewardsPerTokenStored = new uint256[](rewardTokens.length);
+            for (uint256 i = 0; i < rewardPerTokenStored.length; i++) {
+                newRewardsPerTokenStored[i] =
+                    rewardPerTokenStored[i] +
+                    (((lastTimeRewardApplicable() - lastUpdateTime) *
+                        rewardRates[i] *
+                        1e18) / derivedSupply);
+            }
+            return newRewardsPerTokenStored;
+        }
+    }
+
+    // All the locked stakes for a given account
+    function lockedStakesOf(address account)
+        external
+        view
+        returns (LockedStake[] memory)
+    {
+        return _lockedStakes[account];
+    }
+
+    function earned(address account)
+        public
+        view
+        returns (uint256[] memory newEarned)
+    {
+        uint256[] memory rewardArr = rewardPerToken();
+        newEarned = new uint256[](rewardTokens.length);
+
+        if (derivedBalances[account] == 0) {
+            for (uint256 i = 0; i < rewardTokens.length; i++) {
+                newEarned[i] = 0;
+            }
+        } else {
+            for (uint256 i = 0; i < rewardTokens.length; i++) {
+                newEarned[i] =
+                    ((derivedBalances[account] *
+                        (rewardArr[i] - userRewardPerTokenPaid[account][i])) /
+                        1e18) +
+                    _rewards[account][i];
+            }
+        }
+    }
+
+    function getRewardForDuration()
+        external
+        view
+        returns (uint256[] memory rewardsPerDurationArr)
+    {
+        rewardsPerDurationArr = new uint256[](rewardRates.length);
+
+        for (uint256 i = 0; i < rewardRates.length; i++) {
+            rewardsPerDurationArr[i] = rewardRates[i] * DURATION;
+        }
+    }
+
+    // Multiplier amount, given the length of the lock
+    function lockMultiplier(uint256 secs) public view returns (uint256) {
+        uint256 lock_multiplier = uint256(_MultiplierPrecision) +
+            ((secs * (lockMaxMultiplier - _MultiplierPrecision)) /
+                (lockTimeForMaxMultiplier));
+        if (lock_multiplier > lockMaxMultiplier)
+            lock_multiplier = lockMaxMultiplier;
+        return lock_multiplier;
+    }
+
+    function _averageDecayedLockMultiplier(
+        address account,
+        uint256 index,
+        uint256 elapsedSeconds
+    ) internal view returns (uint256) {
+        return
+            (2 *
+                _lastUsedMultiplier[account][index] -
+                (elapsedSeconds - 1) *
+                multiplierDecayPerSecond) / 2;
+    }
+
+    function setJar(address _jar) external onlyGov {
+        require(_jar != address(0), "cannot set to zero");
+        require(_jar != address(jar), "Jar is already set");
+        jar = IJar(_jar);
+
+    }
+
+    function setAuthoriseAddress(address jar, bool value) external onlyGov {
+        require(authorisedAddress[_jar] != value, "address is already set to given value");
+        authorisedAddress[_jar] = value;
+    }
+
+    function derivedBalance(address account) public returns (uint256) {
+        uint256 _balance = balanceOf(account);
+        uint256 _derived = (_balance * 40) / 100;
+        uint256 _adjusted = (((totalSupply() * DILL.balanceOf(account)) /
+            DILL.totalSupply()) * 60) / 100;
+        uint256 dillBoostedDerivedBal = Math.min(
+            _derived + _adjusted,
+            _balance
+        );
+
+        // Loop through the locked stakes, first by getting the liquidity * lock_multiplier portion
+        uint256 lockBoostedDerivedBal = 0;
+        for (uint256 i = 0; i < _lockedStakes[account].length; i++) {
+            LockedStake memory thisStake = _lockedStakes[account][i];
+            uint256 lock_multiplier = thisStake.lock_multiplier;
+            uint256 lastRewardClaimTime = _lastRewardClaimTime[account];
+            // If the lock is expired
+            if (
+                thisStake.ending_timestamp <= block.timestamp &&
+                !thisStake.isPermanentlyLocked
+            ) {
+                // If the lock expired in the time since the last claim, the weight needs to be proportionately averaged this time
+                if (lastRewardClaimTime < thisStake.ending_timestamp) {
+                    uint256 timeBeforeExpiry = thisStake.ending_timestamp -
+                        lastRewardClaimTime;
+                    uint256 timeAfterExpiry = block.timestamp -
+                        thisStake.ending_timestamp;
+
+                    // Get the weighted-average lock_multiplier
+                    uint256 numerator = (lock_multiplier * timeBeforeExpiry) +
+                        (_MultiplierPrecision * timeAfterExpiry);
+                    lock_multiplier =
+                        numerator /
+                        (timeBeforeExpiry + timeAfterExpiry);
+                }
+                // Otherwise, it needs to just be 1x
+                else {
+                    lock_multiplier = _MultiplierPrecision;
+                }
+            } else {
+                uint256 elapsedSeconds = block.timestamp - lastRewardClaimTime;
+                if (elapsedSeconds > 0) {
+                    lock_multiplier = thisStake.isPermanentlyLocked
+                        ? lockMaxMultiplier
+                        : _averageDecayedLockMultiplier(
+                            account,
+                            i,
+                            elapsedSeconds
+                        );
+                    _lastUsedMultiplier[account][i] =
+                        _lastUsedMultiplier[account][i] -
+                        (elapsedSeconds - 1) *
+                        multiplierDecayPerSecond;
+                }
+            }
+            uint256 liquidity = thisStake.liquidity;
+            uint256 combined_boosted_amount = (liquidity * lock_multiplier) /
+                _MultiplierPrecision;
+            lockBoostedDerivedBal =
+                lockBoostedDerivedBal +
+                combined_boosted_amount;
+        }
+
+        return dillBoostedDerivedBal + lockBoostedDerivedBal;
+    }
+
+    /* ========== MUTATIVE FUNCTIONS ========== */
+
+    function kick(address account) public {
+        uint256 _derivedBalance = derivedBalances[account];
+        derivedSupply = derivedSupply - _derivedBalance;
+        _derivedBalance = derivedBalance(account);
+        derivedBalances[account] = _derivedBalance;
+        derivedSupply = derivedSupply + _derivedBalance;
+    }
+
+    function depositFor(uint256 amount, address account) external onlyJarAndAuthorised {
+        _deposit(amount, account, 0, block.timestamp, false);
+    }
+
+    function depositForAndLock(
+        uint256 amount,
+        address account,
+        uint256 secs,
+        bool isPermanentlyLocked
+    ) external lockable(secs) onlyJarAndAuthorised {
+        _deposit(amount, account, secs, block.timestamp, isPermanentlyLocked);
+    }
+
+    function _deposit(
+        uint256 amount,
+        address account,
+        uint256 secs,
+        uint256 start_timestamp,
+        bool isPermanentlyLocked
+    ) internal nonReentrant updateReward(account, false) {
+        require(amount > 0, "Cannot stake 0");
+        uint256 MaxMultiplier = lockMultiplier(secs);
+        _lockedStakes[account].push(
+            LockedStake(
+                start_timestamp,
+                amount,
+                start_timestamp + secs,
+                MaxMultiplier,
+                isPermanentlyLocked
+            )
+        );
+        _lastUsedMultiplier[account][
+            _lockedStakes[account].length - 1
+        ] = MaxMultiplier;
+
+        // Needed for edge case if the staker only claims once, and after the lock expired
+        if (_lastRewardClaimTime[account] == 0)
+            _lastRewardClaimTime[account] = block.timestamp;
+        emit Staked(account, amount, secs, _lockedStakes[account].length - 1);
+    }
+
+    function withdraw(address account, uint256 index) external onlyJarAndAuthorised returns(uint256) {
+        return _withdraw(account, index);
+    }
+
+    function withdrawAll(address account) public nonReentrant updateReward(account, false) onlyJarAndAuthorised returns(uint256) {
+        uint256 amount;
+        for (uint256 i = 0; i < _lockedStakes[account].length; i++) {
+            LockedStake memory thisStake = _lockedStakes[account][i];
+            if (
+                thisStake.liquidity > 0 &&
+                (stakesUnlocked ||
+                    stakesUnlockedForAccount[account] ||
+                    (!thisStake.isPermanentlyLocked &&
+                        block.timestamp >= thisStake.ending_timestamp))
+            ) {
+                delete _lockedStakes[account][i];
+                amount += thisStake.liquidity;
+            }
+        }
+        if (amount > 0) {
+            emit WithdrawnAll(account, amount);
+        }
+        return amount;
+    }
+
+    function _withdraw(address account, uint256 index)
+        internal
+        nonReentrant
+        updateReward(account, false)
+        returns(uint256)
+    {
+        LockedStake memory thisStake;
+        require(index < _lockedStakes[account].length, "Stake not found");
+
+        thisStake = _lockedStakes[account][index];
+
+        require(
+            stakesUnlocked ||
+                stakesUnlockedForAccount[account] ||
+                (
+                    thisStake.isPermanentlyLocked
+                        ? false
+                        : block.timestamp >= thisStake.ending_timestamp
+                ),
+            "Stake is still locked!"
+        );
+
+        if (thisStake.liquidity > 0) {
+            delete _lockedStakes[account][index];
+            emit Withdrawn(account, thisStake.liquidity, index);
+        }
+        return thisStake.liquidity;
+    }
+
+    function getReward(address account) public nonReentrant updateReward(account, true) onlyJarAndAuthorised {
+        uint256 reward;
+        // _lastRewardClaimTime[account] = block.timestamp;
+
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            reward = _rewards[account][i];
+            if (reward > 0) {
+                _rewards[account][i] = 0;
+                IERC20(rewardTokens[i]).safeTransfer(account, reward);
+                emit RewardPaid(account, rewardSymbols[i], reward);
+            }
+        }
+    }
+
+    function exit(address account) external {
+        withdrawAll(account);
+        getReward(account);
+    }
+
+    /* ========== RESTRICTED FUNCTIONS ========== */
+
+    function notifyRewardAmount(uint256[] memory rewards)
+        external
+        onlyDistribution
+        updateReward(address(0), false)
+    {
+        require(
+            rewards.length == rewardTokens.length,
+            "Rewards count do not match reward token count"
+        );
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            IERC20(rewardTokens[i]).safeTransferFrom(
+                DISTRIBUTION,
+                address(this),
+                rewards[i]
+            );
+
+            if (block.timestamp >= periodFinish) {
+                rewardRates[i] = rewards[i] / DURATION;
+            } else {
+                uint256 remaining = periodFinish - block.timestamp;
+                uint256 leftover = remaining * rewardRates[i];
+                rewardRates[i] = (rewards[i] + leftover) / DURATION;
+            }
+
+            // Ensure the provided reward amount is not more than the balance in the contract.
+            // This keeps the reward rate in the right range, preventing overflows due to
+            // very high values of rewardRate in the earned and rewardsPerToken functions;
+            // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
+            uint256 balance = IERC20(rewardTokens[i]).balanceOf(address(this));
+            require(
+                rewardRates[i] <= balance / DURATION,
+                "Provided reward too high"
+            );
+
+            emit RewardAdded(rewardSymbols[i], rewards[i]);
+        }
+
+        lastUpdateTime = block.timestamp;
+        periodFinish = block.timestamp + DURATION;
+    }
+
+    function setMultipliers(uint256 _lock_max_multiplier) external onlyGov {
+        require(
+            _lock_max_multiplier >= uint256(1e18),
+            "Multiplier must be greater than or equal to 1e18"
+        );
+        lockMaxMultiplier = _lock_max_multiplier;
+        emit LockedStakeMaxMultiplierUpdated(lockMaxMultiplier);
+    }
+
+    function setMaxRewardsDuration(uint256 _lockTimeForMaxMultiplier)
+        external
+        onlyGov
+    {
+        require(
+            _lockTimeForMaxMultiplier >= 86400,
+            "Rewards duration too short"
+        );
+        require(
+            periodFinish == 0 || block.timestamp > periodFinish,
+            "Reward period incomplete"
+        );
+        lockTimeForMaxMultiplier = _lockTimeForMaxMultiplier;
+        emit MaxRewardsDurationUpdated(lockTimeForMaxMultiplier);
+    }
+
+    function unlockStakes() external onlyGov {
+        stakesUnlocked = !stakesUnlocked;
+    }
+
+    function unlockStakeForAccount(address account) external onlyGov {
+        stakesUnlockedForAccount[account] = !stakesUnlockedForAccount[account];
+    }
+
+    /* ========== EVENTS ========== */
+    event approvedTokenReceipt(address _spender, uint256 _amount);
+    event stakeTransferd(address _to, uint256 _index);
+    event allStakesTransferd(address _to);
+    event RewardAdded(string rewardSymbol, uint256 reward);
+    event Staked(
+        address indexed user,
+        uint256 amount,
+        uint256 secs,
+        uint256 index
+    );
+    event Withdrawn(address indexed user, uint256 amount, uint256 index);
+    event WithdrawnAll(address indexed user, uint256 amount);
+    event RewardPaid(address indexed user, string rewardSymbol, uint256 reward);
+    event LockedStakeMaxMultiplierUpdated(uint256 multiplier);
+    event MaxRewardsDurationUpdated(uint256 newDuration);
 }
 
 contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
@@ -1352,7 +1888,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         address[] memory _rewardTokens = new address[](1);
         _rewardSymbols[0] = "PICKLE";
         _rewardTokens[0] = _token;
-        address vgauge = gaugeMiddleware.addVirtualGauge(_jar, governance,  _rewardSymbols, _rewardTokens);
+        address vgauge = gaugeMiddleware.
+        (_jar, governance,  _rewardSymbols, _rewardTokens);
         gauges[_token] = vgauge;
         isVirtual[vgauge] = true;
         _tokens.push(_token);

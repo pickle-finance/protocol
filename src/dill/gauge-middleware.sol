@@ -1,7 +1,7 @@
 pragma solidity >=0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
-import {VirtualGauge, Gauge, ProtocolGovernance} from "./gauge-proxy-v2.sol";
+import {GaugeV2, ProtocolGovernance, VirtualGaugeV2} from "./gauge-proxy-v2.sol";
 
 contract GaugeMiddleware is Initializable {
     address public gaugeProxy;
@@ -31,16 +31,25 @@ contract GaugeMiddleware is Initializable {
         gaugeProxy = _newgaugeProxy;
     }
 
-    function addGauge(address _token) external returns (address) {
+    function addGauge(
+        address _token,
+        address _governance,
+        string[] memory _rewardSymbols,
+        address[] memory _rewardTokens
+    ) external returns (address) {
         require(msg.sender == gaugeProxy, "can only be called by gaugeProxy");
         require(_token != address(0), "address of token cannot be zero");
-        return address(new Gauge(_token));
+        return
+            address(
+                new GaugeV2(_token, _governance, _rewardSymbols, _rewardTokens)
+            );
     }
 
     function addVirtualGauge(
-        address _token,
         address _jar,
-        address _governance
+        address _governance,
+        string[] memory _rewardSymbols,
+        address[] memory _rewardTokens
     ) external returns (address) {
         require(msg.sender == gaugeProxy, "can only be called by gaugeProxy");
         require(_token != address(0), "address of token cannot be zero");
@@ -49,6 +58,14 @@ contract GaugeMiddleware is Initializable {
             _governance != address(0),
             "address of governance cannot be zero"
         );
-        return address(new VirtualGauge(_token, _jar, _governance));
+        return
+            address(
+                new VirtualGaugeV2(
+                    _jar,
+                    _governance,
+                    _rewardSymbols,
+                    _rewardTokens
+                )
+            );
     }
 }
