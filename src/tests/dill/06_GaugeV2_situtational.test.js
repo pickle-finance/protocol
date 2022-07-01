@@ -190,8 +190,8 @@ describe("Liquidity Staking tests", () => {
 
     await getAndPrintReward("Nami", GaugeV2ByNami, Nami.address); // get reward by Nami before expiry
 
-    // DepositAndLock with dill balance(start time + 65 days) for 365 days
-    await GaugeV2BydillHolder.depositAndLock(tenPickles, 365 * 86400, false);
+    // DepositAndLock with dill balance(start time + 65 days) for 300 days
+    await GaugeV2BydillHolder.depositAndLock(tenPickles, 300 * 86400, false);
     console.log(
       chalk.green(
         "DillHolder's pickle balance after deposit and lock(10 pickles) =>",
@@ -231,7 +231,7 @@ describe("Liquidity Staking tests", () => {
     }
     await getAndPrintReward("Nami", GaugeV2ByNami, Nami.address); // Nami claims reward after stake expiry
 
-    await getAndPrintReward("dillHolder", GaugeV2BydillHolder, dillHolderAddr);
+    await getAndPrintReward("Zoro", GaugeV2ByZoro, Zoro.address);
 
     // Advancing 21 weeks (1 year from start time)
     for (let i = 0; i < 21; i++) {
@@ -242,7 +242,14 @@ describe("Liquidity Staking tests", () => {
     // claim reward by Luffy after(1 day) stake lock expired where luffy was claiming his reward regularly
     await getAndPrintReward("Luffy", GaugeV2ByLuffy, Luffy.address);
 
-    // claim reward by Zoro much after stake lock expired where zoro never claimed his reward before
-    await getAndPrintReward("Zoro", GaugeV2ByZoro, Zoro.address);
+    // claim reward by dillHolder much after stake lock expired where dillHolder never claimed his reward before
+    await getAndPrintReward("dillHolder", GaugeV2BydillHolder, dillHolderAddr);
+    
   });
+  it.only("advance 7 days", async () => {
+    advanceNDays(7);
+    await pickle.connect(Luffy).approve(thisContractAddr, ethers.utils.parseEther("20"));
+    await GaugeV2ByLuffy.depositAndLock(tenPickles, 365 * 86400, false);
+  })
 });
+
