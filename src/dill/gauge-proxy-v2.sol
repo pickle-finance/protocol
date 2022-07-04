@@ -286,16 +286,17 @@ interface IJar {
 contract VirtualBalanceWrapper {
     IJar public jar;
 
-    function totalSupply() external view returns (uint256) {
+    function totalSupply() public view returns (uint256) {
         return jar.totalSupply();
     }
 
-    function balanceOf(address account) external view returns (uint256) {
+    function balanceOf(address account) public view returns (uint256) {
         return jar.balanceOf(account);
     }
 }
 
 contract VirtualGaugeV2 is ProtocolGovernance, ReentrancyGuard, VirtualBalanceWrapper {
+    using SafeERC20 for IERC20;
     // Token addresses
     IERC20 public constant DILL =
         IERC20(0xbBCf169eE191A1Ba7371F30A1C344bFC498b29Cf);
@@ -525,9 +526,9 @@ contract VirtualGaugeV2 is ProtocolGovernance, ReentrancyGuard, VirtualBalanceWr
 
     }
 
-    function setAuthoriseAddress(address jar, bool value) external onlyGov {
-        require(authorisedAddress[_jar] != value, "address is already set to given value");
-        authorisedAddress[_jar] = value;
+    function setAuthoriseAddress(address _account, bool value) external onlyGov {
+        require(authorisedAddress[_account] != value, "address is already set to given value");
+        authorisedAddress[_account] = value;
     }
 
     function derivedBalance(address account) public returns (uint256) {
@@ -1641,7 +1642,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     mapping(uint256 => int256) public totalWeight; // period id => TotalWeight
     mapping(uint256 => mapping(uint256 => bool)) public distributed;
     mapping(uint256 => uint256) public periodForDistribute; // dist id => which period id votes to use
-    IGaugeMiddleware public gaugeMiddleware
+    IGaugeMiddleware public gaugeMiddleware;
 
     struct delegateData {
         // delegated address
@@ -1685,8 +1686,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     }
 
     function addGaugeMiddleware(address _gaugeMiddleware) external  {
-        require(_gaugeMiddleware != address(0), "gaugeMiddleware cannot set to zero")
-        require(_gaugeMiddleware != gaugeMiddleware, "current and new gaugeMiddleware are same");
+        require(_gaugeMiddleware != address(0), "gaugeMiddleware cannot set to zero");
+        require(_gaugeMiddleware != address(gaugeMiddleware), "current and new gaugeMiddleware are same");
         gaugeMiddleware = IGaugeMiddleware(_gaugeMiddleware);
     }
 
@@ -1893,10 +1894,9 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         address[] memory _rewardTokens = new address[](1);
         _rewardSymbols[0] = "PICKLE";
         _rewardTokens[0] = _token;
-        address vgauge = gaugeMiddleware.
-        (_jar, governance,  _rewardSymbols, _rewardTokens);
+        address vgauge = gaugeMiddleware.addVirtualGauge(_jar, governance,  _rewardSymbols, _rewardTokens);
         gauges[_token] = vgauge;
-        isVirtual[vgauge] = true;
+        isVirtualGauge[vgauge] = true;
         _tokens.push(_token);
     }
 
