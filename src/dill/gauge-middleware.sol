@@ -40,6 +40,31 @@ contract GaugeMiddleware is ProtocolGovernance, Initializable {
                 new GaugeV2(_token, _governance, _rewardSymbols, _rewardTokens)
             );
     }
+}
+
+contract VirtualGaugeMiddleware is ProtocolGovernance, Initializable {
+    address public gaugeProxy;
+
+    function initialize(address _gaugeProxy, address _governance)
+        public
+        initializer
+    {
+        require(
+            _gaugeProxy != address(0),
+            "_gaugeProxy address cannot be set to zero"
+        );
+        require(
+            _governance != _gaugeProxy,
+            "_governance address and _gaugeProxy cannot be same"
+        );
+        gaugeProxy = _gaugeProxy;
+        governance = _governance;
+    }
+
+    function changeGaugeProxy(address _newgaugeProxy) external {
+        require(msg.sender == governance, "can only be called by gaugeProxy");
+        gaugeProxy = _newgaugeProxy;
+    }
 
     function addVirtualGauge(
         address _jar,

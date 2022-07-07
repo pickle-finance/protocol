@@ -66,7 +66,9 @@ interface IGaugeMiddleware {
         string[] memory _rewardSymbols,
         address[] memory _rewardTokens
     ) external returns (address);
+}
 
+interface IVirtualGaugeMiddleware {
     function addVirtualGauge(
         address _jar,
         address _governance,
@@ -1733,6 +1735,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     mapping(uint256 => mapping(uint256 => bool)) public distributed;
     mapping(uint256 => uint256) public periodForDistribute; // dist id => which period id votes to use
     IGaugeMiddleware public gaugeMiddleware;
+    IVirtualGaugeMiddleware public virtualGaugeMiddleware;
 
     struct delegateData {
         // delegated address
@@ -1785,6 +1788,22 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             "current and new gaugeMiddleware are same"
         );
         gaugeMiddleware = IGaugeMiddleware(_gaugeMiddleware);
+    }
+
+    function addVirtualGaugeMiddleware(address _virtualGaugeMiddleware)
+        external
+    {
+        require(
+            _virtualGaugeMiddleware != address(0),
+            "virtualGaugeMiddleware cannot set to zero"
+        );
+        require(
+            _virtualGaugeMiddleware != address(gaugeMiddleware),
+            "current and new virtualGaugeMiddleware are same"
+        );
+        virtualGaugeMiddleware = IVirtualGaugeMiddleware(
+            _virtualGaugeMiddleware
+        );
     }
 
     // Reset votes to 0
@@ -1990,6 +2009,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         _tokens.push(_token);
     }
 
+    // Add new token virtual gauge
     function addVirtualGauge(address _token, address _jar) external {
         require(msg.sender == governance, "!gov");
         require(
@@ -2001,7 +2021,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         address[] memory _rewardTokens = new address[](1);
         _rewardSymbols[0] = "PICKLE";
         _rewardTokens[0] = _token;
-        address vgauge = gaugeMiddleware.addVirtualGauge(
+        address vgauge = virtualGaugeMiddleware.addVirtualGauge(
             _jar,
             governance,
             _rewardSymbols,
@@ -2125,7 +2145,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
                 distributed[distributionId][i] = true;
             }
         }
-
         if (_tokens.length == _end) {
             distributionId += 1;
         }
