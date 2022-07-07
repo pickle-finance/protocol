@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.1;
 
-
 library Address {
     function isContract(address account) internal view returns (bool) {
         bytes32 codehash;
@@ -61,20 +60,20 @@ interface IERC20 {
 }
 
 interface IGaugeMiddleware {
-    function addGauge(address _token,
+    function addGauge(
+        address _token,
         address _governance,
         string[] memory _rewardSymbols,
-        address[] memory _rewardTokens) external returns (address);
+        address[] memory _rewardTokens
+    ) external returns (address);
 
     function addVirtualGauge(
         address _jar,
         address _governance,
         string[] memory _rewardSymbols,
         address[] memory _rewardTokens
-
     ) external returns (address);
 }
-
 
 library SafeERC20 {
     using Address for address;
@@ -280,6 +279,7 @@ contract ProtocolGovernance {
 
 interface IJar {
     function balanceOf(address account) external view returns (uint256);
+
     function totalSupply() external view returns (uint256);
 }
 
@@ -295,7 +295,11 @@ contract VirtualBalanceWrapper {
     }
 }
 
-contract VirtualGaugeV2 is ProtocolGovernance, ReentrancyGuard, VirtualBalanceWrapper {
+contract VirtualGaugeV2 is
+    ProtocolGovernance,
+    ReentrancyGuard,
+    VirtualBalanceWrapper
+{
     using SafeERC20 for IERC20;
     // Token addresses
     IERC20 public constant DILL =
@@ -349,7 +353,7 @@ contract VirtualGaugeV2 is ProtocolGovernance, ReentrancyGuard, VirtualBalanceWr
         uint256 start_timestamp;
         uint256 liquidity;
         uint256 ending_timestamp;
-        uint256 lock_multiplier; // 6 decimals of precision. 1x = 1000000
+        uint256 lock_multiplier;
         bool isPermanentlyLocked;
     }
 
@@ -523,11 +527,16 @@ contract VirtualGaugeV2 is ProtocolGovernance, ReentrancyGuard, VirtualBalanceWr
         require(_jar != address(0), "cannot set to zero");
         require(_jar != address(jar), "Jar is already set");
         jar = IJar(_jar);
-
     }
 
-    function setAuthoriseAddress(address _account, bool value) external onlyGov {
-        require(authorisedAddress[_account] != value, "address is already set to given value");
+    function setAuthoriseAddress(address _account, bool value)
+        external
+        onlyGov
+    {
+        require(
+            authorisedAddress[_account] != value,
+            "address is already set to given value"
+        );
         authorisedAddress[_account] = value;
     }
 
@@ -607,7 +616,10 @@ contract VirtualGaugeV2 is ProtocolGovernance, ReentrancyGuard, VirtualBalanceWr
         derivedSupply = derivedSupply + _derivedBalance;
     }
 
-    function depositFor(uint256 amount, address account) external onlyJarAndAuthorised {
+    function depositFor(uint256 amount, address account)
+        external
+        onlyJarAndAuthorised
+    {
         _deposit(amount, account, 0, block.timestamp, false);
     }
 
@@ -648,36 +660,77 @@ contract VirtualGaugeV2 is ProtocolGovernance, ReentrancyGuard, VirtualBalanceWr
         emit Staked(account, amount, secs, _lockedStakes[account].length - 1);
     }
 
-    function withdraw(address account, uint256 index) external onlyJarAndAuthorised returns(uint256) {
+    function withdraw(address account, uint256 index)
+        external
+        onlyJarAndAuthorised
+        returns (uint256)
+    {
         return _withdraw(account, index);
     }
 
-    function withdrawAll(address account) public nonReentrant updateReward(account, false) onlyJarAndAuthorised returns(uint256) {
-        uint256 amount;
-        for (uint256 i = 0; i < _lockedStakes[account].length; i++) {
-            LockedStake memory thisStake = _lockedStakes[account][i];
+    function withdrawAll(address account)
+        public
+        onlyJarAndAuthorised
+        returns (uint256 amount)
+    {
+        amount = _partialWithdrawal(account, balanceOf(account));
+        emit WithdrawnAll(account, amount);
+    }
+
+    function partialWithdrawal(address account, uint256 _amount)
+        external
+        onlyJarAndAuthorised
+        returns (uint256 amount)
+    {
+        amount = _partialWithdrawal(account, _amount);
+        emit WithdrawnPartilly(account, amount);
+    }
+
+    function _partialWithdrawal(address _account, uint256 _amount)
+        internal
+        nonReentrant
+        updateReward(_account, false)
+        returns (uint256)
+    {
+        require(
+            _amount <= balanceOf(_account),
+            "Withdraw amount exceeds balance"
+        );
+        uint256 amountToTransfer = 0;
+        for (uint256 i = 0; i < _lockedStakes[_account].length; i++) {
+            LockedStake memory thisStake = _lockedStakes[_account][i];
+            // check if stake is not locked
             if (
                 thisStake.liquidity > 0 &&
                 (stakesUnlocked ||
-                    stakesUnlockedForAccount[account] ||
+                    stakesUnlockedForAccount[_account] ||
                     (!thisStake.isPermanentlyLocked &&
                         block.timestamp >= thisStake.ending_timestamp))
             ) {
-                delete _lockedStakes[account][i];
-                amount += thisStake.liquidity;
+                if (thisStake.liquidity < (_amount - amountToTransfer)) {
+                    amountToTransfer += thisStake.liquidity;
+                    delete _lockedStakes[_account][i];
+                } else if (
+                    thisStake.liquidity == (_amount - amountToTransfer)
+                ) {
+                    amountToTransfer += thisStake.liquidity;
+                    delete _lockedStakes[_account][i];
+                    break;
+                } else if (thisStake.liquidity > (_amount - amountToTransfer)) {
+                    _lockedStakes[_account][i].liquidity -= _amount;
+                    amountToTransfer += _amount;
+                    break;
+                }
             }
         }
-        if (amount > 0) {
-            emit WithdrawnAll(account, amount);
-        }
-        return amount;
+        return amountToTransfer;
     }
 
     function _withdraw(address account, uint256 index)
         internal
         nonReentrant
         updateReward(account, false)
-        returns(uint256)
+        returns (uint256)
     {
         LockedStake memory thisStake;
         require(index < _lockedStakes[account].length, "Stake not found");
@@ -702,9 +755,13 @@ contract VirtualGaugeV2 is ProtocolGovernance, ReentrancyGuard, VirtualBalanceWr
         return thisStake.liquidity;
     }
 
-    function getReward(address account) public nonReentrant updateReward(account, true) onlyJarAndAuthorised {
+    function getReward(address account)
+        public
+        nonReentrant
+        updateReward(account, true)
+        onlyJarAndAuthorised
+    {
         uint256 reward;
-        // _lastRewardClaimTime[account] = block.timestamp;
 
         for (uint256 i = 0; i < rewardTokens.length; i++) {
             reward = _rewards[account][i];
@@ -810,6 +867,7 @@ contract VirtualGaugeV2 is ProtocolGovernance, ReentrancyGuard, VirtualBalanceWr
     );
     event Withdrawn(address indexed user, uint256 amount, uint256 index);
     event WithdrawnAll(address indexed user, uint256 amount);
+    event WithdrawnPartilly(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, string rewardSymbol, uint256 reward);
     event LockedStakeMaxMultiplierUpdated(uint256 multiplier);
     event MaxRewardsDurationUpdated(uint256 newDuration);
@@ -879,7 +937,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         uint256 start_timestamp;
         uint256 liquidity;
         uint256 ending_timestamp;
-        uint256 lock_multiplier; // 6 decimals of precision. 1x = 1000000
+        uint256 lock_multiplier;
         bool isPermanentlyLocked;
     }
 
@@ -1237,28 +1295,59 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         _withdraw(index);
     }
 
-    function withdrawAll() public nonReentrant updateReward(msg.sender, false) {
-        uint256 amount;
-        for (uint256 i = 0; i < _lockedStakes[msg.sender].length; i++) {
-            LockedStake memory thisStake = _lockedStakes[msg.sender][i];
-            uint256 liquidity = thisStake.liquidity;
+    function withdrawAll() public {
+        uint256 amount = _partialWithdrawal(msg.sender, _balances[msg.sender]);
+        emit WithdrawnAll(msg.sender, amount);
+    }
+
+    function partialWithdrawal(uint256 _amount) external {
+        uint256 amount = _partialWithdrawal(msg.sender, _amount);
+        emit WithdrawnPartilly(msg.sender, amount);
+    }
+
+    function _partialWithdrawal(address _account, uint256 _amount)
+        internal
+        nonReentrant
+        updateReward(_account, false)
+        returns (uint256)
+    {
+        require(
+            _amount <= _balances[_account],
+            "Withdraw amount exceeds balance"
+        );
+        uint256 amountToTransfer = 0;
+        for (uint256 i = 0; i < _lockedStakes[_account].length; i++) {
+            LockedStake memory thisStake = _lockedStakes[_account][i];
+            // check if stake is not locked
             if (
-                liquidity > 0 &&
+                thisStake.liquidity > 0 &&
                 (stakesUnlocked ||
-                    stakesUnlockedForAccount[msg.sender] ||
+                    stakesUnlockedForAccount[_account] ||
                     (!thisStake.isPermanentlyLocked &&
                         block.timestamp >= thisStake.ending_timestamp))
             ) {
-                _totalSupply = _totalSupply - liquidity;
-                _balances[msg.sender] = _balances[msg.sender] - liquidity;
-                delete _lockedStakes[msg.sender][i];
-                amount += liquidity;
+                if (thisStake.liquidity < (_amount - amountToTransfer)) {
+                    amountToTransfer += thisStake.liquidity;
+                    delete _lockedStakes[_account][i];
+                } else if (
+                    thisStake.liquidity == (_amount - amountToTransfer)
+                ) {
+                    amountToTransfer += thisStake.liquidity;
+                    delete _lockedStakes[_account][i];
+                    break;
+                } else if (thisStake.liquidity > (_amount - amountToTransfer)) {
+                    _lockedStakes[_account][i].liquidity -= _amount;
+                    amountToTransfer += _amount;
+                    break;
+                }
             }
         }
-        if (amount > 0) {
-            TOKEN.safeTransfer(msg.sender, amount);
-            emit WithdrawnAll(msg.sender, amount);
+        if (amountToTransfer > 0) {
+            _totalSupply = _totalSupply - amountToTransfer;
+            _balances[_account] = _balances[_account] - amountToTransfer;
+            TOKEN.safeTransfer(msg.sender, amountToTransfer);
         }
+        return amountToTransfer;
     }
 
     function _withdraw(uint256 index)
@@ -1402,6 +1491,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     );
     event Withdrawn(address indexed user, uint256 amount, uint256 index);
     event WithdrawnAll(address indexed user, uint256 amount);
+    event WithdrawnPartilly(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, string rewardSymbol, uint256 reward);
     event LockedStakeMaxMultiplierUpdated(uint256 multiplier);
     event MaxRewardsDurationUpdated(uint256 newDuration);
@@ -1516,7 +1606,7 @@ contract MasterDill {
             amount <= spenderAllowance,
             "transferFrom: exceeds spender allowance"
         );
-        
+
         if (spender != src && spenderAllowance != type(uint256).max) {
             uint256 newAllowance = spenderAllowance - amount;
             allowances[src][spender] = newAllowance;
@@ -1685,9 +1775,15 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         periodForDistribute[1] = 1;
     }
 
-    function addGaugeMiddleware(address _gaugeMiddleware) external  {
-        require(_gaugeMiddleware != address(0), "gaugeMiddleware cannot set to zero");
-        require(_gaugeMiddleware != address(gaugeMiddleware), "current and new gaugeMiddleware are same");
+    function addGaugeMiddleware(address _gaugeMiddleware) external {
+        require(
+            _gaugeMiddleware != address(0),
+            "gaugeMiddleware cannot set to zero"
+        );
+        require(
+            _gaugeMiddleware != address(gaugeMiddleware),
+            "current and new gaugeMiddleware are same"
+        );
         gaugeMiddleware = IGaugeMiddleware(_gaugeMiddleware);
     }
 
@@ -1876,25 +1972,41 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     // Add new token gauge
     function addGauge(address _token) external {
         require(msg.sender == governance, "!gov");
-        require(address(gaugeMiddleware) != address(0), "cannot add new gauge without initializing gaugeMiddleware");
+        require(
+            address(gaugeMiddleware) != address(0),
+            "cannot add new gauge without initializing gaugeMiddleware"
+        );
         require(gauges[_token] == address(0x0), "exists");
         string[] memory _rewardSymbols = new string[](1);
         address[] memory _rewardTokens = new address[](1);
         _rewardSymbols[0] = "PICKLE";
         _rewardTokens[0] = _token;
-        gauges[_token] = gaugeMiddleware.addGauge(_token, governance, _rewardSymbols, _rewardTokens);
+        gauges[_token] = gaugeMiddleware.addGauge(
+            _token,
+            governance,
+            _rewardSymbols,
+            _rewardTokens
+        );
         _tokens.push(_token);
     }
 
     function addVirtualGauge(address _token, address _jar) external {
         require(msg.sender == governance, "!gov");
-        require(address(gaugeMiddleware) != address(0), "cannot add new gauge without initializing gaugeMiddleware");
+        require(
+            address(gaugeMiddleware) != address(0),
+            "cannot add new gauge without initializing gaugeMiddleware"
+        );
         require(gauges[_token] == address(0x0), "exists");
         string[] memory _rewardSymbols = new string[](1);
         address[] memory _rewardTokens = new address[](1);
         _rewardSymbols[0] = "PICKLE";
         _rewardTokens[0] = _token;
-        address vgauge = gaugeMiddleware.addVirtualGauge(_jar, governance,  _rewardSymbols, _rewardTokens);
+        address vgauge = gaugeMiddleware.addVirtualGauge(
+            _jar,
+            governance,
+            _rewardSymbols,
+            _rewardTokens
+        );
         gauges[_token] = vgauge;
         isVirtualGauge[vgauge] = true;
         _tokens.push(_token);
@@ -1910,10 +2022,9 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         address _gauge = gauges[_token];
 
         require(gaugeWithNegativeWeight[_gauge] >= 5, "censors < 5");
-        
+
         delete isVirtualGauge[_gauge];
         delete gauges[_token];
-
 
         uint256 tokensLength = _tokens.length;
         address[] memory newTokenArray = new address[](tokensLength - 1);
