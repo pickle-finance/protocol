@@ -244,12 +244,5 @@ describe("Liquidity Staking tests", () => {
 
     // claim reward by dillHolder much after stake lock expired where dillHolder never claimed his reward before
     await getAndPrintReward("dillHolder", GaugeV2BydillHolder, dillHolderAddr);
-    
   });
-  it.only("advance 7 days", async () => {
-    advanceNDays(7);
-    await pickle.connect(Luffy).approve(thisContractAddr, ethers.utils.parseEther("20"));
-    await GaugeV2ByLuffy.depositAndLock(tenPickles, 365 * 86400, false);
-  })
 });
-

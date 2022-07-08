@@ -15,11 +15,28 @@ let userSigner,
   pickle,
   pickleHolderSigner,
   governanceSigner,
+  dillHolderSigner,
+  gaugeFromDillHolder,
   Luffy,
   Zoro,
   Sanji,
   Nami;
 const fivePickle = ethers.utils.parseEther("5");
+
+const printStakes = async (address) => {
+  let stakes = await GaugeV2.lockedStakesOf(address);
+  console.log("********************* Locked stakes ********************************************");
+  stakes.forEach((stake, index) => {
+    console.log(
+      "Liquidity in stake ",
+      index,
+      ethers.utils.formatEther(stake.liquidity),
+      "ending timestamp",
+      stake.ending_timestamp
+    );
+  });
+  console.log("*******************************************************************************");
+};
 
 describe("Liquidity Staking tests", () => {
   before("Setting up gaugeV2", async () => {
@@ -43,12 +60,6 @@ describe("Liquidity Staking tests", () => {
       data: undefined,
     });
 
-    console.log("-- Sending gas cost to dillHolder addr --");
-    await signer.sendTransaction({
-      to: pickleHolder,
-      value: ethers.BigNumber.from("10000000000000000000"),
-      data: undefined,
-    });
     console.log("------------------------ sent ------------------------");
 
     /** unlock accounts */
@@ -76,7 +87,7 @@ describe("Liquidity Staking tests", () => {
 
     console.log("-- Deploying Gaugev2 contract --");
     const gaugeV2 = await ethers.getContractFactory("/src/dill/gauge-proxy-v2.sol:GaugeV2", pickleHolderSigner);
-    GaugeV2 = await gaugeV2.deploy(pickleAddr, governanceAddr, ['PICKLE'], [pickleAddr]);
+    GaugeV2 = await gaugeV2.deploy(pickleAddr, governanceAddr, ["PICKLE"], [pickleAddr]);
     await GaugeV2.deployed();
     thisContractAddr = GaugeV2.address;
     console.log("GaugeV2 deployed to:", thisContractAddr);
@@ -84,8 +95,11 @@ describe("Liquidity Staking tests", () => {
     GaugeFromUser = GaugeV2.connect(userSigner);
     const pickleFromHolder = pickle.connect(pickleHolderSigner);
 
+    dillHolderSigner = ethers.provider.getSigner(dillHolder);
+    gaugeFromDillHolder = GaugeV2.connect(dillHolderSigner);
+
     console.log("------------------------ Depositing pickle ------------------------");
-    await pickleFromHolder.transfer(dillHolder, ethers.utils.parseEther("50"));
+    await pickleFromHolder.transfer(dillHolder, ethers.utils.parseEther("100"));
     await pickleFromHolder.transfer(userAddr, ethers.utils.parseEther("10"));
     await pickleFromHolder.transfer(Luffy.address, ethers.utils.parseEther("10"));
     await pickleFromHolder.transfer(Zoro.address, ethers.utils.parseEther("10"));
@@ -220,10 +234,6 @@ describe("Liquidity Staking tests", () => {
     console.log("Nami's pickle balance ", Number(ethers.utils.formatEther(await pickle.balanceOf(Nami.address))));
     console.log("===================================================================================================");
 
-    const dillHolderSigner = ethers.provider.getSigner(dillHolder);
-
-    const gaugeFromDillHolder = GaugeV2.connect(dillHolderSigner);
-
     // Deposit - dillHolder
     await pickle.connect(dillHolderSigner).approve(thisContractAddr, 0);
     await pickle.connect(dillHolderSigner).approve(thisContractAddr, fivePickle);
@@ -341,8 +351,8 @@ describe("Liquidity Staking tests", () => {
       Number(ethers.utils.formatEther(await pickle.balanceOf(Sanji.address)))
     );
 
+    await printStakes(Nami.address);
     //getReward Nami (permanent lock)
-    console.log(await GaugeV2.lockedStakesOf(Nami.address));
     await GaugeV2.connect(Nami).getReward();
     console.log(
       "Nami's pickle balance after getting reward (2.5x because stakes are permanently locked)",
@@ -398,5 +408,48 @@ describe("Liquidity Staking tests", () => {
     expect(isUnlocked).to.be.eq(true);
 
     await GaugeFromUser.exit({gasLimit: 9000000});
+  });
+
+  it("Test partial withdrawal", async () => {
+    await pickle.connect(dillHolderSigner).approve(thisContractAddr, 0);
+    await pickle.connect(dillHolderSigner).approve(thisContractAddr, ethers.utils.parseEther("25"));
+    console.log(" -- deposit 5 pickle -- ");
+    await gaugeFromDillHolder.deposit(fivePickle, {gasLimit: 9000000});
+    console.log(" -- deposit and lock 5 pickle for 3 days -- ");
+    await gaugeFromDillHolder.depositAndLock(fivePickle, 86400 * 3, false, {gasLimit: 9000000});
+    console.log(" -- deposit and lock 5 pickle for 365 days -- ");
+    await gaugeFromDillHolder.depositAndLock(fivePickle, 86400 * 365, false, {gasLimit: 9000000});
+    console.log(" -- deposit and lock 5 pickle 1 day -- ");
+    await gaugeFromDillHolder.depositAndLock(fivePickle, 86400, false, {gasLimit: 9000000});
+
+    await printStakes(dillHolder);
+    advanceSevenDays();
+
+    await expect(gaugeFromDillHolder.partialWithdrawal(ethers.utils.parseEther("50"))).to.be.revertedWith(
+      "Withdraw amount exceeds balance"
+    );
+
+    // Withdraw 5 pickle (= liquidity in first unlocked stake)
+    console.log(" -- Partially withdrawing 5 pickle -- ");
+    await gaugeFromDillHolder.partialWithdrawal(fivePickle); // working fine
+
+    await printStakes(dillHolder);
+
+    // Withdraw 2 pickle (< liquidity in first unlocked stake)
+    console.log(" -- Partially withdrawing 2 pickle -- ");
+    await gaugeFromDillHolder.partialWithdrawal(ethers.utils.parseEther("2")); // working fine
+
+    await printStakes(dillHolder);
+
+    // Withdraw 5 pickle (> liquidity in first unlocked stake)
+    console.log(" -- Partially withdrawing 5 pickle -- ");
+    await gaugeFromDillHolder.partialWithdrawal(fivePickle);
+
+    await printStakes(dillHolder);
+
+    // withdraw all
+    console.log(" -- Withdrawing all unlocked stakes -- ");
+    await gaugeFromDillHolder.withdrawAll();
+    await printStakes(dillHolder);
   });
 });

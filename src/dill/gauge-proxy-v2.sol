@@ -702,6 +702,7 @@ contract VirtualGaugeV2 is
         for (uint256 i = 0; i < _lockedStakes[_account].length; i++) {
             LockedStake memory thisStake = _lockedStakes[_account][i];
             // check if stake is not locked
+            uint256 amountRemaining = _amount - amountToTransfer;
             if (
                 thisStake.liquidity > 0 &&
                 (stakesUnlocked ||
@@ -709,18 +710,16 @@ contract VirtualGaugeV2 is
                     (!thisStake.isPermanentlyLocked &&
                         block.timestamp >= thisStake.ending_timestamp))
             ) {
-                if (thisStake.liquidity < (_amount - amountToTransfer)) {
+                if (thisStake.liquidity < amountRemaining) {
                     amountToTransfer += thisStake.liquidity;
                     delete _lockedStakes[_account][i];
-                } else if (
-                    thisStake.liquidity == (_amount - amountToTransfer)
-                ) {
+                } else if (thisStake.liquidity == amountRemaining) {
                     amountToTransfer += thisStake.liquidity;
                     delete _lockedStakes[_account][i];
                     break;
-                } else if (thisStake.liquidity > (_amount - amountToTransfer)) {
-                    _lockedStakes[_account][i].liquidity -= _amount;
-                    amountToTransfer += _amount;
+                } else if (thisStake.liquidity > amountRemaining) {
+                    _lockedStakes[_account][i].liquidity -= amountRemaining;
+                    amountToTransfer = _amount;
                     break;
                 }
             }
@@ -1321,6 +1320,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         for (uint256 i = 0; i < _lockedStakes[_account].length; i++) {
             LockedStake memory thisStake = _lockedStakes[_account][i];
             // check if stake is not locked
+            uint256 amountRemaining = _amount - amountToTransfer;
             if (
                 thisStake.liquidity > 0 &&
                 (stakesUnlocked ||
@@ -1328,18 +1328,16 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
                     (!thisStake.isPermanentlyLocked &&
                         block.timestamp >= thisStake.ending_timestamp))
             ) {
-                if (thisStake.liquidity < (_amount - amountToTransfer)) {
+                if (thisStake.liquidity < amountRemaining) {
                     amountToTransfer += thisStake.liquidity;
                     delete _lockedStakes[_account][i];
-                } else if (
-                    thisStake.liquidity == (_amount - amountToTransfer)
-                ) {
+                } else if (thisStake.liquidity == amountRemaining) {
                     amountToTransfer += thisStake.liquidity;
                     delete _lockedStakes[_account][i];
                     break;
-                } else if (thisStake.liquidity > (_amount - amountToTransfer)) {
-                    _lockedStakes[_account][i].liquidity -= _amount;
-                    amountToTransfer += _amount;
+                } else if (thisStake.liquidity > amountRemaining) {
+                    _lockedStakes[_account][i].liquidity -= amountRemaining;
+                    amountToTransfer = _amount;
                     break;
                 }
             }
