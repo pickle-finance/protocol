@@ -285,6 +285,10 @@ interface IJar {
     function totalSupply() external view returns (uint256);
 }
 
+interface iGaugeV2 {
+    function notifyRewardAmount(uint256[] memory rewards) external;
+}
+
 contract VirtualBalanceWrapper {
     IJar public jar;
 
@@ -2135,12 +2139,8 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
                     PICKLE.safeApprove(_gauge, 0);
                     PICKLE.safeApprove(_gauge, reward_);
-                    
-                    if (isVirtualGauge[_gauge]) {
-                        VirtualGaugeV2(_gauge).notifyRewardAmount(rewardArr);
-                    } else {
-                        GaugeV2(_gauge).notifyRewardAmount(rewardArr);
-                    }
+
+                    iGaugeV2(_gauge).notifyRewardAmount(rewardArr);
                 }
 
                 if (_reward < 0) {
