@@ -37,7 +37,13 @@ contract GaugeMiddleware is ProtocolGovernance, Initializable {
         require(_token != address(0), "address of token cannot be zero");
         return
             address(
-                new GaugeV2(_token, _governance, _rewardSymbols, _rewardTokens)
+                new GaugeV2(
+                    _token,
+                    _governance,
+                    msg.sender,
+                    _rewardSymbols,
+                    _rewardTokens
+                )
             );
     }
 }
@@ -83,6 +89,7 @@ contract VirtualGaugeMiddleware is ProtocolGovernance, Initializable {
                 new VirtualGaugeV2(
                     _jar,
                     _governance,
+                    msg.sender,
                     _rewardSymbols,
                     _rewardTokens
                 )

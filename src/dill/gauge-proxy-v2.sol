@@ -416,6 +416,7 @@ contract VirtualGaugeV2 is
     constructor(
         address _jar,
         address _governance,
+        address _distribution,
         string[] memory _rewardSymbols,
         address[] memory _rewardTokens
     ) {
@@ -424,7 +425,7 @@ contract VirtualGaugeV2 is
         rewardTokens = _rewardTokens;
         rewardSymbols = _rewardSymbols;
 
-        DISTRIBUTION = msg.sender;
+        DISTRIBUTION = _distribution;
         governance = _governance;
 
         for (uint256 i = 0; i < _rewardTokens.length; i++) {
@@ -994,6 +995,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     constructor(
         address _token,
         address _governance,
+        address _distribution,
         string[] memory _rewardSymbols,
         address[] memory _rewardTokens
     ) {
@@ -1002,7 +1004,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         rewardTokens = _rewardTokens;
         rewardSymbols = _rewardSymbols;
 
-        DISTRIBUTION = msg.sender;
+        DISTRIBUTION = _distribution;
         governance = _governance;
 
         for (uint256 i = 0; i < _rewardTokens.length; i++) {
@@ -2133,8 +2135,12 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
                     PICKLE.safeApprove(_gauge, 0);
                     PICKLE.safeApprove(_gauge, reward_);
-
-                    GaugeV2(_gauge).notifyRewardAmount(rewardArr);
+                    
+                    if (isVirtualGauge[_gauge]) {
+                        VirtualGaugeV2(_gauge).notifyRewardAmount(rewardArr);
+                    } else {
+                        GaugeV2(_gauge).notifyRewardAmount(rewardArr);
+                    }
                 }
 
                 if (_reward < 0) {

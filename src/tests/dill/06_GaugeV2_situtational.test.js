@@ -2,6 +2,7 @@ const {advanceNDays, advanceSevenDays} = require("./testHelper");
 const hre = require("hardhat");
 const {ethers} = require("hardhat");
 const chalk = require("chalk");
+
 const governanceAddr = "0x9d074E37d408542FD38be78848e8814AFB38db17";
 const pickleAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5";
 const pickleHolder = "0x68759973357F5fB3e844802B3E9bB74317358bf7";
@@ -102,7 +103,7 @@ describe("Liquidity Staking tests", () => {
     const gaugeV2 = await ethers.getContractFactory("/src/dill/gauge-proxy-v2.sol:GaugeV2", pickleHolderSigner);
     const tokenSymbols = ["PICKLE"];
     const rewardTokens = [pickleAddr];
-    GaugeV2 = await gaugeV2.deploy(pickleAddr, governanceAddr, tokenSymbols, rewardTokens);
+    GaugeV2 = await gaugeV2.deploy(pickleAddr, governanceAddr, pickleHolder, tokenSymbols, rewardTokens);
 
     await GaugeV2.deployed();
 
