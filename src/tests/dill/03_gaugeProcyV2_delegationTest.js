@@ -47,6 +47,7 @@ describe("Vote & Distribute", () => {
       initializer: "initialize",
     });
     await GaugeProxyV2.deployed();
+
     console.log("GaugeProxyV2 deployed to:", GaugeProxyV2.address);
 
     const mDILLAddr = await GaugeProxyV2.TOKEN();
@@ -54,6 +55,22 @@ describe("Vote & Distribute", () => {
     let populatedTx;
     populatedTx = await masterChef.populateTransaction.add(5000000, mDILLAddr, false);
     await governanceSigner.sendTransaction(populatedTx);
+
+    /** Deploy gaugeMiddleware */
+    console.log("-- Deploying GaugeMiddleware contract --");
+    const gaugeMiddleware = await ethers.getContractFactory(
+      "/src/dill/gauge-middleware.sol:GaugeMiddleware",
+      governanceSigner
+    );
+    const GaugeMiddleware = await upgrades.deployProxy(gaugeMiddleware, [GaugeProxyV2.address, governanceAddr], {
+      initializer: "initialize",
+    });
+    await GaugeMiddleware.deployed();
+    console.log("gaugeMiddleware deployed at", GaugeMiddleware.address);
+
+    /** add gaugeMiddleware*/
+    console.log("-- Adding Gauge middleWare --");
+    await GaugeProxyV2.addGaugeMiddleware(GaugeMiddleware.address);
 
     console.log("-- Adding PICKLE LP Gauge --");
     await GaugeProxyV2.addGauge(pickleLP);
@@ -78,7 +95,7 @@ describe("Vote & Distribute", () => {
     populatedTx = await gaugeProxyFromUser.populateTransaction.setVotingDelegate(governanceAddr, 2, false);
     await userSigner.sendTransaction(populatedTx);
   });
-  
+
   it("delegate vote should fail as votes count does not match weights count", async () => {
     /** here gov will vote on behalf of user */
     await expect(GaugeProxyV2.voteFor(userAddr, [pickleLP, pyveCRVETH], [6000000])).to.be.revertedWith(
@@ -90,7 +107,7 @@ describe("Vote & Distribute", () => {
     /** here gov will vote on behalf of user */
     GaugeProxyV2.voteFor(userAddr, [pickleLP, pyveCRVETH], [4000000, 6000000]);
   });
-  
+
   it("successfully Distribute after advancing 7 days", async () => {
     await advanceSevenDays();
     await GaugeProxyV2.distribute(0, 2);
@@ -118,9 +135,9 @@ describe("Vote & Distribute", () => {
     await userSigner.sendTransaction(populatedTx);
   });
   it("delegate should not be able to vote if owner has already voted for current period", async () => {
-    await expect(
-    GaugeProxyV2.voteFor(userAddr, [pickleLP, pyveCRVETH], [400000, 600000])
-    ).to.be.revertedWith("Delegating address has already voted");
+    await expect(GaugeProxyV2.voteFor(userAddr, [pickleLP, pyveCRVETH], [400000, 600000])).to.be.revertedWith(
+      "Delegating address has already voted"
+    );
   });
   it("Successfully Distribute PICKLE to gauges advancing 7 days", async () => {
     await advanceSevenDays();
@@ -139,8 +156,8 @@ describe("Vote & Distribute", () => {
 
   it("Delegate vote should fail for user as delegation period has expired", async () => {
     /** here gov will vote on behalf of user */
-    await expect(
-    GaugeProxyV2.voteFor(userAddr, [pickleLP, pyveCRVETH], [4000000, 6000000])
-    ).to.be.revertedWith("Delegating period expired");
-  }); 
+    await expect(GaugeProxyV2.voteFor(userAddr, [pickleLP, pyveCRVETH], [4000000, 6000000])).to.be.revertedWith(
+      "Delegating period expired"
+    );
+  });
 });

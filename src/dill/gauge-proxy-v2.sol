@@ -2003,7 +2003,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         string[] memory _rewardSymbols = new string[](1);
         address[] memory _rewardTokens = new address[](1);
         _rewardSymbols[0] = "PICKLE";
-        _rewardTokens[0] = _token;
+        _rewardTokens[0] = address(PICKLE);
         gauges[_token] = gaugeMiddleware.addGauge(
             _token,
             governance,
@@ -2024,7 +2024,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         string[] memory _rewardSymbols = new string[](1);
         address[] memory _rewardTokens = new address[](1);
         _rewardSymbols[0] = "PICKLE";
-        _rewardTokens[0] = _token;
+        _rewardTokens[0] = address(PICKLE);
         address vgauge = virtualGaugeMiddleware.addVirtualGauge(
             _jar,
             governance,

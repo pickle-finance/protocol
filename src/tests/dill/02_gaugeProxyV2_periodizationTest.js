@@ -9,7 +9,7 @@ const userAddr = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
 const pickleLP = "0xdc98556Ce24f007A5eF6dC1CE96322d65832A819";
 const pickleAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5";
 const pyveCRVETH = "0x5eff6d166d66bacbc1bf52e2c54dd391ae6b1f48";
-let GaugeProxyV2, userSigner, populatedTx, masterChef ;
+let GaugeProxyV2, userSigner, populatedTx, masterChef;
 
 describe("Vote & Distribute", () => {
   before("Setting up gaugeProxyV2", async () => {
@@ -59,6 +59,22 @@ describe("Vote & Distribute", () => {
     );
     await governanceSigner.sendTransaction(populatedTx);
 
+    /** Deploy gaugeMiddleware */
+    console.log("-- Deploying GaugeMiddleware contract --");
+    const gaugeMiddleware = await ethers.getContractFactory(
+      "/src/dill/gauge-middleware.sol:GaugeMiddleware",
+      governanceSigner
+    );
+    const GaugeMiddleware = await upgrades.deployProxy(gaugeMiddleware, [GaugeProxyV2.address, governanceAddr], {
+      initializer: "initialize",
+    });
+    await GaugeMiddleware.deployed();
+    console.log("gaugeMiddleware deployed at", GaugeMiddleware.address);
+
+    /** add gaugeMiddleware*/
+    console.log("-- Adding Gauge middleWare --");
+    await GaugeProxyV2.addGaugeMiddleware(GaugeMiddleware.address);
+
     console.log("-- Adding PICKLE LP Gauge --");
     await GaugeProxyV2.addGauge(pickleLP);
 
@@ -73,6 +89,7 @@ describe("Vote & Distribute", () => {
     await GaugeProxyV2.setPID(pidDill);
     await GaugeProxyV2.deposit();
   });
+
   beforeEach(async () => {
     console.log("Current Id => ", Number(await GaugeProxyV2.getCurrentPeriodId()));
     console.log("Distribution Id => ", Number(await GaugeProxyV2.distributionId()));

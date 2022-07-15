@@ -87,7 +87,7 @@ describe("Liquidity Staking tests", () => {
 
     console.log("-- Deploying Gaugev2 contract --");
     const gaugeV2 = await ethers.getContractFactory("/src/dill/gauge-proxy-v2.sol:GaugeV2", pickleHolderSigner);
-    GaugeV2 = await gaugeV2.deploy(pickleAddr, governanceAddr, ["PICKLE"], [pickleAddr]);
+    GaugeV2 = await gaugeV2.deploy(pickleAddr, governanceAddr, pickleHolder, ["PICKLE"], [pickleAddr]);
     await GaugeV2.deployed();
     thisContractAddr = GaugeV2.address;
     console.log("GaugeV2 deployed to:", thisContractAddr);
