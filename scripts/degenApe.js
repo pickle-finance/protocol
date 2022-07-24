@@ -34,11 +34,11 @@ const outputFolder = "scripts/degenApe/degenApeOutputs";
 // by the script from the strategy address.
 // @param - componentAddresses: The underlying token addresses of the lp. These will be added
 const pfcoreArgs = {
-  chain: "optimism",
-  protocols: ["zipswap"],
+  chain: "gnosis",
+  protocols: ["swapr"],
   extraTags: [],
   liquidityURL: "https://zipswap.fi/#/add/",
-  rewardTokens: ["zip", "gohm"],
+  rewardTokens: ["swapr", "gno"],
   jarCode: "1e",
   farmAddress: "",
   componentNames: [],
@@ -48,15 +48,18 @@ const pfcoreArgs = {
 // Addresses & Contracts
 const governance = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const strategist = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
-const controller = "0xc335740c951F45200b38C5Ca84F0A9663b51AEC6";
+const controller = "0xe5E231De20C68AabB8D669f87971aE57E2AbF680";
 const timelock = "0x4204FDD868FFe0e62F57e6A626F8C9530F7d5AD1";
 const harvester = ["0x0f571D2625b503BB7C1d2b5655b483a2Fa696fEf"];
 
 const contracts = [
-  "src/strategies/optimism/zipswap/strategy-zip-$gohm-$weth-lp.sol:StrategyZipEthGohmLp"
+  "src/strategies/gnosis/swapr/strategy-swapr-cow-weth-lp.sol:StrategySwaprCowWethLp",
+  "src/strategies/gnosis/swapr/strategy-swapr-cow-gno-lp.sol:StrategySwaprCowGnoLp"
 ];
 
-const testedStrategies = [];
+const testedStrategies = [
+  "0x1f84E30b463fE22FC26D1806149bE1e3E848Cfd9"
+];
 
 const executeTx = async (calls, fn, ...args) => {
   let transaction;
@@ -238,7 +241,7 @@ ratio: ${ratio.toString()}
 const main = async () => {
   await deployContractsAndGeneratePfcore();
   // await fastVerifyContracts(testedStrategies);
-  await slowVerifyContracts(testedStrategies);
+  await slowVerifyContracts(testedStrategies, governance, strategist, controller, timelock);
 };
 
 main()

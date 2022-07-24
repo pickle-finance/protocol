@@ -1,14 +1,14 @@
-const {toWei} = require("../../utils/testHelper");
-const {getWantFromWhale} = require("../../utils/setupHelper");
-const {doTestBehaviorBase} = require("../testBehaviorBase");
+const { toWei } = require("../../utils/testHelper");
+const { getWantFromWhale } = require("../../utils/setupHelper");
+const { doTestBehaviorBase } = require("../testBehaviorBase");
 
-describe("StrategyCrvTricrypto", () => {
-  const want_addr = "0xcA3d75aC011BF5aD07a98d02f18225F9bD9A6BDF";
-  const whale_addr = "0x8ACAFB4Eab93F19A54c9f96D929d3267947F9b7d";
+describe("StrategyXdaiCurve3CRV", () => {
+  const want_addr = "0x1337BedC9D22ecbe766dF105c9623922A27963EC";
+  const whale_addr = "0xCED608Aa29bB92185D9b6340Adcbfa263DAe075b";
   before("Get want token", async () => {
     [alice] = await hre.ethers.getSigners();
     await getWantFromWhale(want_addr, toWei(50), alice, whale_addr);
   });
 
-  doTestBehaviorBase("StrategyCrvTricrypto", want_addr);
+  doTestBehaviorBase("StrategyXdaiCurve3CRV", want_addr);
 });
