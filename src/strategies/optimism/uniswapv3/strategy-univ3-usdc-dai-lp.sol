@@ -16,7 +16,9 @@ contract StrategyUsdcDaiUniV3Optimism is StrategyRebalanceUniV3 {
     )
         public
         StrategyRebalanceUniV3(priv_pool, _tickRangeMultiplier, _governance, _strategist, _controller, _timelock)
-    {}
+    {
+        performanceTreasuryFee = 1000;
+    }
 
     function getName() external pure override returns (string memory) {
         return "StrategyUsdcDaiUniV3Optimism";
