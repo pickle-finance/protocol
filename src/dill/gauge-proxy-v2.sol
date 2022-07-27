@@ -879,6 +879,111 @@ contract VirtualGaugeV2 is
     event MaxRewardsDurationUpdated(uint256 newDuration);
 }
 
+contract RootChainGaugeV2 is ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
+    // Constant for various precisions
+    address public immutable DISTRIBUTION;
+    uint256 public constant DURATION = 7 days;
+
+    //Reward addresses, rates, and symbols
+    address[] public rewardTokens;
+    uint256[] public rewardRates;
+
+    // Time tracking
+    uint256 public periodFinish = 0;
+    uint256 public lastUpdateTime;
+    address public anyswap;
+
+    /* ========== MODIFIERS ========== */
+
+    modifier onlyDistribution() {
+        require(
+            msg.sender == DISTRIBUTION,
+            "Caller is not RewardsDistribution contract"
+        );
+        _;
+    }
+
+    /* ========== CONSTRUCTOR ========== */
+
+    constructor(address[] memory _rewardTokens, address _anyswap) {
+        anyswap = _anyswap;
+        rewardTokens = _rewardTokens;
+
+        DISTRIBUTION = msg.sender;
+
+        for (uint256 i = 0; i < _rewardTokens.length; i++) {
+            // Initialize the stored rewards
+            rewardRates.push(0);
+        }
+    }
+
+    /* ========== VIEWS ========== */
+
+    function getRewardForDuration()
+        external
+        view
+        returns (uint256[] memory rewardsPerDurationArr)
+    {
+        rewardsPerDurationArr = new uint256[](rewardRates.length);
+
+        for (uint256 i = 0; i < rewardRates.length; i++) {
+            rewardsPerDurationArr[i] = rewardRates[i] * DURATION;
+        }
+    }
+
+    /* ========== RESTRICTED FUNCTIONS ========== */
+
+    function notifyRewardAmount(uint256[] memory rewards)
+        external
+        onlyDistribution
+    {
+        require(
+            rewards.length == rewardTokens.length,
+            "Rewards count do not match reward token count"
+        );
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            IERC20(rewardTokens[i]).safeTransferFrom(
+                DISTRIBUTION,
+                anyswap,
+                rewards[i]
+            );
+            uint256 rewardRate = rewardRates[i];
+
+            if (block.timestamp >= periodFinish) {
+                rewardRate = rewards[i] / DURATION;
+            } else {
+                uint256 remaining = periodFinish - block.timestamp;
+                uint256 leftover = remaining * rewardRate;
+                rewardRate = (rewards[i] + leftover) / DURATION;
+            }
+
+            // Ensure the provided reward amount is not more than the balance in the contract.
+            // This keeps the reward rate in the right range, preventing overflows due to
+            // very high values of rewardRate in the earned and rewardsPerToken functions;
+            // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
+            uint256 balance = IERC20(rewardTokens[i]).balanceOf(address(this));
+            require(
+                rewardRate <= balance / DURATION,
+                "Provided reward too high"
+            );
+
+            rewardRates[i] = rewardRate;
+        }
+
+        lastUpdateTime = block.timestamp;
+        periodFinish = block.timestamp + DURATION;
+        emit RewardAdded(
+            abi.encode(rewardTokens.length, rewardTokens),
+            abi.encode(rewards.length, rewards)
+        );
+    }
+
+    /* ========== EVENTS ========== */
+    event RewardAdded(bytes rewardTokens, bytes rewardsAmount);
+}
+
 contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -1719,10 +1824,15 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
     address[] internal _tokens;
 
+    uint256 private _gaugeTypeCounter;
+
     // token => gauge
     mapping(address => address) public gauges;
     mapping(address => uint256) public gaugeWithNegativeWeight;
     mapping(address => bool) public isVirtualGauge;
+    mapping(uint256 => string) public gaugeTypeIds;
+    mapping(address => uint256) public gaugeToGaugeType;
+    mapping(uint256 => mapping(uint256 => int256)) public gaugeTypeWeights;
 
     uint256 public constant WEEK_SECONDS = 604800;
     // epoch time stamp
@@ -1791,6 +1901,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             _gaugeMiddleware != address(gaugeMiddleware),
             "current and new gaugeMiddleware are same"
         );
+        require(msg.sender == governance, "!gov");
         gaugeMiddleware = IGaugeMiddleware(_gaugeMiddleware);
     }
 
@@ -1802,12 +1913,24 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             "virtualGaugeMiddleware cannot set to zero"
         );
         require(
-            _virtualGaugeMiddleware != address(gaugeMiddleware),
+            _virtualGaugeMiddleware != address(virtualGaugeMiddleware),
             "current and new virtualGaugeMiddleware are same"
         );
+        require(msg.sender == governance, "!gov");
         virtualGaugeMiddleware = IVirtualGaugeMiddleware(
             _virtualGaugeMiddleware
         );
+    }
+
+    function setTypeWeight(uint256 _gaugeTypeId, int256 weight) external {
+        require(msg.sender == governance, "!gov");
+        require(
+            _gaugeTypeId > 0 && _gaugeTypeId <= _gaugeTypeCounter,
+            "invalid gauge type id"
+        );
+        gaugeTypeWeights[getCurrentPeriodId()][_gaugeTypeId] = weight;
+
+        emit GaugeTypeWeightUpdated(_gaugeTypeId, weight);
     }
 
     // Reset votes to 0
@@ -1834,7 +1957,6 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
 
             if (_votes != 0) {
                 totalWeight[_currentId] -= (_votes > 0 ? _votes : -_votes);
-
                 if (_currentId > tokenLastVotedPeriodId[_token]) {
                     weights[_currentId][_token] = weights[
                         tokenLastVotedPeriodId[_token]
@@ -1880,28 +2002,29 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         uint256 _tokenCnt = _tokenVote.length;
         int256 _weight = int256(DILL.balanceOf(_owner));
         int256 _totalVoteWeight = 0;
+        int256 _totalTypeWeight = 0;
+        address[] memory gaugesData = new address[](_tokenCnt);
+        int256[] memory gaugeTypeWeightByCurrentId = new int256[](_tokenCnt);
         int256 _usedWeight = 0;
 
         for (uint256 i = 0; i < _tokenCnt; i++) {
             _totalVoteWeight += (_weights[i] > 0 ? _weights[i] : -_weights[i]);
+            gaugesData[i] = gauges[_tokenVote[i]];
+            gaugeTypeWeightByCurrentId[i] = gaugeTypeWeights[_currentId][
+                gaugeToGaugeType[gaugesData[i]]
+            ];
+            _totalTypeWeight += gaugeTypeWeightByCurrentId[i];
         }
 
         for (uint256 i = 0; i < _tokenCnt; i++) {
-            address _token = _tokenVote[i];
-            address _gauge = gauges[_token];
-            int256 _tokenWeight = (_weights[i] * _weight) / _totalVoteWeight;
-            if (_gauge != address(0x0)) {
-                if (_currentId > tokenLastVotedPeriodId[_token]) {
-                    weights[_currentId][_token] = weights[
-                        tokenLastVotedPeriodId[_token]
-                    ][_token];
+            int256 _tokenWeight = (_weights[i] *
+                gaugeTypeWeightByCurrentId[i] *
+                _weight) / (_totalVoteWeight * _totalTypeWeight);
 
-                    tokenLastVotedPeriodId[_token] = _currentId;
-                }
-
-                weights[_currentId][_token] += _tokenWeight;
-                votes[_owner][_token] = _tokenWeight;
-                tokenVote[_owner].push(_token);
+            if (gaugesData[i] != address(0x0)) {
+                weights[_currentId][_tokenVote[i]] += _tokenWeight;
+                votes[_owner][_tokenVote[i]] = _tokenWeight;
+                tokenVote[_owner].push(_tokenVote[i]);
 
                 if (_tokenWeight < 0) _tokenWeight = -_tokenWeight;
 
@@ -1993,13 +2116,17 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     }
 
     // Add new token gauge
-    function addGauge(address _token) external {
+    function addGauge(address _token, uint256 _gaugeTypeId) external {
         require(msg.sender == governance, "!gov");
         require(
             address(gaugeMiddleware) != address(0),
             "cannot add new gauge without initializing gaugeMiddleware"
         );
         require(gauges[_token] == address(0x0), "exists");
+        require(
+            bytes(gaugeTypeIds[_gaugeTypeId]).length > 0,
+            "gauge type is not present"
+        );
         string[] memory _rewardSymbols = new string[](1);
         address[] memory _rewardTokens = new address[](1);
         _rewardSymbols[0] = "PICKLE";
@@ -2010,17 +2137,36 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             _rewardSymbols,
             _rewardTokens
         );
+        gaugeToGaugeType[_token] = _gaugeTypeId;
         _tokens.push(_token);
     }
 
+    function addGaugeType(string calldata name) external {
+        require(msg.sender == governance, "!gov");
+        uint256 gaugeTypeCounter = _gaugeTypeCounter;
+        gaugeTypeCounter += 1;
+        gaugeTypeIds[gaugeTypeCounter] = name;
+        _gaugeTypeCounter = gaugeTypeCounter;
+        gaugeTypeWeights[getCurrentPeriodId()][gaugeTypeCounter] = 1;
+        emit NewGaugeType(gaugeTypeCounter, name, 1);
+    }
+
     // Add new token virtual gauge
-    function addVirtualGauge(address _token, address _jar) external {
+    function addVirtualGauge(
+        address _token,
+        address _jar,
+        uint256 _gaugeTypeId
+    ) external {
         require(msg.sender == governance, "!gov");
         require(
             address(gaugeMiddleware) != address(0),
             "cannot add new gauge without initializing gaugeMiddleware"
         );
         require(gauges[_token] == address(0x0), "exists");
+        require(
+            bytes(gaugeTypeIds[_gaugeTypeId]).length != 0,
+            "gauge type is not present"
+        );
         string[] memory _rewardSymbols = new string[](1);
         address[] memory _rewardTokens = new address[](1);
         _rewardSymbols[0] = "PICKLE";
@@ -2033,6 +2179,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         );
         gauges[_token] = vgauge;
         isVirtualGauge[vgauge] = true;
+        gaugeToGaugeType[_token] = _gaugeTypeId;
         _tokens.push(_token);
     }
 
@@ -2153,4 +2300,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             distributionId += 1;
         }
     }
+
+    event NewGaugeType(uint256 gaugeTypeId, string indexed name, int256 weight);
+    event GaugeTypeWeightUpdated(uint256 indexed gaugeTypeId, int256 weight);
 }
