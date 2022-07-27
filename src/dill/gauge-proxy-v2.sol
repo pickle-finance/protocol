@@ -77,6 +77,12 @@ interface IVirtualGaugeMiddleware {
     ) external returns (address);
 }
 
+interface IRootChainGaugeMiddleware {
+    function addRootChainGauge(address[] memory _rewardTokens)
+        external
+        returns (address);
+}
+
 library SafeERC20 {
     using Address for address;
 
@@ -1850,6 +1856,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     mapping(uint256 => uint256) public periodForDistribute; // dist id => which period id votes to use
     IGaugeMiddleware public gaugeMiddleware;
     IVirtualGaugeMiddleware public virtualGaugeMiddleware;
+    IRootChainGaugeMiddleware public rootChainGaugeMiddleware;
 
     struct delegateData {
         // delegated address
@@ -1890,6 +1897,9 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         distributionId = 1;
         lastVotedPeriodId = 1;
         periodForDistribute[1] = 1;
+        _gaugeTypeCounter = 1;
+        // default chain gauge type current id is 1, _gaugeTypeCounterId is 1 and weight is 1;
+        gaugeTypeWeights[1][1] = 1;
     }
 
     function addGaugeMiddleware(address _gaugeMiddleware) external {
@@ -1919,6 +1929,23 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         require(msg.sender == governance, "!gov");
         virtualGaugeMiddleware = IVirtualGaugeMiddleware(
             _virtualGaugeMiddleware
+        );
+    }
+
+    function addRootChainGaugeMiddleware(address _rootChainGaugeMiddleware)
+        external
+    {
+        require(
+            _rootChainGaugeMiddleware != address(0),
+            "virtualGaugeMiddleware cannot set to zero"
+        );
+        require(
+            _rootChainGaugeMiddleware != address(rootChainGaugeMiddleware),
+            "current and new rootChainGaugeMiddleware are same"
+        );
+        require(msg.sender == governance, "!gov");
+        rootChainGaugeMiddleware = IRootChainGaugeMiddleware(
+            _rootChainGaugeMiddleware
         );
     }
 
@@ -2116,17 +2143,13 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     }
 
     // Add new token gauge
-    function addGauge(address _token, uint256 _gaugeTypeId) external {
+    function addGauge(address _token) external {
         require(msg.sender == governance, "!gov");
         require(
             address(gaugeMiddleware) != address(0),
             "cannot add new gauge without initializing gaugeMiddleware"
         );
         require(gauges[_token] == address(0x0), "exists");
-        require(
-            bytes(gaugeTypeIds[_gaugeTypeId]).length > 0,
-            "gauge type is not present"
-        );
         string[] memory _rewardSymbols = new string[](1);
         address[] memory _rewardTokens = new address[](1);
         _rewardSymbols[0] = "PICKLE";
@@ -2135,6 +2158,22 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             _token,
             governance,
             _rewardSymbols,
+            _rewardTokens
+        );
+        gaugeToGaugeType[_token] = 1;
+        _tokens.push(_token);
+    }
+
+    function addRootChainGauge(address _token, uint256 _gaugeTypeId) external {
+        require(msg.sender == governance, "!gov");
+        require(
+            address(gaugeMiddleware) != address(0),
+            "cannot add new gauge without initializing gaugeMiddleware"
+        );
+        require(gauges[_token] == address(0x0), "exists");
+        address[] memory _rewardTokens = new address[](1);
+        _rewardTokens[0] = address(PICKLE);
+        gauges[_token] = rootChainGaugeMiddleware.addRootChainGauge(
             _rewardTokens
         );
         gaugeToGaugeType[_token] = _gaugeTypeId;
@@ -2152,21 +2191,13 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     }
 
     // Add new token virtual gauge
-    function addVirtualGauge(
-        address _token,
-        address _jar,
-        uint256 _gaugeTypeId
-    ) external {
+    function addVirtualGauge(address _token, address _jar) external {
         require(msg.sender == governance, "!gov");
         require(
             address(gaugeMiddleware) != address(0),
             "cannot add new gauge without initializing gaugeMiddleware"
         );
         require(gauges[_token] == address(0x0), "exists");
-        require(
-            bytes(gaugeTypeIds[_gaugeTypeId]).length != 0,
-            "gauge type is not present"
-        );
         string[] memory _rewardSymbols = new string[](1);
         address[] memory _rewardTokens = new address[](1);
         _rewardSymbols[0] = "PICKLE";
@@ -2179,7 +2210,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
         );
         gauges[_token] = vgauge;
         isVirtualGauge[vgauge] = true;
-        gaugeToGaugeType[_token] = _gaugeTypeId;
+        gaugeToGaugeType[_token] = 1;
         _tokens.push(_token);
     }
 
