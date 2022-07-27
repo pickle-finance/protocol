@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import {GaugeV2, Initializable, ProtocolGovernance, VirtualGaugeV2} from "./gauge-proxy-v2.sol";
+import {GaugeV2, Initializable, ProtocolGovernance, VirtualGaugeV2, RootChainGaugeV2} from "./gauge-proxy-v2.sol";
 
 contract GaugeMiddleware is ProtocolGovernance, Initializable {
     address public gaugeProxy;
@@ -94,5 +94,41 @@ contract VirtualGaugeMiddleware is ProtocolGovernance, Initializable {
                     _rewardTokens
                 )
             );
+    }
+}
+
+contract RootChainGaugeMiddleware is ProtocolGovernance, Initializable {
+    address public gaugeProxy;
+    address public anyswap;
+
+    function initialize(
+        address _gaugeProxy,
+        address _governance,
+        address _anyswap
+    ) public initializer {
+        require(
+            _gaugeProxy != address(0),
+            "_gaugeProxy address cannot be set to zero"
+        );
+        require(
+            _governance != _gaugeProxy,
+            "_governance address and _gaugeProxy cannot be same"
+        );
+        gaugeProxy = _gaugeProxy;
+        governance = _governance;
+        anyswap = _anyswap;
+    }
+
+    function changeGaugeProxy(address _newgaugeProxy) external {
+        require(msg.sender == governance, "can only be called by gaugeProxy");
+        gaugeProxy = _newgaugeProxy;
+    }
+
+    function addRootChainGauge(address[] memory _rewardTokens)
+        external
+        returns (address)
+    {
+        require(msg.sender == gaugeProxy, "can only be called by gaugeProxy");
+        return address(new RootChainGaugeV2(_rewardTokens, anyswap));
     }
 }
