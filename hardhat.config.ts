@@ -143,7 +143,7 @@ const config: HardhatUserConfig = {
     timeout: 20000000,
   },
   vyper: {
-    version: "0.2.7",
+    compilers: [{version: "0.2.4"}, {version: "0.2.7"}]
   },
 };
 
