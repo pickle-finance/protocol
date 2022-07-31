@@ -261,7 +261,6 @@ export const doTestBehaviorBase = (
         _strategistBalanceAfter.toString()
       );
 
-      console.log("_w");
       expect(_aliceBalanceAfter).to.be.approximately(
         _wantHalved.div(2),
         1,
