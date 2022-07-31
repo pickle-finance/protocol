@@ -29,7 +29,8 @@ contract StrategyVeloUsdcVlp is StrategyVeloBase {
         isStablePool = false;
 
         // token0 route
-        nativeToTokenRoutes[velo].push(RouteParams(native, velo, false));
+        nativeToTokenRoutes[velo].push(RouteParams(native, usdc, false));
+        nativeToTokenRoutes[velo].push(RouteParams(usdc, velo, false));
 
         // token1 route
         nativeToTokenRoutes[usdc].push(RouteParams(native, usdc, false));
