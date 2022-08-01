@@ -41,7 +41,7 @@
     "ethers": "^5.1.3",
     "hardhat": "^2.6.8",
     "hardhat-contract-sizer": "^2.1.1",
-    "hardhat-deploy": "^0.8.6",
+    "hardhat-deploy": "^0.11.12",
     "hardhat-gas-reporter": "^1.0.4",
     "hardhat-preprocessor": "^0.1.4",
     "mocha": "^9.0.2",
