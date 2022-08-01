@@ -1,4 +1,4 @@
-const {advanceNDays, advanceSevenDays} = require("./testHelper");
+const {advanceNDays} = require("./testHelper");
 const hre = require("hardhat");
 const {ethers} = require("hardhat");
 const chalk = require("chalk");
@@ -35,7 +35,7 @@ const notifyRewardAmountMethod = async (print = true, days = 7) => {
     : "";
   await pickleFromHolder.approve(thisContractAddr, 0);
   await pickleFromHolder.approve(thisContractAddr, totalSupply);
-  await GaugeV2.notifyRewardAmount([totalSupply], {
+  await GaugeV2.connect(pickleHolderSigner).notifyRewardAmount([totalSupply], {
     gasLimit: 9000000,
   });
   print ? console.log("rewardRates =>", Number(ethers.utils.formatEther(await GaugeV2.rewardRates(0)))) : "";
@@ -51,6 +51,7 @@ const getAndPrintReward = async (actor, gaugeByActor, address) => {
     Number(ethers.utils.formatEther(await gaugeByActor.derivedBalances(address)))
   );
   await gaugeByActor.getReward();
+  console.log(`${actor}'s balance in contract =>`, Number(ethers.utils.formatEther(await GaugeV2.balanceOf(address))));
   console.log(
     chalk.green(
       `${actor}'s pickle balance after getting reward =>`,
@@ -136,7 +137,7 @@ describe("Liquidity Staking tests", () => {
     console.log("===================================================================================================");
   });
 
-  it("Should test deposit and reward claim by multiple users", async () => {
+  it("Should test deposit and reward claim by multiple users ", async () => {
     // Approvals for deposit
     await pickle.connect(Luffy).approve(thisContractAddr, ethers.utils.parseEther("20"));
     await pickle.connect(Zoro).approve(thisContractAddr, tenPickles);

@@ -20,7 +20,8 @@ let userSigner,
   Luffy,
   Zoro,
   Sanji,
-  Nami;
+  Nami,
+  userWithNoPickleOrDill;
 const fivePickle = ethers.utils.parseEther("5");
 
 const printStakes = async (address) => {
@@ -32,7 +33,9 @@ const printStakes = async (address) => {
       index,
       ethers.utils.formatEther(stake.liquidity),
       "ending timestamp",
-      stake.ending_timestamp
+      stake.ending_timestamp,
+      "are",
+      stake.isPermanentlyLocked ? "locked" : "unlocked"
     );
   });
   console.log("*******************************************************************************");
@@ -44,7 +47,7 @@ describe("Liquidity Staking tests", () => {
     pickleHolderSigner = ethers.provider.getSigner(pickleHolder);
     userSigner = ethers.provider.getSigner(userAddr);
     governanceSigner = ethers.provider.getSigner(governanceAddr);
-    [Luffy, Zoro, Sanji, Nami] = await ethers.getSigners();
+    [Luffy, Zoro, Sanji, Nami, userWithNoPickleOrDill] = await ethers.getSigners();
 
     console.log("-- Sending gas cost to governance addr --");
     await signer.sendTransaction({
@@ -156,13 +159,17 @@ describe("Liquidity Staking tests", () => {
     );
   });
 
-  it("notifyRewardAmount should fail when called by other than distribution ", async () => {
+  it("notifyRewardAmount should fail when called by other than distribution or wrong reward array is passed", async () => {
     const bal = await pickle.balanceOf(thisContractAddr);
     await pickle.connect(pickleHolderSigner).approve(thisContractAddr, 0);
     await pickle.connect(pickleHolderSigner).approve(thisContractAddr, bal);
     await expect(GaugeFromUser.notifyRewardAmount([bal], {gasLimit: 9000000})).to.be.revertedWith(
       "Caller is not RewardsDistribution contract"
     );
+
+    await expect(
+      GaugeV2.connect(pickleHolderSigner).notifyRewardAmount([bal, bal], {gasLimit: 9000000})
+    ).to.be.revertedWith("Rewards count do not match reward token count");
   });
 
   it("Should get reward amount successfully", async () => {
@@ -170,7 +177,7 @@ describe("Liquidity Staking tests", () => {
     await pickle.connect(pickleHolderSigner).approve(thisContractAddr, 0);
     await pickle.connect(pickleHolderSigner).approve(thisContractAddr, bal);
 
-    await GaugeV2.notifyRewardAmount([bal], {
+    await GaugeV2.connect(pickleHolderSigner).notifyRewardAmount([bal], {
       gasLimit: 9000000,
     });
     console.log("-- reward rate --", Number(ethers.utils.formatEther(await GaugeV2.rewardRates(0))));
@@ -246,7 +253,9 @@ describe("Liquidity Staking tests", () => {
     // Deposit and Lock - dillHolder
     await pickle.connect(dillHolderSigner).approve(thisContractAddr, 0);
     await pickle.connect(dillHolderSigner).approve(thisContractAddr, fivePickle);
-    await gaugeFromDillHolder.depositAndLock(fivePickle, 86400 * 365, false, {gasLimit: 9000000});
+    await gaugeFromDillHolder.depositAndLock(fivePickle, 86400 * 365, false, {
+      gasLimit: 9000000,
+    });
     console.log(
       "dillHolder's pickle balance after deposit and lock",
       Number(ethers.utils.formatEther(await pickle.balanceOf(dillHolder)))
@@ -265,7 +274,9 @@ describe("Liquidity Staking tests", () => {
     // Deposit and Lock - Luffy
     await pickle.connect(Luffy).approve(thisContractAddr, 0);
     await pickle.connect(Luffy).approve(thisContractAddr, fivePickle);
-    await gaugeFromLuffy.depositAndLock(fivePickle, 86400 * 365, false, {gasLimit: 9000000});
+    await gaugeFromLuffy.depositAndLock(fivePickle, 86400 * 365, false, {
+      gasLimit: 9000000,
+    });
     console.log(
       "Luffy's pickle balance after deposit and lock",
       Number(ethers.utils.formatEther(await pickle.balanceOf(Luffy.address)))
@@ -296,7 +307,9 @@ describe("Liquidity Staking tests", () => {
     // Deposit and Lock - Nami
     await pickle.connect(Nami).approve(thisContractAddr, 0);
     await pickle.connect(Nami).approve(thisContractAddr, fivePickle);
-    await GaugeV2.connect(Nami).depositAndLock(fivePickle, 86400 * 365, true, {gasLimit: 9000000});
+    await GaugeV2.connect(Nami).depositAndLock(fivePickle, 86400 * 365, true, {
+      gasLimit: 9000000,
+    });
     console.log(
       "Nami's pickle balance after deposit and lock(permanent lock)",
       Number(ethers.utils.formatEther(await pickle.balanceOf(Nami.address)))
@@ -305,7 +318,7 @@ describe("Liquidity Staking tests", () => {
     const bal = await pickle.balanceOf(thisContractAddr);
     await pickle.connect(pickleHolderSigner).approve(thisContractAddr, 0);
     await pickle.connect(pickleHolderSigner).approve(thisContractAddr, bal);
-    await GaugeV2.notifyRewardAmount([bal], {
+    await GaugeV2.connect(pickleHolderSigner).notifyRewardAmount([bal], {
       gasLimit: 9000000,
     });
     console.log("-- reward rate --", Number(ethers.utils.formatEther(await GaugeV2.rewardRates(0))));
@@ -361,32 +374,6 @@ describe("Liquidity Staking tests", () => {
     console.log("--------------------------------------------------------------------------------------");
   });
 
-  it("Should test setMultiplier successfully", async () => {
-    await expect(GaugeFromUser.setMultipliers(1, {gasLimit: 9000000})).to.be.revertedWith(
-      "Operation allowed by only governance"
-    );
-    await expect(GaugeV2.connect(governanceSigner).setMultipliers(10 ** 14, {gasLimit: 9000000})).to.be.revertedWith(
-      "Multiplier must be greater than or equal to 1e18"
-    );
-    const newMultilier = ethers.BigNumber.from("10000000000000000000"); //new BigNumber(10 ** 19).toFixed();
-    await GaugeV2.connect(governanceSigner).setMultipliers(newMultilier, {gasLimit: 9000000});
-    const maxMultiplier = await GaugeV2.lockMaxMultiplier();
-    expect(maxMultiplier).to.be.eq(newMultilier);
-  });
-
-  it("Should test setMaxRewardsDuration ", async () => {
-    await expect(GaugeFromUser.setMaxRewardsDuration(86400, {gasLimit: 9000000})).to.be.revertedWith(
-      "Operation allowed by only governance"
-    );
-    await expect(GaugeV2.connect(governanceSigner).setMaxRewardsDuration(8640, {gasLimit: 9000000})).to.be.revertedWith(
-      "Rewards duration too short"
-    );
-    const newMaxTime = 86400 * 400;
-    await GaugeV2.connect(governanceSigner).setMaxRewardsDuration(newMaxTime, {gasLimit: 9000000});
-    const maxTime = await GaugeV2.lockTimeForMaxMultiplier();
-    expect(newMaxTime).to.be.eq(maxTime);
-  });
-
   it("Should test unlock stakes for account successfully", async () => {
     await pickle.connect(userSigner).approve(thisContractAddr, 0);
     await pickle.connect(userSigner).approve(thisContractAddr, ethers.utils.parseEther("0.03"));
@@ -409,23 +396,29 @@ describe("Liquidity Staking tests", () => {
 
     await GaugeFromUser.exit({gasLimit: 9000000});
   });
-
   it("Test partial withdrawal", async () => {
     await pickle.connect(dillHolderSigner).approve(thisContractAddr, 0);
-    await pickle.connect(dillHolderSigner).approve(thisContractAddr, ethers.utils.parseEther("25"));
-    console.log(" -- deposit 5 pickle -- ");
-    await gaugeFromDillHolder.deposit(fivePickle, {gasLimit: 9000000});
+    const DillHolderPickleBalance = await pickle.connect(dillHolderSigner).balanceOf(dillHolder);
+    await pickle.connect(dillHolderSigner).approve(thisContractAddr, DillHolderPickleBalance);
     console.log(" -- deposit and lock 5 pickle for 3 days -- ");
-    await gaugeFromDillHolder.depositAndLock(fivePickle, 86400 * 3, false, {gasLimit: 9000000});
+    await gaugeFromDillHolder.depositAndLock(fivePickle, 86400 * 3, false, {
+      gasLimit: 9000000,
+    });
     console.log(" -- deposit and lock 5 pickle for 365 days -- ");
-    await gaugeFromDillHolder.depositAndLock(fivePickle, 86400 * 365, false, {gasLimit: 9000000});
+    await gaugeFromDillHolder.depositAndLock(fivePickle, 86400 * 365, false, {
+      gasLimit: 9000000,
+    });
     console.log(" -- deposit and lock 5 pickle 1 day -- ");
-    await gaugeFromDillHolder.depositAndLock(fivePickle, 86400, false, {gasLimit: 9000000});
+    await gaugeFromDillHolder.depositAndLock(fivePickle, 86400, false, {
+      gasLimit: 9000000,
+    });
+    console.log(" -- deposit all remaining pickle -- ");
+    await gaugeFromDillHolder.depositAll({gasLimit: 9000000});
 
     await printStakes(dillHolder);
     advanceSevenDays();
 
-    await expect(gaugeFromDillHolder.partialWithdrawal(ethers.utils.parseEther("50"))).to.be.revertedWith(
+    await expect(gaugeFromDillHolder.partialWithdrawal(ethers.utils.parseEther("5000"))).to.be.revertedWith(
       "Withdraw amount exceeds balance"
     );
 
@@ -446,10 +439,100 @@ describe("Liquidity Staking tests", () => {
     await gaugeFromDillHolder.partialWithdrawal(fivePickle);
 
     await printStakes(dillHolder);
+  });
+  it("Should test unlock stakes and withdraw all", async () => {
+    await pickle.connect(dillHolderSigner).approve(thisContractAddr, 0);
+    const DillHolderPickleBalance = await pickle.connect(dillHolderSigner).balanceOf(dillHolder);
+    await pickle.connect(dillHolderSigner).approve(thisContractAddr, DillHolderPickleBalance);
+    console.log("-- Permanently staking pickle --");
+    await gaugeFromDillHolder.depositAllAndLock(86400, true);
+
+    //print stakes
+    await printStakes(dillHolder);
+
+    console.log("-- unlocking all stakes --");
+    await expect(GaugeV2.unlockStakes()).to.be.revertedWith("Operation allowed by only governance");
+
+    //unlock all stakes
+    await GaugeV2.connect(governanceSigner).unlockStakes();
 
     // withdraw all
-    console.log(" -- Withdrawing all unlocked stakes -- ");
+    console.log(" -- Withdrawing all unlocked stakes of dillHolder -- ");
     await gaugeFromDillHolder.withdrawAll();
+
+    //print stakes
     await printStakes(dillHolder);
+  });
+  it("Should check max lockMultiplier and rewardForDuration", async () => {
+    const multiplierFor1year = await GaugeV2.lockMultiplier(86400 * 365);
+    const multiplierFor2year = await GaugeV2.lockMultiplier(86400 * 365 * 2);
+    expect(multiplierFor1year).to.equal(multiplierFor2year);
+
+    const rewardForDuration = await GaugeV2.getRewardForDuration();
+    console.log("rewardForDuration => ", rewardForDuration);
+  });
+  it("Should set and test staking delegation successfully", async () => {
+    // console.log("Staking delegate => ", await GaugeV2.stakingDelegates(dillHolder,dillHolder));
+    // set delegate
+    await expect(gaugeFromDillHolder.setStakingDelegate(dillHolder)).to.be.revertedWith("Cannot delegate to self");
+
+    await gaugeFromDillHolder.setStakingDelegate(userWithNoPickleOrDill.address);
+    await expect(gaugeFromDillHolder.setStakingDelegate(userWithNoPickleOrDill.address)).to.be.revertedWith(
+      "Already a staking delegate for user!"
+    );
+
+    const DillHolderPickleBalance = await pickle.connect(dillHolderSigner).balanceOf(dillHolder);
+    await pickle.connect(dillHolderSigner).approve(thisContractAddr, DillHolderPickleBalance);
+
+    await expect(
+      GaugeV2.connect(Luffy).depositFor(fivePickle, dillHolder, {
+        gasLimit: 9000000,
+      })
+    ).to.be.revertedWith("Only registered delegates can deposit for their delegator");
+
+    await expect(
+      GaugeV2.connect(Luffy).depositForAndLock(fivePickle, dillHolder, 86400 * 365, false, {
+        gasLimit: 9000000,
+      })
+    ).to.be.revertedWith("Only registered delegates can stake for their delegator");
+
+    await GaugeV2.connect(userWithNoPickleOrDill).depositFor(fivePickle, dillHolder, {
+      gasLimit: 9000000,
+    });
+    await GaugeV2.connect(userWithNoPickleOrDill).depositForAndLock(fivePickle, dillHolder, 86400 * 365, false, {
+      gasLimit: 9000000,
+    });
+  });
+  it("Should test setMultiplier successfully", async () => {
+    await expect(GaugeFromUser.setMultipliers(1, {gasLimit: 9000000})).to.be.revertedWith(
+      "Operation allowed by only governance"
+    );
+    await expect(
+      GaugeV2.connect(governanceSigner).setMultipliers(10 ** 14, {
+        gasLimit: 9000000,
+      })
+    ).to.be.revertedWith("Multiplier must be greater than or equal to 1e18");
+    const newMultilier = ethers.BigNumber.from("10000000000000000000"); //new BigNumber(10 ** 19).toFixed();
+    await GaugeV2.connect(governanceSigner).setMultipliers(newMultilier, {
+      gasLimit: 9000000,
+    });
+    const maxMultiplier = await GaugeV2.lockMaxMultiplier();
+    expect(maxMultiplier).to.be.eq(newMultilier);
+  });
+  it("Should test setMaxRewardsDuration ", async () => {
+    await expect(GaugeFromUser.setMaxRewardsDuration(86400, {gasLimit: 9000000})).to.be.revertedWith(
+      "Operation allowed by only governance"
+    );
+    await expect(
+      GaugeV2.connect(governanceSigner).setMaxRewardsDuration(8640, {
+        gasLimit: 9000000,
+      })
+    ).to.be.revertedWith("Rewards duration too short");
+    const newMaxTime = 86400 * 400;
+    await GaugeV2.connect(governanceSigner).setMaxRewardsDuration(newMaxTime, {
+      gasLimit: 9000000,
+    });
+    const maxTime = await GaugeV2.lockTimeForMaxMultiplier();
+    expect(newMaxTime).to.be.eq(maxTime);
   });
 });

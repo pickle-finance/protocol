@@ -9,7 +9,8 @@ const userAddr = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
 const pickleLP = "0xdc98556Ce24f007A5eF6dC1CE96322d65832A819";
 const pickleAddr = "0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5";
 const pyveCRVETH = "0x5eff6d166d66bacbc1bf52e2c54dd391ae6b1f48";
-let GaugeProxyV2, userSigner, populatedTx, masterChef;
+const zeroAddr = "0x0000000000000000000000000000000000000000";
+let GaugeProxyV2, userSigner, populatedTx, masterChef, GaugeMiddleware;
 
 describe("Vote & Distribute : chunk and onlyGov distribution", () => {
   before("Setting up gaugeProxyV2", async () => {
@@ -49,7 +50,14 @@ describe("Vote & Distribute : chunk and onlyGov distribution", () => {
     console.log("-- Deploying GaugeProxy v2 contract --");
 
     const gaugeProxyV2 = await ethers.getContractFactory("/src/dill/gauge-proxy-v2.sol:GaugeProxyV2", governanceSigner);
-    GaugeProxyV2 = await upgrades.deployProxy(gaugeProxyV2, [Math.round(new Date().getTime() / 1000)], {
+
+    // getting block timestamp
+    const blockNumBefore = await ethers.provider.getBlockNumber();
+    const blockBefore = await ethers.provider.getBlock(blockNumBefore);
+    const timestampBefore = blockBefore.timestamp;
+    console.log(timestampBefore);
+
+    GaugeProxyV2 = await upgrades.deployProxy(gaugeProxyV2, [timestampBefore + 86400 * 7], {
       initializer: "initialize",
     });
     await GaugeProxyV2.deployed();
@@ -61,37 +69,84 @@ describe("Vote & Distribute : chunk and onlyGov distribution", () => {
     populatedTx = await masterChef.populateTransaction.add(5000000, mDILLAddr, false);
     await governanceSigner.sendTransaction(populatedTx);
 
-    /** Deploy gaugeMiddleware */
     console.log("-- Deploying GaugeMiddleware contract --");
     const gaugeMiddleware = await ethers.getContractFactory(
       "/src/dill/gauge-middleware.sol:GaugeMiddleware",
       governanceSigner
     );
-    const GaugeMiddleware = await upgrades.deployProxy(gaugeMiddleware, [GaugeProxyV2.address, governanceAddr], {
+
+    /** Deploy gaugeMiddleware should fail */
+    await expect(
+      upgrades.deployProxy(gaugeMiddleware, [governanceAddr, governanceAddr], {
+        initializer: "initialize",
+      })
+    ).to.be.revertedWith("_governance address and _gaugeProxy cannot be same");
+
+    /** Deploy gaugeMiddleware should fail */
+    await expect(
+      upgrades.deployProxy(gaugeMiddleware, [zeroAddr, governanceAddr], {
+        initializer: "initialize",
+      })
+    ).to.be.revertedWith("_gaugeProxy address cannot be set to zero");
+
+    /** Deploy gaugeMiddleware successfully */
+    GaugeMiddleware = await upgrades.deployProxy(gaugeMiddleware, [masterChefAddr, governanceAddr], {
       initializer: "initialize",
     });
     await GaugeMiddleware.deployed();
     console.log("gaugeMiddleware deployed at", GaugeMiddleware.address);
-
-    /** add gaugeMiddleware*/
-    console.log("-- Adding Gauge middleWare --");
-    await GaugeProxyV2.addGaugeMiddleware(GaugeMiddleware.address);
-
-    console.log("-- Adding PICKLE LP Gauge --");
-    await GaugeProxyV2.addGauge(pickleLP);
-
-    console.log("-- Adding pyveCRVETH Gauge --");
-    await GaugeProxyV2.addGauge(pyveCRVETH);
   });
 
   beforeEach(async () => {
     console.log("Current Id => ", Number(await GaugeProxyV2.getCurrentPeriodId()));
     console.log("Distribution Id => ", Number(await GaugeProxyV2.distributionId()));
   });
+  it("change gauge gaugeProxy in middleware and add gauges successfully", async () => {
+    const governanceSigner = ethers.provider.getSigner(governanceAddr);
+    await expect(GaugeMiddleware.connect(userSigner).changeGaugeProxy(GaugeProxyV2.address)).to.be.revertedWith(
+      "can only be called by governance"
+    );
 
-  it("Should vote successfully (first voting)", async () => {
+    await GaugeMiddleware.connect(governanceSigner).changeGaugeProxy(GaugeProxyV2.address);
+
+    /** add gaugeMiddleware*/
+    console.log("-- Adding Gauge middleWare --");
+
+    await expect(GaugeProxyV2.addGaugeMiddleware(zeroAddr)).to.be.revertedWith("gaugeMiddleware cannot set to zero");
+    await GaugeProxyV2.connect(governanceSigner).addGaugeMiddleware(GaugeMiddleware.address);
+    await expect(GaugeProxyV2.addGaugeMiddleware(GaugeMiddleware.address)).to.be.revertedWith(
+      "current and new gaugeMiddleware are same"
+    );
+
+    await expect(GaugeProxyV2.addGauge(zeroAddr)).to.be.revertedWith("address of token cannot be zero");
+
+    await expect(GaugeMiddleware.addGauge(zeroAddr, governanceAddr, ["PICKLE"], [pickleAddr])).to.be.revertedWith(
+      "can only be called by gaugeProxy"
+    );
+    console.log("-- Adding PICKLE LP Gauge --");
+    await GaugeProxyV2.addGauge(pickleLP);
+
+    console.log("-- Adding pyveCRVETH Gauge --");
+    await GaugeProxyV2.addGauge(pyveCRVETH);
+
+    console.log("tokens length", Number(await GaugeProxyV2.length()));
+  });
+  it("Should successfully test first voting", async () => {
+    const gaugeProxyFromUser = GaugeProxyV2.connect(userSigner);
     console.log("-- Voting on LP Gauge with 100% weight --");
-    const gaugeProxyFromUser = GaugeProxyV2.connect(userAddr);
+
+    await expect(
+      gaugeProxyFromUser.vote([pickleLP, pyveCRVETH], [6000000, 4000000], {
+        gasLimit: 9000000,
+      })
+    ).to.be.revertedWith("Voting not started yet");
+
+    await expect(gaugeProxyFromUser.reset()).to.be.revertedWith("Voting not started");
+
+    advanceSevenDays();
+    console.log("Current Id => ", Number(await GaugeProxyV2.getCurrentPeriodId()));
+    console.log("Distribution Id => ", Number(await GaugeProxyV2.distributionId()));
+
     populatedTx = await gaugeProxyFromUser.populateTransaction.vote([pickleLP, pyveCRVETH], [6000000, 4000000], {
       gasLimit: 9000000,
     });
@@ -101,6 +156,28 @@ describe("Vote & Distribute : chunk and onlyGov distribution", () => {
     await GaugeProxyV2.setPID(pidDill);
     await GaugeProxyV2.deposit();
 
+    // Adjusts _owner's votes according to latest _owner's DILL balance
+    await GaugeProxyV2.poke(userAddr);
+    const tokensAry = await GaugeProxyV2.tokens();
+
+    console.log("users pickleLP votes =>", await GaugeProxyV2.votes(userAddr, tokensAry[0]));
+    console.log("users pyveCRVETH votes =>", await GaugeProxyV2.votes(userAddr, tokensAry[1]));
+
+    //reset users vote
+    await gaugeProxyFromUser.reset();
+    let pickleLPVotes = await GaugeProxyV2.votes(userAddr, tokensAry[0]);
+    let pyveCRVETHVotes = await GaugeProxyV2.votes(userAddr, tokensAry[1]);
+    expect(pickleLPVotes).to.equal(0);
+    expect(pyveCRVETHVotes).to.equal(0);
+
+    // vote again
+    await gaugeProxyFromUser.vote([pickleLP, pyveCRVETH], [6000000, 4000000], {
+      gasLimit: 9000000,
+    });
+    pickleLPVotes = await GaugeProxyV2.votes(userAddr, pickleLP);
+    pyveCRVETHVotes = await GaugeProxyV2.votes(userAddr, pyveCRVETH);
+    expect(Number(pickleLPVotes)).to.greaterThan(0);
+    expect(Number(pyveCRVETHVotes)).to.greaterThan(0);
     await hre.network.provider.request({
       method: "evm_mine",
     });

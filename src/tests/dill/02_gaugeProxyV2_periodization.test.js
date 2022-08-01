@@ -1,8 +1,7 @@
-const {expect} = require("chai");
 const hre = require("hardhat");
 const {ethers, upgrades} = require("hardhat");
-
 const {advanceSevenDays} = require("./testHelper");
+const {expect} = require("chai");
 
 const governanceAddr = "0x9d074E37d408542FD38be78848e8814AFB38db17";
 const masterChefAddr = "0xbD17B1ce622d73bD438b9E658acA5996dc394b0d";
@@ -43,17 +42,26 @@ describe("Vote & Distribute", () => {
     /** Deploy gaugeProxyV2 */
     console.log("-- Deploying GaugeProxy v2 contract --");
     const gaugeProxyV2 = await ethers.getContractFactory("/src/dill/gauge-proxy-v2.sol:GaugeProxyV2", governanceSigner);
-    GaugeProxyV2 = await upgrades.deployProxy(gaugeProxyV2, [Math.round(new Date().getTime() / 1000)], {
+    // getting timestamp
+    const blockNumBefore = await ethers.provider.getBlockNumber();
+    const blockBefore = await ethers.provider.getBlock(blockNumBefore);
+    const timestampBefore = blockBefore.timestamp;
+
+    GaugeProxyV2 = await upgrades.deployProxy(gaugeProxyV2, [timestampBefore], {
       initializer: "initialize",
     });
     await GaugeProxyV2.deployed();
-
     console.log("GaugeProxyV2 deployed to:", GaugeProxyV2.address);
 
     const mDILLAddr = await GaugeProxyV2.TOKEN();
     console.log("-- Adding mDILL to MasterChef --");
     let populatedTx;
-    populatedTx = await masterChef.populateTransaction.add(5000000, mDILLAddr, false);
+    populatedTx = await masterChef.populateTransaction.add(
+      5000000,
+      mDILLAddr,
+      false
+      // { gasLimit: 9000000 }
+    );
     await governanceSigner.sendTransaction(populatedTx);
 
     /** Deploy gaugeMiddleware */
@@ -86,60 +94,29 @@ describe("Vote & Distribute", () => {
     await GaugeProxyV2.setPID(pidDill);
     await GaugeProxyV2.deposit();
   });
+
   beforeEach(async () => {
     console.log("Current Id => ", Number(await GaugeProxyV2.getCurrentPeriodId()));
     console.log("Distribution Id => ", Number(await GaugeProxyV2.distributionId()));
   });
-  it("Should set delegate successfully", async () => {
-    const gaugeProxyFromUser = GaugeProxyV2.connect(userAddr);
-    populatedTx = await gaugeProxyFromUser.populateTransaction.setVotingDelegate(governanceAddr, 2, false);
-    await userSigner.sendTransaction(populatedTx);
-  });
-
-  it("delegate vote should fail as votes count does not match weights count", async () => {
-    /** here gov will vote on behalf of user */
-    await expect(GaugeProxyV2.voteFor(userAddr, [pickleLP, pyveCRVETH], [6000000])).to.be.revertedWith(
-      "token votes count does not match weights count"
-    );
-  });
-
-  it("delegate should vote successfully", async () => {
-    /** here gov will vote on behalf of user */
-    GaugeProxyV2.voteFor(userAddr, [pickleLP, pyveCRVETH], [4000000, 6000000]);
-  });
-
-  it("successfully Distribute after advancing 7 days", async () => {
-    await advanceSevenDays();
-    await GaugeProxyV2.distribute(0, 2);
-    const pickleGaugeAddr = await GaugeProxyV2.getGauge(pickleLP);
-    const yvecrvGaugeAddr = await GaugeProxyV2.getGauge(pyveCRVETH);
-
-    const pickle = await ethers.getContractAt("src/yield-farming/pickle-token.sol:PickleToken", pickleAddr);
-
-    const pickleRewards = await pickle.balanceOf(pickleGaugeAddr);
-    console.log("rewards to Pickle gauge => ", pickleRewards.toString());
-
-    const yvecrvRewards = await pickle.balanceOf(yvecrvGaugeAddr);
-    console.log("rewards to pyveCRV gauge => ", yvecrvRewards.toString());
-  });
-
-  it("delegate should vote again successfully ", async () => {
-    /** here gov will vote on behalf of user */
-    await GaugeProxyV2.voteFor(userAddr, [pickleLP, pyveCRVETH], [4000000, 6000000]);
-  });
-  it("user must successfully overwrite his votes after delegate has voted ", async () => {
+  it("Should vote successfully (first voting)", async () => {
+    console.log("-- Voting on LP Gauge with 100% weight --");
     const gaugeProxyFromUser = GaugeProxyV2.connect(userAddr);
     populatedTx = await gaugeProxyFromUser.populateTransaction.vote([pickleLP, pyveCRVETH], [6000000, 4000000], {
       gasLimit: 9000000,
     });
     await userSigner.sendTransaction(populatedTx);
+
+    await hre.network.provider.request({
+      method: "evm_mine",
+    });
   });
-  it("delegate should not be able to vote if owner has already voted for current period", async () => {
-    await expect(GaugeProxyV2.voteFor(userAddr, [pickleLP, pyveCRVETH], [400000, 600000])).to.be.revertedWith(
-      "Delegating address has already voted"
-    );
+
+  it("Distribution(initial) should fail as voting for current(initial) period is still in progress", async () => {
+    await expect(GaugeProxyV2.distribute(0, 2)).to.be.revertedWith("GaugeProxyV2: all period distributions complete");
   });
-  it("Successfully Distribute PICKLE to gauges advancing 7 days", async () => {
+
+  it("Successfully Distribute(initial) PICKLE to gauges after advancing 7 days", async () => {
     await advanceSevenDays();
     await GaugeProxyV2.distribute(0, 2);
     const pickleGaugeAddr = await GaugeProxyV2.getGauge(pickleLP);
@@ -147,17 +124,80 @@ describe("Vote & Distribute", () => {
 
     const pickle = await ethers.getContractAt("src/yield-farming/pickle-token.sol:PickleToken", pickleAddr);
 
-    const pickleRewards = await pickle.balanceOf(pickleGaugeAddr);
-    console.log("rewards to Pickle gauge => ", pickleRewards.toString());
+    let pickleRewards = Number(await pickle.balanceOf(pickleGaugeAddr));
+    console.log("Rewards to Pickle gauge => ", pickleRewards.toString());
 
-    const yvecrvRewards = await pickle.balanceOf(yvecrvGaugeAddr);
-    console.log("rewards to pyveCRV gauge => ", yvecrvRewards.toString());
+    let yvecrvRewards = Number(await pickle.balanceOf(yvecrvGaugeAddr));
+    console.log("Rewards to pyveCRV gauge => ", yvecrvRewards.toString());
+    expect(pickleRewards).to.greaterThan(0);
+    expect(yvecrvRewards).to.greaterThan(0);
   });
 
-  it("Delegate vote should fail for user as delegation period has expired", async () => {
-    /** here gov will vote on behalf of user */
-    await expect(GaugeProxyV2.voteFor(userAddr, [pickleLP, pyveCRVETH], [4000000, 6000000])).to.be.revertedWith(
-      "Delegating period expired"
-    );
+  it("Distribute should fail as all distributions are complete ", async () => {
+    await expect(GaugeProxyV2.distribute(0, 2)).to.be.revertedWith("GaugeProxyV2: all period distributions complete");
+  });
+
+  it("Should distribute similar rewards for the periods users have not voted for (advancing 3 weeks)", async () => {
+    await advanceSevenDays();
+    await advanceSevenDays();
+    await advanceSevenDays();
+    console.log("--Advanced 3 weeks--");
+
+    const cid = await GaugeProxyV2.getCurrentPeriodId();
+    const did = await GaugeProxyV2.distributionId();
+
+    console.log("Current Id =>", Number(cid));
+    console.log("Distribution Id =>", Number(did));
+
+    for (let i = did; i < cid; i++) {
+      console.log("Distributing for id => ", i);
+      await GaugeProxyV2.distribute(0, 2);
+      const pickleGaugeAddr = await GaugeProxyV2.getGauge(pickleLP);
+      const yvecrvGaugeAddr = await GaugeProxyV2.getGauge(pyveCRVETH);
+      const pickle = await ethers.getContractAt("src/yield-farming/pickle-token.sol:PickleToken", pickleAddr);
+
+      const pickleRewards = await pickle.balanceOf(pickleGaugeAddr);
+      console.log("Rewards to Pickle gauge", pickleRewards.toString());
+
+      const yvecrvRewards = await pickle.balanceOf(yvecrvGaugeAddr);
+      console.log("Rewards to pyveCRV gauge", yvecrvRewards.toString());
+    }
+  });
+
+  it("Distribute should fail as all distributions are complete ", async () => {
+    await expect(GaugeProxyV2.distribute(0, 2)).to.be.revertedWith("GaugeProxyV2: all period distributions complete");
+  });
+
+  it("Should vote successfully (second voting)", async () => {
+    console.log("-- Voting on LP Gauge with 100% weight --");
+    const gaugeProxyFromUser = GaugeProxyV2.connect(userAddr);
+    populatedTx = await gaugeProxyFromUser.populateTransaction.vote([pickleLP, pyveCRVETH], [6000000, 4000000], {
+      gasLimit: 9000000,
+    });
+    await userSigner.sendTransaction(populatedTx);
+    await hre.network.provider.request({
+      method: "evm_mine",
+    });
+  });
+
+  it("Successfully Distribute PICKLE to gauges after advancing 7 days", async () => {
+    await advanceSevenDays();
+    await GaugeProxyV2.distribute(0, 2);
+    const pickleGaugeAddr = await GaugeProxyV2.getGauge(pickleLP);
+    const yvecrvGaugeAddr = await GaugeProxyV2.getGauge(pyveCRVETH);
+
+    const pickle = await ethers.getContractAt("src/yield-farming/pickle-token.sol:PickleToken", pickleAddr);
+
+    let pickleRewards = Number(await pickle.balanceOf(pickleGaugeAddr));
+    console.log("Rewards to Pickle gauge => ", pickleRewards.toString());
+
+    let yvecrvRewards = Number(await pickle.balanceOf(yvecrvGaugeAddr));
+    console.log("Rewards to pyveCRV gauge => ", yvecrvRewards.toString());
+    expect(pickleRewards).to.greaterThan(0);
+    expect(yvecrvRewards).to.greaterThan(0);
+  });
+
+  it("Distribute should fail as all distributions are complete ", async () => {
+    await expect(GaugeProxyV2.distribute(0, 2)).to.be.revertedWith("GaugeProxyV2: all period distributions complete");
   });
 });

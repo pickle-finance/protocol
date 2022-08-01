@@ -411,7 +411,10 @@ contract VirtualGaugeV2 is
     }
 
     modifier onlyJarAndAuthorised() {
-        require(msg.sender == address(jar) || authorisedAddress[msg.sender]);
+        require(
+            msg.sender == address(jar) || authorisedAddress[msg.sender],
+            "Sender not an authorized jar or address."
+        );
         _;
     }
 
@@ -424,7 +427,7 @@ contract VirtualGaugeV2 is
         string[] memory _rewardSymbols,
         address[] memory _rewardTokens
     ) {
-        require(_jar == address(0), "cannot set zero address");
+        require(_jar != address(0), "cannot set zero address");
         jar = IJar(_jar);
         rewardTokens = _rewardTokens;
         rewardSymbols = _rewardSymbols;
@@ -766,6 +769,7 @@ contract VirtualGaugeV2 is
         nonReentrant
         updateReward(account, true)
         onlyJarAndAuthorised
+        returns (uint256 _rewardsForJar)
     {
         uint256 reward;
 
@@ -773,6 +777,7 @@ contract VirtualGaugeV2 is
             reward = _rewards[account][i];
             if (reward > 0) {
                 _rewards[account][i] = 0;
+                _rewardsForJar += reward;
                 IERC20(rewardTokens[i]).safeTransfer(account, reward);
                 emit RewardPaid(account, rewardSymbols[i], reward);
             }
@@ -1120,7 +1125,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
 
     function setStakingDelegate(address _delegate) public {
         require(
-            stakingDelegates[msg.sender][_delegate],
+            !stakingDelegates[msg.sender][_delegate],
             "Already a staking delegate for user!"
         );
         require(_delegate != msg.sender, "Cannot delegate to self");
@@ -1229,7 +1234,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     function depositFor(uint256 amount, address account) external {
         require(
             stakingDelegates[account][msg.sender],
-            "Only registerd delegates can deposit for their deligator"
+            "Only registered delegates can deposit for their delegator"
         );
         _deposit(amount, account, 0, block.timestamp, false);
     }
@@ -1242,7 +1247,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     ) external lockable(secs) {
         require(
             stakingDelegates[account][msg.sender],
-            "Only registerd delegates can stake for their deligator"
+            "Only registered delegates can stake for their delegator"
         );
         _deposit(amount, account, secs, block.timestamp, isPermanentlyLocked);
     }
@@ -1813,7 +1818,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     // Reset votes to 0
     function reset() external {
         uint256 currentId = getCurrentPeriodId();
-        require(currentId > 0, "Voting not started yet");
+        // require(currentId > 0, "Voting not started yet");
         _reset(msg.sender, currentId);
     }
 
@@ -2017,7 +2022,7 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
     function addVirtualGauge(address _token, address _jar) external {
         require(msg.sender == governance, "!gov");
         require(
-            address(gaugeMiddleware) != address(0),
+            address(virtualGaugeMiddleware) != address(0),
             "cannot add new gauge without initializing gaugeMiddleware"
         );
         require(gauges[_token] == address(0x0), "exists");

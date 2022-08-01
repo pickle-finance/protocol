@@ -23,7 +23,7 @@ contract GaugeMiddleware is ProtocolGovernance, Initializable {
     }
 
     function changeGaugeProxy(address _newgaugeProxy) external {
-        require(msg.sender == governance, "can only be called by gaugeProxy");
+        require(msg.sender == governance, "can only be called by governance");
         gaugeProxy = _newgaugeProxy;
     }
 
@@ -68,7 +68,7 @@ contract VirtualGaugeMiddleware is ProtocolGovernance, Initializable {
     }
 
     function changeGaugeProxy(address _newgaugeProxy) external {
-        require(msg.sender == governance, "can only be called by gaugeProxy");
+        require(msg.sender == governance, "can only be called by governance");
         gaugeProxy = _newgaugeProxy;
     }
 
