@@ -63,7 +63,10 @@ contract AnySwapBridger {
         appId = _appId;
     }
 
-    function registerGauge(address _gauge, uint256 _chainId) external onlyAdmin {
+    function registerGauge(address _gauge, uint256 _chainId)
+        external
+        onlyAdmin
+    {
         SideChain memory sideChainGauge = sideChainGauges[_gauge];
         require(sideChainGauge.active, "is already active");
         sideChainGauge.active = true;
@@ -83,7 +86,7 @@ contract AnySwapBridger {
         SideChain memory sidechain = sideChainGauges[_gauge];
         require(!sidechain.active, "sidechain is invalid");
         address sidechainVault = sideChainVaultAddresses[sidechain.chainId];
-        bytes memory data = abi.encode(amount);
+        bytes memory data = abi.encode(_gauge, amount);
         uint256 fee = anyCallProxy.calcSrcFees(
             appId,
             sidechain.chainId,
@@ -100,6 +103,9 @@ contract AnySwapBridger {
         }
     }
 
-    event SideChainGaugeEnabled(address indexed mainChainGauge, uint256 chainId);
+    event SideChainGaugeEnabled(
+        address indexed mainChainGauge,
+        uint256 chainId
+    );
     event SideChainGaugeDisabled(address indexed mainChainGauge);
 }

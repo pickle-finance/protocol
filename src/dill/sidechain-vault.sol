@@ -31,6 +31,7 @@ interface IGauge {
 abstract contract AnyCallApp {
     uint256 public flag; // 0: pay on dest chain, 2: pay on source chain
     address public anyCallProxy;
+    address public mainChainAnySwapBridger;
 
     mapping(address => address) public receiveGauge;
 
@@ -39,8 +40,13 @@ abstract contract AnyCallApp {
         _;
     }
 
-    constructor(address anyCallProxy_, uint256 flag_) {
+    constructor(
+        address anyCallProxy_,
+        address _mainChainAnySwapBridger,
+        uint256 flag_
+    ) {
         anyCallProxy = anyCallProxy_;
+        mainChainAnySwapBridger = _mainChainAnySwapBridger;
         flag = flag_;
     }
 
@@ -54,7 +60,7 @@ abstract contract AnyCallApp {
         internal
         virtual;
 
-    function _anyExecute(address callFrom, bytes calldata data)
+    function _anyExecute(bytes calldata data)
         internal
         virtual
         returns (bool success, bytes memory result);
@@ -94,9 +100,8 @@ abstract contract AnyCallApp {
         (address callFrom, uint256 fromChainID, ) = IExecutor(
             IAnycallV6Proxy(anyCallProxy).executor()
         ).context();
-        address gauge = receiveGauge[callFrom];
-        require(gauge != address(0), "Gauge is not registered");
-        _anyExecute(gauge, data);
+        require(mainChainAnySwapBridger == callFrom, "Gauge is not registered");
+        _anyExecute(data);
     }
 
     // function anyFallback(address to, bytes calldata data)
@@ -117,22 +122,27 @@ contract SideChainVault is AnyCallApp {
 
     constructor(
         address _anyswap,
+        address _mainChainAnySwapBridger,
         uint256 _flag,
         address _governance,
         address _admin
-    ) AnyCallApp(_anyswap, _flag) {
+    ) AnyCallApp(_anyswap, _mainChainAnySwapBridger, _flag) {
         governance = _governance;
         admin = _admin;
     }
 
-    function _anyExecute(address _gauge, bytes calldata data)
+    function _anyExecute(bytes calldata data)
         internal
         override
         returns (bool success, bytes memory result)
     {
-        uint256 amount = abi.decode(data, (uint256));
+        (address mainChainGauge, uint256 amount) = abi.decode(
+            data,
+            (address, uint256)
+        );
         // TODO: mint token to gauge, yet to figure out
-        IGauge(_gauge).notifyRewardAmount();
+        address gauge = receiveGauge[mainChainGauge];
+        IGauge(gauge).notifyRewardAmount();
     }
 
     function addGauge(address _mainChaingauge, address _token) external {
