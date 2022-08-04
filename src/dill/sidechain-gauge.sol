@@ -13,7 +13,8 @@ contract SideChainGauge is ProtocolGovernance, ReentrancyGuard {
     IERC20 public immutable TOKEN;
     // NOTES: here distribution is offline relayer.
     address public immutable DISTRIBUTION;
-    IERC20 public immutable PICKLE;
+    IERC20 public constant PICKLE =
+        IERC20(0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5);
     uint256 public constant DURATION = 7 days;
 
     // Lock time and multiplier
@@ -111,12 +112,10 @@ contract SideChainGauge is ProtocolGovernance, ReentrancyGuard {
 
     constructor(
         address _token,
-        address _pickle,
         address _governance,
         address _distribution
     ) {
         TOKEN = IERC20(_token);
-        PICKLE = IERC20(_pickle);
 
         DISTRIBUTION = _distribution;
         governance = _governance;

@@ -1,30 +1,105 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
-pragma solidity ^0.8.1;
-import "@openzeppelin/contracts/access/Ownable.sol";
+pragma solidity 0.8.1;
 
-contract AnySwapBridger is Ownable {
+interface IAnycallV6Proxy {
+    function executor() external view returns (address);
+
+    function anyCall(
+        address _to,
+        bytes calldata _data,
+        address _fallback,
+        uint256 _toChainID,
+        uint256 _flags
+    ) external payable;
+
+    function calcSrcFees(
+        string calldata _appID,
+        uint256 _toChainID,
+        uint256 _dataLength
+    ) external view returns (uint256);
+}
+
+contract AnySwapBridger {
+    IAnycallV6Proxy public anyCallProxy =
+        IAnycallV6Proxy(0x273a4fFcEb31B8473D51051Ad2a2EdbB7Ac8Ce02);
+    uint256 public flags = 2;
+    string public appId = "0";
     address public admin;
 
-    mapping(uint256 => mapping(address => address)) receiveAddresses;
+    struct SideChain {
+        uint256 chainId;
+        bool active;
+    }
 
-    constructor(address _admin) {
+    mapping(address => SideChain) public sideChainGauges;
+    mapping(uint256 => address) public sideChainVaultAddresses;
+
+    modifier onlyAdmin() {
+        require(admin == msg.sender, "only called by Admin");
+        _;
+    }
+
+    function _updateAdmin(address _admin) internal {
+        require(_admin != address(0), "admin cannot be zero");
         admin = _admin;
     }
 
-    function setReceiverAddress(
-        uint256 _gaugeId,
-        address _gauge,
-        address _receiverAddress
-    ) external onlyOwner {
-        require(msg.sender == admin, "only called by admin");
-        receiveAddresses[_gaugeId][_gauge] = _receiverAddress;
+    constructor(address _admin) {
+        _updateAdmin(_admin);
     }
 
-    // function bridge(uint256 _gaugeId, address _gauge) external onlyOwner {
-    //     require(msg.sender == admin, "only called by admin");
-    //     require(_gaugeId > 0, "only called by admin");
-    //     require(_gauge != address(0), "gauge cannot be zero");
-    //     uint256 amount= AnyswapToken(_token).balanceOf(self)
-    //     AnyswapToken(_token).Swapout(amount, self.root_receiver)
-    // }
+    function changeAdmin(address _admin) external onlyAdmin {
+        _updateAdmin(_admin);
+    }
+
+    function setAnyswapFeeMode(uint8 _flags) external onlyAdmin {
+        require(_flags < 3, "invalid value");
+        require(_flags != flags);
+        flags = uint256(_flags);
+    }
+
+    function updateAppId(string calldata _appId) external onlyAdmin {
+        require(bytes(_appId).length > 0, "cannot be blank string");
+        appId = _appId;
+    }
+
+    function registerGauge(address _gauge, uint256 _chainId) external onlyAdmin {
+        SideChain memory sideChainGauge = sideChainGauges[_gauge];
+        require(sideChainGauge.active, "is already active");
+        sideChainGauge.active = true;
+        sideChainGauge.chainId = _chainId;
+        sideChainGauges[_gauge] = sideChainGauge;
+        emit SideChainGaugeEnabled(_gauge, _chainId);
+    }
+
+    function deregister(address _gauge) external onlyAdmin {
+        delete sideChainGauges[_gauge];
+        emit SideChainGaugeDisabled(_gauge);
+    }
+
+    // TODO: should we handle fee calculation
+    function bridge(uint256 amount) external payable {
+        address _gauge = msg.sender;
+        SideChain memory sidechain = sideChainGauges[_gauge];
+        require(!sidechain.active, "sidechain is invalid");
+        address sidechainVault = sideChainVaultAddresses[sidechain.chainId];
+        bytes memory data = abi.encode(amount);
+        uint256 fee = anyCallProxy.calcSrcFees(
+            appId,
+            sidechain.chainId,
+            data.length
+        );
+        if (fee <= address(this).balance) {
+            anyCallProxy.anyCall{value: fee}(
+                sidechainVault,
+                data,
+                address(this),
+                sidechain.chainId,
+                flags
+            );
+        }
+    }
+
+    event SideChainGaugeEnabled(address indexed mainChainGauge, uint256 chainId);
+    event SideChainGaugeDisabled(address indexed mainChainGauge);
 }
