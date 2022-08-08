@@ -60,27 +60,19 @@ interface IERC20 {
 }
 
 interface IGaugeMiddleware {
-    function addGauge(
-        address _token,
-        address _governance,
-        string[] memory _rewardSymbols,
-        address[] memory _rewardTokens
-    ) external returns (address);
+    function addGauge(address _token, address _governance)
+        external
+        returns (address);
 }
 
 interface IVirtualGaugeMiddleware {
-    function addVirtualGauge(
-        address _jar,
-        address _governance,
-        string[] memory _rewardSymbols,
-        address[] memory _rewardTokens
-    ) external returns (address);
+    function addVirtualGauge(address _jar, address _governance)
+        external
+        returns (address);
 }
 
 interface IRootChainGaugeMiddleware {
-    function addRootChainGauge()
-        external
-        returns (address);
+    function addRootChainGauge() external returns (address);
 }
 
 library SafeERC20 {
@@ -292,7 +284,10 @@ interface IJar {
 }
 
 interface iGaugeV2 {
-    function notifyRewardAmount(uint256[] memory rewards) external;
+    function notifyRewardAmount(
+        address[] memory rewarders,
+        uint256[] memory rewards
+    ) external;
 }
 
 contract VirtualBalanceWrapper {
@@ -319,8 +314,6 @@ contract VirtualGaugeV2 is
 
     // Constant for various precisions
     uint256 private constant _MultiplierPrecision = 1e18;
-
-    address public immutable DISTRIBUTION;
     uint256 public constant DURATION = 7 days;
 
     // Lock time and multiplier
@@ -328,10 +321,18 @@ contract VirtualGaugeV2 is
     uint256 public lockTimeForMaxMultiplier = 365 * 86400; // 1 year
     uint256 public lockTimeMin = 86400; // 1 day
 
-    //Reward addresses, rates, and symbols
+    //Reward addresses
     address[] public rewardTokens;
-    uint256[] public rewardRates;
-    string[] public rewardSymbols;
+
+    // reward token details
+    struct rewardTokenDetail {
+        uint256 index;
+        bool isActive;
+        address distributor;
+        uint256 rewardRate;
+        uint256 rewardPerTokenStored;
+    }
+    mapping(address => rewardTokenDetail) public rewardTokenDetails; // token address => detatils
 
     // Time tracking
     uint256 public periodFinish = 0;
@@ -342,7 +343,7 @@ contract VirtualGaugeV2 is
         private userRewardPerTokenPaid;
     mapping(address => mapping(uint256 => uint256)) public _rewards;
     mapping(address => bool) public authorisedAddress;
-    uint256[] private rewardPerTokenStored;
+    // uint256[] private rewardPerTokenStored;
     uint256 public multiplierDecayPerSecond = uint256(48e9);
     mapping(address => mapping(uint256 => uint256)) private _lastUsedMultiplier;
     mapping(address => uint256) private _lastRewardClaimTime; // staker addr -> timestamp
@@ -371,9 +372,9 @@ contract VirtualGaugeV2 is
 
     /* ========== MODIFIERS ========== */
 
-    modifier onlyDistribution() {
+    modifier onlyDistribution(address _token) {
         require(
-            msg.sender == DISTRIBUTION,
+            msg.sender == rewardTokenDetails[_token].distributor,
             "Caller is not RewardsDistribution contract"
         );
         _;
@@ -397,14 +398,20 @@ contract VirtualGaugeV2 is
     }
 
     modifier updateReward(address account, bool isClaimReward) {
-        rewardPerTokenStored = rewardPerToken();
+        rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
 
         if (account != address(0)) {
             uint256[] memory earnedArr = earned(account);
-            for (uint256 i = 0; i < rewardPerTokenStored.length; i++) {
-                _rewards[account][i] = earnedArr[i];
-                userRewardPerTokenPaid[account][i] = rewardPerTokenStored[i];
+            for (uint256 i = 0; i < rewardTokens.length; i++) {
+                rewardTokenDetail memory token = rewardTokenDetails[
+                    rewardTokens[i]
+                ];
+                if (token.isActive) {
+                    _rewards[account][i] = earnedArr[i];
+                    userRewardPerTokenPaid[account][i] = token
+                        .rewardPerTokenStored;
+                }
             }
         }
         _;
@@ -425,24 +432,11 @@ contract VirtualGaugeV2 is
 
     constructor(
         address _jar,
-        address _governance,
-        address _distribution,
-        string[] memory _rewardSymbols,
-        address[] memory _rewardTokens
+        address _governance
     ) {
         require(_jar == address(0), "cannot set zero address");
         jar = IJar(_jar);
-        rewardTokens = _rewardTokens;
-        rewardSymbols = _rewardSymbols;
-
-        DISTRIBUTION = _distribution;
         governance = _governance;
-
-        for (uint256 i = 0; i < _rewardTokens.length; i++) {
-            // Initialize the stored rewards
-            rewardRates.push(0);
-            rewardPerTokenStored.push(0);
-        }
     }
 
     /* ========== VIEWS ========== */
@@ -450,67 +444,20 @@ contract VirtualGaugeV2 is
         return Math.min(block.timestamp, periodFinish);
     }
 
-    function rewardPerToken()
-        public
-        view
-        returns (uint256[] memory newRewardsPerTokenStored)
-    {
-        if (totalSupply() == 0) {
-            return rewardPerTokenStored;
-        } else {
-            newRewardsPerTokenStored = new uint256[](rewardTokens.length);
-            for (uint256 i = 0; i < rewardPerTokenStored.length; i++) {
-                newRewardsPerTokenStored[i] =
-                    rewardPerTokenStored[i] +
-                    (((lastTimeRewardApplicable() - lastUpdateTime) *
-                        rewardRates[i] *
-                        1e18) / derivedSupply);
-            }
-            return newRewardsPerTokenStored;
-        }
-    }
-
-    // All the locked stakes for a given account
-    function lockedStakesOf(address account)
-        external
-        view
-        returns (LockedStake[] memory)
-    {
-        return _lockedStakes[account];
-    }
-
-    function earned(address account)
-        public
-        view
-        returns (uint256[] memory newEarned)
-    {
-        uint256[] memory rewardArr = rewardPerToken();
-        newEarned = new uint256[](rewardTokens.length);
-
-        if (derivedBalances[account] == 0) {
-            for (uint256 i = 0; i < rewardTokens.length; i++) {
-                newEarned[i] = 0;
-            }
-        } else {
-            for (uint256 i = 0; i < rewardTokens.length; i++) {
-                newEarned[i] =
-                    ((derivedBalances[account] *
-                        (rewardArr[i] - userRewardPerTokenPaid[account][i])) /
-                        1e18) +
-                    _rewards[account][i];
-            }
-        }
-    }
-
     function getRewardForDuration()
         external
         view
         returns (uint256[] memory rewardsPerDurationArr)
     {
-        rewardsPerDurationArr = new uint256[](rewardRates.length);
+        rewardsPerDurationArr = new uint256[](rewardTokens.length);
 
-        for (uint256 i = 0; i < rewardRates.length; i++) {
-            rewardsPerDurationArr[i] = rewardRates[i] * DURATION;
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            rewardTokenDetail memory token = rewardTokenDetails[
+                rewardTokens[i]
+            ];
+            if (token.isActive) {
+                rewardsPerDurationArr[i] = token.rewardRate * DURATION;
+            }
         }
     }
 
@@ -536,6 +483,59 @@ contract VirtualGaugeV2 is
                 multiplierDecayPerSecond) / 2;
     }
 
+    // All the locked stakes for a given account
+    function lockedStakesOf(address account)
+        external
+        view
+        returns (LockedStake[] memory)
+    {
+        return _lockedStakes[account];
+    }
+
+    function earned(address account)
+        public
+        returns (uint256[] memory newEarned)
+    {
+        rewardPerToken();
+        newEarned = new uint256[](rewardTokens.length);
+
+        if (derivedBalances[account] == 0) {
+            for (uint256 i = 0; i < rewardTokens.length; i++) {
+                newEarned[i] = 0;
+            }
+        } else {
+            for (uint256 i = 0; i < rewardTokens.length; i++) {
+                rewardTokenDetail memory token = rewardTokenDetails[
+                    rewardTokens[i]
+                ];
+                if (token.isActive) {
+                    newEarned[i] =
+                        ((derivedBalances[account] *
+                            (token.rewardPerTokenStored -
+                                userRewardPerTokenPaid[account][i])) / 1e18) +
+                        _rewards[account][i];
+                }
+            }
+        }
+    }
+
+    function rewardPerToken() public {
+        if (totalSupply() != 0) {
+            for (uint256 i = 0; i < rewardTokens.length; i++) {
+                rewardTokenDetail memory token = rewardTokenDetails[
+                    rewardTokens[i]
+                ];
+                if (token.isActive) {
+                    rewardTokenDetails[rewardTokens[i]].rewardPerTokenStored =
+                        token.rewardPerTokenStored +
+                        (((lastTimeRewardApplicable() - lastUpdateTime) *
+                            token.rewardRate *
+                            1e18) / derivedSupply);
+                }
+            }
+        }
+    }
+
     function setJar(address _jar) external onlyGov {
         require(_jar != address(0), "cannot set to zero");
         require(_jar != address(jar), "Jar is already set");
@@ -551,6 +551,40 @@ contract VirtualGaugeV2 is
             "address is already set to given value"
         );
         authorisedAddress[_account] = value;
+    }
+
+    function setRewardToken(address _rewardToken, address _distributionForToken)
+        public
+        onlyGov
+    {
+        rewardTokenDetail memory token;
+        token.isActive = true;
+        token.index = rewardTokens.length;
+        token.distributor = _distributionForToken;
+        token.rewardRate = 0;
+        token.rewardPerTokenStored = 0;
+
+        rewardTokenDetails[_rewardToken] = token;
+        rewardTokens.push(_rewardToken);
+    }
+
+    function setRewardTokenInactive(address _rewardToken) public onlyGov {
+        require(
+            rewardTokenDetails[_rewardToken].isActive,
+            "Reward token not available"
+        );
+        rewardTokenDetails[_rewardToken].isActive = false;
+    }
+
+    function setDisributionForToken(
+        address _distributionForToken,
+        address _rewardToken
+    ) public onlyGov {
+        require(
+            rewardTokenDetails[_rewardToken].isActive,
+            "Reward token not available"
+        );
+        rewardTokenDetails[_rewardToken].distributor = _distributionForToken;
     }
 
     function derivedBalance(address account) public returns (uint256) {
@@ -776,11 +810,13 @@ contract VirtualGaugeV2 is
         uint256 reward;
 
         for (uint256 i = 0; i < rewardTokens.length; i++) {
-            reward = _rewards[account][i];
-            if (reward > 0) {
-                _rewards[account][i] = 0;
-                IERC20(rewardTokens[i]).safeTransfer(account, reward);
-                emit RewardPaid(account, rewardSymbols[i], reward);
+            if (rewardTokenDetails[rewardTokens[i]].isActive) {
+                reward = _rewards[account][i];
+                if (reward > 0) {
+                    _rewards[account][i] = 0;
+                    IERC20(rewardTokens[i]).safeTransfer(account, reward);
+                    emit RewardPaid(account, reward);
+                }
             }
         }
     }
@@ -792,42 +828,45 @@ contract VirtualGaugeV2 is
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function notifyRewardAmount(uint256[] memory rewards)
+    function notifyRewardAmount(address _rewardToken, uint256 _reward)
         external
-        onlyDistribution
+        onlyDistribution(_rewardToken)
         updateReward(address(0), false)
     {
+        rewardTokenDetail memory token = rewardTokenDetails[_rewardToken];
+        require(token.isActive, "Reward token not available");
         require(
-            rewards.length == rewardTokens.length,
-            "Rewards count do not match reward token count"
+            token.distributor != address(0),
+            "Reward distributor for token not set"
         );
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
-            IERC20(rewardTokens[i]).safeTransferFrom(
-                DISTRIBUTION,
-                address(this),
-                rewards[i]
-            );
 
-            if (block.timestamp >= periodFinish) {
-                rewardRates[i] = rewards[i] / DURATION;
-            } else {
-                uint256 remaining = periodFinish - block.timestamp;
-                uint256 leftover = remaining * rewardRates[i];
-                rewardRates[i] = (rewards[i] + leftover) / DURATION;
-            }
+        IERC20(_rewardToken).safeTransferFrom(
+            token.distributor,
+            address(this),
+            _reward
+        );
 
-            // Ensure the provided reward amount is not more than the balance in the contract.
-            // This keeps the reward rate in the right range, preventing overflows due to
-            // very high values of rewardRate in the earned and rewardsPerToken functions;
-            // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
-            uint256 balance = IERC20(rewardTokens[i]).balanceOf(address(this));
-            require(
-                rewardRates[i] <= balance / DURATION,
-                "Provided reward too high"
-            );
-
-            emit RewardAdded(rewardSymbols[i], rewards[i]);
+        if (block.timestamp >= periodFinish) {
+            rewardTokenDetails[_rewardToken].rewardRate = _reward / DURATION;
+        } else {
+            uint256 remaining = periodFinish - block.timestamp;
+            uint256 leftover = remaining * token.rewardRate;
+            rewardTokenDetails[_rewardToken].rewardRate =
+                (_reward + leftover) /
+                DURATION;
         }
+
+        // Ensure the provided reward amount is not more than the balance in the contract.
+        // This keeps the reward rate in the right range, preventing overflows due to
+        // very high values of rewardRate in the earned and rewardsPerToken functions;
+        // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
+        uint256 balance = IERC20(_rewardToken).balanceOf(address(this));
+        require(
+            token.rewardRate <= balance / DURATION,
+            "Provided reward too high"
+        );
+
+        emit RewardAdded(_reward);
 
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp + DURATION;
@@ -870,7 +909,7 @@ contract VirtualGaugeV2 is
     event approvedTokenReceipt(address _spender, uint256 _amount);
     event stakeTransferd(address _to, uint256 _index);
     event allStakesTransferd(address _to);
-    event RewardAdded(string rewardSymbol, uint256 reward);
+    event RewardAdded(uint256 reward);
     event Staked(
         address indexed user,
         uint256 amount,
@@ -880,7 +919,7 @@ contract VirtualGaugeV2 is
     event Withdrawn(address indexed user, uint256 amount, uint256 index);
     event WithdrawnAll(address indexed user, uint256 amount);
     event WithdrawnPartilly(address indexed user, uint256 amount);
-    event RewardPaid(address indexed user, string rewardSymbol, uint256 reward);
+    event RewardPaid(address indexed user, uint256 reward);
     event LockedStakeMaxMultiplierUpdated(uint256 multiplier);
     event MaxRewardsDurationUpdated(uint256 newDuration);
 }
@@ -889,30 +928,46 @@ interface IAnyswapBridger {
     function bridge(uint256 amount) external payable;
 }
 
-contract RootChainGaugeV2 is ReentrancyGuard {
+contract RootChainGaugeV2 is ProtocolGovernance, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     IERC20 public constant PICKLE =
         IERC20(0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5);
 
     // Constant for various precisions
-    address public immutable DISTRIBUTION;
     uint256 public constant DURATION = 7 days;
 
-    //Reward addresses, rates, and symbols
-    uint256 public rewardRate;
+    //Reward addresses
+    address[] public rewardTokens;
 
     // Time tracking
     uint256 public periodFinish = 0;
     uint256 public lastUpdateTime;
     IAnyswapBridger public anyswapBridger;
 
+    // reward token details
+    struct rewardTokenDetail {
+        uint256 index;
+        bool isActive;
+        address distributor;
+        uint256 rewardRate;
+        uint256 rewardPerTokenStored;
+    }
+    mapping(address => rewardTokenDetail) public rewardTokenDetails; // token address => detatils
+
     /* ========== MODIFIERS ========== */
 
-    modifier onlyDistribution() {
+    modifier onlyDistribution(address _token) {
         require(
-            msg.sender == DISTRIBUTION,
+            msg.sender == rewardTokenDetails[_token].distributor,
             "Caller is not RewardsDistribution contract"
+        );
+        _;
+    }
+    modifier onlyGov() {
+        require(
+            msg.sender == governance,
+            "Operation allowed by only governance"
         );
         _;
     }
@@ -921,8 +976,7 @@ contract RootChainGaugeV2 is ReentrancyGuard {
 
     constructor(address _anyswapBridger) {
         anyswapBridger = IAnyswapBridger(_anyswapBridger);
-
-        DISTRIBUTION = msg.sender;
+        governance = msg.sender;
     }
 
     /* ========== VIEWS ========== */
@@ -930,41 +984,102 @@ contract RootChainGaugeV2 is ReentrancyGuard {
     function getRewardForDuration()
         external
         view
-        returns (uint256)
+        returns (uint256[] memory rewardsPerDurationArr)
     {
+        rewardsPerDurationArr = new uint256[](rewardTokens.length);
 
-        return rewardRate * DURATION;
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            rewardTokenDetail memory token = rewardTokenDetails[
+                rewardTokens[i]
+            ];
+            if (token.isActive) {
+                rewardsPerDurationArr[i] = token.rewardRate * DURATION;
+            }
+        }
+    }
+
+    function setRewardToken(address _rewardToken, address _distributionForToken)
+        public
+        onlyGov
+    {
+        rewardTokenDetail memory token;
+        token.isActive = true;
+        token.index = rewardTokens.length;
+        token.distributor = _distributionForToken;
+        token.rewardRate = 0;
+        token.rewardPerTokenStored = 0;
+
+        rewardTokenDetails[_rewardToken] = token;
+        rewardTokens.push(_rewardToken);
+    }
+
+    function setRewardTokenInactive(address _rewardToken) public onlyGov {
+        require(
+            rewardTokenDetails[_rewardToken].isActive,
+            "Reward token not available"
+        );
+        rewardTokenDetails[_rewardToken].isActive = false;
+    }
+
+    function setDisributionForToken(
+        address _distributionForToken,
+        address _rewardToken
+    ) public onlyGov {
+        require(
+            rewardTokenDetails[_rewardToken].isActive,
+            "Reward token not available"
+        );
+        rewardTokenDetails[_rewardToken].distributor = _distributionForToken;
     }
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function notifyRewardAmount(uint256 amount) external onlyDistribution {
-        uint256 rewardRateUpdate = rewardRate;
+    function notifyRewardAmount(address _rewardToken, uint256 _reward)
+        external
+        onlyDistribution(_rewardToken)
+    {
+        rewardTokenDetail memory token = rewardTokenDetails[_rewardToken];
+        require(token.isActive, "Reward token not available");
+        require(
+            token.distributor != address(0),
+            "Reward distributor for token not available"
+        );
+
+        IERC20(_rewardToken).safeTransferFrom(
+            token.distributor,
+            address(this),
+            _reward
+        );
 
         if (block.timestamp >= periodFinish) {
-            rewardRateUpdate = amount / DURATION;
+            rewardTokenDetails[_rewardToken].rewardRate = _reward / DURATION;
         } else {
             uint256 remaining = periodFinish - block.timestamp;
-            uint256 leftover = remaining * rewardRateUpdate;
-            rewardRateUpdate = (amount + leftover) / DURATION;
+            uint256 leftover = remaining * token.rewardRate;
+            rewardTokenDetails[_rewardToken].rewardRate =
+                (_reward + leftover) /
+                DURATION;
         }
 
         // Ensure the provided reward amount is not more than the balance in the contract.
         // This keeps the reward rate in the right range, preventing overflows due to
         // very high values of rewardRate in the earned and rewardsPerToken functions;
         // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
-        uint256 balance = PICKLE.balanceOf(address(this));
-        require(rewardRateUpdate <= balance / DURATION, "Provided reward too high");
-        rewardRate = rewardRateUpdate;
+        uint256 balance = IERC20(_rewardToken).balanceOf(address(this));
+        require(
+            token.rewardRate <= balance / DURATION,
+            "Provided reward too high"
+        );
+
+        emit RewardAdded(_reward);
+
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp + DURATION;
-        PICKLE.safeTransferFrom(DISTRIBUTION, address(anyswapBridger), amount);
-        anyswapBridger.bridge(amount);
-        emit RewardAdded(amount);
+        anyswapBridger.bridge(_reward);
     }
 
     /* ========== EVENTS ========== */
-    event RewardAdded(uint256 amount);
+    event RewardAdded(uint256 reward);
 }
 
 contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
@@ -982,7 +1097,6 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     uint256 private constant _MultiplierPrecision = 1e18;
 
     IERC20 public immutable TOKEN;
-    address public immutable DISTRIBUTION;
     uint256 public constant DURATION = 7 days;
 
     // Lock time and multiplier
@@ -990,10 +1104,17 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     uint256 public lockTimeForMaxMultiplier = 365 * 86400; // 1 year
     uint256 public lockTimeMin = 86400; // 1 day
 
-    //Reward addresses, rates, and symbols
+    //Reward addresses
     address[] public rewardTokens;
-    uint256[] public rewardRates;
-    string[] public rewardSymbols;
+    // reward token details
+    struct rewardTokenDetail {
+        uint256 index;
+        bool isActive;
+        address distributor;
+        uint256 rewardRate;
+        uint256 rewardPerTokenStored;
+    }
+    mapping(address => rewardTokenDetail) public rewardTokenDetails; // token address => detatils
 
     // Time tracking
     uint256 public periodFinish = 0;
@@ -1037,9 +1158,9 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
 
     /* ========== MODIFIERS ========== */
 
-    modifier onlyDistribution() {
+    modifier onlyDistribution(address _token) {
         require(
-            msg.sender == DISTRIBUTION,
+            msg.sender == rewardTokenDetails[_token].distributor,
             "Caller is not RewardsDistribution contract"
         );
         _;
@@ -1063,14 +1184,20 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     }
 
     modifier updateReward(address account, bool isClaimReward) {
-        rewardPerTokenStored = rewardPerToken();
+        rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
 
         if (account != address(0)) {
             uint256[] memory earnedArr = earned(account);
-            for (uint256 i = 0; i < rewardPerTokenStored.length; i++) {
-                _rewards[account][i] = earnedArr[i];
-                userRewardPerTokenPaid[account][i] = rewardPerTokenStored[i];
+            for (uint256 i = 0; i < rewardTokens.length; i++) {
+                rewardTokenDetail memory token = rewardTokenDetails[
+                    rewardTokens[i]
+                ];
+                if (token.isActive) {
+                    _rewards[account][i] = earnedArr[i];
+                    userRewardPerTokenPaid[account][i] = token
+                        .rewardPerTokenStored;
+                }
             }
         }
         _;
@@ -1084,26 +1211,9 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(
-        address _token,
-        address _governance,
-        address _distribution,
-        string[] memory _rewardSymbols,
-        address[] memory _rewardTokens
-    ) {
+    constructor(address _token, address _governance) {
         TOKEN = IERC20(_token);
-
-        rewardTokens = _rewardTokens;
-        rewardSymbols = _rewardSymbols;
-
-        DISTRIBUTION = _distribution;
         governance = _governance;
-
-        for (uint256 i = 0; i < _rewardTokens.length; i++) {
-            // Initialize the stored rewards
-            rewardRates.push(0);
-            rewardPerTokenStored.push(0);
-        }
     }
 
     /* ========== VIEWS ========== */
@@ -1120,23 +1230,37 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
         return Math.min(block.timestamp, periodFinish);
     }
 
-    function rewardPerToken()
-        public
+    function getRewardForDuration()
+        external
         view
-        returns (uint256[] memory newRewardsPerTokenStored)
+        returns (uint256[] memory rewardsPerDurationArr)
     {
-        if (_totalSupply == 0) {
-            return rewardPerTokenStored;
-        } else {
-            newRewardsPerTokenStored = new uint256[](rewardTokens.length);
-            for (uint256 i = 0; i < rewardPerTokenStored.length; i++) {
-                newRewardsPerTokenStored[i] =
-                    rewardPerTokenStored[i] +
-                    (((lastTimeRewardApplicable() - lastUpdateTime) *
-                        rewardRates[i] *
-                        1e18) / derivedSupply);
+        rewardsPerDurationArr = new uint256[](rewardTokens.length);
+
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            rewardTokenDetail memory token = rewardTokenDetails[
+                rewardTokens[i]
+            ];
+            if (token.isActive) {
+                rewardsPerDurationArr[i] = token.rewardRate * DURATION;
             }
-            return newRewardsPerTokenStored;
+        }
+    }
+
+    function rewardPerToken() public {
+        if (_totalSupply != 0) {
+            for (uint256 i = 0; i < rewardTokens.length; i++) {
+                rewardTokenDetail memory token = rewardTokenDetails[
+                    rewardTokens[i]
+                ];
+                if (token.isActive) {
+                    rewardTokenDetails[rewardTokens[i]].rewardPerTokenStored =
+                        token.rewardPerTokenStored +
+                        (((lastTimeRewardApplicable() - lastUpdateTime) *
+                            token.rewardRate *
+                            1e18) / derivedSupply);
+                }
+            }
         }
     }
 
@@ -1151,10 +1275,9 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
 
     function earned(address account)
         public
-        view
         returns (uint256[] memory newEarned)
     {
-        uint256[] memory rewardArr = rewardPerToken();
+        rewardPerToken();
         newEarned = new uint256[](rewardTokens.length);
 
         if (derivedBalances[account] == 0) {
@@ -1163,25 +1286,52 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
             }
         } else {
             for (uint256 i = 0; i < rewardTokens.length; i++) {
-                newEarned[i] =
-                    ((derivedBalances[account] *
-                        (rewardArr[i] - userRewardPerTokenPaid[account][i])) /
-                        1e18) +
-                    _rewards[account][i];
+                rewardTokenDetail memory token = rewardTokenDetails[
+                    rewardTokens[i]
+                ];
+                if (token.isActive) {
+                    newEarned[i] =
+                        ((derivedBalances[account] *
+                            (token.rewardPerTokenStored -
+                                userRewardPerTokenPaid[account][i])) / 1e18) +
+                        _rewards[account][i];
+                }
             }
         }
     }
 
-    function getRewardForDuration()
-        external
-        view
-        returns (uint256[] memory rewardsPerDurationArr)
+    function setRewardToken(address _rewardToken, address _distributionForToken)
+        public
+        onlyGov
     {
-        rewardsPerDurationArr = new uint256[](rewardRates.length);
+        rewardTokenDetail memory token;
+        token.isActive = true;
+        token.index = rewardTokens.length;
+        token.distributor = _distributionForToken;
+        token.rewardRate = 0;
+        token.rewardPerTokenStored = 0;
 
-        for (uint256 i = 0; i < rewardRates.length; i++) {
-            rewardsPerDurationArr[i] = rewardRates[i] * DURATION;
-        }
+        rewardTokenDetails[_rewardToken] = token;
+        rewardTokens.push(_rewardToken);
+    }
+
+    function setRewardTokenInactive(address _rewardToken) public onlyGov {
+        require(
+            rewardTokenDetails[_rewardToken].isActive,
+            "Reward token not available"
+        );
+        rewardTokenDetails[_rewardToken].isActive = false;
+    }
+
+    function setDisributionForToken(
+        address _distributionForToken,
+        address _rewardToken
+    ) public onlyGov {
+        require(
+            rewardTokenDetails[_rewardToken].isActive,
+            "Reward token not available"
+        );
+        rewardTokenDetails[_rewardToken].distributor = _distributionForToken;
     }
 
     // Multiplier amount, given the length of the lock
@@ -1479,14 +1629,15 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
 
     function getReward() public nonReentrant updateReward(msg.sender, true) {
         uint256 reward;
-        // _lastRewardClaimTime[msg.sender] = block.timestamp;
 
         for (uint256 i = 0; i < rewardTokens.length; i++) {
-            reward = _rewards[msg.sender][i];
-            if (reward > 0) {
-                _rewards[msg.sender][i] = 0;
-                IERC20(rewardTokens[i]).safeTransfer(msg.sender, reward);
-                emit RewardPaid(msg.sender, rewardSymbols[i], reward);
+            if (rewardTokenDetails[rewardTokens[i]].isActive) {
+                reward = _rewards[msg.sender][i];
+                if (reward > 0) {
+                    _rewards[msg.sender][i] = 0;
+                    IERC20(rewardTokens[i]).safeTransfer(msg.sender, reward);
+                    emit RewardPaid(msg.sender, reward);
+                }
             }
         }
     }
@@ -1498,42 +1649,45 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function notifyRewardAmount(uint256[] memory rewards)
+    function notifyRewardAmount(address _rewardToken, uint256 _reward)
         external
-        onlyDistribution
+        onlyDistribution(_rewardToken)
         updateReward(address(0), false)
     {
+        rewardTokenDetail memory token = rewardTokenDetails[_rewardToken];
+        require(token.isActive, "Reward token not available");
         require(
-            rewards.length == rewardTokens.length,
-            "Rewards count do not match reward token count"
+            token.distributor != address(0),
+            "Reward distributor for token not set"
         );
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
-            IERC20(rewardTokens[i]).safeTransferFrom(
-                DISTRIBUTION,
-                address(this),
-                rewards[i]
-            );
 
-            if (block.timestamp >= periodFinish) {
-                rewardRates[i] = rewards[i] / DURATION;
-            } else {
-                uint256 remaining = periodFinish - block.timestamp;
-                uint256 leftover = remaining * rewardRates[i];
-                rewardRates[i] = (rewards[i] + leftover) / DURATION;
-            }
+        IERC20(_rewardToken).safeTransferFrom(
+            token.distributor,
+            address(this),
+            _reward
+        );
 
-            // Ensure the provided reward amount is not more than the balance in the contract.
-            // This keeps the reward rate in the right range, preventing overflows due to
-            // very high values of rewardRate in the earned and rewardsPerToken functions;
-            // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
-            uint256 balance = IERC20(rewardTokens[i]).balanceOf(address(this));
-            require(
-                rewardRates[i] <= balance / DURATION,
-                "Provided reward too high"
-            );
-
-            emit RewardAdded(rewardSymbols[i], rewards[i]);
+        if (block.timestamp >= periodFinish) {
+            rewardTokenDetails[_rewardToken].rewardRate = _reward / DURATION;
+        } else {
+            uint256 remaining = periodFinish - block.timestamp;
+            uint256 leftover = remaining * token.rewardRate;
+            rewardTokenDetails[_rewardToken].rewardRate =
+                (_reward + leftover) /
+                DURATION;
         }
+
+        // Ensure the provided reward amount is not more than the balance in the contract.
+        // This keeps the reward rate in the right range, preventing overflows due to
+        // very high values of rewardRate in the earned and rewardsPerToken functions;
+        // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
+        uint256 balance = IERC20(_rewardToken).balanceOf(address(this));
+        require(
+            token.rewardRate <= balance / DURATION,
+            "Provided reward too high"
+        );
+
+        emit RewardAdded(_reward);
 
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp + DURATION;
@@ -1576,7 +1730,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     event approvedTokenReceipt(address _spender, uint256 _amount);
     event stakeTransferd(address _to, uint256 _index);
     event allStakesTransferd(address _to);
-    event RewardAdded(string rewardSymbol, uint256 reward);
+    event RewardAdded(uint256 reward);
     event Staked(
         address indexed user,
         uint256 amount,
@@ -1586,7 +1740,7 @@ contract GaugeV2 is ProtocolGovernance, ReentrancyGuard {
     event Withdrawn(address indexed user, uint256 amount, uint256 index);
     event WithdrawnAll(address indexed user, uint256 amount);
     event WithdrawnPartilly(address indexed user, uint256 amount);
-    event RewardPaid(address indexed user, string rewardSymbol, uint256 reward);
+    event RewardPaid(address indexed user, uint256 reward);
     event LockedStakeMaxMultiplierUpdated(uint256 multiplier);
     event MaxRewardsDurationUpdated(uint256 newDuration);
 }
@@ -2127,16 +2281,9 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             "cannot add new gauge without initializing gaugeMiddleware"
         );
         require(gauges[_token] == address(0x0), "exists");
-        string[] memory _rewardSymbols = new string[](1);
         address[] memory _rewardTokens = new address[](1);
-        _rewardSymbols[0] = "PICKLE";
         _rewardTokens[0] = address(PICKLE);
-        gauges[_token] = gaugeMiddleware.addGauge(
-            _token,
-            governance,
-            _rewardSymbols,
-            _rewardTokens
-        );
+        gauges[_token] = gaugeMiddleware.addGauge(_token, governance);
         gaugeToGaugeType[_token] = 1;
         _tokens.push(_token);
     }
@@ -2171,15 +2318,11 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
             "cannot add new gauge without initializing gaugeMiddleware"
         );
         require(gauges[_token] == address(0x0), "exists");
-        string[] memory _rewardSymbols = new string[](1);
         address[] memory _rewardTokens = new address[](1);
-        _rewardSymbols[0] = "PICKLE";
         _rewardTokens[0] = address(PICKLE);
         address vgauge = virtualGaugeMiddleware.addVirtualGauge(
             _jar,
-            governance,
-            _rewardSymbols,
-            _rewardTokens
+            governance
         );
         gauges[_token] = vgauge;
         isVirtualGauge[vgauge] = true;
@@ -2286,12 +2429,14 @@ contract GaugeProxyV2 is ProtocolGovernance, Initializable {
                 if (_reward > 0) {
                     uint256 reward_ = uint256(_reward);
                     uint256[] memory rewardArr = new uint256[](1);
+                    address[] memory _rewarder = new address[](1);
                     rewardArr[0] = reward_;
+                    _rewarder[0] = address(this);
 
                     PICKLE.safeApprove(_gauge, 0);
                     PICKLE.safeApprove(_gauge, reward_);
 
-                    iGaugeV2(_gauge).notifyRewardAmount(rewardArr);
+                    iGaugeV2(_gauge).notifyRewardAmount(_rewarder, rewardArr);
                 }
 
                 if (_reward < 0) {
