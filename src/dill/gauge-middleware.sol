@@ -29,9 +29,7 @@ contract GaugeMiddleware is ProtocolGovernance, Initializable {
 
     function addGauge(
         address _token,
-        address _governance,
-        string[] memory _rewardSymbols,
-        address[] memory _rewardTokens
+        address _governance
     ) external returns (address) {
         require(msg.sender == gaugeProxy, "can only be called by gaugeProxy");
         require(_token != address(0), "address of token cannot be zero");
@@ -39,10 +37,7 @@ contract GaugeMiddleware is ProtocolGovernance, Initializable {
             address(
                 new GaugeV2(
                     _token,
-                    _governance,
-                    msg.sender,
-                    _rewardSymbols,
-                    _rewardTokens
+                    _governance
                 )
             );
     }
@@ -74,9 +69,7 @@ contract VirtualGaugeMiddleware is ProtocolGovernance, Initializable {
 
     function addVirtualGauge(
         address _jar,
-        address _governance,
-        string[] memory _rewardSymbols,
-        address[] memory _rewardTokens
+        address _governance
     ) external returns (address) {
         require(msg.sender == gaugeProxy, "can only be called by gaugeProxy");
         require(_jar != address(0), "address of jar cannot be zero");
@@ -88,10 +81,7 @@ contract VirtualGaugeMiddleware is ProtocolGovernance, Initializable {
             address(
                 new VirtualGaugeV2(
                     _jar,
-                    _governance,
-                    msg.sender,
-                    _rewardSymbols,
-                    _rewardTokens
+                    _governance
                 )
             );
     }
