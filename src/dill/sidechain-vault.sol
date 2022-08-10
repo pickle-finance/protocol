@@ -101,7 +101,7 @@ abstract contract AnyCallApp {
             IAnycallV6Proxy(anyCallProxy).executor()
         ).context();
         require(mainChainAnySwapBridger == callFrom, "Gauge is not registered");
-        _anyExecute(data);
+        return _anyExecute(data);
     }
 
     // function anyFallback(address to, bytes calldata data)
