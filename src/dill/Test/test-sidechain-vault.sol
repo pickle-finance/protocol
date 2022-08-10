@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.1;
-import {SideChainGauge} from "./sidechain-gauge.sol";
+import {SideChainGauge, IERC20, SafeERC20} from "../sidechain-gauge.sol";
 
 interface IAnycallV6Proxy {
     function anyCall(
@@ -14,7 +14,7 @@ interface IAnycallV6Proxy {
     function executor() external view returns (address);
 }
 
-interface IExecutor {
+interface IExecutor is IERC20 {
     function context()
         external
         returns (
@@ -26,6 +26,10 @@ interface IExecutor {
 
 interface IGauge {
     function notifyRewardAmount() external;
+}
+
+interface IPickleGenerator {
+    function mintToken(address _to, uint256 amount) external;
 }
 
 abstract contract AnyCallApp {
@@ -41,13 +45,13 @@ abstract contract AnyCallApp {
     }
 
     constructor(
-        address _anyCallProxy,
+        address anyCallProxy_,
         address _mainChainAnySwapBridger,
-        uint256 _flag
+        uint256 flag_
     ) {
-        anyCallProxy = _anyCallProxy;
+        anyCallProxy = anyCallProxy_;
         mainChainAnySwapBridger = _mainChainAnySwapBridger;
-        flag = _flag;
+        flag = flag_;
     }
 
     function _setFlag(uint256 _flag) internal {
@@ -116,19 +120,23 @@ abstract contract AnyCallApp {
     // }
 }
 
-contract SideChainVault is AnyCallApp {
+contract TestSideChainVault is AnyCallApp {
+    using SafeERC20 for IERC20;
     address public governance;
     address public admin;
+    IPickleGenerator public PICKLE;
 
     constructor(
         address _anyswap,
         address _mainChainAnySwapBridger,
         uint256 _flag,
+        address _pickle,
         address _governance,
         address _admin
     ) AnyCallApp(_anyswap, _mainChainAnySwapBridger, _flag) {
         governance = _governance;
         admin = _admin;
+        PICKLE = IPickleGenerator(_pickle);
     }
 
     function _anyExecute(bytes calldata data)
@@ -140,8 +148,8 @@ contract SideChainVault is AnyCallApp {
             data,
             (address, uint256)
         );
-        // TODO: mint token to gauge, yet to figure out
         address gauge = receiveGauge[mainChainGauge];
+        PICKLE.mintToken(gauge, amount);
         IGauge(gauge).notifyRewardAmount();
         return (true, abi.encode(gauge, amount));
     }
@@ -165,9 +173,15 @@ contract SideChainVault is AnyCallApp {
             _mainChaingauge != address(0),
             "main chain gauge cannot be zero address"
         );
+        require(
+            _token != address(0),
+            "main chain gauge cannot be zero address"
+        );
         address gauge = receiveGauge[_mainChaingauge];
         require(gauge == address(0), "Already gauge is registered");
-        gauge = address(new SideChainGauge(_token, governance, address(this)));
+        gauge = address(
+            new SideChainGauge(_token, governance, address(this))
+        );
         receiveGauge[_mainChaingauge] = gauge;
         emit SideChainGaugeAdded(_mainChaingauge, _token, gauge);
     }

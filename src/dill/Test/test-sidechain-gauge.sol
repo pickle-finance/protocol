@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.1;
-import {ProtocolGovernance, Math, ReentrancyGuard, SafeERC20, IERC20} from "./gauge-proxy-v2.sol";
+import {ProtocolGovernance, Math, ReentrancyGuard, SafeERC20, IERC20} from "../gauge-proxy-v2.sol";
 
-contract SideChainGauge is ProtocolGovernance, ReentrancyGuard {
+contract TestSideChainGauge is ProtocolGovernance, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // Constant for various precisions
@@ -11,8 +11,7 @@ contract SideChainGauge is ProtocolGovernance, ReentrancyGuard {
     IERC20 public immutable TOKEN;
     // NOTES: here distribution is offline relayer.
     address public immutable DISTRIBUTION;
-    IERC20 public constant PICKLE =
-        IERC20(0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5);
+    IERC20 public PICKLE;
     uint256 public constant DURATION = 7 days;
 
     // Lock time and multiplier
@@ -110,11 +109,12 @@ contract SideChainGauge is ProtocolGovernance, ReentrancyGuard {
 
     constructor(
         address _token,
+        address _pickle,
         address _governance,
         address _distribution
     ) {
         TOKEN = IERC20(_token);
-
+        PICKLE = IERC20(_pickle);
         DISTRIBUTION = _distribution;
         governance = _governance;
     }

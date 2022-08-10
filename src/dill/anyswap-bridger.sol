@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
-pragma solidity 0.8.1;
+pragma solidity ^0.8.1;
 
 interface IAnycallV6Proxy {
     function executor() external view returns (address);
@@ -56,6 +56,13 @@ contract AnySwapBridger {
         require(_flags < 3, "invalid value");
         require(_flags != flags);
         flags = uint256(_flags);
+        emit UpdateFlag(_flags);
+    }
+
+    function setAnySwapCallProxy(address _anyswap) external onlyAdmin {
+        require(_anyswap != address(0), "cannot set to zero address");
+        anyCallProxy = IAnycallV6Proxy(_anyswap);
+        emit UpdateAnyswap(_anyswap);
     }
 
     function updateAppId(string calldata _appId) external onlyAdmin {
@@ -68,7 +75,7 @@ contract AnySwapBridger {
         onlyAdmin
     {
         SideChain memory sideChainGauge = sideChainGauges[_gauge];
-        require(sideChainGauge.active, "is already active");
+        require(!sideChainGauge.active, "is already active");
         sideChainGauge.active = true;
         sideChainGauge.chainId = _chainId;
         sideChainGauges[_gauge] = sideChainGauge;
@@ -80,28 +87,43 @@ contract AnySwapBridger {
         emit SideChainGaugeDisabled(_gauge);
     }
 
+    function registerChainWithVault(uint256 _chainId, address _vault)
+        external
+        onlyAdmin
+    {
+        sideChainVaultAddresses[_chainId] = _vault;
+        emit UpdateVaultWithChainID(_chainId, _vault);
+    }
+
+    receive() external payable {
+        // React to receiving ether
+    }
+
     // TODO: should we handle fee calculation
-    function bridge(uint256 amount) external payable {
+    function bridge(uint256 amount) external {
         address _gauge = msg.sender;
         SideChain memory sidechain = sideChainGauges[_gauge];
-        require(!sidechain.active, "sidechain is invalid");
+        require(sidechain.active, "sidechain is invalid");
         address sidechainVault = sideChainVaultAddresses[sidechain.chainId];
         bytes memory data = abi.encode(_gauge, amount);
-        uint256 fee = anyCallProxy.calcSrcFees(
-            appId,
+        // uint256 fee = anyCallProxy.calcSrcFees(
+        //     appId,
+        //     sidechain.chainId,
+        //     data.length
+        // );
+        // require(fee <= address(this).balance, "cannot initiate a transaction");
+        anyCallProxy.anyCall{value: 300000000000000}(
+            sidechainVault,
+            data,
+            address(this),
             sidechain.chainId,
-            data.length
+            flags
         );
-        if (fee <= address(this).balance) {
-            anyCallProxy.anyCall{value: fee}(
-                sidechainVault,
-                data,
-                address(this),
-                sidechain.chainId,
-                flags
-            );
-        }
     }
+
+    event UpdateAnyswap(address newAnyswapProxy);
+    event UpdateFlag(uint256 newFlag);
+    event UpdateVaultWithChainID(uint256 chainId, address vault);
 
     event SideChainGaugeEnabled(
         address indexed mainChainGauge,
