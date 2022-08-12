@@ -3,6 +3,7 @@ pragma solidity ^0.8.1;
 
 import "protocol/node_modules/@openzeppelin/contracts/utils/Address.sol";
 import "protocol/node_modules/@openzeppelin/contracts/interfaces/IERC20.sol";
+import "protocol/node_modules/@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 interface IGaugeMiddleware {
     function addGauge(address _token, address _governance)

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.1;
 
-import {GaugeV2, Initializable, ProtocolGovernance, VirtualGaugeV2, RootChainGaugeV2} from "./gauge-proxy-v2.sol";
+import "protocol/node_modules/@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {GaugeV2, ProtocolGovernance, VirtualGaugeV2, RootChainGaugeV2} from "./gauge-proxy-v2.sol";
 
 contract GaugeMiddleware is ProtocolGovernance, Initializable {
     address public gaugeProxy;
