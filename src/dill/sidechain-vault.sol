@@ -60,7 +60,7 @@ abstract contract AnyCallApp {
         internal
         virtual;
 
-    function _anyExecute(bytes calldata data)
+    function _anyExecute(bytes calldata data)notify
         internal
         virtual
         returns (bool success, bytes memory result);

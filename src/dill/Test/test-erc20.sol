@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
-pragma solidity >=0.6.0 <0.8.0;
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+pragma solidity ^0.8.0;
+import "protocol/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract TestAnyswap is ERC20 {
     constructor(string memory _name, string memory _symbol)
