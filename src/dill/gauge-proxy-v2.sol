@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.1;
 
-import "protocol/node_modules/@openzeppelin/contracts/utils/Address.sol";
-import "protocol/node_modules/@openzeppelin/contracts/interfaces/IERC20.sol";
-import "protocol/node_modules/@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "protocol/node_modules/@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/interfaces/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./ProtocolGovernance.sol";
 
 interface IGaugeMiddleware {
     function addGauge(address _token, address _governance)
@@ -20,32 +21,6 @@ interface IVirtualGaugeMiddleware {
 
 interface IRootChainGaugeMiddleware {
     function addRootChainGauge() external returns (address);
-}
-
-contract ProtocolGovernance {
-    /// @notice governance address for the governance contract
-    address public governance;
-    address public pendingGovernance;
-
-    /**
-     * @notice Allows governance to change governance (for future upgradability)
-     * @param _governance new governance address to set
-     */
-    function setGovernance(address _governance) external {
-        require(msg.sender == governance, "setGovernance: !gov");
-        pendingGovernance = _governance;
-    }
-
-    /**
-     * @notice Allows pendingGovernance to accept their role as governance (protection pattern)
-     */
-    function acceptGovernance() external {
-        require(
-            msg.sender == pendingGovernance,
-            "acceptGovernance: !pendingGov"
-        );
-        governance = pendingGovernance;
-    }
 }
 
 interface iGaugeV2 {

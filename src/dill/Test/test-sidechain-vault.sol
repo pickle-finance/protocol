@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.1;
-import {SideChainGauge, IERC20, SafeERC20} from "../sidechain-gauge.sol";
+
+import "@openzeppelin/contracts/interfaces/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
+
+import {SideChainGauge} from "../SideChainGauge.sol";
 
 interface IAnycallV6Proxy {
     function anyCall(
@@ -180,7 +185,7 @@ contract TestSideChainVault is AnyCallApp {
         address gauge = receiveGauge[_mainChaingauge];
         require(gauge == address(0), "Already gauge is registered");
         gauge = address(
-            new SideChainGauge(_token, governance, address(this))
+            new SideChainGauge(_token, governance)
         );
         receiveGauge[_mainChaingauge] = gauge;
         emit SideChainGaugeAdded(_mainChaingauge, _token, gauge);

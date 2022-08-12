@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.1;
-import {ProtocolGovernance, Math, ReentrancyGuard, SafeERC20, IERC20} from "./gauge-proxy-v2.sol";
+
+import "./ProtocolGovernance.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract SideChainGauge is ProtocolGovernance, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -12,7 +17,7 @@ contract SideChainGauge is ProtocolGovernance, ReentrancyGuard {
     // NOTES: here distribution is offline relayer.
     address public immutable DISTRIBUTION;
     IERC20 public constant PICKLE =
-        IERC20(0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5);
+        IERC20(0x4e09cd1E71DC2D264CF8d8dB8e4736242E0cA14A);
     uint256 public constant DURATION = 7 days;
 
     // Lock time and multiplier
@@ -108,14 +113,10 @@ contract SideChainGauge is ProtocolGovernance, ReentrancyGuard {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(
-        address _token,
-        address _governance,
-        address _distribution
-    ) {
+    constructor(address _token, address _governance) {
         TOKEN = IERC20(_token);
 
-        DISTRIBUTION = _distribution;
+        DISTRIBUTION = msg.sender;
         governance = _governance;
     }
 
@@ -517,3 +518,4 @@ contract SideChainGauge is ProtocolGovernance, ReentrancyGuard {
     event LockedStakeMaxMultiplierUpdated(uint256 multiplier);
     event MaxRewardsDurationUpdated(uint256 newDuration);
 }
+

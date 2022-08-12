@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.1;
-import {ProtocolGovernance, Math, ReentrancyGuard, SafeERC20, IERC20} from "../gauge-proxy-v2.sol";
+
+import "../ProtocolGovernance.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
+
 
 contract TestSideChainGauge is ProtocolGovernance, ReentrancyGuard {
     using SafeERC20 for IERC20;
