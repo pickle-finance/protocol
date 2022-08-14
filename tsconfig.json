@@ -18,5 +18,5 @@
     "strictNullChecks": false,
     "skipLibCheck": true
   },
-  "include": ["src/**/*", "src/**/*.json"]
+  "include": ["src/**/*", "src/**/*.json", "scripts/**/*", "scripts/**/*.json"]
 }
