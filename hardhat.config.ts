@@ -8,27 +8,28 @@ import { HardhatUserConfig } from "hardhat/config";
 import * as dotenv from "dotenv";
 dotenv.config();
 
+const defaultCompilerSettings = {
+  optimizer: {
+    enabled: true,
+    runs: 200,
+  },
+};
+
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   solidity: {
     compilers: [
       {
         version: "0.6.7",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
+        settings: defaultCompilerSettings,
       },
       {
         version: "0.6.12",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
+        settings: defaultCompilerSettings,
+      },
+      {
+        version: "0.8.2",
+        settings: defaultCompilerSettings,
       },
     ],
   },
@@ -36,7 +37,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       forking: {
         url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_OPTIMISM}`,
-        blockNumber: 16237712,
+        //        blockNumber: 16149920,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -143,7 +144,7 @@ const config: HardhatUserConfig = {
     timeout: 20000000,
   },
   vyper: {
-    compilers: [{version: "0.2.4"}, {version: "0.2.7"}]
+    compilers: [{ version: "0.2.4" }, { version: "0.2.7" }],
   },
 };
 
