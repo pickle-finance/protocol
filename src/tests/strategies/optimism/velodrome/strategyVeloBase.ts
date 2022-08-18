@@ -20,17 +20,14 @@ export const doTestBehaviorBase = (
   isPolygon = false,
   bloctime = 5
 ) => {
-  let alice: SignerWithAddress,
-    want: Contract,
-    reward: Contract,
-    nativeAddr: string;
+  let alice: SignerWithAddress, want: Contract, native: Contract;
   let strategy: Contract, pickleJar: Contract, controller: Contract;
   let governance: SignerWithAddress,
     strategist: SignerWithAddress,
     devfund: SignerWithAddress,
     treasury: SignerWithAddress,
     timelock: SignerWithAddress;
-  let preTestSnapshotID;
+  let preTestSnapshotID: any;
 
   describe(`${strategyName} common behavior tests`, () => {
     before("Setup contracts", async () => {
@@ -39,7 +36,7 @@ export const doTestBehaviorBase = (
       strategist = devfund;
       timelock = alice;
 
-      want = await getContractAt("ERC20", want_addr);
+      want = await getContractAt("src/lib/erc20.sol:ERC20", want_addr);
 
       [controller, strategy, pickleJar] = await setup(
         strategyName,
@@ -52,8 +49,8 @@ export const doTestBehaviorBase = (
         isPolygon
       );
 
-      nativeAddr = await strategy.native();
-      reward = await getContractAt("ERC20", nativeAddr);
+      const nativeAddr = await strategy.native();
+      native = await getContractAt("ERC20", nativeAddr);
     });
 
     it("Should set the timelock correctly", async () => {
@@ -146,7 +143,7 @@ export const doTestBehaviorBase = (
       const pendingRewards: [string[], BigNumber[]] =
         await strategy.getHarvestable();
       const _before: BigNumber = await pickleJar.balance();
-      let _treasuryBefore: BigNumber = await reward.balanceOf(treasury.address);
+      let _treasuryBefore: BigNumber = await native.balanceOf(treasury.address);
 
       console.log("Rewards harvestable amounts:");
       pendingRewards[0].forEach((addr, i) => {
@@ -165,7 +162,7 @@ export const doTestBehaviorBase = (
       await strategy.harvest();
 
       const _after: BigNumber = await pickleJar.balance();
-      let _treasuryAfter: BigNumber = await reward.balanceOf(treasury.address);
+      let _treasuryAfter: BigNumber = await native.balanceOf(treasury.address);
       console.log(
         "Ratio after harvest: ",
         (await pickleJar.getRatio()).toString()
@@ -289,37 +286,27 @@ export const doTestBehaviorBase = (
     });
 
     it("should add and remove rewards correctly", async () => {
-      const rewardsBeforeAdd: string[] =
-        await strategy.getActiveRewardsTokens();
       const routify = (from: string, to: string, isStable: boolean) => {
         return { from: from, to: to, stable: isStable };
       };
 
-      // This route is for the currently registered reward, it should not add to activeRewardsTokens array!
-      const route1 = [
-        routify(
-          reward_addr,
-          "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
-          false
-        ),
-      ];
+      // Addresses
+      const usdc = "0x7F5c764cBc14f9669B88837ca1490cCa17c31607";
+      const notRewardToken = usdc; // Any token address that is not a reward token
 
-      // Arbitrary route
-      const route2 = [
-        routify(
-          "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
-          "0x4200000000000000000000000000000000000042",
-          false
-        ),
-        routify(
-          "0x4200000000000000000000000000000000000042",
-          "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
-          false
-        ),
-      ];
+      // A valid toNative route for a currently registered reward token (can be the same as the registered one)
+      // it should not add to activeRewardsTokens array!
+      const validToNativeRoute = [routify(reward_addr, usdc, false)];
 
-      await strategy.connect(alice).addToNativeRoute(route1);
-      await strategy.connect(alice).addToNativeRoute(route2);
+      // Arbitrary new reward route
+      const arbNewRoute = [routify(notRewardToken, native.address, false)];
+
+      // Add reward tokens
+      const rewardsBeforeAdd: string[] =
+        await strategy.getActiveRewardsTokens();
+
+      await strategy.connect(alice).addToNativeRoute(validToNativeRoute);
+      await strategy.connect(alice).addToNativeRoute(arbNewRoute);
       const rewardsAfterAdd: string[] = await strategy.getActiveRewardsTokens();
 
       expect(rewardsAfterAdd.length).to.be.eq(
@@ -335,6 +322,7 @@ export const doTestBehaviorBase = (
         "Updating reward path results in redundance in activeRewardsTokens"
       );
 
+      // Remove a reward token
       await strategy.connect(alice).deactivateReward(reward_addr);
       const rewardsAfterRemove: string[] =
         await strategy.getActiveRewardsTokens();

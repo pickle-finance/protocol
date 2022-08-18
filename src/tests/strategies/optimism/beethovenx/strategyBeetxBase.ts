@@ -22,8 +22,7 @@ export const doTestBehaviorBase = (
 ) => {
   let alice: SignerWithAddress,
     want: Contract,
-    reward: Contract,
-    nativeAddr: string;
+    native: Contract;
   let strategy: Contract, pickleJar: Contract, controller: Contract;
   let governance: SignerWithAddress,
     strategist: SignerWithAddress,
@@ -52,8 +51,8 @@ export const doTestBehaviorBase = (
         isPolygon
       );
 
-      nativeAddr = await strategy.native();
-      reward = await getContractAt("ERC20", nativeAddr);
+      const nativeAddr = await strategy.native();
+      native = await getContractAt("ERC20", nativeAddr);
     });
 
     it("Should set the timelock correctly", async () => {
@@ -146,7 +145,7 @@ export const doTestBehaviorBase = (
       const pendingRewards: [string[], BigNumber[]] =
         await strategy.getHarvestable();
       const _before: BigNumber = await pickleJar.balance();
-      let _treasuryBefore: BigNumber = await reward.balanceOf(treasury.address);
+      let _treasuryBefore: BigNumber = await native.balanceOf(treasury.address);
 
       console.log("Rewards harvestable amounts:");
       pendingRewards[0].forEach((addr, i) => {
@@ -165,7 +164,7 @@ export const doTestBehaviorBase = (
       await strategy.harvest();
 
       const _after: BigNumber = await pickleJar.balance();
-      let _treasuryAfter: BigNumber = await reward.balanceOf(treasury.address);
+      let _treasuryAfter: BigNumber = await native.balanceOf(treasury.address);
       console.log(
         "Ratio after harvest: ",
         (await pickleJar.getRatio()).toString()
@@ -289,34 +288,36 @@ export const doTestBehaviorBase = (
     });
 
     it("should add and remove rewards correctly", async () => {
-      // Addresses and pool IDs
-      const bal = "0xFE8B128bA8C78aabC59d4c64cEE7fF28e9379921";
-      const op = "0x4200000000000000000000000000000000000042";
-      const usdc = "0x7F5c764cBc14f9669B88837ca1490cCa17c31607";
-      const notRewardToken = usdc; // Any token address that is not a reward token
       const beetsBalOp =
         "0xd6e5824b54f64ce6f1161210bc17eebffc77e031000100000000000000000006";
       const ethOpUsdc =
         "0x39965c9dab5448482cf7e002f583c812ceb53046000100000000000000000003";
+      
+      // Addresses and pool IDs
+      const op = "0x4200000000000000000000000000000000000042";
+      const usdc = "0x7F5c764cBc14f9669B88837ca1490cCa17c31607";
+      const notRewardToken = usdc; // Any token address that is not a reward token
 
       // A valid toNative route for a currently registered reward token (can be the same as the registered one)
       // it should not add to activeRewardsTokens array!
       const validToNativeRoute = [
         [beetsBalOp, ethOpUsdc],
-        [bal, op, reward.address],
+        [reward_addr, op, native.address],
       ];
       const invalidToNativeRoute = [
         [ethOpUsdc],
-        [reward.address, notRewardToken],
+        [native.address, notRewardToken],
       ];
-      const arbValidRoute = [[ethOpUsdc], [notRewardToken, reward.address]]; // Arbitrary new reward route
+
+      // Arbitrary new reward route
+      const arbNewRoute = [[ethOpUsdc], [notRewardToken, native.address]];
 
       // Add reward tokens
       const rewardsBeforeAdd: string[] =
         await strategy.getActiveRewardsTokens();
 
       await strategy.connect(alice).addToNativeRoute(...validToNativeRoute);
-      await strategy.connect(alice).addToNativeRoute(...arbValidRoute);
+      await strategy.connect(alice).addToNativeRoute(...arbNewRoute);
       const rewardsAfterAdd: string[] = await strategy.getActiveRewardsTokens();
 
       expect(rewardsAfterAdd.length).to.be.eq(
