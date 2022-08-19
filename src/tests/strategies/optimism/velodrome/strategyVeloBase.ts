@@ -50,7 +50,7 @@ export const doTestBehaviorBase = (
       );
 
       const nativeAddr = await strategy.native();
-      native = await getContractAt("ERC20", nativeAddr);
+      native = await getContractAt("src/lib/erc20.sol:ERC20", nativeAddr);
     });
 
     it("Should set the timelock correctly", async () => {

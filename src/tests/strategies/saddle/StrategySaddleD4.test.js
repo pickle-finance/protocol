@@ -6,7 +6,7 @@ const {
   unlockAccount,
   toWei,
   NULL_ADDRESS,
-} = require("../TestUtil");
+} = require("../../utils/testHelper");
 
 describe("StrategySaddleD4 Test", () => {
   let alice;

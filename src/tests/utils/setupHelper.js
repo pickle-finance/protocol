@@ -42,7 +42,7 @@ const setup = async (strategyName, want, governance, strategist, timelock, devfu
   console.log("✅ Strategy is deployed at ", strategy.address);
 
   const pickleJar = await deployContract(
-    "PickleJar",
+    "src/pickle-jar.sol:PickleJar",
     want.address,
     governance.address,
     timelock.address,
@@ -123,7 +123,7 @@ const getERC20WithPath = async (routerAddr, token, amount, path, from) => {
     value: ethAmountIn,
   });
 
-  const tokenContract = await getContractAt("ERC20", token);
+  const tokenContract = await getContractAt("src/lib/erc20.sol:ERC20", token);
   const _balance = await tokenContract.balanceOf(from.address);
 
   expect(_balance).to.be.gte(amount, "get erc20 failed");
@@ -144,7 +144,7 @@ const getERC20WithETH = async (routerAddr, token, ethAmount, from) => {
     value: ethAmount,
   });
 
-  const tokenContract = await getContractAt("ERC20", token);
+  const tokenContract = await getContractAt("src/lib/erc20.sol:ERC20", token);
   const _balance = await tokenContract.balanceOf(from.address);
 
   expect(_balance).to.be.gt(0, "get erc20 failed");
@@ -171,8 +171,8 @@ const getLpToken = async (routerAddr, lpToken, ethAmount, from) => {
   if (token1.toLowerCase() != WETH.toLowerCase()) await getERC20WithETH(routerAddr, token1, ethAmount.div(2), from);
   else await wethContract.deposit({value: ethAmount.div(2)});
 
-  const token0Contract = await getContractAt("ERC20", token0);
-  const token1Contract = await getContractAt("ERC20", token1);
+  const token0Contract = await getContractAt("src/lib/erc20.sol:ERC20", token0);
+  const token1Contract = await getContractAt("src/lib/erc20.sol:ERC20", token1);
 
   const _balance0 = await token0Contract.balanceOf(from.address);
   const _balance1 = await token1Contract.balanceOf(from.address);
@@ -195,7 +195,7 @@ const getLpToken = async (routerAddr, lpToken, ethAmount, from) => {
  */
 const getWantFromWhale = async (want_addr, amount, to, whaleAddr) => {
   const whale = await unlockAccount(whaleAddr);
-  const want = await getContractAt("ERC20", want_addr);
+  const want = await getContractAt("src/lib/erc20.sol:ERC20", want_addr);
   await to.sendTransaction({
     to: whaleAddr,
     value: toWei(5),

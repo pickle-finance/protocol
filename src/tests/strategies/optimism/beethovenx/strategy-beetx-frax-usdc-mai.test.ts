@@ -2,7 +2,7 @@ import "@nomicfoundation/hardhat-toolbox";
 import { getWantFromWhale } from "../../../utils/setupHelper";
 import { doTestBehaviorBase } from "./strategyBeetxBase";
 import { ethers } from "hardhat";
-import { toWei } from "../../TestUtil";
+import { toWei } from "../../../utils/testHelper";
 
 
 describe("StrategyBeetxFraxUsdcMaiLp", () => {

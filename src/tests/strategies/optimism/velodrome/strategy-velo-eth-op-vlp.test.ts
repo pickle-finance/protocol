@@ -1,5 +1,5 @@
 import "@nomicfoundation/hardhat-toolbox";
-const { toWei } = require("../../../utils/testHelper");
+import { toWei } from "../../../utils/testHelper";
 import { getWantFromWhale } from "../../../utils/setupHelper";
 import { doTestBehaviorBase } from "./strategyVeloBase";
 import { ethers } from "hardhat";
