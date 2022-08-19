@@ -1,6 +1,5 @@
 const hre = require("hardhat");
 
-var chaiAsPromised = require("chai-as-promised");
 const StrategySaddleAlethEth = hre.artifacts.require("StrategySaddleAlethEth");
 const PickleJarSymbiotic = hre.artifacts.require("PickleJarSymbiotic");
 const ControllerV5 = hre.artifacts.require("ControllerV5");
@@ -9,7 +8,7 @@ const AdminUpgradeabilityProxy = hre.artifacts.require(
   "AdminUpgradeabilityProxy"
 );
 const { time } = require("@openzeppelin/test-helpers");
-const { assert } = require("chai").use(chaiAsPromised);
+const { assert } = require("chai");
 
 const unlockAccount = async (address) => {
   await hre.network.provider.send("hardhat_impersonateAccount", [address]);
