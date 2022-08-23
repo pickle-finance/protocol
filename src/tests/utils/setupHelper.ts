@@ -1,6 +1,13 @@
-const {expect, getContractAt, deployContract, unlockAccount, toWei} = require("./testHelper");
-const {WETH} = require("./constants");
-const {ethers} = require("hardhat");
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { BigNumber, BigNumberish, Contract } from "ethers";
+import {
+  expect,
+  getContractAt,
+  deployContract,
+  unlockAccount,
+  toWei,
+} from "./testHelper";
+import { WETH } from "./constants";
 
 /**
  * @notice get the unix timestamp
@@ -21,9 +28,20 @@ const now = () => {
  * @param treasury treasury signeraddr
  * @returns controller, strategy and picklejar contract
  */
-const setup = async (strategyName, want, governance, strategist, timelock, devfund, treasury, isPolygon = false) => {
+export const setup = async (
+  strategyName: string,
+  want: Contract,
+  governance: SignerWithAddress,
+  strategist: SignerWithAddress,
+  timelock: SignerWithAddress,
+  devfund: SignerWithAddress,
+  treasury: SignerWithAddress,
+  isPolygon = false
+) => {
   const controller = await deployContract(
-    isPolygon ? "src/polygon/controller-v4.sol:ControllerV4" : "src/controller-v4.sol:ControllerV4",
+    isPolygon
+      ? "src/polygon/controller-v4.sol:ControllerV4"
+      : "src/controller-v4.sol:ControllerV4",
     governance.address,
     strategist.address,
     timelock.address,
@@ -57,9 +75,21 @@ const setup = async (strategyName, want, governance, strategist, timelock, devfu
   return [controller, strategy, pickleJar];
 };
 
-const setupWithPickleJar = async (pickleJarName, strategyName, want, governance, strategist, timelock, devfund, treasury, isPolygon = false) => {
+export const setupWithPickleJar = async (
+  pickleJarName: string,
+  strategyName: string,
+  want: Contract,
+  governance: SignerWithAddress,
+  strategist: SignerWithAddress,
+  timelock: SignerWithAddress,
+  devfund: SignerWithAddress,
+  treasury: SignerWithAddress,
+  isPolygon = false
+) => {
   const controller = await deployContract(
-    isPolygon ? "src/polygon/controller-v4.sol:ControllerV4" : "src/controller-v4.sol:ControllerV4",
+    isPolygon
+      ? "src/polygon/controller-v4.sol:ControllerV4"
+      : "src/controller-v4.sol:ControllerV4",
     governance.address,
     strategist.address,
     timelock.address,
@@ -100,7 +130,12 @@ const setupWithPickleJar = async (pickleJarName, strategyName, want, governance,
  * @param amount token amount
  * @param from from address that receives token
  */
-const getERC20 = async (routerAddr, token, amount, from) => {
+export const getERC20 = async (
+  routerAddr: string,
+  token: string,
+  amount: BigNumberish,
+  from: SignerWithAddress
+) => {
   const path = [WETH, token];
   await getERC20WithPath(routerAddr, token, amount, path, from);
 };
@@ -113,15 +148,23 @@ const getERC20 = async (routerAddr, token, amount, from) => {
  * @param path swap path
  * @param from from address that receives token
  */
-const getERC20WithPath = async (routerAddr, token, amount, path, from) => {
+export const getERC20WithPath = async (
+  routerAddr: string,
+  token: string,
+  amount: BigNumberish,
+  path: string[],
+  from: SignerWithAddress
+) => {
   const router = await getContractAt("UniswapRouterV2", routerAddr);
 
   const ins = await router.connect(from).getAmountsIn(amount, path);
   const ethAmountIn = ins[0];
 
-  await router.connect(from).swapETHForExactTokens(amount, path, from.address, now() + 60, {
-    value: ethAmountIn,
-  });
+  await router
+    .connect(from)
+    .swapETHForExactTokens(amount, path, from.address, now() + 60, {
+      value: ethAmountIn,
+    });
 
   const tokenContract = await getContractAt("src/lib/erc20.sol:ERC20", token);
   const _balance = await tokenContract.balanceOf(from.address);
@@ -136,13 +179,20 @@ const getERC20WithPath = async (routerAddr, token, amount, path, from) => {
  * @param ethAmount eth amount to be spent
  * @param from from address that receives token
  */
-const getERC20WithETH = async (routerAddr, token, ethAmount, from) => {
+export const getERC20WithETH = async (
+  routerAddr: string,
+  token: string,
+  ethAmount: BigNumberish,
+  from: SignerWithAddress
+) => {
   const router = await getContractAt("UniswapRouterV2", routerAddr);
 
   const path = [WETH, token];
-  await router.connect(from).swapExactETHForTokens(0, path, from.address, now() + 60, {
-    value: ethAmount,
-  });
+  await router
+    .connect(from)
+    .swapExactETHForTokens(0, path, from.address, now() + 60, {
+      value: ethAmount,
+    });
 
   const tokenContract = await getContractAt("src/lib/erc20.sol:ERC20", token);
   const _balance = await tokenContract.balanceOf(from.address);
@@ -157,7 +207,12 @@ const getERC20WithETH = async (routerAddr, token, ethAmount, from) => {
  * @param ethAmount eth amount to be spent
  * @param from receive address
  */
-const getLpToken = async (routerAddr, lpToken, ethAmount, from) => {
+export const getLpToken = async (
+  routerAddr: string,
+  lpToken: string,
+  ethAmount: BigNumber,
+  from: SignerWithAddress
+) => {
   const router = await getContractAt("UniswapRouterV2", routerAddr);
   const lpTokenContract = await getContractAt("IUniswapV2Pair", lpToken);
 
@@ -165,11 +220,13 @@ const getLpToken = async (routerAddr, lpToken, ethAmount, from) => {
   const token1 = await lpTokenContract.token1();
   const wethContract = await getContractAt("WETH", WETH);
 
-  if (token0.toLowerCase() != WETH.toLowerCase()) await getERC20WithETH(routerAddr, token0, ethAmount.div(2), from);
-  else await wethContract.deposit({value: ethAmount.div(2)});
+  if (token0.toLowerCase() != WETH.toLowerCase())
+    await getERC20WithETH(routerAddr, token0, ethAmount.div(2), from);
+  else await wethContract.deposit({ value: ethAmount.div(2) });
 
-  if (token1.toLowerCase() != WETH.toLowerCase()) await getERC20WithETH(routerAddr, token1, ethAmount.div(2), from);
-  else await wethContract.deposit({value: ethAmount.div(2)});
+  if (token1.toLowerCase() != WETH.toLowerCase())
+    await getERC20WithETH(routerAddr, token1, ethAmount.div(2), from);
+  else await wethContract.deposit({ value: ethAmount.div(2) });
 
   const token0Contract = await getContractAt("src/lib/erc20.sol:ERC20", token0);
   const token1Contract = await getContractAt("src/lib/erc20.sol:ERC20", token1);
@@ -180,7 +237,16 @@ const getLpToken = async (routerAddr, lpToken, ethAmount, from) => {
   await token0Contract.connect(from).approve(router.address, _balance0);
   await token1Contract.connect(from).approve(router.address, _balance1);
 
-  await router.addLiquidity(token0, token1, _balance0, _balance1, 0, 0, from.address, now() + 60);
+  await router.addLiquidity(
+    token0,
+    token1,
+    _balance0,
+    _balance1,
+    0,
+    0,
+    from.address,
+    now() + 60
+  );
 
   const _lpBalance = await lpTokenContract.balanceOf(from.address);
   expect(_lpBalance).to.be.gt(0, "get lp token failed");
@@ -193,7 +259,12 @@ const getLpToken = async (routerAddr, lpToken, ethAmount, from) => {
  * @param to receive address
  * @param whaleAddr whale address to send tokens
  */
-const getWantFromWhale = async (want_addr, amount, to, whaleAddr) => {
+export const getWantFromWhale = async (
+  want_addr: string,
+  amount: number | BigNumber,
+  to: SignerWithAddress,
+  whaleAddr: string
+) => {
   const whale = await unlockAccount(whaleAddr);
   const want = await getContractAt("src/lib/erc20.sol:ERC20", want_addr);
   await to.sendTransaction({
@@ -203,14 +274,4 @@ const getWantFromWhale = async (want_addr, amount, to, whaleAddr) => {
   await want.connect(whale).transfer(to.address, amount);
   const _balance = await want.balanceOf(to.address);
   expect(_balance).to.be.gte(amount, "get want from the whale failed");
-};
-
-module.exports = {
-  getWantFromWhale,
-  getERC20,
-  getERC20WithETH,
-  getERC20WithPath,
-  getLpToken,
-  setup,
-  setupWithPickleJar
 };

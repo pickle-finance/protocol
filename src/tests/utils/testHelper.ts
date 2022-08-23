@@ -76,7 +76,7 @@ export const NULL_ADDRESS = "0x0000000000000000000000000000000000000001";
  */
 chai.use((_chai) => {
   let Assertion = _chai.Assertion;
-  Assertion.addMethod('eqApprox', function (amount) {
+  Assertion.addMethod('eqApprox', function (amount:BigNumber) {
     let obj = this._obj;
     const min = amount.mul(95).div(100);
     const max = amount.mul(105).div(100);
