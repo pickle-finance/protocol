@@ -61,7 +61,6 @@ abstract contract StrategyBeetxBase is StrategyBase {
 
     function getHarvestable() external view override returns (address[] memory, uint256[] memory) {
         // Doesn't account for strategy's pending rewards on the rewarder
-
         uint256[] memory pendingRewards = new uint256[](activeRewardsTokens.length);
         address[] memory rewardTokens = new address[](activeRewardsTokens.length);
         for (uint256 i = 0; i < activeRewardsTokens.length; i++) {
@@ -186,13 +185,7 @@ abstract contract StrategyBeetxBase is StrategyBase {
         IBVault(vault).batchSwap(IBVault.SwapKind.GIVEN_IN, steps, assets, funds, limits, now.add(60));
     }
 
-    // TODO cleanup
     function _harvestRewards() internal {
-        // IRewardsOnlyGauge(gauge).withdraw(0, true);
-
-        // IChildChainStreamer(IRewardsOnlyGauge(gauge).reward_contract()).get_reward();
-        // IRewardsOnlyGauge(gauge).claim_rewards(address(this));
-
         IChildChainGaugeRewardHelper(rewardHelper).claimRewards(gauge, address(this));
     }
 
