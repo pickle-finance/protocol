@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.2;
-pragma experimental ABIEncoderV2;
+pragma solidity >=0.8.13;
 
-struct RouteParams {
-    address from;
-    address to;
-    bool stable;
-}
 interface ISolidlyRouter {
-    
+  struct route {
+        address from;
+        address to;
+        bool stable;
+    }
 
     function addLiquidity(
         address tokenA,
@@ -25,7 +23,7 @@ interface ISolidlyRouter {
     function swapExactTokensForTokens(
         uint amountIn,
         uint amountOutMin,
-        RouteParams[] calldata routes,
+        route[] calldata routes,
         address to,
         uint deadline
     ) external returns (uint[] memory amounts);
@@ -41,16 +39,3 @@ interface ISolidlyRouter {
     ) external returns (uint[] memory amounts);
 }
 
-interface ISolidlyGauge {
-    function earned(address token, address account) external view returns (uint256);
-
-    function balanceOf(address) external view returns (uint256);
-
-    function deposit(uint256 amount, uint256 tokenId) external;
-
-    function withdraw(uint256 amount) external;
-
-    function getReward(address account, address[] memory tokens) external;
-
-    function claimFees() external returns (uint256 claimed0, uint256 claimed1);
-}

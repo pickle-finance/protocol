@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
-pragma experimental ABIEncoderV2;
+pragma solidity >=0.8.6;
 
 import "./strategy-velo-base.sol";
 
@@ -29,11 +28,11 @@ contract StrategyVeloUsdcVlp is StrategyVeloBase {
         isStablePool = false;
 
         // token0 route
-        nativeToTokenRoutes[velo].push(RouteParams(native, usdc, false));
-        nativeToTokenRoutes[velo].push(RouteParams(usdc, velo, false));
+        nativeToTokenRoutes[velo].push(ISolidlyRouter.route(native, usdc, false));
+        nativeToTokenRoutes[velo].push(ISolidlyRouter.route(usdc, velo, false));
 
         // token1 route
-        nativeToTokenRoutes[usdc].push(RouteParams(native, usdc, false));
+        nativeToTokenRoutes[usdc].push(ISolidlyRouter.route(native, usdc, false));
     }
 
     // **** Views ****

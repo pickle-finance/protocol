@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
+pragma solidity >=0.6.7;
 
 interface IChildChainGaugeRewardHelper {
     function claimRewards(address gauge, address user) external;

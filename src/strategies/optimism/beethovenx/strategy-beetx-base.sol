@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
-pragma experimental ABIEncoderV2;
+pragma solidity >=0.8.6;
 
 import "../strategy-base-v2.sol";
-import "../../../interfaces/beethovenx.sol";
-import "../../../interfaces/curve/IRewardsOnlyGauge.sol";
-import "../../../interfaces/curve/IChildChainGaugeRewardHelper.sol";
-import "../../../interfaces/curve/IChildChainStreamer.sol";
-import "../../../lib/balancer-vault.sol";
+import "../../../optimism/interfaces/beethovenx.sol";
+import "../../../optimism/interfaces/curve/IRewardsOnlyGauge.sol";
+import "../../../optimism/interfaces/curve/IChildChainGaugeRewardHelper.sol";
+import "../../../optimism/interfaces/curve/IChildChainStreamer.sol";
+import "../../../optimism/lib/balancer-vault.sol";
 
 abstract contract StrategyBeetxBase is StrategyBase {
     struct BalSwapRoute {
@@ -39,7 +38,7 @@ abstract contract StrategyBeetxBase is StrategyBase {
         address _strategist,
         address _controller,
         address _timelock
-    ) public StrategyBase(_lp, _governance, _strategist, _controller, _timelock) {
+    ) StrategyBase(_lp, _governance, _strategist, _controller, _timelock) {
         vaultPoolId = _vaultPoolId;
         gauge = _gauge;
 
@@ -49,8 +48,8 @@ abstract contract StrategyBeetxBase is StrategyBase {
         }
 
         // Approvals
-        IERC20(want).approve(gauge, uint256(-1));
-        IERC20(native).approve(vault, uint256(-1));
+        IERC20(want).approve(gauge, type(uint256).max);
+        IERC20(native).approve(vault, type(uint256).max);
     }
 
     function balanceOfPool() public view override returns (uint256) {
@@ -119,7 +118,7 @@ abstract contract StrategyBeetxBase is StrategyBase {
         }
 
         // Infinite approve balancer vault
-        IERC20(tokensPath[0]).approve(vault, uint256(-1));
+        IERC20(tokensPath[0]).approve(vault, type(uint256).max);
     }
 
     function _addToTokenRoute(bytes32[] memory poolIds, address[] memory tokensPath) internal {
@@ -140,7 +139,7 @@ abstract contract StrategyBeetxBase is StrategyBase {
         // Set the depositToken
         depositToken = tokensPath[tokensPath.length - 1];
         // Infinite approve balancer vault
-        IERC20(depositToken).approve(vault, uint256(-1));
+        IERC20(depositToken).approve(vault, type(uint256).max);
     }
 
     function deactivateReward(address reward) external {
@@ -182,7 +181,7 @@ abstract contract StrategyBeetxBase is StrategyBase {
             limits[i + 1] = int256(0);
         }
 
-        IBVault(vault).batchSwap(IBVault.SwapKind.GIVEN_IN, steps, assets, funds, limits, now.add(60));
+        IBVault(vault).batchSwap(IBVault.SwapKind.GIVEN_IN, steps, assets, funds, limits, block.timestamp+60);
     }
 
     function _harvestRewards() internal {

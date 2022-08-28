@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
+pragma solidity >=0.6.7;
 
 interface IRewardsOnlyGauge {
     function reward_contract() external view returns (address);

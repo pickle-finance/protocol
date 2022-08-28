@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
-pragma experimental ABIEncoderV2;
+pragma solidity >=0.8.6;
 
 import "../strategy-base-v2.sol";
-import "../../../interfaces/solidly.sol";
-import "../../../interfaces/curve.sol";
+import "../../../optimism/interfaces/solidly/IRouter.sol";
+import "../../../optimism/interfaces/solidly/IGauge.sol";
 
 abstract contract StrategyVeloBase is StrategyBase {
     // Addresses
@@ -18,8 +17,8 @@ abstract contract StrategyVeloBase is StrategyBase {
 
     bool public isStablePool;
 
-    mapping(address => RouteParams[]) public nativeToTokenRoutes;
-    mapping(address => RouteParams[]) public toNativeRoutes;
+    mapping(address => ISolidlyRouter.route[]) public nativeToTokenRoutes;
+    mapping(address => ISolidlyRouter.route[]) public toNativeRoutes;
 
     constructor(
         address _lp,
@@ -28,21 +27,21 @@ abstract contract StrategyVeloBase is StrategyBase {
         address _strategist,
         address _controller,
         address _timelock
-    ) public StrategyBase(_lp, _governance, _strategist, _controller, _timelock) {
-        RouteParams[] memory _veloRoute = new RouteParams[](2);
-        _veloRoute[0] = RouteParams(velo, 0x7F5c764cBc14f9669B88837ca1490cCa17c31607, false);
-        _veloRoute[1] = RouteParams(0x7F5c764cBc14f9669B88837ca1490cCa17c31607, weth, false);
+    ) StrategyBase(_lp, _governance, _strategist, _controller, _timelock) {
+        ISolidlyRouter.route[] memory _veloRoute = new ISolidlyRouter.route[](2);
+        _veloRoute[0] = ISolidlyRouter.route(velo, 0x7F5c764cBc14f9669B88837ca1490cCa17c31607, false);
+        _veloRoute[1] = ISolidlyRouter.route(0x7F5c764cBc14f9669B88837ca1490cCa17c31607, weth, false);
         _addToNativeRoute(_veloRoute);
 
         gauge = _gauge;
         token0 = IUniswapV2Pair(_lp).token0();
         token1 = IUniswapV2Pair(_lp).token1();
 
-        IERC20(native).approve(solidRouter, uint256(-1));
-        IERC20(token0).approve(solidRouter, uint256(-1));
-        IERC20(token1).approve(solidRouter, uint256(-1));
-        IERC20(velo).approve(solidRouter, uint256(-1));
-        IERC20(want).approve(gauge, uint256(-1));
+        IERC20(native).approve(solidRouter, type(uint256).max);
+        IERC20(token0).approve(solidRouter, type(uint256).max);
+        IERC20(token1).approve(solidRouter, type(uint256).max);
+        IERC20(velo).approve(solidRouter, type(uint256).max);
+        IERC20(want).approve(gauge, type(uint256).max);
     }
 
     function balanceOfPool() public view override returns (uint256) {
@@ -75,19 +74,19 @@ abstract contract StrategyVeloBase is StrategyBase {
     // **** State Mutations ****
 
     // Adds/updates a swap path from a token to native, normally used for adding/updating a reward path
-    function addToNativeRoute(RouteParams[] calldata path) external {
+    function addToNativeRoute(ISolidlyRouter.route[] calldata path) external {
         require(msg.sender == timelock, "!timelock");
         _addToNativeRoute(path);
     }
 
-    function _addToNativeRoute(RouteParams[] memory path) internal {
+    function _addToNativeRoute(ISolidlyRouter.route[] memory path) internal {
         if (toNativeRoutes[path[0].from].length == 0) {
             activeRewardsTokens.push(path[0].from);
         }
         for (uint256 i = 0; i < path.length; i++) {
             toNativeRoutes[path[0].from].push(path[i]);
         }
-        IERC20(path[0].from).approve(solidRouter, uint256(-1));
+        IERC20(path[0].from).approve(solidRouter, type(uint256).max);
     }
 
     function deactivateReward(address reward) external {
@@ -100,9 +99,9 @@ abstract contract StrategyVeloBase is StrategyBase {
         }
     }
 
-    function _swapSolidlyWithRoute(RouteParams[] memory routes, uint256 _amount) internal {
+    function _swapSolidlyWithRoute(ISolidlyRouter.route[] memory routes, uint256 _amount) internal {
         require(routes[0].to != address(0));
-        ISolidlyRouter(solidRouter).swapExactTokensForTokens(_amount, 0, routes, address(this), now.add(60));
+        ISolidlyRouter(solidRouter).swapExactTokensForTokens(_amount, 0, routes, address(this), block.timestamp + 60);
     }
 
     function harvest() public override {
@@ -129,11 +128,11 @@ abstract contract StrategyVeloBase is StrategyBase {
         if (_native > 0) {
             if (native == token0 || native == token1) {
                 address toToken = native == token0 ? token1 : token0;
-                _swapSolidlyWithRoute(nativeToTokenRoutes[toToken], _native.div(2));
+                _swapSolidlyWithRoute(nativeToTokenRoutes[toToken], _native/2);
             } else {
                 // Swap native to token0 & token1
-                uint256 _toToken0 = _native.div(2);
-                uint256 _toToken1 = _native.sub(_toToken0);
+                uint256 _toToken0 = _native/2;
+                uint256 _toToken1 = _native-_toToken0;
 
                 if (nativeToTokenRoutes[token0].length > 0) {
                     _swapSolidlyWithRoute(nativeToTokenRoutes[token0], _toToken0);

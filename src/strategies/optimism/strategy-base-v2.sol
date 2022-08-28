@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
+pragma solidity >=0.8.6;
 
-import "../../lib/erc20.sol";
-import "../../lib/safe-math.sol";
+import "../../optimism/lib/erc20.sol";
+import "../../optimism/lib/safe-math.sol";
 
-import "../../interfaces/jar.sol";
-import "../../interfaces/staking-rewards.sol";
-import "../../interfaces/masterchef.sol";
-import "../../interfaces/uniswapv2.sol";
-import "../../interfaces/controller.sol";
+import "../../optimism/interfaces/jar.sol";
+import "../../optimism/interfaces/staking-rewards.sol";
+import "../../optimism/interfaces/masterchef.sol";
+import "../../optimism/interfaces/uniswapv2.sol";
+import "../../optimism/interfaces/controller.sol";
 
 // Strategy Contract Basics
 
@@ -56,7 +56,7 @@ abstract contract StrategyBase {
         address _strategist,
         address _controller,
         address _timelock
-    ) public {
+    ) internal {
         require(_want != address(0));
         require(_governance != address(0));
         require(_strategist != address(0));
@@ -245,7 +245,7 @@ abstract contract StrategyBase {
 
     function _swapDefaultWithPath(address[] memory path, uint256 _amount) internal {
         require(path[1] != address(0));
-        UniswapRouterV2(uniV2Router).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
+        UniswapRouterV2(uniV2Router).swapExactTokensForTokens(_amount, 0, path, address(this), block.timestamp.add(60));
     }
 
     function _swapWithPath(
@@ -254,7 +254,7 @@ abstract contract StrategyBase {
         uint256 _amount
     ) internal {
         require(path[1] != address(0));
-        UniswapRouterV2(router).swapExactTokensForTokens(_amount, 0, path, address(this), now.add(60));
+        UniswapRouterV2(router).swapExactTokensForTokens(_amount, 0, path, address(this), block.timestamp.add(60));
     }
 
     function _distributePerformanceFeesNative() internal {
