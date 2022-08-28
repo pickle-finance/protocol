@@ -174,7 +174,7 @@ contract StakingRewards is ReentrancyGuard, Pausable {
             "Previous rewards period must be complete before changing the duration for the new period"
         );
         rewardsDuration = _rewardsDuration;
-        emit RewardsDurationUpdated(rewardsDuration);
+        emit RewardsDurationUpdated(_rewardsDuration);
     }
 
     /* ========== MODIFIERS ========== */
