@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.12;
+pragma solidity >=0.6.12 <0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "../../lib/erc20.sol";
-import "../../lib/safe-math.sol";
-import "../../lib/univ3/PoolActions.sol";
-import "../../interfaces/uniswapv2.sol";
-import "../../interfaces/univ3/IUniswapV3PositionsNFT.sol";
-import "../../interfaces/univ3/IUniswapV3Pool.sol";
+import "../../optimism/lib/erc20.sol";
+import "../../optimism/lib/safe-math.sol";
+import "../../optimism/lib/univ3/PoolActions.sol";
+import "../../optimism/interfaces/uniswapv2.sol";
+import "../../optimism/interfaces/univ3/IUniswapV3PositionsNFT.sol";
+import "../../optimism/interfaces/univ3/IUniswapV3Pool.sol";
 import "../../optimism/interfaces/univ3/ISwapRouter.sol";
-import "../../interfaces/controllerv2.sol";
+import "../../optimism/interfaces/controllerv2.sol";
 
 abstract contract StrategyRebalanceUniV3 {
     using SafeERC20 for IERC20;
@@ -80,8 +80,8 @@ abstract contract StrategyRebalanceUniV3 {
         tickSpacing = pool.tickSpacing();
         tickRangeMultiplier = _tickRangeMultiplier;
 
-        token0.safeApprove(address(nftManager), uint256(-1));
-        token1.safeApprove(address(nftManager), uint256(-1));
+        token0.safeApprove(address(nftManager), type(uint256).max);
+        token1.safeApprove(address(nftManager), type(uint256).max);
     }
 
     // **** Modifiers **** //
