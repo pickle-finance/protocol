@@ -56,7 +56,7 @@ abstract contract StrategyBase {
         address _strategist,
         address _controller,
         address _timelock
-    ) internal {
+    ) {
         require(_want != address(0));
         require(_governance != address(0));
         require(_strategist != address(0));

@@ -18,7 +18,7 @@ export const doTestBehaviorBase = (
   days = 15,
   bIncreaseBlock = false,
   isPolygon = false,
-  bloctime = 5
+  blocktime = 5
 ) => {
   let alice: SignerWithAddress,
     want: Contract,
@@ -79,7 +79,7 @@ export const doTestBehaviorBase = (
 
       await increaseTime(60 * 60 * 24 * days); //travel days into the future
       if (bIncreaseBlock) {
-        await increaseBlock((60 * 60 * 24 * days) / bloctime); //roughly days
+        await increaseBlock((60 * 60 * 24 * days) / blocktime); //roughly days
       }
 
       console.log(
@@ -140,7 +140,7 @@ export const doTestBehaviorBase = (
 
       await increaseTime(60 * 60 * 24 * days); //travel days into the future
       if (bIncreaseBlock) {
-        await increaseBlock((60 * 60 * 24 * days) / bloctime); //roughly days
+        await increaseBlock((60 * 60 * 24 * days) / blocktime); //roughly days
       }
       const pendingRewards: [string[], BigNumber[]] =
         await strategy.getHarvestable();
@@ -354,7 +354,7 @@ export const doTestBehaviorBase = (
 
       await increaseTime(60 * 60 * 24 * days); //travel days into the future
       if (bIncreaseBlock) {
-        await increaseBlock((60 * 60 * 24 * days) / bloctime); //roughly days
+        await increaseBlock((60 * 60 * 24 * days) / blocktime); //roughly days
       }
 
       const ratioBefore = await pickleJar.getRatio();

@@ -243,7 +243,7 @@ abstract contract StrategyBeetxBase is StrategyBase {
             return;
         }
 
-        // Swap native to to deposit token if necessary
+        // Swap native to deposit token if necessary
         uint256 _depositAmount = _native;
         if (depositToken != native) {
             _swapBalancerWithRoute(toTokenRoutes[depositToken], _native);
