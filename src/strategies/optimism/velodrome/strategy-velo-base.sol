@@ -7,7 +7,7 @@ import "../../../optimism/interfaces/solidly/IGauge.sol";
 
 abstract contract StrategyVeloBase is StrategyBase {
     // Addresses
-    address public constant solidRouter = 0xa132DAB612dB5cB9fC9Ac426A0Cc215A3423F9c9;
+    address public constant solidRouter = 0x9c12939390052919aF3155f41Bf4160Fd3666A6f;
     address public constant velo = 0x3c8B650257cFb5f272f799F5e2b4e65093a11a05;
 
     address public token0;
