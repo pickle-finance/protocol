@@ -49,10 +49,12 @@ abstract contract StrategyVeloBase is StrategyBase {
     }
 
     function getHarvestable() external view override returns (address[] memory, uint256[] memory) {
-        uint256[] memory pendingRewards = new uint256[](1);
-        address[] memory rewardTokens = new address[](1);
-        pendingRewards[0] = ISolidlyGauge(gauge).earned(velo, address(this));
-        rewardTokens[0] = velo;
+        uint256[] memory pendingRewards = new uint256[](activeRewardsTokens.length);
+        address[] memory rewardTokens = new address[](activeRewardsTokens.length);
+        for (uint256 i = 0; i < activeRewardsTokens.length; i++) {
+            pendingRewards[i] = ISolidlyGauge(gauge).earned(activeRewardsTokens[i], address(this));
+            rewardTokens[i] = activeRewardsTokens[i];
+        }
 
         return (rewardTokens, pendingRewards);
     }
@@ -104,46 +106,38 @@ abstract contract StrategyVeloBase is StrategyBase {
         ISolidlyRouter(solidRouter).swapExactTokensForTokens(_amount, 0, routes, address(this), block.timestamp + 60);
     }
 
-    function harvest() public override {
-        // Collects rewards tokens
-        address[] memory _rewardsAddresses = new address[](1);
-        _rewardsAddresses[0] = velo;
+    function _harvestReward() internal {
         ISolidlyGauge(gauge).getReward(address(this), activeRewardsTokens);
+    }
 
-        // loop through all rewards tokens and swap the ones with
-        // toNativeRoutes.
+    function _swapActiveRewardsToNative() internal {
         for (uint256 i = 0; i < activeRewardsTokens.length; i++) {
             uint256 _rewardToken = IERC20(activeRewardsTokens[i]).balanceOf(address(this));
             if (toNativeRoutes[activeRewardsTokens[i]].length > 0 && _rewardToken > 0) {
                 _swapSolidlyWithRoute(toNativeRoutes[activeRewardsTokens[i]], _rewardToken);
             }
         }
+    }
 
-        // Collect Fees
-        _distributePerformanceFeesNative();
+    function _swapNativeToDeposit(uint256 _native) internal {
+        if (native == token0 || native == token1) {
+          address toToken = native == token0 ? token1 : token0;
+          _swapSolidlyWithRoute(nativeToTokenRoutes[toToken], _native/2);
+        } else {
+          // Swap native to token0 & token1
+          uint256 _toToken0 = _native/2;
+          uint256 _toToken1 = _native-_toToken0;
 
-        // Swap native to token0/token1
-        uint256 _native = IERC20(native).balanceOf(address(this));
-
-        if (_native > 0) {
-            if (native == token0 || native == token1) {
-                address toToken = native == token0 ? token1 : token0;
-                _swapSolidlyWithRoute(nativeToTokenRoutes[toToken], _native/2);
-            } else {
-                // Swap native to token0 & token1
-                uint256 _toToken0 = _native/2;
-                uint256 _toToken1 = _native-_toToken0;
-
-                if (nativeToTokenRoutes[token0].length > 0) {
-                    _swapSolidlyWithRoute(nativeToTokenRoutes[token0], _toToken0);
-                }
-                if (nativeToTokenRoutes[token1].length > 0) {
-                    _swapSolidlyWithRoute(nativeToTokenRoutes[token1], _toToken1);
-                }
-            }
+          if (nativeToTokenRoutes[token0].length > 0) {
+            _swapSolidlyWithRoute(nativeToTokenRoutes[token0], _toToken0);
+          }
+          if (nativeToTokenRoutes[token1].length > 0) {
+            _swapSolidlyWithRoute(nativeToTokenRoutes[token1], _toToken1);
+          }
         }
+    }
 
-        // Adds in liquidity for token0/token1
+    function _addLiquidity() internal {
         uint256 _token0 = IERC20(token0).balanceOf(address(this));
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
         if (_token0 > 0 && _token1 > 0) {
@@ -159,7 +153,28 @@ abstract contract StrategyVeloBase is StrategyBase {
                 block.timestamp + 60
             );
         }
+    }
 
+    function harvest() public override {
+        // Collects rewards tokens
+        _harvestReward();
+
+        // loop through all rewards tokens and swap the ones with toNativeRoutes.
+        _swapActiveRewardsToNative();
+
+        // Collect Fees
+        _distributePerformanceFeesNative();
+
+        uint256 _native = IERC20(native).balanceOf(address(this));
+        if (_native == 0) { return; }
+
+        // Swap native to token0/token1
+        _swapNativeToDeposit(_native);
+
+        // Adds in liquidity for token0/token1
+        _addLiquidity();
+
+        // Stake
         deposit();
     }
 }
