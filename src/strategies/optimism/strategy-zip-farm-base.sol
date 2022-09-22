@@ -7,8 +7,7 @@ import "../../interfaces/zip-chef.sol";
 abstract contract StrategyZipFarmBase is StrategyBase {
     // Token addresses
     address public constant zip = 0xFA436399d0458Dbe8aB890c3441256E3E09022a8;
-    address public constant zipChef =
-        0x1e2F8e5f94f366eF5Dc041233c0738b1c1C2Cb0c;
+    address public constant zipChef = 0x1e2F8e5f94f366eF5Dc041233c0738b1c1C2Cb0c;
 
     address public token0;
     address public token1;
@@ -27,10 +26,7 @@ abstract contract StrategyZipFarmBase is StrategyBase {
         address _strategist,
         address _controller,
         address _timelock
-    )
-        public
-        StrategyBase(_lp, _governance, _strategist, _controller, _timelock)
-    {
+    ) public StrategyBase(_lp, _governance, _strategist, _controller, _timelock) {
         // Zipswap router
         sushiRouter = 0xE6Df0BB08e5A97b40B21950a0A51b94c4DbA0Ff6;
         poolId = _poolId;
@@ -61,11 +57,7 @@ abstract contract StrategyZipFarmBase is StrategyBase {
         }
     }
 
-    function _withdrawSome(uint256 _amount)
-        internal
-        override
-        returns (uint256)
-    {
+    function _withdrawSome(uint256 _amount) internal override returns (uint256) {
         IZipChef(zipChef).withdraw(poolId, uint128(_amount), address(this));
         return _amount;
     }
@@ -84,10 +76,7 @@ abstract contract StrategyZipFarmBase is StrategyBase {
 
         if (_zip > 0) {
             uint256 _keepZIP = _zip.mul(keepZIP).div(keepZIPMax);
-            IERC20(zip).safeTransfer(
-                IController(controller).treasury(),
-                _keepZIP
-            );
+            IERC20(zip).safeTransfer(IController(controller).treasury(), _keepZIP);
             _zip = _zip.sub(_keepZIP);
             uint256 toToken0 = _zip.div(2);
             uint256 toToken1 = _zip.sub(toToken0);
@@ -105,28 +94,13 @@ abstract contract StrategyZipFarmBase is StrategyBase {
         uint256 _token1 = IERC20(token1).balanceOf(address(this));
 
         if (_token0 > 0 && _token1 > 0) {
-            UniswapRouterV2(sushiRouter).addLiquidity(
-                token0,
-                token1,
-                _token0,
-                _token1,
-                0,
-                0,
-                address(this),
-                now + 60
-            );
+            UniswapRouterV2(sushiRouter).addLiquidity(token0, token1, _token0, _token1, 0, 0, address(this), now + 60);
 
             // Donates DUST
-            IERC20(token0).transfer(
-                IController(controller).treasury(),
-                IERC20(token0).balanceOf(address(this))
-            );
-            IERC20(token1).safeTransfer(
-                IController(controller).treasury(),
-                IERC20(token1).balanceOf(address(this))
-            );
+            IERC20(token0).transfer(IController(controller).treasury(), IERC20(token0).balanceOf(address(this)));
+            IERC20(token1).safeTransfer(IController(controller).treasury(), IERC20(token1).balanceOf(address(this)));
         }
 
-        _distributePerformanceFeesAndDeposit();
+        deposit();
     }
 }

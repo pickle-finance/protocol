@@ -1,4 +1,4 @@
-const {expect, deployContract, getContractAt, unlockAccount, toWei} = require("../TestUtil");
+const {expect, deployContract, getContractAt, unlockAccount, toWei} = require("../../utils/testHelper");
 
 describe("StrategySaddleD4 Test", () => {
   const want_addr = "0xd48cF4D7FB0824CC8bAe055dF3092584d0a1726A";
