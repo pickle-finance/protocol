@@ -127,6 +127,7 @@ const query = async () => {
   const providerAddr = await addressProvider.getAddress(
     "0x0100000000000000000000000000000000000000000000000000000000000000"
   );
+  console.log(providerAddr);
 
   const providerContract = await ethers.getContractAt("IDataProvider", providerAddr);
 

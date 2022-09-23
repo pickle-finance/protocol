@@ -8,9 +8,14 @@ import "../../interfaces/univ3/ISwapRouter.sol";
 import {DataTypes} from "../../interfaces/uwu/data-types.sol";
 import "../strategy-base-v2.sol";
 
-contract StrategyUwuBase is StrategyBase {
+abstract contract StrategyUwuBase is StrategyBase {
+    using SafeERC20 for IERC20;
+    using Address for address;
+    using SafeMath for uint256;
+
     address public constant uwu = 0x55C08ca52497e2f1534B59E2917BF524D4765257;
     address public constant lendingPool = 0x2409aF0251DCB89EE3Dee572629291f9B087c668;
+    address public constant dataProviderAddr = 0x17938eDE656Ca1901807abf43a6B1D138D8Cd521;
 
     address public immutable aToken;
     address public immutable variableDebtToken;
@@ -21,8 +26,6 @@ contract StrategyUwuBase is StrategyBase {
     IDataProvider dataProvider;
 
     bytes nativeToTokenPath;
-
-    mapping(address => UniV3Route[]) public nativeToTokenRoutes;
 
     // Require a 0.04 buffer between
     // market collateral factor and strategy's collateral factor
@@ -36,26 +39,20 @@ contract StrategyUwuBase is StrategyBase {
 
     constructor(
         address _token,
-        address _path,
+        bytes memory _path,
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
-    ) public StrategyBase(_token, _governance, _strategist, _controller, _timelock) {
+    ) StrategyBase(_token, _governance, _strategist, _controller, _timelock) {
         nativeToTokenPath = _path;
-        DataTypes.ReserveData reserveData = IUwuLend(lendingPool).getReserveData(_token);
+
+        DataTypes.ReserveData memory reserveData = IUwuLend(lendingPool).getReserveData(_token);
+        aToken = reserveData.aTokenAddress;
+        variableDebtToken = reserveData.variableDebtTokenAddress;
+        dataProvider = IDataProvider(dataProviderAddr);
 
         IERC20(weth).approve(univ3Router, type(uint256).max);
-
-        address addressProvider = IUwuLend(lendingPool).getAddressesProvider();
-
-        address dataProviderAddr = addressProvider.call(
-            bytes4(sha3("getAddress(bytes32)"), 0x0100000000000000000000000000000000000000000000000000000000000000)
-        );
-
-        dataProvider = IDataProvider(dataProviderAddr);
-        aToken = reserveData.aTokenAddress;
-        variableDebtToken = reserveData.variableDebtAddress;
     }
 
     // **** Modifiers **** //
@@ -100,7 +97,9 @@ contract StrategyUwuBase is StrategyBase {
 
     function getMarketColFactor() public view returns (uint256) {
         (, uint256 ltv, , , , , , , , ) = dataProvider.getReserveConfigurationData(want);
-        return ltv;
+
+        // Scale to 18 decimal places, Aave denominates by 10000
+        return ltv.mul(1e14);
     }
 
     // Max leverage we can go up to, w.r.t safe buffer
@@ -112,11 +111,12 @@ contract StrategyUwuBase is StrategyBase {
         return leverage;
     }
 
-    function getHarvestable() public view returns (uint256) {
+    function getHarvestable() external view override returns (uint256) {
         address[] memory aTokens = new address[](1);
         aTokens[0] = aToken;
+        uint256[] memory rewards = uwuRewards.claimableReward(address(this), aTokens);
 
-        return uwuRewards.claimableReward(address(this), aTokens) / 2;
+        return rewards[0].div(2);
     }
 
     function getColFactor() public view returns (uint256) {
@@ -175,7 +175,7 @@ contract StrategyUwuBase is StrategyBase {
         colFactorLeverageBuffer = _colFactorLeverageBuffer;
     }
 
-    function setNativeToTokenPath(bytes _path) public {
+    function setNativeToTokenPath(bytes memory _path) public {
         require(msg.sender == governance || msg.sender == timelock, "!governance");
         nativeToTokenPath = _path;
     }
@@ -232,7 +232,7 @@ contract StrategyUwuBase is StrategyBase {
                 _borrowAndSupply = _supplyAmount.sub(supplied);
             }
 
-            ILendingPool(lendingPool).borrow(
+            IUwuLend(lendingPool).borrow(
                 want,
                 _borrowAndSupply,
                 uint256(DataTypes.InterestRateMode.VARIABLE),
@@ -271,14 +271,14 @@ contract StrategyUwuBase is StrategyBase {
             }
 
             // withdraw
-            require(ILendingPool(lendingPool).withdraw(want, _redeemAndRepay, address(this)) != 0, "!withdraw");
+            require(IUwuLend(lendingPool).withdraw(want, _redeemAndRepay, address(this)) != 0, "!withdraw");
 
             IERC20(want).safeApprove(lendingPool, 0);
             IERC20(want).safeApprove(lendingPool, _redeemAndRepay);
 
             // repay
             require(
-                ILendingPool(lendingPool).repay(
+                IUwuLend(lendingPool).repay(
                     want,
                     _redeemAndRepay,
                     uint256(DataTypes.InterestRateMode.VARIABLE),
@@ -298,7 +298,7 @@ contract StrategyUwuBase is StrategyBase {
         address[] memory aTokens = new address[](1);
         aTokens[0] = aToken;
 
-        uwuRewards.claim(address(this), amTokens);
+        uwuRewards.claim(address(this), aTokens);
         uwuLocker.exitEarly(address(this));
 
         uint256 _uwu = IERC20(uwu).balanceOf(address(this));
@@ -335,7 +335,7 @@ contract StrategyUwuBase is StrategyBase {
         if (_want > 0) {
             IERC20(want).safeApprove(lendingPool, 0);
             IERC20(want).safeApprove(lendingPool, _want);
-            ILendingPool(lendingPool).deposit(want, _want, address(this), 0);
+            IUwuLend(lendingPool).deposit(want, _want, address(this), 0);
         }
     }
 
@@ -361,7 +361,7 @@ contract StrategyUwuBase is StrategyBase {
             }
 
             // withdraw
-            require(ILendingPool(lendingPool).withdraw(want, _redeem, address(this)) != 0, "!withdraw");
+            require(IUwuLend(lendingPool).withdraw(want, _redeem, address(this)) != 0, "!withdraw");
         }
 
         return _amount;

@@ -2,15 +2,15 @@ const {toWei} = require("../../utils/testHelper");
 const {getWantFromWhale} = require("../../utils/setupHelper");
 const {doTestBehaviorFold} = require("../testBehaviorFold");
 
-describe("StrategyTectonicDai", () => {
-  const want_addr = "0xF2001B145b43032AAF5Ee2884e456CCd805F677D";
-  const whale_addr = "0xcbDB468a58473e66b557f799208a891B5Be39583";
-  const reward_addr = "0xDD73dEa10ABC2Bff99c60882EC5b2B81Bb1Dc5B2";
+describe("StrategyUwuDai", () => {
+  const want_addr = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+  const whale_addr = "0xBF293D5138a2a1BA407B43672643434C43827179";
+  const reward_addr = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 
   before("Get want token", async () => {
-    [alice] = await hre.ethers.getSigners();
+    const [alice] = await hre.ethers.getSigners();
     await getWantFromWhale(want_addr, toWei(1000), alice, whale_addr);
   });
 
-  doTestBehaviorFold("StrategyTectonicDai", want_addr, reward_addr);
+  doTestBehaviorFold("StrategyUwuDai", want_addr, reward_addr);
 });

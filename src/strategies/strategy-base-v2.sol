@@ -82,7 +82,7 @@ abstract contract StrategyBase {
         return IERC20(want).balanceOf(address(this));
     }
 
-    function balanceOfPool() public view virtual returns (uint256);
+    function balanceOfPool() public view virtual returns (uint256) {}
 
     function balanceOf() public view returns (uint256) {
         return balanceOfWant().add(balanceOfPool());
@@ -90,7 +90,7 @@ abstract contract StrategyBase {
 
     function getName() external pure virtual returns (string memory);
 
-    function getHarvestable() external view virtual returns (address[] memory, uint256[] memory);
+    function getHarvestable() external view virtual returns (uint256);
 
     function getActiveRewardsTokens() external view returns (address[] memory) {
         return activeRewardsTokens;
