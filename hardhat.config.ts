@@ -31,7 +31,6 @@ const config: HardhatUserConfig = {
         version: "0.8.16",
         settings: defaultCompilerSettings,
       },
-
     ],
   },
   networks: {
@@ -53,7 +52,7 @@ const config: HardhatUserConfig = {
       gas: 6500000,
     },
     mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY_MAINNET}`,
+      url: `https://rpc.flashbots.net`,
       // url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_KEY_MAINNET}`,
       accounts: [process.env.PRIVATE_KEY ?? ""],
       chainId: 1,
@@ -119,7 +118,7 @@ const config: HardhatUserConfig = {
     },
   },
   paths: {
-    sources: "./src",
+    sources: "./src/interfaces",
     tests: "./src/tests/strategies",
     cache: "./cache",
     artifacts: "./artifacts",
