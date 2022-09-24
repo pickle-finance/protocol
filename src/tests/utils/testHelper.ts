@@ -1,7 +1,9 @@
 import "@nomicfoundation/hardhat-toolbox";
 import { BigNumber, BigNumberish, providers } from "ethers";
 import { ethers, network } from "hardhat";
-import * as chai from "chai";
+import * as chai from 'chai';
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
 
 /**
  * @notice travel the time to test the block.timestamp
@@ -51,9 +53,8 @@ export const getContractAt = async (name: string, address: string) => {
  */
 export const unlockAccount = async (
   address: string
-): Promise<providers.JsonRpcSigner> => {
-  await network.provider.send("hardhat_impersonateAccount", [address]);
-  return ethers.provider.getSigner(address);
+): Promise<SignerWithAddress> => {
+  return ethers.getImpersonatedSigner(address);
 };
 
 /**

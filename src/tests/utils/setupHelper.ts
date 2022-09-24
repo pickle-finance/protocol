@@ -254,7 +254,7 @@ export const getLpToken = async (
 
 /**
  * @dev get want token from the whale using impersonating account feature
- * @param want want token instance
+ * @param want_addr want token instance
  * @param amount token amount
  * @param to receive address
  * @param whaleAddr whale address to send tokens
