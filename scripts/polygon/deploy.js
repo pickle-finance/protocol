@@ -44,60 +44,47 @@ const harvesters = [
   "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C",
   "0xb4522eB2cA49963De9c3dC69023cBe6D53489C98",
 ];
-const deployPickleJar = async () => {
-  console.log("deploying Strategy...");
 
+const setJar = async () => {
   const governance = "0x9d074E37d408542FD38be78848e8814AFB38db17";
   const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
   const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
   const timelock = "0xd92c7faa0ca0e6ae4918f3a83d9832d9caeaa0d3";
 
-  const want = "0x1054Ff2ffA34c055a13DCD9E0b4c0cA5b3aecEB9";
-
-  const StrategyFactory = await ethers.getContractFactory(
-    "src/strategies/convex/strategy-convex-cadc-usdc-lp.sol:StrategyConvexCadcUsdc"
-  );
-  const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
-
-  await strategy.deployed();
-  console.log("Strategy deployed at ", strategy.address);
-
-  const JarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
-  const jar = await JarFactory.deploy(want, governance, timelock, controller);
-  await jar.deployed();
-  console.log("Jar deployed at ", jar.address);
-
-  await hre.run("verify:verify", {
-    address: strategy.address,
-    constructorArguments: [governance, strategist, controller, timelock],
-  });
-};
-
-const setJar = async () => {
-  const governance = "0x9796b1FA0DE058877a3235e6b1beB9C1f945d99c";
-
-  const want = "0x167384319B41F7094e62f7506409Eb38079AbfF8";
-
-  const controller = "0xE8bf268Df27833f984280d45861eB96D9C440a88";
+  const want = "0x853d955aCEf822Db058eb8505911ED77F175b99e";
 
   console.log("deploying strategy...");
 
-  const StrategyFactory = await ethers.getContractFactory(
-    "src/strategies/polygon/uniswapv3/strategy-univ3-matic-eth-lp.sol:StrategyMaticEthUniV3Poly"
-  );
+  const StrategyFactory = await ethers.getContractFactory("src/strategies/uwu/strategy-uwu-frax.sol:StrategyUwuFrax");
 
-  const strategy = await StrategyFactory.deploy(100, governance, governance, controller, governance);
+  const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
   await strategy.deployed();
 
   console.log("strategy deployed at: ", strategy.address);
 
+  const whitelistTx = await strategy.whitelistHarvesters(harvesters);
+  await whitelistTx.wait();
+
+  console.log("Whitelisted harvesters");
+
   console.log("deploying jar...");
 
-  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar-univ3.sol:PickleJarUniV3");
-  const jar = PickleJarFactory.deploy("pickling MATIC/ETH Jar", "pMATICETH", want, governance, governance, controller);
+  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
+  const jar = await PickleJarFactory.deploy(want, governance, timelock, controller);
 
   await jar.deployed();
   console.log("Jar deployed at: ", jar.address);
+
+  await Promise.all([
+    hre.run("verify:verify", {
+      address: strategy.address,
+      constructorArguments: [governance, strategist, controller, timelock],
+    }),
+    hre.run("verify:verify", {
+      address: jar.address,
+      constructorArguments: [want, governance, timelock, controller],
+    }),
+  ]);
 };
 
 const approveBal = async () => {
@@ -111,30 +98,6 @@ const approveBal = async () => {
   console.log("success!");
 };
 
-const query = async () => {
-  const contract = await ethers.getContractAt("IUwuLend", "0x2409aF0251DCB89EE3Dee572629291f9B087c668");
-  const dai = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
-
-  const reserveData = await contract.getReserveData(dai);
-  console.log({reserveData});
-  const addressProviderAddr = await contract.getAddressesProvider();
-
-  const addressProvider = await ethers.getContractAt(
-    ["function getAddress(bytes32) public view returns (address)"],
-    addressProviderAddr
-  );
-
-  const providerAddr = await addressProvider.getAddress(
-    "0x0100000000000000000000000000000000000000000000000000000000000000"
-  );
-  console.log(providerAddr);
-
-  const providerContract = await ethers.getContractAt("IDataProvider", providerAddr);
-
-  const configurationData = await providerContract.getReserveConfigurationData(dai);
-  console.log({configurationData});
-};
-
 const main = async () => {
   // await deployPickleToken();
   // await deployMasterChef();
@@ -144,9 +107,8 @@ const main = async () => {
   // await deployComethWmaticMustStrategy();
   // await deployPickleJar();
   // await deployPickleJar();
-  // await setJar();
+  await setJar();
   // await approveBal();
-  await query();
 };
 
 main()

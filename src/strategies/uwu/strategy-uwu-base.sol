@@ -33,10 +33,6 @@ abstract contract StrategyUwuBase is StrategyBase {
     uint256 colFactorLeverageBuffer = 40;
     uint256 colFactorLeverageBufferMax = 1000;
 
-    // Keeper bots
-    // Maintain leverage within buffer
-    mapping(address => bool) keepers;
-
     constructor(
         address _token,
         bytes memory _path,
@@ -59,7 +55,10 @@ abstract contract StrategyUwuBase is StrategyBase {
 
     modifier onlyKeepers() {
         require(
-            keepers[msg.sender] || msg.sender == address(this) || msg.sender == strategist || msg.sender == governance,
+            harvesters[msg.sender] ||
+                msg.sender == address(this) ||
+                msg.sender == strategist ||
+                msg.sender == governance,
             "!keepers"
         );
         _;
@@ -156,18 +155,6 @@ abstract contract StrategyUwuBase is StrategyBase {
         uint256 borrowed = getBorrowed();
 
         return supplied.mul(1e18).div(supplied.sub(borrowed));
-    }
-
-    // **** Setters **** //
-
-    function addKeeper(address _keeper) public {
-        require(msg.sender == governance || msg.sender == strategist, "!governance");
-        keepers[_keeper] = true;
-    }
-
-    function removeKeeper(address _keeper) public {
-        require(msg.sender == governance || msg.sender == strategist, "!governance");
-        keepers[_keeper] = false;
     }
 
     function setColFactorLeverageBuffer(uint256 _colFactorLeverageBuffer) public {
@@ -316,15 +303,16 @@ abstract contract StrategyUwuBase is StrategyBase {
 
             uint256 _weth = IERC20(weth).balanceOf(address(this));
 
-            ISwapRouter(univ3Router).exactInput(
-                ISwapRouter.ExactInputParams({
-                    path: nativeToTokenPath,
-                    recipient: address(this),
-                    deadline: block.timestamp + 300,
-                    amountIn: _weth,
-                    amountOutMinimum: 0
-                })
-            );
+            if (nativeToTokenPath.length > 0)
+                ISwapRouter(univ3Router).exactInput(
+                    ISwapRouter.ExactInputParams({
+                        path: nativeToTokenPath,
+                        recipient: address(this),
+                        deadline: block.timestamp + 300,
+                        amountIn: _weth,
+                        amountOutMinimum: 0
+                    })
+                );
 
             deposit();
         }

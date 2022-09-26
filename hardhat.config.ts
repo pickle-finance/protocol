@@ -53,7 +53,7 @@ const config: HardhatUserConfig = {
     },
     mainnet: {
       // url: `https://rpc.flashbots.net`,
-      url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_KEY_MAINNET}`,
+      url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: [process.env.PRIVATE_KEY ?? ""],
       chainId: 1,
     },

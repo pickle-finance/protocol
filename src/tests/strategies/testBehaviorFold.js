@@ -121,22 +121,24 @@ const doTestBehaviorFold = (strategyName, want_addr, reward_addr, bIncreaseBlock
     });
 
     it("Should withdrawSome() properly", async () => {
+      const initialBalance = await getWantBalance(alice.address);
+      const thirdBalance = initialBalance.div("3");
       await deposit(alice);
       await strategy.leverageToMax();
 
       const _before = await getWantBalance(alice.address);
-      await pickleJar.withdraw(toWei(25));
+      await pickleJar.withdraw(thirdBalance);
       const _after = await getWantBalance(alice.address);
 
       expect(_after).to.be.gt(_before);
-      expect(_after).to.be.eqApprox(_before.add(toWei(25)));
+      expect(_after).to.be.eqApprox(_before.add(thirdBalance));
 
       const _before2 = await getWantBalance(alice.address);
-      await pickleJar.withdraw(toWei(30));
+      await pickleJar.withdraw(thirdBalance);
       const _after2 = await getWantBalance(alice.address);
 
       expect(_after2).to.be.gt(_before2);
-      expect(_after2).to.be.eqApprox(_before2.add(toWei(30)));
+      expect(_after2).to.be.eqApprox(_before2.add(thirdBalance));
 
       // Make sure we're still leveraging
       const _leverage = await strategy.callStatic.getCurrentLeverage();
@@ -149,7 +151,7 @@ const doTestBehaviorFold = (strategyName, want_addr, reward_addr, bIncreaseBlock
       await deposit(alice);
       await strategy.leverageToMax();
 
-      await increaseTime(60 * 60 * 24 * 1); //travel 1 days
+      await increaseTime(60 * 60 * 24 * 4); //travel 1 days
       if (bIncreaseBlock) {
         await increaseBlock(1000);
       }
@@ -199,9 +201,6 @@ const doTestBehaviorFold = (strategyName, want_addr, reward_addr, bIncreaseBlock
       const marketColFactor = await strategy.getMarketColFactor();
       const maxLeverage = await strategy.getMaxLeverage();
 
-      // Earn deposits 95% into strategy
-      expect(initialSupplied).to.be.eqApprox(toWei(950));
-
       expect(initialBorrowable).to.be.eqApprox(initialSupplied.mul(marketColFactor).div(toWei(1)));
       expect(initialBorrowed).to.be.eq("0");
 
@@ -237,19 +236,22 @@ const doTestBehaviorFold = (strategyName, want_addr, reward_addr, bIncreaseBlock
     it("Should deleverage incrementally", async () => {
       let supplied;
       await deposit(alice);
+      const initialSupplied = await strategy.callStatic.getSupplied();
+      const suppliedDoubled = initialSupplied.mul("2");
+
       await strategy.leverageToMax();
 
-      await strategy.deleverageUntil(toWei(2000));
+      await strategy.deleverageUntil(suppliedDoubled);
       supplied = await strategy.callStatic.getSupplied();
-      expect(supplied).to.be.eqApprox(toWei(2000));
+      expect(supplied).to.be.eqApprox(suppliedDoubled);
 
-      await strategy.deleverageUntil(toWei(1800));
+      await strategy.deleverageUntil(suppliedDoubled.mul("2").div("3"));
       supplied = await strategy.callStatic.getSupplied();
-      expect(supplied).to.be.eqApprox(toWei(1800));
+      expect(supplied).to.be.eqApprox(suppliedDoubled.mul("2").div("3"));
 
-      await strategy.deleverageUntil(toWei(1200));
+      await strategy.deleverageToMin();
       supplied = await strategy.callStatic.getSupplied();
-      expect(supplied).to.be.eqApprox(toWei(1200));
+      expect(supplied).to.be.eqApprox(initialSupplied);
     });
 
     it("Should accomodate multiple users' withdrawals", async () => {
