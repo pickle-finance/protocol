@@ -45,91 +45,46 @@ const harvesters = [
   "0xb4522eB2cA49963De9c3dC69023cBe6D53489C98",
 ];
 
-const whitelistHarvesters = async () => {
-  strategies = [
-    "0x6A0F350715BAAdcC91F29b7e5915f34fc584f53c",
-    "0x26839349247324376A8F52f0B6C8155345C5daA8",
-    "0x863b32B1443C6719663ffbc88a09BB681d45ed41",
-    "0xEB67eA91aAbC4B2efe8cCDBdc85396dC9481b6be",
-    "0x964fD1153058B07453386061325391D2F84Af907",
-    "0xc2F1Fe87118dC4D35ABEafB55204bb900Ad93ed0",
-    "0xdFC22a3F2B76D2039c8C8883653C50BbBc7b12b4",
-    "0x826a9cD66A20Ff4c2dC7AAcfa3e413dfee6a71E4",
-    "0x7C29dcC491C0A978B31fbdFac453E1Fc9b651a42",
-    "0xFdB584F0A0aB9bfA06Ee534a9081FcfBE4De12CB",
-    "0x7b8139Fb52C12e28831aDacCC205a6fA1a5A1afb",
-    "0x627c32F07C4C789c0FB2A7853aF7085aF653D8b3",
-    "0x406D931162ccCA5feACE185Df198E85BD2906040",
-    "0x2f1e21Ea0DD575567476599f5f6510DC624Bda3d",
-    "0x964075a7eb21C099DC1D9F987eDDF02CE2401F69",
-  ];
-
-  for (let i = 0; i < strategies.length; i++) {
-    console.log(`Whitelisting ${strategies[i]}...`);
-    const strategy = await ethers.getContractAt(
-      "src/strategies/looksrare/strategy-looks-eth-lp.sol:StrategyLooksEthLp",
-      strategies[i]
-    );
-    const tx = await strategy.whitelistHarvesters(harvesters);
-    await tx.wait();
-    console.log("Successfully whitelisted");
-  }
-};
-
-const deployPickleJar = async () => {
-  console.log("deploying Strategy...");
-
+const setJar = async () => {
   const governance = "0x9d074E37d408542FD38be78848e8814AFB38db17";
   const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
   const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
   const timelock = "0xd92c7faa0ca0e6ae4918f3a83d9832d9caeaa0d3";
 
-  const want = "0x1054Ff2ffA34c055a13DCD9E0b4c0cA5b3aecEB9";
-
-  const StrategyFactory = await ethers.getContractFactory(
-    "src/strategies/convex/strategy-convex-cadc-usdc-lp.sol:StrategyConvexCadcUsdc"
-  );
-  const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
-
-  await strategy.deployed();
-  console.log("Strategy deployed at ", strategy.address);
-
-  const JarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
-  const jar = await JarFactory.deploy(want, governance, timelock, controller);
-  await jar.deployed();
-  console.log("Jar deployed at ", jar.address);
-
-  await hre.run("verify:verify", {
-    address: strategy.address,
-    constructorArguments: [governance, strategist, controller, timelock],
-  });
-};
-
-const setJar = async () => {
-  const governance = "0x9796b1FA0DE058877a3235e6b1beB9C1f945d99c";
-
-  const want = "0x167384319B41F7094e62f7506409Eb38079AbfF8";
-
-  const controller = "0xE8bf268Df27833f984280d45861eB96D9C440a88";
+  const want = "0x853d955aCEf822Db058eb8505911ED77F175b99e";
 
   console.log("deploying strategy...");
 
-  const StrategyFactory = await ethers.getContractFactory(
-    "src/strategies/polygon/uniswapv3/strategy-univ3-matic-eth-lp.sol:StrategyMaticEthUniV3Poly"
-  );
+  const StrategyFactory = await ethers.getContractFactory("src/strategies/uwu/strategy-uwu-frax.sol:StrategyUwuFrax");
 
-  const strategy = await StrategyFactory.deploy(100, governance, governance, controller, governance);
+  const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
   await strategy.deployed();
 
   console.log("strategy deployed at: ", strategy.address);
 
+  const whitelistTx = await strategy.whitelistHarvesters(harvesters);
+  await whitelistTx.wait();
+
+  console.log("Whitelisted harvesters");
+
   console.log("deploying jar...");
 
-  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar-univ3.sol:PickleJarUniV3");
-  const jar = PickleJarFactory.deploy("pickling MATIC/ETH Jar", "pMATICETH", want, governance, governance, controller);
+  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
+  const jar = await PickleJarFactory.deploy(want, governance, timelock, controller);
 
   await jar.deployed();
   console.log("Jar deployed at: ", jar.address);
+
+  await Promise.all([
+    hre.run("verify:verify", {
+      address: strategy.address,
+      constructorArguments: [governance, strategist, controller, timelock],
+    }),
+    hre.run("verify:verify", {
+      address: jar.address,
+      constructorArguments: [want, governance, timelock, controller],
+    }),
+  ]);
 };
 
 const approveBal = async () => {
@@ -151,8 +106,8 @@ const main = async () => {
   // await deployControllerV4();
   // await deployComethWmaticMustStrategy();
   // await deployPickleJar();
-  await deployPickleJar();
-  // await setJar();
+  // await deployPickleJar();
+  await setJar();
   // await approveBal();
 };
 

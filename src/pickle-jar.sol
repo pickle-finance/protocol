@@ -1,7 +1,7 @@
 // https://github.com/iearn-finance/vaults/blob/master/contracts/vaults/yVault.sol
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.6.7;
+pragma solidity >=0.6.7;
 
 import "./interfaces/controller.sol";
 
@@ -15,14 +15,19 @@ contract PickleJar is ERC20 {
 
     IERC20 public token;
 
-    uint256 public min = 9500;
+    uint256 public min = 9900;
     uint256 public constant max = 10000;
 
     address public governance;
     address public timelock;
     address public controller;
 
-    constructor(address _token, address _governance, address _timelock, address _controller)
+    constructor(
+        address _token,
+        address _governance,
+        address _timelock,
+        address _controller
+    )
         public
         ERC20(
             string(abi.encodePacked("pickling ", ERC20(_token).name())),
@@ -37,10 +42,7 @@ contract PickleJar is ERC20 {
     }
 
     function balance() public view returns (uint256) {
-        return
-            token.balanceOf(address(this)).add(
-                IController(controller).balanceOf(address(token))
-            );
+        return token.balanceOf(address(this)).add(IController(controller).balanceOf(address(token)));
     }
 
     function setMin(uint256 _min) external {
