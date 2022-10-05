@@ -48,7 +48,7 @@ describe(`PickleRebalancingKeeper`, () => {
     const keeper = await deployContract(keeperContractName, governance.address);
 
     // Add strategy to keeper watch-list
-    await keeper.connect(governance).addStrategy(strategy.address);
+    await keeper.connect(governance).addStrategies([strategy.address]);
 
     // Set alice weth balance so it can push strategy out of range
     await setBalance(alice.address, strat1WethAmount.add(ethers.utils.parseEther("1")));
@@ -78,7 +78,7 @@ describe(`PickleRebalancingKeeper`, () => {
     const strat2TokenOut: string = weth.address.toLowerCase() === token0.toLowerCase() ? token1 : token0;
 
     // Add strategy to keeper watch-list
-    await keeper.connect(governance).addStrategy(strategy2.address);
+    await keeper.connect(governance).addStrategies([strategy2.address]);
 
     // Set alice weth balance so it can push both strategies out of range
     await setBalance(alice.address, strat2WethAmount.add(ethers.utils.parseEther("1")));
@@ -127,7 +127,7 @@ describe(`PickleRebalancingKeeper`, () => {
       const {keeper, alice} = await loadFixture(setupSingleStrategyFixture);
       await keeper
         .connect(alice)
-        .addStrategy(uniV3Strategy2Address)
+        .addStrategies([uniV3Strategy2Address])
         .catch(() => {
           pass = true;
         });
@@ -139,7 +139,7 @@ describe(`PickleRebalancingKeeper`, () => {
       const {keeper, governance, strategy} = await loadFixture(setupSingleStrategyFixture);
       await keeper
         .connect(governance)
-        .addStrategy(strategy.address)
+        .addStrategies([strategy.address])
         .catch(() => {
           pass = true;
         });
@@ -160,7 +160,7 @@ describe(`PickleRebalancingKeeper`, () => {
 
     it("Should add a new strategy correctly", async () => {
       const {keeper, governance} = await loadFixture(setupSingleStrategyFixture);
-      await keeper.connect(governance).addStrategy(uniV3Strategy2Address).catch();
+      await keeper.connect(governance).addStrategies([uniV3Strategy2Address]).catch();
       const newStratAddress = await keeper.strategies(1);
       expect(newStratAddress).to.be.eq(uniV3Strategy2Address, "Failed adding new strategy");
     });
