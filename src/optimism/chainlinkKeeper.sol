@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.16;
+pragma solidity ^0.8.0;
 
 import "./interfaces/chainlink/AutomationCompatibleInterface.sol";
 import "./interfaces/strategyv2.sol";
 import "./interfaces/univ3/pool/IUniswapV3PoolState.sol";
-
 
 contract PickleRebalancingKeeper is AutomationCompatibleInterface {
     address[] public strategies;
@@ -28,6 +27,10 @@ contract PickleRebalancingKeeper is AutomationCompatibleInterface {
         governance = _governance;
     }
 
+    function strategiesLength() external view returns(uint256 length) {
+        length = strategies.length;
+    }
+
     function setGovernance(address _governance) external onlyGovernance {
         governance = _governance;
     }
@@ -44,9 +47,11 @@ contract PickleRebalancingKeeper is AutomationCompatibleInterface {
         disabled = _disabled;
     }
 
-    function addStrategy(address _address) external onlyGovernance {
-        require(!_search(_address), "Address Already Watched");
-        strategies.push(_address);
+    function addStrategies(address[] calldata _addresses) external onlyGovernance {
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            require(!_search(_addresses[i]), "Address Already Watched");
+            strategies.push(_addresses[i]);
+        }
     }
 
     function removeStrategy(address _address) external onlyGovernance {
@@ -82,7 +87,7 @@ contract PickleRebalancingKeeper is AutomationCompatibleInterface {
 
         if (upkeepNeeded == true) {
             address[] memory stratsToUpkeep = new address[](counter);
-            for (uint i = 0; i < counter; i++) {
+            for (uint256 i = 0; i < counter; i++) {
                 stratsToUpkeep[i] = _stratsToUpkeep[i];
             }
             performData = abi.encode(stratsToUpkeep);
