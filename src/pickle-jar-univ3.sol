@@ -33,8 +33,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     using PoolVariables for IUniswapV3Pool;
 
     address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address public constant univ3Router =
-        0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
+    address public constant univ3Router = 0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
 
     address public governance;
     address public timelock;
@@ -66,24 +65,13 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     }
 
     function totalLiquidity() public view returns (uint256) {
-        return
-            liquidityOfThis().add(
-                IControllerV2(controller).liquidityOf(address(pool))
-            );
+        return liquidityOfThis().add(IControllerV2(controller).liquidityOf(address(pool)));
     }
 
     function liquidityOfThis() public view returns (uint256) {
         uint256 _balance0 = token0.balanceOf(address(this));
         uint256 _balance1 = token1.balanceOf(address(this));
-        return
-            uint256(
-                pool.liquidityForAmounts(
-                    _balance0,
-                    _balance1,
-                    getLowerTick(),
-                    getUpperTick()
-                )
-            );
+        return uint256(pool.liquidityForAmounts(_balance0, _balance1, getLowerTick(), getUpperTick()));
     }
 
     function getUpperTick() public view returns (int24) {
@@ -135,23 +123,20 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         bool _swap
     ) external payable nonReentrant whenNotPaused {
         bool _ethUsed;
-        (token0Amount, token1Amount, _ethUsed) = _convertEth(
-            token0Amount,
-            token1Amount
-        );
+        (token0Amount, token1Amount, _ethUsed) = _convertEth(token0Amount, token1Amount);
 
         uint256 _liquidity;
-        _swap
-            ? _liquidity = _depositSwap(token0Amount, token1Amount, _ethUsed)
-            : _liquidity = _depositExact(token0Amount, token1Amount, _ethUsed);
+        _swap ? _liquidity = _depositSwap(token0Amount, token1Amount, _ethUsed) : _liquidity = _depositExact(
+            token0Amount,
+            token1Amount,
+            _ethUsed
+        );
 
         uint256 shares = 0;
         if (totalSupply() == 0) {
             shares = _liquidity;
         } else {
-            shares = (_liquidity.mul(totalSupply())).div(
-                IControllerV2(controller).liquidityOf(address(pool))
-            );
+            shares = (_liquidity.mul(totalSupply())).div(IControllerV2(controller).liquidityOf(address(pool)));
         }
 
         _mint(msg.sender, shares);
@@ -160,24 +145,13 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     }
 
     function getProportion() public view returns (uint256) {
-        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(
-            1e18,
-            getLowerTick(),
-            getUpperTick()
-        );
+        (uint256 a1, uint256 a2) = pool.amountsForLiquidity(1e18, getLowerTick(), getUpperTick());
         return (a2 * (10**18)) / a1;
     }
 
-    function _getCorrectAmounts(uint256 _token0Amount, uint256 _token1Amount)
-        internal
-        returns (uint256, uint256)
-    {
-        uint256 amount0ForAmount1 = _token1Amount.mul(1e18).div(
-            getProportion()
-        );
-        uint256 amount1ForAmount0 = _token0Amount.mul(getProportion()).div(
-            1e18
-        );
+    function _getCorrectAmounts(uint256 _token0Amount, uint256 _token1Amount) internal returns (uint256, uint256) {
+        uint256 amount0ForAmount1 = _token1Amount.mul(1e18).div(getProportion());
+        uint256 amount1ForAmount0 = _token0Amount.mul(getProportion()).div(1e18);
 
         if (_token0Amount > amount0ForAmount1) {
             _token0Amount = amount0ForAmount1;
@@ -193,25 +167,15 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
     function withdraw(uint256 _shares) public nonReentrant whenNotPaused {
         uint256 r = (totalLiquidity().mul(_shares)).div(totalSupply());
-        (uint256 _expectA0, uint256 _expectA1) = pool.amountsForLiquidity(
-            uint128(r),
-            getLowerTick(),
-            getUpperTick()
-        );
+        (uint256 _expectA0, uint256 _expectA1) = pool.amountsForLiquidity(uint128(r), getLowerTick(), getUpperTick());
         _burn(msg.sender, _shares);
         // Check balance
-        uint256[2] memory _balances = [
-            token0.balanceOf(address(this)),
-            token1.balanceOf(address(this))
-        ];
+        uint256[2] memory _balances = [token0.balanceOf(address(this)), token1.balanceOf(address(this))];
         uint256 b = liquidityOfThis();
 
         if (b < r) {
             uint256 _withdraw = r.sub(b);
-            (uint256 _a0, uint256 _a1) = IControllerV2(controller).withdraw(
-                address(pool),
-                _withdraw
-            );
+            (uint256 _a0, uint256 _a1) = IControllerV2(controller).withdraw(address(pool), _withdraw);
             _expectA0 = _balances[0].add(_a0);
             _expectA1 = _balances[1].add(_a1);
         }
@@ -230,15 +194,11 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         uint256 token1Amount,
         bool _ethUsed
     ) internal returns (uint256) {
-        if (
-            !(token0.balanceOf(address(this)) >= token0Amount) &&
-            (token0Amount != 0)
-        ) token0.safeTransferFrom(msg.sender, address(this), token0Amount);
+        if (!(token0.balanceOf(address(this)) >= token0Amount) && (token0Amount != 0))
+            token0.safeTransferFrom(msg.sender, address(this), token0Amount);
 
-        if (
-            !(token1.balanceOf(address(this)) >= token1Amount) &&
-            (token1Amount != 0)
-        ) token1.safeTransferFrom(msg.sender, address(this), token1Amount);
+        if (!(token1.balanceOf(address(this)) >= token1Amount) && (token1Amount != 0))
+            token1.safeTransferFrom(msg.sender, address(this), token1Amount);
 
         _balanceProportion(getLowerTick(), getUpperTick());
 
@@ -250,15 +210,10 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         uint256 _token1AmountDesired,
         bool _ethUsed
     ) internal returns (uint256) {
-        (uint256 _token0Amount, uint256 _token1Amount) = _getCorrectAmounts(
-            _token0AmountDesired,
-            _token1AmountDesired
-        );
+        (uint256 _token0Amount, uint256 _token1Amount) = _getCorrectAmounts(_token0AmountDesired, _token1AmountDesired);
 
-        if (_token0Amount > 0)
-            token0.safeTransferFrom(msg.sender, address(this), _token0Amount);
-        if (_token1Amount > 0)
-            token1.safeTransferFrom(msg.sender, address(this), _token1Amount);
+        if (_token0Amount > 0) token0.safeTransferFrom(msg.sender, address(this), _token0Amount);
+        if (_token1Amount > 0) token1.safeTransferFrom(msg.sender, address(this), _token1Amount);
 
         if (_ethUsed) {
             if ((address(token0) == address(weth))) {
@@ -272,13 +227,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
             }
         }
 
-        return
-            pool.liquidityForAmounts(
-                _token0Amount,
-                _token1Amount,
-                getLowerTick(),
-                getUpperTick()
-            );
+        return pool.liquidityForAmounts(_token0Amount, _token1Amount, getLowerTick(), getUpperTick());
     }
 
     function _convertEth(uint256 token0Amount, uint256 token1Amount)
@@ -321,22 +270,12 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(getUpperTick());
 
         _cache.liquidity = uint128(
-            LiquidityAmounts
-            .getLiquidityForAmount0(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                _cache.amount0Desired
-            ).add(
-                LiquidityAmounts.getLiquidityForAmount1(
-                    sqrtRatioAX96,
-                    sqrtRatioBX96,
-                    _cache.amount1Desired
-                )
+            LiquidityAmounts.getLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, _cache.amount0Desired).add(
+                LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioBX96, _cache.amount1Desired)
             )
         );
 
-        (_cache.amount0, _cache.amount1) = LiquidityAmounts
-        .getAmountsForLiquidity(
+        (_cache.amount0, _cache.amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96,
             sqrtRatioAX96,
             sqrtRatioBX96,
@@ -344,23 +283,15 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         );
 
         if (_cache.amount0Desired > _cache.amount0)
-            if ((address(token0) == address(weth)) && _ethUsed)
-                _refundEth(_cache.amount0Desired.sub(_cache.amount0));
+            if ((address(token0) == address(weth)) && _ethUsed) _refundEth(_cache.amount0Desired.sub(_cache.amount0));
             else {
-                token0.safeTransfer(
-                    msg.sender,
-                    _cache.amount0Desired.sub(_cache.amount0)
-                );
+                token0.safeTransfer(msg.sender, _cache.amount0Desired.sub(_cache.amount0));
             }
 
         if (_cache.amount1Desired > _cache.amount1)
-            if ((address(token1) == address(weth)) && _ethUsed)
-                _refundEth(_cache.amount1Desired.sub(_cache.amount1));
+            if ((address(token1) == address(weth)) && _ethUsed) _refundEth(_cache.amount1Desired.sub(_cache.amount1));
             else {
-                token1.safeTransfer(
-                    msg.sender,
-                    _cache.amount1Desired.sub(_cache.amount1)
-                );
+                token1.safeTransfer(msg.sender, _cache.amount1Desired.sub(_cache.amount1));
             }
         return _cache.liquidity;
     }
@@ -376,22 +307,12 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(_tickUpper);
 
         _cache.liquidity = uint128(
-            LiquidityAmounts
-            .getLiquidityForAmount0(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                _cache.amount0Desired
-            ).add(
-                LiquidityAmounts.getLiquidityForAmount1(
-                    sqrtRatioAX96,
-                    sqrtRatioBX96,
-                    _cache.amount1Desired
-                )
+            LiquidityAmounts.getLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, _cache.amount0Desired).add(
+                LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioBX96, _cache.amount1Desired)
             )
         );
 
-        (_cache.amount0, _cache.amount1) = LiquidityAmounts
-        .getAmountsForLiquidity(
+        (_cache.amount0, _cache.amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96,
             sqrtRatioAX96,
             sqrtRatioBX96,
@@ -399,9 +320,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         );
 
         //Determine Trade Direction
-        bool _zeroForOne = _cache.amount0Desired > _cache.amount0
-            ? true
-            : false;
+        bool _zeroForOne = _cache.amount0Desired > _cache.amount0 ? true : false;
 
         //Determine Amount to swap
         uint256 _amountSpecified = _zeroForOne
@@ -410,9 +329,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
 
         if (_amountSpecified > 0) {
             //Determine Token to swap
-            address _inputToken = _zeroForOne
-                ? address(token0)
-                : address(token1);
+            address _inputToken = _zeroForOne ? address(token0) : address(token1);
 
             IERC20(_inputToken).safeApprove(univ3Router, 0);
             IERC20(_inputToken).safeApprove(univ3Router, _amountSpecified);
@@ -447,4 +364,6 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
     }
 
     fallback() external payable {}
+
+    receive() external payable {}
 }

@@ -51,38 +51,45 @@ const setJar = async () => {
   const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
   const timelock = "0xd92c7faa0ca0e6ae4918f3a83d9832d9caeaa0d3";
 
-  const want = "0x853d955aCEf822Db058eb8505911ED77F175b99e";
+  const want = "0xa6Cc3C2531FdaA6Ae1A3CA84c2855806728693e8";
 
-  console.log("deploying strategy...");
+  // console.log("deploying strategy...");
 
-  const StrategyFactory = await ethers.getContractFactory("src/strategies/uwu/strategy-uwu-frax.sol:StrategyUwuFrax");
+  // const StrategyFactory = await ethers.getContractFactory("StrategyEthLinkUniV3");
 
-  const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
-  await strategy.deployed();
+  // const strategy = await StrategyFactory.deploy(100, 0, governance, strategist, controller, timelock);
+  // await strategy.deployed();
 
-  console.log("strategy deployed at: ", strategy.address);
+  // console.log("strategy deployed at: ", strategy.address);
 
-  const whitelistTx = await strategy.whitelistHarvesters(harvesters);
-  await whitelistTx.wait();
+  // const whitelistTx = await strategy.whitelistHarvesters(harvesters);
+  // await whitelistTx.wait();
 
-  console.log("Whitelisted harvesters");
+  // console.log("Whitelisted harvesters");
 
   console.log("deploying jar...");
 
-  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
-  const jar = await PickleJarFactory.deploy(want, governance, timelock, controller);
+  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar-univ3.sol:PickleJarUniV3");
+  const jar = await PickleJarFactory.deploy(
+    "pickling LINK/WETH Jar",
+    "pLINKWETH",
+    want,
+    governance,
+    timelock,
+    controller
+  );
 
   await jar.deployed();
   console.log("Jar deployed at: ", jar.address);
 
   await Promise.all([
-    hre.run("verify:verify", {
-      address: strategy.address,
-      constructorArguments: [governance, strategist, controller, timelock],
-    }),
+    // hre.run("verify:verify", {
+    //   address: strategy.address,
+    //   constructorArguments: [100, 0, governance, strategist, controller, timelock],
+    // }),
     hre.run("verify:verify", {
       address: jar.address,
-      constructorArguments: [want, governance, timelock, controller],
+      constructorArguments: ["pickling LINK/WETH Jar", "pLINKWETH", want, governance, timelock, controller],
     }),
   ]);
 };

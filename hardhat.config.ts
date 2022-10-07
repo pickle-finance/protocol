@@ -118,7 +118,7 @@ const config: HardhatUserConfig = {
     },
   },
   paths: {
-    sources: "./src/strategies/uwu",
+    sources: "./src/",
     tests: "./src/tests/strategies",
     cache: "./cache",
     artifacts: "./artifacts",
