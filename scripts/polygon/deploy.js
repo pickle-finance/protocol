@@ -48,42 +48,44 @@ const harvesters = [
 const setJar = async () => {
   const governance = "0x9d074E37d408542FD38be78848e8814AFB38db17";
   const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
-  const timelock = "0xd92c7faa0ca0e6ae4918f3a83d9832d9caeaa0d3";
+  const controller = "0x7B5916C61bCEeaa2646cf49D9541ac6F5DCe3637";
+  const timelock = "0x9d074E37d408542FD38be78848e8814AFB38db17";
 
   const want = "0x853d955aCEf822Db058eb8505911ED77F175b99e";
 
   console.log("deploying strategy...");
 
-  const StrategyFactory = await ethers.getContractFactory("src/strategies/uwu/strategy-uwu-frax.sol:StrategyUwuFrax");
+  const StrategyFactory = await ethers.getContractFactory(
+    "src/strategies/uniswapv3/strategy-univ3-eth-ape-lp.sol:StrategyEthApeUniV3"
+  );
 
-  const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
+  const strategy = await StrategyFactory.deploy(100, 0, governance, strategist, controller, timelock);
   await strategy.deployed();
 
   console.log("strategy deployed at: ", strategy.address);
 
-  const whitelistTx = await strategy.whitelistHarvesters(harvesters);
-  await whitelistTx.wait();
+  // const whitelistTx = await strategy.whitelistHarvesters(harvesters);
+  // await whitelistTx.wait();
 
-  console.log("Whitelisted harvesters");
+  // console.log("Whitelisted harvesters");
 
-  console.log("deploying jar...");
+  // console.log("deploying jar...");
 
-  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
-  const jar = await PickleJarFactory.deploy(want, governance, timelock, controller);
+  // const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
+  // const jar = await PickleJarFactory.deploy(want, governance, timelock, controller);
 
-  await jar.deployed();
-  console.log("Jar deployed at: ", jar.address);
+  // await jar.deployed();
+  // console.log("Jar deployed at: ", jar.address);
 
   await Promise.all([
     hre.run("verify:verify", {
       address: strategy.address,
-      constructorArguments: [governance, strategist, controller, timelock],
+      constructorArguments: [100, 0, governance, strategist, controller, timelock],
     }),
-    hre.run("verify:verify", {
-      address: jar.address,
-      constructorArguments: [want, governance, timelock, controller],
-    }),
+    // hre.run("verify:verify", {
+    //   address: jar.address,
+    //   constructorArguments: [want, governance, timelock, controller],
+    // }),
   ]);
 };
 

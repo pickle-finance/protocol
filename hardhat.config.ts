@@ -37,7 +37,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       forking: {
         url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
-        //        blockNumber: 16149920,
+        blockNumber: 15691462,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -118,7 +118,7 @@ const config: HardhatUserConfig = {
     },
   },
   paths: {
-    sources: "./src/strategies/uwu",
+    sources: "./src/strategies/uniswapv3",
     tests: "./src/tests/strategies",
     cache: "./cache",
     artifacts: "./artifacts",
