@@ -262,13 +262,13 @@ export const getLpToken = async (
 export const getWantFromWhale = async (
   want_addr: string,
   amount: number | BigNumber,
-  to: SignerWithAddress,
+  to: string,
   whaleAddr: string
 ) => {
   const whale = await unlockAccount(whaleAddr);
   const want = await getContractAt("src/lib/erc20.sol:ERC20", want_addr);
 
-  await want.connect(whale).transfer(to.address, amount);
-  const _balance = await want.balanceOf(to.address);
+  await want.connect(whale).transfer(to, amount);
+  const _balance = await want.balanceOf(to);
   expect(_balance).to.be.gte(amount, "get want from the whale failed");
 };

@@ -2,6 +2,8 @@ import "@nomicfoundation/hardhat-toolbox";
 import {BigNumber} from "ethers";
 import {ethers} from "hardhat";
 import {deployContract, increaseTime, getContractAt, increaseBlock, unlockAccount, toWei} from "../../utils/testHelper";
+import {getWantFromWhale} from "../../utils/setupHelper";
+
 /*
     Test steps:
     1. Ascertain what users would have received before the exploit block (15691462) 
@@ -34,6 +36,8 @@ describe("StrategyUsdcEthUniV3Restoration", () => {
   let jar, strategy, gauge, rugProxy, uniNft;
   let token0, token1;
   let token0Name, token0Decimals, token1Name, token1Decimals;
+  let liquidityValue; // token value for 1e18 worth of liquidity
+  let liquidityAfterVictimWithdrawal; // This is the state that we want to return the jar to
 
   before("Setup Contracts", async () => {
     const [alice] = await ethers.getSigners();
@@ -51,7 +55,7 @@ describe("StrategyUsdcEthUniV3Restoration", () => {
     strategy = await getContractAt("StrategyUsdcEth05UniV3", "0x184a71185674c789b4177a49bd41a96ce2c421ef");
 
     gauge = await getContractAt("Gauge", GAUGE_ADDRESS);
-    uniNft = await getContractAt("src/interfaces/univ3/IERC721.sol:IERC721", UNI_NFT);
+    uniNft = await getContractAt("src/interfaces/univ3/IUniswapV3PositionsNFT.sol:IUniswapV3PositionsNFT", UNI_NFT);
 
     rugProxy = await deployContract("WithdrawNFT");
 
@@ -80,20 +84,20 @@ describe("StrategyUsdcEthUniV3Restoration", () => {
   });
 
   it("should give a proper accounting of funds", async () => {
-    console.log("===============State Before Exploit==============");
+    console.log("\n===============State Before Exploit==============");
     const initialLiquidity = await jar.totalLiquidity();
     console.log("\nLiquidity in Jar before exploit:", initialLiquidity);
 
     // Tokens for 1e18 units of liquidity
-    const initialTokens = await strategy.amountsForLiquid();
+    liquidityValue = await strategy.amountsForLiquid();
 
     const token0Before = ethers.utils.formatUnits(
-      initialLiquidity.mul(initialTokens[0]).div((1e18).toFixed()),
+      initialLiquidity.mul(liquidityValue[0]).div((1e18).toFixed()),
       token0Decimals
     );
 
     const token1Before = ethers.utils.formatUnits(
-      initialLiquidity.mul(initialTokens[1]).div((1e18).toFixed()),
+      initialLiquidity.mul(liquidityValue[1]).div((1e18).toFixed()),
       token1Decimals
     );
 
@@ -104,7 +108,7 @@ describe("StrategyUsdcEthUniV3Restoration", () => {
     await gauge.connect(victim).exit();
     await jar.connect(victim).withdrawAll();
 
-    const liquidityAfterVictimWithdrawal = await jar.totalLiquidity();
+    liquidityAfterVictimWithdrawal = await jar.totalLiquidity();
 
     await gauge.connect(user).exit();
     await jar.connect(user).withdrawAll();
@@ -116,12 +120,73 @@ describe("StrategyUsdcEthUniV3Restoration", () => {
   });
 
   it("should rug the NFT", async () => {
-    console.log("===============Rugging the NFT==============");
+    console.log("\n===============Rugging the NFT==============");
+
     const WITHDRAW_SIGNATURE = "0x3ccfd60b";
 
+    const liquidityBeforeRug = await jar.totalLiquidity();
+    console.log("\nLiquidity in Jar before rug ┏༼ ◉╭╮◉༽┓ ", liquidityBeforeRug);
+
     console.log("\nNFT balance before rug:", await uniNft.balanceOf(CIPIO_ADDRESS));
+
+    const tokenId = await strategy.tokenId();
+
     await strategy.connect(cipio).execute(rugProxy.address, WITHDRAW_SIGNATURE);
-    console.log("\nNFT balance before rug:", await uniNft.balanceOf(CIPIO_ADDRESS));
+
+    await uniNft.connect(cipio).decreaseLiquidity({
+      tokenId,
+      liquidity: liquidityBeforeRug,
+      amount0Min: 0,
+      amount1Min: 0,
+      deadline: Math.floor(Date.now() / 1000) + 900,
+    });
+
+    console.log("\nNFT balance after rug:", await uniNft.balanceOf(CIPIO_ADDRESS));
+
+    console.log("\nLiquidity in Jar after rug ┏༼ ◉╭╮◉༽┓ ", await jar.totalLiquidity());
+  });
+
+  it("should make the jar whole", async () => {
+    console.log("\n===============Undo the Rug==============");
+    const token0Needed = ethers.utils.formatUnits(
+      liquidityAfterVictimWithdrawal.mul(liquidityValue[0]).div((1e18).toFixed()),
+      token0Decimals
+    );
+
+    const token1Needed = ethers.utils.formatUnits(
+      liquidityAfterVictimWithdrawal.mul(liquidityValue[1]).div((1e18).toFixed()),
+      token1Decimals
+    );
+
+    console.log(`\nTokens needed to make Jar whole: ${token0Name} = ${token0Needed}, ${token1Name} = ${token1Needed}`);
+
+    const WHALE = "0x8EB8a3b98659Cce290402893d0123abb75E3ab28";
+    await getWantFromWhale(
+      token0.address,
+      liquidityAfterVictimWithdrawal.mul(liquidityValue[0]).div((1e18).toFixed()),
+      strategy.address,
+      WHALE
+    );
+    await getWantFromWhale(
+      token1.address,
+      liquidityAfterVictimWithdrawal.mul(liquidityValue[1]).div((1e18).toFixed()),
+      strategy.address,
+      WHALE
+    );
+
+    console.log("\nReturning the now empty NFT to the strategy and rebalancing...");
+
+    const tokenId = await strategy.tokenId();
+    uniNft.connect(cipio).transferFrom(CIPIO_ADDRESS, strategy.address, tokenId);
+
+    await strategy.connect(cipio).rebalance();
+    console.log("rebalanced");
+
+    console.log("\nLiquidity in Jar after restoration ٩(^‿^)۶ ", await jar.totalLiquidity());
+  });
+
+  it("should ensure that innocent User gets the same withdrawal", async () => {
+    console.log("\n===============User Withdrawal==============");
   });
 
   const logUserBalance = async (name, userAddress) => {

@@ -37,7 +37,6 @@ const config: HardhatUserConfig = {
     hardhat: {
       forking: {
         url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
-        blockNumber: 15691462,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
