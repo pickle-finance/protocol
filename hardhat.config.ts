@@ -36,13 +36,18 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+        url: `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
         //        blockNumber: 16149920,
       },
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-      },
-      // accounts: [{privateKey:process.env.PRIVATE_KEY, balance: "1000000000000000000000"}],
+      // accounts: {
+      //   mnemonic: process.env.MNEMONIC,
+      // },
+      accounts: [
+        {
+          privateKey: process.env.PRIVATE_KEY || "",
+          balance: "1000000000000000000000",
+        },
+      ],
       // mining: {
       //   auto: false,
       //   interval: [4000, 6000],
@@ -63,7 +68,7 @@ const config: HardhatUserConfig = {
       chainId: 137,
     },
     arbitrumOne: {
-      url: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_ARBITRUM}`,
+      url: `https://arb-mainnet.g.alchemy.com/v2/${process.env.INFURA_KEY}`,
       accounts: [process.env.PRIVATE_KEY ?? ""],
       chainId: 42161,
     },
@@ -118,7 +123,7 @@ const config: HardhatUserConfig = {
     },
   },
   paths: {
-    sources: "./src/strategies/uwu",
+    sources: "./src/strategies/arbitrum",
     tests: "./src/tests/strategies",
     cache: "./cache",
     artifacts: "./artifacts",

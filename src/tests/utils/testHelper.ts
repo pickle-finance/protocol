@@ -1,17 +1,19 @@
 import "@nomicfoundation/hardhat-toolbox";
 import { BigNumber, BigNumberish, providers } from "ethers";
 import { ethers, network } from "hardhat";
-import * as chai from 'chai';
-
+import * as chai from "chai";
 
 /**
  * @notice travel the time to test the block.timestamp
  */
 export const increaseTime = async (sec: number) => {
   if (sec < 60) console.log(`⌛ Advancing ${sec} secs`);
-  else if (sec < 3600) console.log(`⌛ Advancing ${Number(sec / 60).toFixed(0)} mins`);
-  else if (sec < 60 * 60 * 24) console.log(`⌛ Advancing ${Number(sec / 3600).toFixed(0)} hours`);
-  else if (sec < 60 * 60 * 24 * 31) console.log(`⌛ Advancing ${Number(sec / 3600 / 24).toFixed(0)} days`);
+  else if (sec < 3600)
+    console.log(`⌛ Advancing ${Number(sec / 60).toFixed(0)} mins`);
+  else if (sec < 60 * 60 * 24)
+    console.log(`⌛ Advancing ${Number(sec / 3600).toFixed(0)} hours`);
+  else if (sec < 60 * 60 * 24 * 31)
+    console.log(`⌛ Advancing ${Number(sec / 3600 / 24).toFixed(0)} days`);
 
   await network.provider.send("evm_increaseTime", [sec]);
   await network.provider.send("evm_mine");
@@ -76,7 +78,7 @@ export const NULL_ADDRESS = "0x0000000000000000000000000000000000000001";
  */
 chai.use((_chai) => {
   let Assertion = _chai.Assertion;
-  Assertion.addMethod('eqApprox', function (amount:BigNumber) {
+  Assertion.addMethod("eqApprox", function (amount: BigNumber) {
     let obj = this._obj;
     const min = amount.mul(95).div(100);
     const max = amount.mul(105).div(100);
@@ -91,4 +93,3 @@ chai.use((_chai) => {
 });
 
 export const expect = chai.expect;
-
