@@ -38,7 +38,7 @@
     "dotenv": "^8.2.0",
     "eslint": "^7.10.0",
     "ethers": "^5.1.3",
-    "hardhat": "^2.6.8",
+    "hardhat": "npm:@gzeoneth/hardhat@2.10.2-gzeon-e972f1dda",
     "hardhat-contract-sizer": "^2.1.1",
     "hardhat-deploy": "^0.11.12",
     "hardhat-gas-reporter": "^1.0.4",

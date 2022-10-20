@@ -37,17 +37,12 @@ const config: HardhatUserConfig = {
     hardhat: {
       forking: {
         url: `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+        ignoreUnknownTxType: true, // needed to work with patched Hardhat + Arbitrum Nitro
         //        blockNumber: 16149920,
       },
-      // accounts: {
-      //   mnemonic: process.env.MNEMONIC,
-      // },
-      accounts: [
-        {
-          privateKey: process.env.PRIVATE_KEY || "",
-          balance: "1000000000000000000000",
-        },
-      ],
+      accounts: {
+        mnemonic: process.env.MNEMONIC,
+      },
       // mining: {
       //   auto: false,
       //   interval: [4000, 6000],

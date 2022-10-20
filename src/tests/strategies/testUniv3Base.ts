@@ -5,8 +5,8 @@ import {
   increaseTime,
   getContractAt,
   increaseBlock,
-} from "../../../utils/testHelper";
-import { getWantFromWhale } from "../../../utils/setupHelper";
+} from "../utils/testHelper";
+import { getWantFromWhale } from "../utils/setupHelper";
 import { BigNumber, Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
@@ -44,10 +44,10 @@ export const doUniV3TestBehaviorBase = (
       strategist = alice;
       timelock = alice;
       devfund = alice;
-      treasury = alice;
+      treasury = fred;
 
       controller = await deployContract(
-        "/src/optimism/controller-v7.sol:ControllerV7",
+        "/src/controller-v7.sol:ControllerV7",
         governance.address,
         strategist.address,
         timelock.address,

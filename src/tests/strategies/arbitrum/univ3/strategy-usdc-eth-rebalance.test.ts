@@ -1,5 +1,5 @@
 import { toWei } from "../../../utils/testHelper";
-import { doUniV3TestBehaviorBase, TokenParams } from "./strategyUniv3Base";
+import { doUniV3TestBehaviorBase, TokenParams } from "../../testUniv3Base";
 
 describe("StrategyUsdcEthUniV3Arbi", () => {
   let strategyName = "StrategyUsdcEthUniV3Arbi";
