@@ -16,7 +16,6 @@ interface ISwapRouter {
     struct ExactInputParams {
         bytes path;
         address recipient;
-        uint256 deadline;
         uint256 amountIn;
         uint256 amountOutMinimum;
     }

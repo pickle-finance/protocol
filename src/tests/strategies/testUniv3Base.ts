@@ -31,7 +31,11 @@ export const doUniV3TestBehaviorBase = (
       charles: SignerWithAddress,
       fred: SignerWithAddress;
     let token0: Contract, token1: Contract;
-    let strategy: Contract, pickleJar: Contract, controller: Contract;
+    let strategy: Contract,
+      pickleJar: Contract,
+      controller: Contract,
+      router: Contract,
+      pool: Contract;
     let governance: SignerWithAddress,
       strategist: SignerWithAddress,
       timelock: SignerWithAddress,
@@ -108,7 +112,17 @@ export const doUniV3TestBehaviorBase = (
         token1Args.tokenAddr
       );
 
-      // univ3router = await getContractAt("src/polygon/interfaces/univ3/ISwapRouter.sol:ISwapRouter", UNIV3ROUTER);
+      router = await getContractAt(
+        chain === "mainnet"
+          ? "src/interfaces/univ3/ISwapRouter.sol:ISwapRouter"
+          : "src/optimism/interfaces/univ3/ISwapRouter.sol:ISwapRouter",
+        await strategy.univ3Router()
+      );
+
+      pool = await getContractAt(
+        "src/interfaces/univ3/IUniswapV3Pool.sol:IUniswapV3Pool",
+        poolAddr
+      );
 
       console.log("✅ Jar Setup Complete ");
 
@@ -173,7 +187,7 @@ export const doUniV3TestBehaviorBase = (
           ? await depositWithEthToken1(alice, depositA, depositB)
           : await depositWithEthToken0(alice, depositA, depositB);
       } else {
-        await deposit(alice, depositA, depositB);
+        await deposit(alice, depositA.div(2), depositB.div(2));
       }
 
       await strategy.setTickRangeMultiplier("50");
@@ -182,9 +196,9 @@ export const doUniV3TestBehaviorBase = (
       console.log("=============== Bob deposit ==============");
 
       await deposit(bob, depositA, depositB);
-      //await simulateTrading();
+      await simulateTrading();
       await deposit(charles, depositA, depositB);
-      // await harvest();
+      await harvest();
 
       aliceShare = await pickleJar.balanceOf(alice.address);
       console.log("Alice share amount => ", aliceShare.toString());
@@ -244,7 +258,7 @@ export const doUniV3TestBehaviorBase = (
         (await token1.balanceOf(bob.address)).toString()
       );
 
-      //await harvest();
+      await harvest();
 
       await rebalance();
       console.log("=============== Controller withdraw ===============");
@@ -416,6 +430,32 @@ export const doUniV3TestBehaviorBase = (
         "User Balance after => ",
         (await ethers.provider.getBalance(user.address)).toString()
       );
+    };
+
+    const trade = async (_inputToken: string, _outputToken: string) => {
+      const input = await getContractAt("src/lib/erc20.sol:ERC20", _inputToken);
+      const poolFee = await pool.fee();
+      const aliceAddress = alice.address;
+      const amount = await input.balanceOf(alice.address);
+
+      const path = ethers.utils.solidityPack(
+        ["address", "uint24", "address"],
+        [_inputToken, poolFee, _outputToken]
+      );
+      await input.connect(alice).approve(router.address, amount);
+      await router.connect(alice).exactInput({
+        path,
+        recipient: aliceAddress,
+        amountIn: amount,
+        amountOutMinimum: 0,
+      });
+    };
+
+    const simulateTrading = async () => {
+      for (let i = 0; i < 50; i++) {
+        await trade(token0.address, token1.address);
+        await trade(token1.address, token0.address);
+      }
     };
 
     const harvest = async () => {

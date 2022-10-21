@@ -46,18 +46,29 @@ const harvesters = [
 ];
 
 const setJar = async () => {
-  const governance = "0x9d074E37d408542FD38be78848e8814AFB38db17";
+  const governance = "0xf02ceb58d549e4b403e8f85fbbaee4c5dfa47c01";
   const strategist = "0xaCfE4511CE883C14c4eA40563F176C3C09b4c47C";
-  const controller = "0x6847259b2B3A4c17e7c43C54409810aF48bA5210";
-  const timelock = "0xd92c7faa0ca0e6ae4918f3a83d9832d9caeaa0d3";
+  const timelock = "0xf02ceb58d549e4b403e8f85fbbaee4c5dfa47c01";
 
-  const want = "0x853d955aCEf822Db058eb8505911ED77F175b99e";
+  const want = "0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443";
+
+  const tickMultiplier = 235;
+
+  console.log("deploying controller...");
+
+  const ControllerFactory = await ethers.getContractFactory("src/controller-v7.sol:ControllerV7");
+  const controller = await ControllerFactory.deploy(governance, strategist, timelock, governance, governance);
+
+  await controller.deployed();
+  console.log("controller deployed at: ", controller.address);
 
   console.log("deploying strategy...");
 
-  const StrategyFactory = await ethers.getContractFactory("src/strategies/uwu/strategy-uwu-frax.sol:StrategyUwuFrax");
+  const StrategyFactory = await ethers.getContractFactory(
+    "src/strategies/arbitrum/uniswapv3/strategy-univ3-eth-usdc-lp.sol:StrategyUsdcEthUniV3Arbi"
+  );
 
-  const strategy = await StrategyFactory.deploy(governance, strategist, controller, timelock);
+  const strategy = await StrategyFactory.deploy(tickMultiplier, governance, strategist, controller.address, timelock);
   await strategy.deployed();
 
   console.log("strategy deployed at: ", strategy.address);
@@ -69,20 +80,27 @@ const setJar = async () => {
 
   console.log("deploying jar...");
 
-  const PickleJarFactory = await ethers.getContractFactory("src/pickle-jar.sol:PickleJar");
-  const jar = await PickleJarFactory.deploy(want, governance, timelock, controller);
+  let jarDescrip = `pickling USDC/WETH Jar`;
+  let pTokenName = `pUSDCWETH`;
+
+  const PickleJarFactory = await ethers.getContractFactory("src/arbitrum/pickle-jar-univ3.sol:PickleJarUniV3Arbitrum");
+  const jar = await PickleJarFactory.deploy(jarDescrip, pTokenName, want, governance, timelock, controller.address);
 
   await jar.deployed();
   console.log("Jar deployed at: ", jar.address);
 
   await Promise.all([
     hre.run("verify:verify", {
+      address: controller.address,
+      constructorArguments: [governance, strategist, timelock, governance, governance],
+    }),
+    hre.run("verify:verify", {
       address: strategy.address,
-      constructorArguments: [governance, strategist, controller, timelock],
+      constructorArguments: [tickMultiplier, governance, strategist, controller.address, timelock],
     }),
     hre.run("verify:verify", {
       address: jar.address,
-      constructorArguments: [want, governance, timelock, controller],
+      constructorArguments: [jarDescrip, pTokenName, governance, timelock, controller.address],
     }),
   ]);
 };

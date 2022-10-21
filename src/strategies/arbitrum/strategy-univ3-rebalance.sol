@@ -468,7 +468,6 @@ abstract contract StrategyRebalanceUniV3 {
                 ISwapRouter.ExactInputParams({
                     path: _path,
                     recipient: address(this),
-                    deadline: block.timestamp + 300,
                     amountIn: _amount,
                     amountOutMinimum: 0
                 })
