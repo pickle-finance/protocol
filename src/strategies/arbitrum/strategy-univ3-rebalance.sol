@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.6.12 <0.8.0;
+pragma solidity >=0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../../optimism/lib/erc20.sol";
@@ -461,9 +461,15 @@ abstract contract StrategyRebalanceUniV3 {
         }
     }
 
-    function _swapUniV3WithPath(bytes memory _path, uint256 _amount) internal returns (uint256 _amountOut) {
+    function _swapUniV3WithPath(
+        address _token,
+        bytes memory _path,
+        uint256 _amount
+    ) internal returns (uint256 _amountOut) {
         _amountOut = 0;
-        if (_path.length > 0)
+        if (_path.length > 0) {
+            IERC20(_token).safeApprove(univ3Router, 0);
+            IERC20(_token).safeApprove(univ3Router, _amount);
             _amountOut = ISwapRouter(univ3Router).exactInput(
                 ISwapRouter.ExactInputParams({
                     path: _path,
@@ -472,32 +478,41 @@ abstract contract StrategyRebalanceUniV3 {
                     amountOutMinimum: 0
                 })
             );
+        }
     }
 
     function _distributePerformanceFees(uint256 _amount0, uint256 _amount1) internal {
+        uint256 _nativeToTreasury;
         if (_amount0 > 0) {
-            uint256 _token0ToTreasury;
             uint256 _token0ToTrade = _amount0.mul(performanceTreasuryFee).div(performanceTreasuryMax);
 
             if (tokenToNativeRoutes[address(token0)].length > 0) {
-                _token0ToTreasury = _swapUniV3WithPath(tokenToNativeRoutes[address(token0)], _token0ToTrade);
+                _nativeToTreasury += _swapUniV3WithPath(
+                    address(token0),
+                    tokenToNativeRoutes[address(token0)],
+                    _token0ToTrade
+                );
+                // token0 is native
             } else {
-                _token0ToTreasury = _token0ToTrade;
+                _nativeToTreasury += _token0ToTrade;
             }
-            IERC20(token0).safeTransfer(IControllerV2(controller).treasury(), _token0ToTreasury);
         }
 
         if (_amount1 > 0) {
-            uint256 _token1ToTreasury;
             uint256 _token1ToTrade = _amount1.mul(performanceTreasuryFee).div(performanceTreasuryMax);
 
             if (tokenToNativeRoutes[address(token1)].length > 0) {
-                _token1ToTreasury = _swapUniV3WithPath(tokenToNativeRoutes[address(token1)], _token1ToTrade);
+                _nativeToTreasury += _swapUniV3WithPath(
+                    address(token1),
+                    tokenToNativeRoutes[address(token1)],
+                    _token1ToTrade
+                );
+                // token1 is native
             } else {
-                _token1ToTreasury = _token1ToTrade;
+                _nativeToTreasury += _token1ToTrade;
             }
-            IERC20(token1).safeTransfer(IControllerV2(controller).treasury(), _token1ToTreasury);
         }
+        if (_nativeToTreasury > 0) IERC20(native).safeTransfer(IControllerV2(controller).treasury(), _nativeToTreasury);
     }
 
     function onERC721Received(

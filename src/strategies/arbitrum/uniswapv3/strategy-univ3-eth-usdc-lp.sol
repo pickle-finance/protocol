@@ -18,7 +18,7 @@ contract StrategyUsdcEthUniV3Arbi is StrategyRebalanceUniV3 {
         public
         StrategyRebalanceUniV3(usdc_eth_pool, _tickRangeMultiplier, _governance, _strategist, _controller, _timelock)
     {
-        tokenToNativeRoutes[usdc] = abi.encodePacked(weth, uint24(500), usdc);
+        tokenToNativeRoutes[usdc] = abi.encodePacked(usdc, uint24(500), weth);
     }
 
     function getName() external pure override returns (string memory) {
