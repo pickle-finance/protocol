@@ -4,15 +4,16 @@
 pragma solidity >=0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "./lib/erc20.sol";
-import "./lib/safe-math.sol";
+import "../lib/erc20.sol";
+import "../lib/safe-math.sol";
 
-import "./interfaces/jar.sol";
-import "./interfaces/jar-converter.sol";
-import "./interfaces/strategy.sol";
-import "./interfaces/strategyv2.sol";
-import "./interfaces/converter.sol";
-import "./interfaces/univ3/IUniswapV3Pool.sol";
+import "../interfaces/jar.sol";
+import "../interfaces/jar-converter.sol";
+import "../interfaces/strategy.sol";
+import "../interfaces/strategyv2.sol";
+import "../interfaces/onesplit.sol";
+import "../interfaces/converter.sol";
+import "../interfaces/univ3/IUniswapV3Pool.sol";
 
 contract ControllerV7 {
     using SafeERC20 for IERC20;
