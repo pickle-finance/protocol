@@ -87,7 +87,7 @@ describe(`PickleRebalancingKeeper`, () => {
     await wethTmp.connect(alice).deposit({value: strat2WethAmount});
 
     // Add keeper to strategy2 harvesters list
-    const stratStrategistAddr = await strategy.governance();
+    const stratStrategistAddr = await strategy2.governance();
     const stratStrategist = await unlockAccount(stratStrategistAddr);
     await strategy2.connect(stratStrategist).whitelistHarvesters([keeper.address]);
 
