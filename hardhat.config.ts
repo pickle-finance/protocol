@@ -37,7 +37,7 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+        url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_OPTIMISM}`,
         ignoreUnknownTxType: true, // needed to work with patched Hardhat + Arbitrum Nitro
         //        blockNumber: 16149920,
       },
@@ -119,7 +119,7 @@ const config: HardhatUserConfig = {
     },
   },
   paths: {
-    sources: "./src/strategies/arbitrum",
+    sources: "./src/strategies/optimism",
     tests: "./src/tests/strategies",
     cache: "./cache",
     artifacts: "./artifacts",
