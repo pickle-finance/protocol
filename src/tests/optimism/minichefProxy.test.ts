@@ -1,9 +1,8 @@
 import "@nomicfoundation/hardhat-toolbox";
 import {ethers} from "hardhat";
-import {setBalance, loadFixture, mine} from "@nomicfoundation/hardhat-network-helpers";
-import {expect, getContractAt, deployContract, toWei, unlockAccount} from "../utils/testHelper";
-import {BigNumber, Contract} from "ethers";
-import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {loadFixture} from "@nomicfoundation/hardhat-network-helpers";
+import {expect, deployContract, toWei} from "../utils/testHelper";
+import {BigNumber} from "ethers";
 
 describe("MiniChefController", () => {
   const setupFixture = async () => {
@@ -129,7 +128,7 @@ describe("MiniChefController", () => {
     });
 
     it("Should execute emergency properly", async () => {
-      const {governance, miniChefController, minichef, rewarder, alice} = await loadFixture(setupFixture);
+      const {governance, miniChefController, minichef} = await loadFixture(setupFixture);
 
       // Renounce minichef ownership
       const signature = "transferOwnership(address,bool,bool)";
