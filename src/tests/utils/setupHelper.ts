@@ -266,9 +266,11 @@ export const getWantFromWhale = async (
   whaleAddr: string
 ) => {
   const whale = await unlockAccount(whaleAddr);
+  console.log("here");
   const want = await getContractAt("src/lib/erc20.sol:ERC20", want_addr);
-
+  console.log("can't get?", whale._address);
   await want.connect(whale).transfer(to.address, amount);
+  console.log("here2");
   const _balance = await want.balanceOf(to.address);
   expect(_balance).to.be.gte(amount, "get want from the whale failed");
 };

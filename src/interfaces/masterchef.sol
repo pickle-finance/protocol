@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
+pragma solidity >=0.6.7;
 
 interface IMasterchef {
     function BONUS_MULTIPLIER() external view returns (uint256);
@@ -22,29 +22,17 @@ interface IMasterchef {
 
     function emergencyWithdraw(uint256 _pid) external;
 
-    function getMultiplier(uint256 _from, uint256 _to)
-        external
-        view
-        returns (uint256);
+    function getMultiplier(uint256 _from, uint256 _to) external view returns (uint256);
 
     function massUpdatePools() external;
 
     function owner() external view returns (address);
 
-    function pendingPickle(uint256 _pid, address _user)
-        external
-        view
-        returns (uint256);
+    function pendingPickle(uint256 _pid, address _user) external view returns (uint256);
 
-    function pendingReward(uint256 _pid, address _user)
-        external
-        view
-        returns (uint256);
+    function pendingReward(uint256 _pid, address _user) external view returns (uint256);
 
-    function pending(uint256 _pid, address _user)
-        external
-        view
-        returns (uint256);
+    function pending(uint256 _pid, address _user) external view returns (uint256);
 
     function pickle() external view returns (address);
 
@@ -84,10 +72,7 @@ interface IMasterchef {
 
     function updatePool(uint256 _pid) external;
 
-    function userInfo(uint256, address)
-        external
-        view
-        returns (uint256 amount, uint256 rewardDebt);
+    function userInfo(uint256, address) external view returns (uint256 amount, uint256 rewardDebt);
 
     function withdraw(uint256 _pid, uint256 _amount) external;
 }
