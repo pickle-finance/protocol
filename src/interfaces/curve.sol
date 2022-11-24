@@ -1,19 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
+pragma solidity >=0.6.7;
 
 interface ICurveFi_2 {
     function get_virtual_price() external view returns (uint256);
 
-    function add_liquidity(uint256[2] calldata amounts, uint256 min_mint_amount)
-        external;
+    function add_liquidity(uint256[2] calldata amounts, uint256 min_mint_amount) external;
 
-    function remove_liquidity_imbalance(
-        uint256[2] calldata amounts,
-        uint256 max_burn_amount
-    ) external;
+    function remove_liquidity_imbalance(uint256[2] calldata amounts, uint256 max_burn_amount) external;
 
-    function remove_liquidity(uint256 _amount, uint256[2] calldata amounts)
-        external;
+    function remove_liquidity(uint256 _amount, uint256[2] calldata amounts) external;
 
     function exchange(
         int128 from,
@@ -28,16 +23,11 @@ interface ICurveFi_2 {
 interface ICurveFi_3 {
     function get_virtual_price() external view returns (uint256);
 
-    function add_liquidity(uint256[3] calldata amounts, uint256 min_mint_amount)
-        external;
+    function add_liquidity(uint256[3] calldata amounts, uint256 min_mint_amount) external;
 
-    function remove_liquidity_imbalance(
-        uint256[3] calldata amounts,
-        uint256 max_burn_amount
-    ) external;
+    function remove_liquidity_imbalance(uint256[3] calldata amounts, uint256 max_burn_amount) external;
 
-    function remove_liquidity(uint256 _amount, uint256[3] calldata amounts)
-        external;
+    function remove_liquidity(uint256 _amount, uint256[3] calldata amounts) external;
 
     function exchange(
         int128 from,
@@ -52,22 +42,14 @@ interface ICurveFi_3 {
 interface ICurveFi_4 {
     function get_virtual_price() external view returns (uint256);
 
-    function add_liquidity(uint256[4] calldata amounts, uint256 min_mint_amount)
-        external;
+    function add_liquidity(uint256[4] calldata amounts, uint256 min_mint_amount) external;
 
     // stETH pool
-    function add_liquidity(
-        uint256[2] calldata amounts,
-        uint256 min_mint_amount
-    ) external payable;
+    function add_liquidity(uint256[2] calldata amounts, uint256 min_mint_amount) external payable;
 
-    function remove_liquidity_imbalance(
-        uint256[4] calldata amounts,
-        uint256 max_burn_amount
-    ) external;
+    function remove_liquidity_imbalance(uint256[4] calldata amounts, uint256 max_burn_amount) external;
 
-    function remove_liquidity(uint256 _amount, uint256[4] calldata amounts)
-        external;
+    function remove_liquidity(uint256 _amount, uint256[4] calldata amounts) external;
 
     function exchange(
         int128 from,
@@ -87,22 +69,13 @@ interface ICurveFi_4 {
 }
 
 interface ICurveZap_4 {
-    function add_liquidity(
-        uint256[4] calldata uamounts,
-        uint256 min_mint_amount
-    ) external;
+    function add_liquidity(uint256[4] calldata uamounts, uint256 min_mint_amount) external;
 
-    function remove_liquidity(uint256 _amount, uint256[4] calldata min_uamounts)
-        external;
+    function remove_liquidity(uint256 _amount, uint256[4] calldata min_uamounts) external;
 
-    function remove_liquidity_imbalance(
-        uint256[4] calldata uamounts,
-        uint256 max_burn_amount
-    ) external;
+    function remove_liquidity_imbalance(uint256[4] calldata uamounts, uint256 max_burn_amount) external;
 
-    function calc_withdraw_one_coin(uint256 _token_amount, int128 i)
-        external
-        returns (uint256);
+    function calc_withdraw_one_coin(uint256 _token_amount, int128 i) external returns (uint256);
 
     function remove_liquidity_one_coin(
         uint256 _token_amount,
@@ -139,19 +112,17 @@ interface ICurveZap {
 interface ICurveFi_Polygon_3 {
     function get_virtual_price() external view returns (uint256);
 
-    function add_liquidity(uint256[3] calldata amounts, uint256 min_mint_amount)
-        external;
+    function add_liquidity(uint256[3] calldata amounts, uint256 min_mint_amount) external;
 
-    function add_liquidity(uint256[3] calldata amounts, uint256 min_mint_amount, bool use_underlying)
-        external;
-
-    function remove_liquidity_imbalance(
+    function add_liquidity(
         uint256[3] calldata amounts,
-        uint256 max_burn_amount
+        uint256 min_mint_amount,
+        bool use_underlying
     ) external;
 
-    function remove_liquidity(uint256 _amount, uint256[3] calldata amounts)
-        external;
+    function remove_liquidity_imbalance(uint256[3] calldata amounts, uint256 max_burn_amount) external;
+
+    function remove_liquidity(uint256 _amount, uint256[3] calldata amounts) external;
 
     function exchange(
         int128 from,
@@ -194,10 +165,7 @@ interface ICurveMintr {
 }
 
 interface ICurveVotingEscrow {
-    function locked(address arg0)
-        external
-        view
-        returns (int128 amount, uint256 end);
+    function locked(address arg0) external view returns (int128 amount, uint256 end);
 
     function locked__end(address _addr) external view returns (uint256);
 

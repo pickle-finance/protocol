@@ -37,9 +37,9 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
-        ignoreUnknownTxType: true, // needed to work with patched Hardhat + Arbitrum Nitro
-        //        blockNumber: 16149920,
+        url: `https://evm.kava.io`,
+        // ignoreUnknownTxType: true, // needed to work with patched Hardhat + Arbitrum Nitro
+        blockNumber: 2464633,
       },
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -119,7 +119,7 @@ const config: HardhatUserConfig = {
     },
   },
   paths: {
-    sources: "./src/strategies/arbitrum",
+    sources: "./src/strategies/kava",
     tests: "./src/tests/strategies",
     cache: "./cache",
     artifacts: "./artifacts",
