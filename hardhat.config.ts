@@ -37,10 +37,11 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://evm.kava.io`,
-        // ignoreUnknownTxType: true, // needed to work with patched Hardhat + Arbitrum Nitro
-        blockNumber: 2464633,
+        url: `https://polygon-mainnet.g.alchemy.com/v2/2Erg6Q0tB5xWkdBBklr8F6Catyaaq7LY`,
+        blockNumber: 35684310, //35684317,
       },
+      chainId: 137,
+
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },
@@ -110,8 +111,8 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      mainnet: process.env.ETHERSCAN_APIKEY ?? "",
-      aurora: process.env.AURORASCAN_APIKEY ?? "",
+      mainnet: process.env.ETHERSCAN_APIKEY_ETHEREUM ?? "",
+      aurora: process.env.ETHERSCAN_APIKEY_AURORA ?? "",
       xdai: process.env.BLOCKSCOUT_APIKEY_GNOSIS ?? "",
       optimisticEthereum: process.env.ETHERSCAN_APIKEY_OPTIMISM ?? "",
       arbitrumOne: process.env.ETHERSCAN_APIKEY_ARBISCAN ?? "",
@@ -119,7 +120,7 @@ const config: HardhatUserConfig = {
     },
   },
   paths: {
-    sources: "./src/strategies/kava",
+    sources: "./src/strategies/polygon",
     tests: "./src/tests/strategies",
     cache: "./cache",
     artifacts: "./artifacts",
