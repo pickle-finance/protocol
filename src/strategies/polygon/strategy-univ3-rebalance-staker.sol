@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 import "../../lib/erc20.sol";
 import "../../lib/safe-math.sol";
 import "../../polygon/lib/univ3/PoolActions.sol";
+import "../../polygon/lib/univ3/LiquidityAmounts.sol";
 import "../../interfaces/uniswapv2.sol";
 import "../../polygon/interfaces/univ3/IUniswapV3PositionsNFT.sol";
 import "../../polygon/interfaces/univ3/IUniswapV3Pool.sol";
@@ -16,6 +17,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
+    using SafeMath for uint128;
     using PoolVariables for IUniswapV3Pool;
 
     // Perfomance fees - start with 20%
@@ -236,8 +238,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
         _observeTime[0] = twapTime;
         _observeTime[1] = 0;
         (int56[] memory _cumulativeTicks, ) = pool.observe(_observeTime);
-        int56 _averageTick = (_cumulativeTicks[1] - _cumulativeTicks[0]) /
-            twapTime;
+        int56 _averageTick = (_cumulativeTicks[1] - _cumulativeTicks[0]) / twapTime;
         int24 baseThreshold = tickSpacing * tickRangeMultiplier;
         return
             PoolVariables.baseTicks(
@@ -523,6 +524,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
                 token1.balanceOf(address(this)).sub(_liqAmt1).sub(_initToken1)
             );
         }
+
         (int24 _tickLower, int24 _tickUpper) = determineTicks();
         _balanceProportion(_tickLower, _tickUpper);
         //Need to do this again after the swap to cover any slippage.
@@ -533,7 +535,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
             IUniswapV3PositionsNFT.MintParams({
                 token0: address(token0),
                 token1: address(token1),
-                fee: pool.fee(),
+                fee: swapPoolFee,
                 tickLower: _tickLower,
                 tickUpper: _tickUpper,
                 amount0Desired: _amount0Desired,
@@ -545,18 +547,24 @@ abstract contract StrategyRebalanceStakerUniV3 {
             })
         );
 
+        if (tokenId == 0) {
+            emit InitialDeposited(_tokenId);
+        }
+
         //Record updated information.
         tokenId = _tokenId;
         tick_lower = _tickLower;
         tick_upper = _tickUpper;
 
+        // Deposit leftovers if any
+        if (token0.balanceOf(address(this)) != 0 || token1.balanceOf(address(this)) != 0) {
+            _balanceProportion(tick_lower, tick_upper);
+            deposit();
+        }
+
         if (isStakingActive()) {
             nftManager.safeTransferFrom(address(this), univ3_staker, tokenId);
             IUniswapV3Staker(univ3_staker).stakeToken(key, tokenId);
-        }
-
-        if (tokenId == 0) {
-            emit InitialDeposited(_tokenId);
         }
 
         emit Rebalanced(tokenId, _tickLower, _tickUpper);
@@ -634,44 +642,34 @@ abstract contract StrategyRebalanceStakerUniV3 {
         _cache.amount0Desired = token0.balanceOf(address(this));
         _cache.amount1Desired = token1.balanceOf(address(this));
 
-        //Get Max Liquidity for Amounts we own.
-        _cache.liquidity = pool.liquidityForAmounts(
-            _cache.amount0Desired,
-            _cache.amount1Desired,
-            _tickLower,
-            _tickUpper
+        (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(_tickLower);
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(_tickUpper);
+
+        _cache.liquidity = uint128(
+            LiquidityAmounts.getLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, _cache.amount0Desired).add(
+                LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioBX96, _cache.amount1Desired)
+            )
         );
 
-        //Get correct amounts of each token for the liquidity we have.
-        (_cache.amount0, _cache.amount1) = pool.amountsForLiquidity(
-            _cache.liquidity,
-            _tickLower,
-            _tickUpper
+        (_cache.amount0, _cache.amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtPriceX96,
+            sqrtRatioAX96,
+            sqrtRatioBX96,
+            _cache.liquidity
         );
 
         //Determine Trade Direction
-        bool _zeroForOne;
-        if (_cache.amount1Desired == 0) {
-            _zeroForOne = true;
-        } else {
-            _zeroForOne = PoolVariables.amountsDirection(
-                _cache.amount0Desired,
-                _cache.amount1Desired,
-                _cache.amount0,
-                _cache.amount1
-            );
-        }
+        bool _zeroForOne = _cache.amount0Desired > _cache.amount0 ? true : false;
 
         //Determine Amount to swap
         uint256 _amountSpecified = _zeroForOne
-            ? (_cache.amount0Desired.sub(_cache.amount0).div(2))
-            : (_cache.amount1Desired.sub(_cache.amount1).div(2));
+            ? (_cache.amount0Desired.sub(_cache.amount0))
+            : (_cache.amount1Desired.sub(_cache.amount1));
 
         if (_amountSpecified > 0) {
             //Determine Token to swap
-            address _inputToken = _zeroForOne
-                ? address(token0)
-                : address(token1);
+            address _inputToken = _zeroForOne ? address(token0) : address(token1);
 
             IERC20(_inputToken).safeApprove(univ3Router, 0);
             IERC20(_inputToken).safeApprove(univ3Router, _amountSpecified);

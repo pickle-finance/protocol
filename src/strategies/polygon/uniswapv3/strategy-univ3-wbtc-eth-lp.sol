@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.12;
+pragma solidity >=0.6.12 <0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "../strategy-univ3-rebalance-staker.sol";
+import "../../uniswapv3/strategy-univ3-rebalance.sol";
 
-contract StrategyWbtcEthUniV3StakerPoly is StrategyRebalanceStakerUniV3 {
+contract StrategyWbtcEthUniV3Poly is StrategyRebalanceUniV3 {
     address private priv_pool = 0x50eaEDB835021E4A108B7290636d62E9765cc6d7;
+    address private constant wmatic = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
+    address private constant weth = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
+    address private constant wbtc = 0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6;
 
     constructor(
         int24 _tickRangeMultiplier,
@@ -15,7 +18,8 @@ contract StrategyWbtcEthUniV3StakerPoly is StrategyRebalanceStakerUniV3 {
         address _timelock
     )
         public
-        StrategyRebalanceStakerUniV3(
+        StrategyRebalanceUniV3(
+            wmatic,
             priv_pool,
             _tickRangeMultiplier,
             _governance,
@@ -24,16 +28,8 @@ contract StrategyWbtcEthUniV3StakerPoly is StrategyRebalanceStakerUniV3 {
             _timelock
         )
     {
-        univ3_staker = 0x1f98407aaB862CdDeF78Ed252D6f557aA5b0f00d;
-        rewardToken = 0x0000000000000000000000000000000000000000;
-
-        key = IUniswapV3Staker.IncentiveKey({
-            rewardToken: IERC20Minimal(rewardToken),
-            pool: IUniswapV3Pool(priv_pool),
-            startTime: 0,
-            endTime: 1,
-            refundee: 0x0000000000000000000000000000000000000000
-        });
+        tokenToNativeRoutes[weth] = abi.encodePacked(weth, uint24(500), wmatic);
+        tokenToNativeRoutes[wbtc] = abi.encodePacked(wbtc, uint24(500), weth, uint24(500), wmatic);
     }
 
     function getName() external pure override returns (string memory) {

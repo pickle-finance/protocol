@@ -37,8 +37,8 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://polygon-mainnet.g.alchemy.com/v2/2Erg6Q0tB5xWkdBBklr8F6Catyaaq7LY`,
-        blockNumber: 35684310, //35684317,
+        url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_POLYGON}`,
+        blockNumber: 35318702,//35366299,
       },
       chainId: 137,
 
@@ -51,7 +51,7 @@ const config: HardhatUserConfig = {
       // },
       hardfork: "london",
       gasPrice: "auto",
-      gas: 6500000,
+      blockGasLimit: 30_000_000,
     },
     mainnet: {
       // url: `https://rpc.flashbots.net`,
@@ -60,7 +60,7 @@ const config: HardhatUserConfig = {
       chainId: 1,
     },
     matic: {
-      url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_MATIC}`,
+      url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_POLYGON}`,
       accounts: [process.env.PRIVATE_KEY ?? ""],
       chainId: 137,
     },
