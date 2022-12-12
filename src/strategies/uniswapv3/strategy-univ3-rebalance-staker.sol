@@ -74,7 +74,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
         address _strategist,
         address _controller,
         address _timelock
-    ) public {
+    ) {
         native = _native;
         governance = _governance;
         strategist = _strategist;
@@ -206,8 +206,8 @@ abstract contract StrategyRebalanceStakerUniV3 {
     }
 
     function setTokenToNativeRoute(address token, bytes calldata path) external {
-      require(msg.sender == governance, "!governance");
-      tokenToNativeRoutes[token] = path;
+        require(msg.sender == governance, "!governance");
+        tokenToNativeRoutes[token] = path;
     }
 
     function amountsForLiquid() public view returns (uint256, uint256) {
@@ -269,11 +269,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
             IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
         }
 
-        (uint256 _a0Expect, uint256 _a1Expect) = pool.amountsForLiquidity(
-            uint128(_liquidity),
-            tick_lower,
-            tick_upper
-        );
+        (uint256 _a0Expect, uint256 _a1Expect) = pool.amountsForLiquidity(uint128(_liquidity), tick_lower, tick_upper);
         (uint256 amount0, uint256 amount1) = nftManager.decreaseLiquidity(
             IUniswapV3PositionsNFT.DecreaseLiquidityParams({
                 tokenId: tokenId,
@@ -343,16 +339,8 @@ abstract contract StrategyRebalanceStakerUniV3 {
 
         if (isStakingActive()) {
             IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
-            IUniswapV3Staker(univ3_staker).claimReward(
-                IERC20Minimal(rewardToken),
-                address(this),
-                0
-            );
-            IUniswapV3Staker(univ3_staker).withdrawToken(
-                tokenId,
-                address(this),
-                bytes("")
-            );
+            IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rewardToken), address(this), 0);
+            IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
         }
 
         nftManager.collect(
@@ -394,10 +382,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
 
         uint256 _stakingRewards;
         if (isStakingActive()) {
-            _stakingRewards = IUniswapV3Staker(univ3_staker).rewards(
-                key.rewardToken,
-                address(this)
-            );
+            _stakingRewards = IUniswapV3Staker(univ3_staker).rewards(key.rewardToken, address(this));
         }
         if (address(key.rewardToken) == address(token0)) {
             _owed0 = _owed0 + uint128(_stakingRewards);
@@ -435,16 +420,8 @@ abstract contract StrategyRebalanceStakerUniV3 {
                 IUniswapV3Staker(univ3_staker).unstakeToken(key, tokenId);
 
                 // claim entire rewards
-                IUniswapV3Staker(univ3_staker).claimReward(
-                    IERC20Minimal(rewardToken),
-                    address(this),
-                    0
-                );
-                IUniswapV3Staker(univ3_staker).withdrawToken(
-                    tokenId,
-                    address(this),
-                    bytes("")
-                );
+                IUniswapV3Staker(univ3_staker).claimReward(IERC20Minimal(rewardToken), address(this), 0);
+                IUniswapV3Staker(univ3_staker).withdrawToken(tokenId, address(this), bytes(""));
             }
             (, , , , , , , uint256 _liquidity, , , , ) = nftManager.positions(tokenId);
             (uint256 _liqAmt0, uint256 _liqAmt1) = nftManager.decreaseLiquidity(
@@ -610,7 +587,7 @@ abstract contract StrategyRebalanceStakerUniV3 {
         );
 
         //Get correct amounts of each token for the liquidity we have.
-        (_cache.amount0, _cache.amount1) = LiquidityAmounts.getAmountsForLiquidity(
+        (_cache.amount0Accepted, _cache.amount1Accepted) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96,
             sqrtRatioAX96,
             sqrtRatioBX96,
@@ -618,12 +595,12 @@ abstract contract StrategyRebalanceStakerUniV3 {
         );
 
         //Determine Trade Direction
-        bool _zeroForOne = _cache.amount0Desired > _cache.amount0 ? true : false;
+        bool _zeroForOne = _cache.amount0Desired > _cache.amount0Accepted ? true : false;
 
         //Determine Amount to swap
         uint256 _amountSpecified = _zeroForOne
-            ? (_cache.amount0Desired.sub(_cache.amount0))
-            : (_cache.amount1Desired.sub(_cache.amount1));
+            ? (_cache.amount0Desired.sub(_cache.amount0Accepted))
+            : (_cache.amount1Desired.sub(_cache.amount1Accepted));
 
         if (_amountSpecified > 0) {
             //Determine Token to swap

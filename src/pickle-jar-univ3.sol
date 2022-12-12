@@ -335,7 +335,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
             )
         );
 
-        (_cache.amount0, _cache.amount1) = LiquidityAmounts
+        (_cache.amount0Accepted, _cache.amount1Accepted) = LiquidityAmounts
         .getAmountsForLiquidity(
             sqrtPriceX96,
             sqrtRatioAX96,
@@ -343,23 +343,23 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
             _cache.liquidity
         );
 
-        if (_cache.amount0Desired > _cache.amount0)
+        if (_cache.amount0Desired > _cache.amount0Accepted)
             if ((address(token0) == address(weth)) && _ethUsed)
-                _refundEth(_cache.amount0Desired.sub(_cache.amount0));
+                _refundEth(_cache.amount0Desired.sub(_cache.amount0Accepted));
             else {
                 token0.safeTransfer(
                     msg.sender,
-                    _cache.amount0Desired.sub(_cache.amount0)
+                    _cache.amount0Desired.sub(_cache.amount0Accepted)
                 );
             }
 
-        if (_cache.amount1Desired > _cache.amount1)
+        if (_cache.amount1Desired > _cache.amount1Accepted)
             if ((address(token1) == address(weth)) && _ethUsed)
-                _refundEth(_cache.amount1Desired.sub(_cache.amount1));
+                _refundEth(_cache.amount1Desired.sub(_cache.amount1Accepted));
             else {
                 token1.safeTransfer(
                     msg.sender,
-                    _cache.amount1Desired.sub(_cache.amount1)
+                    _cache.amount1Desired.sub(_cache.amount1Accepted)
                 );
             }
         return _cache.liquidity;
@@ -390,7 +390,7 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
             )
         );
 
-        (_cache.amount0, _cache.amount1) = LiquidityAmounts
+        (_cache.amount0Accepted, _cache.amount1Accepted) = LiquidityAmounts
         .getAmountsForLiquidity(
             sqrtPriceX96,
             sqrtRatioAX96,
@@ -399,14 +399,14 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         );
 
         //Determine Trade Direction
-        bool _zeroForOne = _cache.amount0Desired > _cache.amount0
+        bool _zeroForOne = _cache.amount0Desired > _cache.amount0Accepted
             ? true
             : false;
 
         //Determine Amount to swap
         uint256 _amountSpecified = _zeroForOne
-            ? (_cache.amount0Desired.sub(_cache.amount0))
-            : (_cache.amount1Desired.sub(_cache.amount1));
+            ? (_cache.amount0Desired.sub(_cache.amount0Accepted))
+            : (_cache.amount1Desired.sub(_cache.amount1Accepted));
 
         if (_amountSpecified > 0) {
             //Determine Token to swap
@@ -446,5 +446,6 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         return this.onERC721Received.selector;
     }
 
+    receive() external payable {}
     fallback() external payable {}
 }

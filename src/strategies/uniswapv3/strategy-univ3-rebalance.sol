@@ -68,7 +68,7 @@ abstract contract StrategyRebalanceUniV3 {
         address _strategist,
         address _controller,
         address _timelock
-    ) public {
+    ) {
         native = _native;
         governance = _governance;
         strategist = _strategist;
@@ -179,8 +179,8 @@ abstract contract StrategyRebalanceUniV3 {
     }
 
     function setTokenToNativeRoute(address token, bytes calldata path) external {
-      require(msg.sender == governance, "!governance");
-      tokenToNativeRoutes[token] = path;
+        require(msg.sender == governance, "!governance");
+        tokenToNativeRoutes[token] = path;
     }
 
     function amountsForLiquid() public view returns (uint256, uint256) {
@@ -223,11 +223,7 @@ abstract contract StrategyRebalanceUniV3 {
     function _withdrawSome(uint256 _liquidity) internal returns (uint256, uint256) {
         if (_liquidity == 0) return (0, 0);
 
-        (uint256 _a0Expect, uint256 _a1Expect) = pool.amountsForLiquidity(
-            uint128(_liquidity),
-            tick_lower,
-            tick_upper
-        );
+        (uint256 _a0Expect, uint256 _a1Expect) = pool.amountsForLiquidity(uint128(_liquidity), tick_lower, tick_upper);
         (uint256 amount0, uint256 amount1) = nftManager.decreaseLiquidity(
             IUniswapV3PositionsNFT.DecreaseLiquidityParams({
                 tokenId: tokenId,
@@ -491,7 +487,7 @@ abstract contract StrategyRebalanceUniV3 {
         );
 
         //Get correct amounts of each token for the liquidity we have.
-        (_cache.amount0, _cache.amount1) = LiquidityAmounts.getAmountsForLiquidity(
+        (_cache.amount0Accepted, _cache.amount1Accepted) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96,
             sqrtRatioAX96,
             sqrtRatioBX96,
@@ -499,12 +495,12 @@ abstract contract StrategyRebalanceUniV3 {
         );
 
         //Determine Trade Direction
-        bool _zeroForOne = _cache.amount0Desired > _cache.amount0 ? true : false;
+        bool _zeroForOne = _cache.amount0Desired > _cache.amount0Accepted ? true : false;
 
         //Determine Amount to swap
         uint256 _amountSpecified = _zeroForOne
-            ? (_cache.amount0Desired.sub(_cache.amount0))
-            : (_cache.amount1Desired.sub(_cache.amount1));
+            ? (_cache.amount0Desired.sub(_cache.amount0Accepted))
+            : (_cache.amount1Desired.sub(_cache.amount1Accepted));
 
         if (_amountSpecified > 0) {
             //Determine Token to swap

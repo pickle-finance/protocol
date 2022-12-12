@@ -17,8 +17,8 @@ library PoolVariables {
     struct Info {
         uint256 amount0Desired;
         uint256 amount1Desired;
-        uint256 amount0;
-        uint256 amount1;
+        uint256 amount0Accepted;
+        uint256 amount1Accepted;
         uint128 liquidity;
         int24 tickLower;
         int24 tickUpper;
@@ -149,7 +149,7 @@ library PoolVariables {
         //Calc base ticks
         (cache.tickLower, cache.tickUpper) = baseTicks(currentTick, baseThreshold, tickSpacing);
         //Calc amounts of token0 and token1 that can be stored in base range
-        (cache.amount0, cache.amount1) = amountsForTicks(
+        (cache.amount0Accepted, cache.amount1Accepted) = amountsForTicks(
             pool,
             cache.amount0Desired,
             cache.amount1Desired,
@@ -157,13 +157,13 @@ library PoolVariables {
             cache.tickUpper
         );
         //Liquidity that can be stored in base range
-        cache.liquidity = liquidityForAmounts(pool, cache.amount0, cache.amount1, cache.tickLower, cache.tickUpper);
+        cache.liquidity = liquidityForAmounts(pool, cache.amount0Accepted, cache.amount1Accepted, cache.tickLower, cache.tickUpper);
         //Get imbalanced token
         bool zeroGreaterOne = amountsDirection(
             cache.amount0Desired,
             cache.amount1Desired,
-            cache.amount0,
-            cache.amount1
+            cache.amount0Accepted,
+            cache.amount1Accepted
         );
         //Calc new tick(upper or lower) for imbalanced token
         if (zeroGreaterOne) {
