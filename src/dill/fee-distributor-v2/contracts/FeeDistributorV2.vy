@@ -240,7 +240,7 @@ def checkpoint_total_supply():
 
 
 @internal
-def _claim(addr: address, ve: address, _last_token_time: uint256) -> (uint256, uint256):
+def _claim(addr: address, ve: address, _last_token_time: uint256, claim_all: bool) -> (uint256, uint256):
     # Minimal user_epoch is 0 (if user had no point)
     user_epoch: uint256 = 0
     to_distribute_tokens: uint256 = 0
@@ -275,9 +275,14 @@ def _claim(addr: address, ve: address, _last_token_time: uint256) -> (uint256, u
         week_cursor = _start_time
     old_user_point: Point = empty(Point)
 
+    iterations: uint256 = ((_last_token_time - week_cursor) / WEEK)
+
+    if not claim_all and iterations > 50:
+        iterations = 50
+
     # Iterate over weeks
-    for i in range(50):
-        if week_cursor >= _last_token_time:
+    for i in range(MAX_UINT256):
+        if i > iterations or week_cursor >= _last_token_time:
             break
 
         if week_cursor >= user_point.ts and user_epoch <= max_user_epoch:
@@ -338,7 +343,52 @@ def claim(_addr: address = msg.sender) -> (uint256, uint256):
     tokens_amount: uint256 = 0
     eth_amount: uint256 = 0
 
-    tokens_amount, eth_amount = self._claim(_addr, self.voting_escrow, last_token_time)
+    tokens_amount, eth_amount = self._claim(_addr, self.voting_escrow, last_token_time, False)
+    if tokens_amount != 0:
+        token: address = self.token
+        assert ERC20(token).transfer(_addr, tokens_amount)
+        self.token_last_balance -= tokens_amount
+
+    if eth_amount != 0:
+        send(_addr, eth_amount)
+        self.eth_last_balance -= eth_amount
+
+    return tokens_amount, eth_amount
+
+
+@external
+@nonreentrant('lock')
+def claim_all(_addr: address = msg.sender) -> (uint256, uint256):
+    """
+    @notice Claim fees without 50 week limit for `_addr`
+    @dev Call to claim look at all the possible user veCRV points
+         till now instead of 50 limit of simple claim.
+         For accounts with many veCRV related actions, this function
+         can be called once to claim all available fees.
+         Although the caller should be aware of gas limits as looping
+         over a large count of veCRV points could result in exceeding
+         block gas limits resulting in this function to fail/costing
+         a lot of gas at once.
+    @param _addr Address to claim fees for
+    @return uint256 Amount of fees claimed in the call
+    """
+    assert not self.is_killed
+
+    if block.timestamp >= self.time_cursor:
+        self._checkpoint_total_supply()
+
+    last_token_time: uint256 = self.last_token_time
+
+    if self.can_checkpoint_token and (block.timestamp > last_token_time + TOKEN_CHECKPOINT_DEADLINE):
+        self._checkpoint_token()
+        last_token_time = block.timestamp
+
+    last_token_time = last_token_time / WEEK * WEEK
+
+    tokens_amount: uint256 = 0
+    eth_amount: uint256 = 0
+
+    tokens_amount, eth_amount = self._claim(_addr, self.voting_escrow, last_token_time, True)
     if tokens_amount != 0:
         token: address = self.token
         assert ERC20(token).transfer(_addr, tokens_amount)
@@ -387,7 +437,7 @@ def claim_many(_receivers: address[20]) -> bool:
         tokens_amount: uint256 = 0
         eth_amount: uint256 = 0
 
-        tokens_amount, eth_amount = self._claim(addr, voting_escrow, last_token_time)
+        tokens_amount, eth_amount = self._claim(addr, voting_escrow, last_token_time, False)
         if tokens_amount != 0:
             assert ERC20(token).transfer(addr, tokens_amount)
             total_tokens += tokens_amount
