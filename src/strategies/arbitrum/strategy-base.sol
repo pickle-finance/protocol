@@ -358,4 +358,15 @@ abstract contract StrategyBase {
             deposit();
         }
     }
+
+    function _distributePerformanceFeesNative() internal {
+        uint256 _weth = IERC20(weth).balanceOf(address(this));
+        if (_weth > 0) {
+            // Treasury fees
+            IERC20(weth).safeTransfer(
+                IController(controller).treasury(),
+                _weth.mul(performanceTreasuryFee).div(performanceTreasuryMax)
+            );
+        }
+    }
 }
