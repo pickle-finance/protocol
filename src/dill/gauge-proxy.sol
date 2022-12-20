@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7; //^0.7.5;
+pragma experimental ABIEncoderV2;
 
 library SafeMath {
     function add(uint a, uint b) internal pure returns (uint) {
