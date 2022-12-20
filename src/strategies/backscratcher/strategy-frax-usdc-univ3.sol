@@ -118,7 +118,7 @@ contract StrategyFraxUsdcUniV3 is StrategyFraxUniV3Base {
 
     function getHarvestable() public view returns (uint256) {
         return
-            IFraxGaugeBase(frax_usdc_gauge).earned(
+            IFraxGaugeUniV3(frax_usdc_gauge).earned(
                 IStrategyProxy(strategyProxy).proxy()
             );
     }
