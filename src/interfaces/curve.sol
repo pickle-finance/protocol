@@ -107,6 +107,12 @@ interface ICurveZap {
         int128 i,
         uint256 min_uamount
     ) external;
+
+    function add_liquidity(
+        address _pool,
+        uint256[3] calldata _deposit_amounts,
+        uint256 _min_mint_amount
+    ) external returns (uint256);
 }
 
 interface ICurveFi_Polygon_3 {
