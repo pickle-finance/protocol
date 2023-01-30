@@ -2,15 +2,16 @@
 pragma solidity >=0.6.12 <0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "../../lib/erc20.sol";
-import "../../lib/safe-math.sol";
-import "../../lib/univ3/PoolActions.sol";
-import "../../lib/univ3/LiquidityAmounts.sol";
-import "../../interfaces/uniswapv2.sol";
-import "../../interfaces/univ3/IUniswapV3PositionsNFT.sol";
-import "../../interfaces/univ3/IUniswapV3Pool.sol";
-import "../../interfaces/univ3/ISwapRouter02.sol";
-import "../../interfaces/controllerv2.sol";
+import "../../../lib/erc20.sol";
+import "../../../lib/safe-math.sol";
+import "../../../lib/univ3/PoolActions.sol";
+import "../../../lib/univ3/LiquidityAmounts.sol";
+import "../../../interfaces/uniswapv2.sol";
+import "../../../interfaces/univ3/IUniswapV3PositionsNFT.sol";
+import "../../../interfaces/univ3/IUniswapV3Pool.sol";
+import "../../../interfaces/univ3/ISwapRouter02.sol";
+import "../../../interfaces/controllerv2.sol";
+import "hardhat/console.sol";
 
 abstract contract StrategyRebalanceUniV3 {
     using SafeERC20 for IERC20;
@@ -362,7 +363,7 @@ abstract contract StrategyRebalanceUniV3 {
 
         (int24 _tickLower, int24 _tickUpper) = determineTicks();
         _balanceProportion(_tickLower, _tickUpper);
-
+        //Need to do this again after the swap to cover any slippage.
         uint256 _amount0Desired = token0.balanceOf(address(this));
         uint256 _amount1Desired = token1.balanceOf(address(this));
 
@@ -391,10 +392,13 @@ abstract contract StrategyRebalanceUniV3 {
         tick_lower = _tickLower;
         tick_upper = _tickUpper;
 
-        // Balance and deposit dust, if any
-        _balanceProportion(_tickLower, _tickUpper);
-        deposit();
-        
+        // Deposit leftovers if any
+        // if (token0.balanceOf(address(this)) != 0 || token1.balanceOf(address(this)) != 0) {
+        //     _balanceProportion(tick_lower, tick_upper);
+        //     deposit();
+        // }
+
+        _balanceAndDeposit();
 
         emit Rebalanced(tokenId, _tickLower, _tickUpper);
     }
@@ -468,72 +472,118 @@ abstract contract StrategyRebalanceUniV3 {
         return this.onERC721Received.selector;
     }
 
+    function _balanceAndDeposit() internal {
+        PoolVariables.Info memory _cache;
+
+        _cache.amount0Desired = token0.balanceOf(address(this));
+        _cache.amount1Desired = token1.balanceOf(address(this));
+
+        if (_cache.amount1Desired > 0 || _cache.amount0Desired > 0) {
+            //Get Max Liquidity for Amounts we own.
+            (uint160 sqrtPriceX96, int24 currentTick, , , , , ) = pool.slot0();
+            uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tick_lower);
+            uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tick_upper);
+
+            _cache.liquidity = uint128(
+                LiquidityAmounts.getLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, _cache.amount0Desired).add(
+                    LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioBX96, _cache.amount1Desired)
+                )
+            );
+
+            //Get correct amounts of each token for the liquidity we have.
+            (_cache.amount0Accepted, _cache.amount1Accepted) = LiquidityAmounts.getAmountsForLiquidity(
+                sqrtPriceX96,
+                sqrtRatioAX96,
+                sqrtRatioBX96,
+                _cache.liquidity
+            );
+
+            //Determine Trade Direction
+            bool zeroToOne = _cache.amount0Desired > _cache.amount0Accepted ? true : false;
+
+            uint256 zeroRange = uint256(currentTick - tick_lower);
+            uint256 oneRange = uint256(tick_upper - currentTick);
+            uint256 range = uint256(tick_upper - tick_lower);
+
+            uint256 amountToSwap = 0;
+
+            amountToSwap += zeroToOne
+                ? _cache.amount0Desired.sub(_cache.amount0Desired.mul(oneRange).div(range))
+                : _cache.amount1Desired.sub(_cache.amount1Desired.mul(zeroRange).div(range));
+
+            if (amountToSwap > 0) {
+                //Determine Token to swap
+                address _inputToken = zeroToOne ? address(token0) : address(token1);
+
+                IERC20(_inputToken).safeApprove(univ3Router, 0);
+                IERC20(_inputToken).safeApprove(univ3Router, amountToSwap);
+
+                //Swap the token imbalanced
+                ISwapRouter02(univ3Router).exactInputSingle(
+                    ISwapRouter02.ExactInputSingleParams({
+                        tokenIn: _inputToken,
+                        tokenOut: zeroToOne ? address(token1) : address(token0),
+                        fee: swapPoolFee,
+                        recipient: address(this),
+                        amountIn: amountToSwap,
+                        amountOutMinimum: 0,
+                        sqrtPriceLimitX96: 0
+                    })
+                );
+
+                deposit();
+            }
+        }
+    }
+
     function _balanceProportion(int24 _tickLower, int24 _tickUpper) internal {
         PoolVariables.Info memory _cache;
 
         _cache.amount0Desired = token0.balanceOf(address(this));
         _cache.amount1Desired = token1.balanceOf(address(this));
 
-        // Determining whether to trade + trade direction
-        (uint160 sqrtRatioX96, , , , , , ) = pool.slot0();
+        //Get Max Liquidity for Amounts we own.
+        (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
         uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(_tickLower);
         uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(_tickUpper);
 
-        if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
-        uint128 liquidityForAmount0 = LiquidityAmounts.getLiquidityForAmount0(sqrtRatioX96, sqrtRatioBX96, _cache.amount0Desired);
-        uint128 liquidityForAmount1 = LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioX96, _cache.amount1Desired);
+        _cache.liquidity = uint128(
+            LiquidityAmounts.getLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, _cache.amount0Desired).add(
+                LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioBX96, _cache.amount1Desired)
+            )
+        );
 
-        int24 priceTick = TickMath.getTickAtSqrtRatio(sqrtRatioX96);
-        uint256 tickRange = uint256(_tickUpper - _tickLower);
-        uint256 zeroRange = uint256(_tickUpper - priceTick);
-        uint256 oneRange = uint256(priceTick - _tickLower);
+        //Get correct amounts of each token for the liquidity we have.
+        (_cache.amount0Accepted, _cache.amount1Accepted) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtPriceX96,
+            sqrtRatioAX96,
+            sqrtRatioBX96,
+            _cache.liquidity
+        );
 
-        if (liquidityForAmount0>liquidityForAmount1) {
-            // Excess is in token0
-            (_cache.amount0Accepted,_cache.amount1Accepted) = LiquidityAmounts.getAmountsForLiquidity(
-                sqrtRatioX96,
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidityForAmount1
-            );
+        //Determine Trade Direction
+        bool _zeroForOne = _cache.amount0Desired > _cache.amount0Accepted ? true : false;
 
-            uint256 amountToBalance = _cache.amount0Desired - _cache.amount0Accepted;
-            uint256 amountToSwap = amountToBalance.sub(FullMath.mulDiv(amountToBalance, zeroRange, tickRange));
+        //Determine Amount to swap
+        uint256 _amountSpecified = _zeroForOne
+            ? (_cache.amount0Desired.sub(_cache.amount0Accepted))
+            : (_cache.amount1Desired.sub(_cache.amount1Accepted));
 
-            token0.safeApprove(univ3Router, 0);
-            token0.safeApprove(univ3Router, amountToSwap);
+        if (_amountSpecified > 0) {
+            //Determine Token to swap
+            address _inputToken = _zeroForOne ? address(token0) : address(token1);
+
+            IERC20(_inputToken).safeApprove(univ3Router, 0);
+            IERC20(_inputToken).safeApprove(univ3Router, _amountSpecified);
+
+            //Swap the token imbalanced
             ISwapRouter02(univ3Router).exactInputSingle(
                 ISwapRouter02.ExactInputSingleParams({
-                    tokenIn: address(token0),
-                    tokenOut: address(token1),
+                    tokenIn: _inputToken,
+                    tokenOut: _zeroForOne ? address(token1) : address(token0),
                     fee: swapPoolFee,
                     recipient: address(this),
-                    amountIn: amountToSwap,
-                    amountOutMinimum: 0,
-                    sqrtPriceLimitX96: 0
-                })
-            );
-        } else if (liquidityForAmount1>liquidityForAmount0){
-            // Excess is in token1
-            (_cache.amount0Accepted,_cache.amount1Accepted) = LiquidityAmounts.getAmountsForLiquidity(
-                sqrtRatioX96,
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidityForAmount0
-            );
-
-            uint256 amountToBalance = _cache.amount1Desired - _cache.amount1Accepted;
-            uint256 amountToSwap = amountToBalance.sub(FullMath.mulDiv(amountToBalance, oneRange, tickRange));
-
-            token1.safeApprove(univ3Router, 0);
-            token1.safeApprove(univ3Router, amountToSwap);
-            ISwapRouter02(univ3Router).exactInputSingle(
-                ISwapRouter02.ExactInputSingleParams({
-                    tokenIn: address(token1),
-                    tokenOut: address(token0),
-                    fee: swapPoolFee,
-                    recipient: address(this),
-                    amountIn: amountToSwap,
+                    amountIn: _amountSpecified,
                     amountOutMinimum: 0,
                     sqrtPriceLimitX96: 0
                 })
