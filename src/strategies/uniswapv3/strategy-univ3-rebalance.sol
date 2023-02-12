@@ -220,6 +220,53 @@ abstract contract StrategyRebalanceUniV3 {
         emit Deposited(tokenId, _token0, _token1);
     }
 
+    ///@notice Takes tokens from sender, balances them, and deposits into the strategy position. To be used by the jar
+    function balanceAndDeposit(uint256 amount0Desired, uint256 amount1Desired)
+        external
+        returns (
+            uint128 liquidity,
+            uint256 unusedAmount0,
+            uint256 unusedAmount1
+        )
+    {
+        uint256 _balance0 = token0.balanceOf(address(this));
+        uint256 _balance1 = token1.balanceOf(address(this));
+
+        token0.safeTransferFrom(msg.sender, address(this), amount0Desired);
+        token1.safeTransferFrom(msg.sender, address(this), amount1Desired);
+
+        _balanceProportion(amount0Desired, amount1Desired);
+
+        uint256 amount0DesiredBalanced = (token0.balanceOf(address(this))).sub(_balance0);
+        uint256 amount1DesiredBalanced = (token1.balanceOf(address(this))).sub(_balance1);
+
+        (uint160 sqrtRatioX96, , , , , , ) = pool.slot0();
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tick_lower);
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tick_upper);
+
+        liquidity = LiquidityAmounts.getLiquidityForAmounts(
+            sqrtRatioX96,
+            sqrtRatioAX96,
+            sqrtRatioBX96,
+            amount0DesiredBalanced,
+            amount1DesiredBalanced
+        );
+        (uint256 amount0Accepted, uint256 amount1Accepted) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtRatioX96,
+            sqrtRatioAX96,
+            sqrtRatioBX96,
+            liquidity
+        );
+
+        // Refund unused
+        unusedAmount0 = amount0DesiredBalanced.sub(amount0Accepted);
+        unusedAmount1 = amount1DesiredBalanced.sub(amount1Accepted);
+        token0.safeTransfer(msg.sender, unusedAmount0);
+        token1.safeTransfer(msg.sender, unusedAmount1);
+
+        deposit();
+    }
+
     function _withdrawSome(uint256 _liquidity) internal returns (uint256, uint256) {
         if (_liquidity == 0) return (0, 0);
 
@@ -304,7 +351,7 @@ abstract contract StrategyRebalanceUniV3 {
             token1.balanceOf(address(this)).sub(_initToken1)
         );
 
-        _balanceProportion(tick_lower, tick_upper);
+        _balanceProportion(token0.balanceOf(address(this)), token1.balanceOf(address(this)));
 
         deposit();
 
@@ -360,19 +407,22 @@ abstract contract StrategyRebalanceUniV3 {
             );
         }
 
-        (int24 _tickLower, int24 _tickUpper) = determineTicks();
-        _balanceProportion(_tickLower, _tickUpper);
-
+        (tick_lower, tick_upper) = determineTicks();
         uint256 _amount0Desired = token0.balanceOf(address(this));
         uint256 _amount1Desired = token1.balanceOf(address(this));
+
+        _balanceProportion(_amount0Desired, _amount1Desired);
+
+        _amount0Desired = token0.balanceOf(address(this));
+        _amount1Desired = token1.balanceOf(address(this));
 
         (_tokenId, , , ) = nftManager.mint(
             IUniswapV3PositionsNFT.MintParams({
                 token0: address(token0),
                 token1: address(token1),
                 fee: swapPoolFee,
-                tickLower: _tickLower,
-                tickUpper: _tickUpper,
+                tickLower: tick_lower,
+                tickUpper: tick_upper,
                 amount0Desired: _amount0Desired,
                 amount1Desired: _amount1Desired,
                 amount0Min: 0,
@@ -386,17 +436,18 @@ abstract contract StrategyRebalanceUniV3 {
             emit InitialDeposited(_tokenId);
         }
 
-        //Record updated information.
+        // Record updated tokenId
         tokenId = _tokenId;
-        tick_lower = _tickLower;
-        tick_upper = _tickUpper;
 
         // Balance and deposit dust, if any
-        _balanceProportion(_tickLower, _tickUpper);
-        deposit();
-        
+        _amount0Desired = token0.balanceOf(address(this));
+        _amount1Desired = token1.balanceOf(address(this));
+        if (_amount0Desired != 0 || _amount1Desired != 0) {
+            _balanceProportion(_amount0Desired, _amount1Desired);
+            deposit();
+        }
 
-        emit Rebalanced(tokenId, _tickLower, _tickUpper);
+        emit Rebalanced(tokenId, tick_lower, tick_upper);
     }
 
     // **** Emergency functions ****
@@ -427,36 +478,38 @@ abstract contract StrategyRebalanceUniV3 {
 
     function _distributePerformanceFees(uint256 _amount0, uint256 _amount1) internal {
         uint256 _nativeToTreasury;
-        if (_amount0 > 0) {
+        if (_amount0 != 0) {
             uint256 _token0ToTrade = _amount0.mul(performanceTreasuryFee).div(performanceTreasuryMax);
-
-            if (tokenToNativeRoutes[address(token0)].length > 0) {
-                _nativeToTreasury += _swapUniV3WithPath(
-                    address(token0),
-                    tokenToNativeRoutes[address(token0)],
-                    _token0ToTrade
-                );
-                // token0 is native
-            } else {
-                _nativeToTreasury += _token0ToTrade;
+            if (_token0ToTrade != 0) {
+                if (tokenToNativeRoutes[address(token0)].length > 0) {
+                    _nativeToTreasury += _swapUniV3WithPath(
+                        address(token0),
+                        tokenToNativeRoutes[address(token0)],
+                        _token0ToTrade
+                    );
+                    // token0 is native
+                } else {
+                    _nativeToTreasury += _token0ToTrade;
+                }
             }
         }
-
-        if (_amount1 > 0) {
+        if (_amount1 != 0) {
             uint256 _token1ToTrade = _amount1.mul(performanceTreasuryFee).div(performanceTreasuryMax);
-
-            if (tokenToNativeRoutes[address(token1)].length > 0) {
-                _nativeToTreasury += _swapUniV3WithPath(
-                    address(token1),
-                    tokenToNativeRoutes[address(token1)],
-                    _token1ToTrade
-                );
-                // token1 is native
-            } else {
-                _nativeToTreasury += _token1ToTrade;
+            if (_token1ToTrade != 0) {
+                if (tokenToNativeRoutes[address(token1)].length > 0) {
+                    _nativeToTreasury += _swapUniV3WithPath(
+                        address(token1),
+                        tokenToNativeRoutes[address(token1)],
+                        _token1ToTrade
+                    );
+                    // token1 is native
+                } else {
+                    _nativeToTreasury += _token1ToTrade;
+                }
             }
         }
-        if (_nativeToTreasury > 0) IERC20(native).safeTransfer(IControllerV2(controller).treasury(), _nativeToTreasury);
+        if (_nativeToTreasury != 0)
+            IERC20(native).safeTransfer(IControllerV2(controller).treasury(), _nativeToTreasury);
     }
 
     function onERC721Received(
@@ -468,36 +521,43 @@ abstract contract StrategyRebalanceUniV3 {
         return this.onERC721Received.selector;
     }
 
-    function _balanceProportion(int24 _tickLower, int24 _tickUpper) internal {
-        PoolVariables.Info memory _cache;
-
-        _cache.amount0Desired = token0.balanceOf(address(this));
-        _cache.amount1Desired = token1.balanceOf(address(this));
+    ///@notice attempts to balance tokens to the optimal ratio for the current range
+    function _balanceProportion(uint256 amount0Desired, uint256 amount1Desired) internal {
+        uint256 amount0Accepted;
+        uint256 amount1Accepted;
 
         // Determining whether to trade + trade direction
         (uint160 sqrtRatioX96, , , , , , ) = pool.slot0();
-        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(_tickLower);
-        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(_tickUpper);
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tick_lower);
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tick_upper);
 
         if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
-        uint128 liquidityForAmount0 = LiquidityAmounts.getLiquidityForAmount0(sqrtRatioX96, sqrtRatioBX96, _cache.amount0Desired);
-        uint128 liquidityForAmount1 = LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioX96, _cache.amount1Desired);
+        uint128 liquidityForAmount0 = LiquidityAmounts.getLiquidityForAmount0(
+            sqrtRatioX96,
+            sqrtRatioBX96,
+            amount0Desired
+        );
+        uint128 liquidityForAmount1 = LiquidityAmounts.getLiquidityForAmount1(
+            sqrtRatioAX96,
+            sqrtRatioX96,
+            amount1Desired
+        );
 
         int24 priceTick = TickMath.getTickAtSqrtRatio(sqrtRatioX96);
-        uint256 tickRange = uint256(_tickUpper - _tickLower);
-        uint256 zeroRange = uint256(_tickUpper - priceTick);
-        uint256 oneRange = uint256(priceTick - _tickLower);
+        uint256 tickRange = uint256(tick_upper - tick_lower);
+        uint256 zeroRange = uint256(tick_upper - priceTick);
+        uint256 oneRange = uint256(priceTick - tick_lower);
 
-        if (liquidityForAmount0>liquidityForAmount1) {
+        if (liquidityForAmount0 > liquidityForAmount1) {
             // Excess is in token0
-            (_cache.amount0Accepted,_cache.amount1Accepted) = LiquidityAmounts.getAmountsForLiquidity(
+            (amount0Accepted, amount1Accepted) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtRatioX96,
                 sqrtRatioAX96,
                 sqrtRatioBX96,
                 liquidityForAmount1
             );
 
-            uint256 amountToBalance = _cache.amount0Desired - _cache.amount0Accepted;
+            uint256 amountToBalance = amount0Desired - amount0Accepted;
             uint256 amountToSwap = amountToBalance.sub(FullMath.mulDiv(amountToBalance, zeroRange, tickRange));
 
             token0.safeApprove(univ3Router, 0);
@@ -513,16 +573,16 @@ abstract contract StrategyRebalanceUniV3 {
                     sqrtPriceLimitX96: 0
                 })
             );
-        } else if (liquidityForAmount1>liquidityForAmount0){
+        } else if (liquidityForAmount1 > liquidityForAmount0) {
             // Excess is in token1
-            (_cache.amount0Accepted,_cache.amount1Accepted) = LiquidityAmounts.getAmountsForLiquidity(
+            (amount0Accepted, amount1Accepted) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtRatioX96,
                 sqrtRatioAX96,
                 sqrtRatioBX96,
                 liquidityForAmount0
             );
 
-            uint256 amountToBalance = _cache.amount1Desired - _cache.amount1Accepted;
+            uint256 amountToBalance = amount1Desired - amount1Accepted;
             uint256 amountToSwap = amountToBalance.sub(FullMath.mulDiv(amountToBalance, oneRange, tickRange));
 
             token1.safeApprove(univ3Router, 0);
@@ -550,14 +610,20 @@ abstract contract StrategyRebalanceUniV3 {
         if (_path.length > 0) {
             IERC20(_token).safeApprove(univ3Router, 0);
             IERC20(_token).safeApprove(univ3Router, _amount);
-            _amountOut = ISwapRouter02(univ3Router).exactInput(
-                ISwapRouter02.ExactInputParams({
-                    path: _path,
-                    recipient: address(this),
-                    amountIn: _amount,
-                    amountOutMinimum: 0
-                })
-            );
+            try
+                ISwapRouter02(univ3Router).exactInput(
+                    ISwapRouter02.ExactInputParams({
+                        path: _path,
+                        recipient: address(this),
+                        amountIn: _amount,
+                        amountOutMinimum: 0
+                    })
+                )
+            returns (uint256 _amountRecieved) {
+                _amountOut = _amountRecieved;
+            } catch {
+                // multi-hop swaps with too little amountIn can fail. Ignore.
+            }
         }
     }
 }
