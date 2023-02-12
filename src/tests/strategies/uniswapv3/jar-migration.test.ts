@@ -166,6 +166,8 @@ export const doJarMigrationTest = async (
       const {governance, newStrategy, token0, token1, alice, jar} = await loadFixture(initialSetupFixture);
       const token0Symbol = await token0.symbol();
       const token1Symbol = await token1.symbol();
+      const token0Decimals = await token0.decimals();
+      const token1Decimals = await token1.decimals();
       const strategyAmount0Before = await token0.balanceOf(newStrategy.address);
       const strategyAmount1Before = await token1.balanceOf(newStrategy.address);
 
@@ -187,20 +189,20 @@ export const doJarMigrationTest = async (
       const alicePTokenBalance: BigNumber = await jar.balanceOf(alice.address);
 
       console.log("==Alice==");
-      console.log(token0Symbol + " before: " + aliceAmount0Before.toString());
-      console.log(token1Symbol + " before: " + aliceAmount1Before.toString());
-      console.log(token0Symbol + " after: " + aliceAmount0After.toString());
-      console.log(token1Symbol + " after: " + aliceAmount1After.toString());
+      console.log(token0Symbol + " before: " + bigToNumber(aliceAmount0Before, token0Decimals));
+      console.log(token1Symbol + " before: " + bigToNumber(aliceAmount1Before, token1Decimals));
+      console.log(token0Symbol + " after: " + bigToNumber(aliceAmount0After, token0Decimals));
+      console.log(token1Symbol + " after: " + bigToNumber(aliceAmount1After, token1Decimals));
       console.log("pToken after: " + alicePTokenBalance.toString());
       expect(aliceAmount0After).to.be.eq(BigNumber.from(0), "Alice didn't deposit all token0 amounts!");
       expect(aliceAmount1After).to.be.eq(BigNumber.from(0), "Alice didn't deposit all token1 amounts!");
       expect(alicePTokenBalance.gt(0)).to.be.eq(true, "Deposit failed! Alice didn't get any pTokens.");
 
-      console.log("==Strategy==");
-      console.log(token0Symbol + " before: " + strategyAmount0Before.toString());
-      console.log(token1Symbol + " before: " + strategyAmount1Before.toString());
-      console.log(token0Symbol + " after: " + (await token0.balanceOf(newStrategy.address)).toString());
-      console.log(token1Symbol + " after: " + (await token1.balanceOf(newStrategy.address)).toString());
+      console.log("\n==Strategy==");
+      console.log(token0Symbol + " before: " + bigToNumber(strategyAmount0Before, token0Decimals));
+      console.log(token1Symbol + " before: " + bigToNumber(strategyAmount1Before, token1Decimals));
+      console.log(token0Symbol + " after: " + bigToNumber(await token0.balanceOf(newStrategy.address), token0Decimals));
+      console.log(token1Symbol + " after: " + bigToNumber(await token1.balanceOf(newStrategy.address), token1Decimals));
     });
 
     it("Should perform deposits and withdrawals correctly", async () => {

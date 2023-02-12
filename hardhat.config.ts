@@ -36,10 +36,10 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_ARBITRUM}`,
-        blockNumber: 60250000,
+        url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_OPTIMISM}`,
+        blockNumber: 73907900,
       },
-      chainId: 42161,
+      chainId: 10,
 
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -115,7 +115,7 @@ const config: HardhatUserConfig = {
     },
   },
   paths: {
-    sources: "./src/strategies/arbitrum",
+    sources: "./src/strategies/optimism",
     tests: "./src/tests/strategies",
     cache: "./cache",
     artifacts: "./artifacts",
