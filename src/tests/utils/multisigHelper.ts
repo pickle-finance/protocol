@@ -1,6 +1,6 @@
-import { SafeTransactionDataPartial, SafeTransaction } from "@gnosis.pm/safe-core-sdk-types";
-import Safe from "@gnosis.pm/safe-core-sdk";
-import EthersAdapter from "@gnosis.pm/safe-ethers-lib";
+import { SafeTransactionDataPartial, SafeTransaction } from "@safe-global/safe-core-sdk-types";
+import Safe from "@safe-global/safe-core-sdk";
+import EthersAdapter from "@safe-global/safe-ethers-lib";
 import { config, ethers, run } from "hardhat";
 import { BigNumber, Contract } from "ethers";
 import { deployContract, unlockAccount } from "./testHelper";
@@ -20,7 +20,7 @@ const getSafesWithOwners = async (safeAddress: string): Promise<Safe[]> => {
   const neededOwnersAddresses = ownersAddresses.slice(0, threshold);
 
   const ethAdapters: EthersAdapter[] = await Promise.all(
-    neededOwnersAddresses.map(async (ownerAddr) => new EthersAdapter({ ethers, signer: await unlockAccount(ownerAddr) }))
+    neededOwnersAddresses.map(async (ownerAddr) => new EthersAdapter({ ethers, signerOrProvider: await unlockAccount(ownerAddr) }))
   );
 
   const safeWithOwners: Safe[] = await Promise.all(
