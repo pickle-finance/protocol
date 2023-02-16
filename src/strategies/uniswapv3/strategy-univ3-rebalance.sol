@@ -20,7 +20,7 @@ abstract contract StrategyRebalanceUniV3 {
     using PoolVariables for IUniswapV3Pool;
 
     // Perfomance fees - start with 20%
-    uint256 public performanceTreasuryFee = 1000;
+    uint256 public performanceTreasuryFee = 2000;
     uint256 public constant performanceTreasuryMax = 10000;
 
     address public immutable native;
