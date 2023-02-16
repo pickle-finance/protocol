@@ -6,6 +6,7 @@ import { BigNumber, Contract } from "ethers";
 import { deployContract, unlockAccount } from "./testHelper";
 import { writeFileSync } from "fs";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { setBalance } from "@nomicfoundation/hardhat-network-helpers";
 
 /**
  * @notice takes a gnosis safe address and returns a list of Safe instances each with a unique owner,
@@ -59,6 +60,14 @@ const getSafeToProxyTxnData = (targetContract: Contract, funcName: string, funcA
 const executeSafeTxn = async (safeTransactionData: SafeTransactionDataPartial, safesWithOwners: Safe[]) => {
   const safeTxn: SafeTransaction = await safesWithOwners[0].createTransaction({ safeTransactionData });
   const txHash = await safesWithOwners[0].getTransactionHash(safeTxn);
+
+  // Ensure owner has enough eth to execute txns
+  const minBalance = ethers.utils.parseEther("0.1");
+  const ownerAddress = await safesWithOwners[0].getEthAdapter().getSignerAddress();
+  const ownerBalance = await safesWithOwners[0].getEthAdapter().getBalance(ownerAddress);
+  if (ownerBalance.lt(minBalance)) {
+    await setBalance(ownerAddress, minBalance.mul(2));
+  }
 
   await Promise.all(
     safesWithOwners.map(async (safe) => await (await safe.approveTransactionHash(txHash)).transactionResponse?.wait())

@@ -36,10 +36,10 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_OPTIMISM}`,
-        blockNumber: 73907900,
+        url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_MAINNET}`,
+        blockNumber: 16615500,
       },
-      chainId: 10,
+      chainId: 1,
 
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -49,7 +49,7 @@ const config: HardhatUserConfig = {
       blockGasLimit: 30_000_000,
     },
     mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY_MAINNET}`,
+      url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_MAINNET}`,
       accounts: [process.env.PRIVATE_KEY ?? ""],
       chainId: 1,
     },
@@ -115,7 +115,7 @@ const config: HardhatUserConfig = {
     },
   },
   paths: {
-    sources: "./src/strategies/optimism",
+    sources: "./src/strategies/uniswapv3",
     tests: "./src/tests/strategies",
     cache: "./cache",
     artifacts: "./artifacts",
