@@ -36,10 +36,10 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_MAINNET}`,
-        blockNumber: 16615500,
+        url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_POLYGON}`,
+        blockNumber: 39367600,
       },
-      chainId: 1,
+      chainId: 137,
 
       accounts: {
         mnemonic: process.env.MNEMONIC,
@@ -115,7 +115,7 @@ const config: HardhatUserConfig = {
     },
   },
   paths: {
-    sources: "./src/strategies/uniswapv3",
+    sources: "./src/strategies/polygon/uniswapv3",
     tests: "./src/tests/strategies",
     cache: "./cache",
     artifacts: "./artifacts",

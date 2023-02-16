@@ -30,6 +30,7 @@ contract StrategyUsdcUsdtUniV3Poly is StrategyRebalanceUniV3 {
     {
         tokenToNativeRoutes[usdc] = abi.encodePacked(usdc, uint24(3000), wmatic);
         tokenToNativeRoutes[usdt] = abi.encodePacked(usdt, uint24(500), usdc, uint24(3000), wmatic);
+        performanceTreasuryFee = 1000;
     }
 
     function getName() external pure override returns (string memory) {
