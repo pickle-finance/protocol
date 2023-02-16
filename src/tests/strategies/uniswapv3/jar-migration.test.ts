@@ -278,7 +278,7 @@ export const doJarMigrationTest = async (
 
       // New users depositing into the jar
       // Fred deposit
-      console.log("\n===============Fred Deposit==============");
+      console.log("\n=============== Fred Deposit ==============");
       console.log(
         "Fred " + token0Symbol + " balance before deposit => ",
         bigToNumber(await token0.balanceOf(fred.address), token0Decimals)
@@ -298,7 +298,7 @@ export const doJarMigrationTest = async (
       );
 
       // Bob & Charles deposits
-      console.log("\n===============Bob Deposit==============");
+      console.log("\n=============== Bob Deposit ==============");
       console.log(
         "Bob " + token0Symbol + " balance before deposit => ",
         bigToNumber(await token0.balanceOf(bob.address), token0Decimals)
@@ -317,7 +317,7 @@ export const doJarMigrationTest = async (
         bigToNumber(await token1.balanceOf(bob.address), token1Decimals)
       );
 
-      console.log("\n===============Charles Deposit==============");
+      console.log("\n=============== Charles Deposit ==============");
       console.log(
         "Charles " + token0Symbol + " balance before deposit => ",
         bigToNumber(await token0.balanceOf(charles.address), token0Decimals)
@@ -346,7 +346,7 @@ export const doJarMigrationTest = async (
       expect(fredShare).to.be.eqApprox(bobShare);
       expect(fredShare).to.be.eqApprox(charlesShare);
 
-      console.log("\n===============Strategy Harvest==============");
+      console.log("\n=============== Strategy Harvest ==============");
       const liquidityBefore = await newStrategy.liquidityOfPool();
       console.log("Strategy liquidity before harvest => ", bigToNumber(liquidityBefore, 0));
       await simulateSwaps(router, pool, nativeAmountToSwapBN.mul(20));
@@ -355,7 +355,7 @@ export const doJarMigrationTest = async (
       console.log("Strategy liquidity after harvest => ", bigToNumber(liquidityAfter, 0));
       expect(liquidityAfter.gt(liquidityBefore)).to.be.eq(true, "Harvest failed! Liquidity didn't increase.");
 
-      console.log("\n===============Fred partial withdraw==============");
+      console.log("\n=============== Fred partial withdraw ==============");
       console.log(
         "Fred " + token0Symbol + " balance before withdrawal => ",
         bigToNumber(await token0.balanceOf(fred.address), token0Decimals)
@@ -375,7 +375,7 @@ export const doJarMigrationTest = async (
       );
       console.log("Fred shares remaining => ", bigToNumber(await jar.balanceOf(fred.address)));
 
-      console.log("\n===============Bob withdraw==============");
+      console.log("\n=============== Bob withdraw ==============");
       console.log(
         "Bob " + token0Symbol + " balance before withdrawal => ",
         bigToNumber(await token0.balanceOf(bob.address), token0Decimals)
@@ -419,7 +419,7 @@ export const doJarMigrationTest = async (
         bigToNumber(await token1.balanceOf(jar.address), token1Decimals)
       );
 
-      console.log("\n===============Fred Full withdraw==============");
+      console.log("\n=============== Fred Full withdraw ==============");
       console.log(
         "Fred " + token0Symbol + " balance before withdrawal => ",
         bigToNumber(await token0.balanceOf(fred.address), token0Decimals)
