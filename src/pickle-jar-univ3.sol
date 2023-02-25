@@ -124,13 +124,15 @@ contract PickleJarUniV3 is ERC20, ReentrancyGuard {
         bool _ethUsed;
         (token0Amount, token1Amount, _ethUsed) = _convertEth(token0Amount, token1Amount);
 
+        uint256 _totalLiquidity = IControllerV2(controller).liquidityOf(address(pool));
+
         uint256 _liquidity = _depositAndRefundUnused(_ethUsed, token0Amount, token1Amount);
 
         uint256 shares = 0;
         if (totalSupply() == 0) {
             shares = _liquidity;
         } else {
-            shares = (_liquidity.mul(totalSupply())).div(IControllerV2(controller).liquidityOf(address(pool)));
+            shares = (_liquidity.mul(totalSupply())).div(_totalLiquidity);
         }
 
         _mint(msg.sender, shares);
