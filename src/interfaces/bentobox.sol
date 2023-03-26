@@ -3,7 +3,7 @@
 pragma solidity >=0.8.0;
 
 /// @notice Trident pool router interface.
-interface IMasterBento {
+interface IBentoBox {
     function setMasterContractApproval(
         address user,
         address masterContract,
