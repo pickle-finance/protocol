@@ -363,7 +363,7 @@ const getWantFor = async (signer: SignerWithAddress, strategy: Contract) => {
         .connect(signer)
         .callStatic.swapExactTokensForTokens(swapAmount, 1, route, signer.address, deadline);
       await legacyRouter.connect(signer).swapExactTokensForTokens(swapAmount, 1, route, signer.address, deadline);
-      swapAmount = amountsOut[-1];
+      swapAmount = amountsOut[amountsOut.length-1];
     } else {
       const strategyRoute = token0Routes[i].tridentPath;
       const [tokenIn] = ethers.utils.defaultAbiCoder.decode(["address", "address", "bool"], strategyRoute[0].data);
@@ -401,7 +401,7 @@ const getWantFor = async (signer: SignerWithAddress, strategy: Contract) => {
         .connect(signer)
         .callStatic.swapExactTokensForTokens(swapAmount, 1, route, signer.address, deadline);
       await legacyRouter.connect(signer).swapExactTokensForTokens(swapAmount, 1, route, signer.address, deadline);
-      swapAmount = amountsOut[-1];
+      swapAmount = amountsOut[amountsOut.length-1];
     } else {
       const strategyRoute = token1Routes[i].tridentPath;
       const [tokenIn] = ethers.utils.defaultAbiCoder.decode(["address", "address", "bool"], strategyRoute[0].data);
