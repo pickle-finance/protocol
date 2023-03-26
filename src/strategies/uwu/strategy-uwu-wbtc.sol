@@ -6,6 +6,7 @@ import "./strategy-uwu-base.sol";
 contract StrategyUwuWbtc is StrategyUwuBase {
     // Token addresses
     address private constant wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
+    address private constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     bytes path = abi.encodePacked(weth, uint24(500), wbtc);
 
     constructor(

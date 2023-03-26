@@ -5,6 +5,7 @@ import "../../interfaces/uwu/uwu-lend.sol";
 import "../../interfaces/uwu/data-provider.sol";
 import "../../interfaces/uwu/uwu-rewards.sol";
 import "../../interfaces/univ3/ISwapRouter.sol";
+import "../../interfaces/uniswapv2.sol";
 import {DataTypes} from "../../interfaces/uwu/data-types.sol";
 import "../strategy-base-v2.sol";
 
@@ -16,6 +17,7 @@ abstract contract StrategyUwuBase is StrategyBase {
     address public constant uwu = 0x55C08ca52497e2f1534B59E2917BF524D4765257;
     address public constant lendingPool = 0x2409aF0251DCB89EE3Dee572629291f9B087c668;
     address public constant dataProviderAddr = 0x17938eDE656Ca1901807abf43a6B1D138D8Cd521;
+    address private constant _weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
     address public immutable aToken;
     address public immutable variableDebtToken;
@@ -33,6 +35,9 @@ abstract contract StrategyUwuBase is StrategyBase {
     uint256 colFactorLeverageBuffer = 40;
     uint256 colFactorLeverageBufferMax = 1000;
 
+    address public constant sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
+    address public constant univ3Router = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
+
     constructor(
         address _token,
         bytes memory _path,
@@ -40,7 +45,7 @@ abstract contract StrategyUwuBase is StrategyBase {
         address _strategist,
         address _controller,
         address _timelock
-    ) StrategyBase(_token, _governance, _strategist, _controller, _timelock) {
+    ) StrategyBase(_token, _weth, _governance, _strategist, _controller, _timelock) {
         nativeToTokenPath = _path;
 
         DataTypes.ReserveData memory reserveData = IUwuLend(lendingPool).getReserveData(_token);
@@ -48,7 +53,7 @@ abstract contract StrategyUwuBase is StrategyBase {
         variableDebtToken = reserveData.variableDebtTokenAddress;
         dataProvider = IDataProvider(dataProviderAddr);
 
-        IERC20(weth).approve(univ3Router, type(uint256).max);
+        IERC20(native).approve(univ3Router, type(uint256).max);
     }
 
     // **** Modifiers **** //
@@ -110,12 +115,18 @@ abstract contract StrategyUwuBase is StrategyBase {
         return leverage;
     }
 
-    function getHarvestable() external view override returns (uint256) {
+    function getHarvestable() external view override returns (address[] memory, uint256[] memory) {
         address[] memory aTokens = new address[](1);
         aTokens[0] = aToken;
         uint256[] memory rewards = uwuRewards.claimableReward(address(this), aTokens);
 
-        return rewards[0].div(2);
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = uwu;
+
+        uint256[] memory pendingRewards = new uint256[](1);
+        pendingRewards[0] = rewards[0].div(2);
+
+        return (rewardTokens, pendingRewards);
     }
 
     function getColFactor() public view returns (uint256) {
@@ -281,7 +292,7 @@ abstract contract StrategyUwuBase is StrategyBase {
         }
     }
 
-    function harvest() public override onlyBenevolent {
+    function harvest() public override onlyHarvester {
         address[] memory aTokens = new address[](1);
         aTokens[0] = aToken;
 
@@ -295,13 +306,13 @@ abstract contract StrategyUwuBase is StrategyBase {
             IERC20(uwu).safeApprove(sushiRouter, _uwu);
             address[] memory path = new address[](2);
             path[0] = uwu;
-            path[1] = weth;
+            path[1] = native;
 
             _swapWithPath(sushiRouter, path, _uwu);
 
             _distributePerformanceFeesNative();
 
-            uint256 _weth = IERC20(weth).balanceOf(address(this));
+            uint256 _native = IERC20(native).balanceOf(address(this));
 
             if (nativeToTokenPath.length > 0)
                 ISwapRouter(univ3Router).exactInput(
@@ -309,7 +320,7 @@ abstract contract StrategyUwuBase is StrategyBase {
                         path: nativeToTokenPath,
                         recipient: address(this),
                         deadline: block.timestamp + 300,
-                        amountIn: _weth,
+                        amountIn: _native,
                         amountOutMinimum: 0
                     })
                 );
@@ -354,4 +365,17 @@ abstract contract StrategyUwuBase is StrategyBase {
 
         return _amount;
     }
+
+    function _swapWithPath(
+        address router,
+        address[] memory path,
+        uint256 _amount
+    ) internal {
+        require(path[1] != address(0));
+        UniswapRouterV2(router).swapExactTokensForTokens(_amount, 0, path, address(this), block.timestamp.add(60));
+    }
+
+    function _addToNativeRoute(bytes memory path) internal override {}
+
+    function _addToTokenRoute(bytes memory) internal override {}
 }
