@@ -1,59 +1,53 @@
 import "@nomicfoundation/hardhat-toolbox";
-import { ethers, network } from "hardhat";
-import {
-  expect,
-  increaseTime,
-  getContractAt,
-  increaseBlock,
-} from "../../../utils/testHelper";
+import { ethers } from "hardhat";
+import { expect, increaseTime, getContractAt } from "../../../utils/testHelper";
 import { setup } from "../../../utils/setupHelper";
 import { NULL_ADDRESS } from "../../../utils/constants";
 import { BigNumber, Contract } from "ethers";
+import { loadFixture, setBalance } from "@nomicfoundation/hardhat-network-helpers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 export const doTestBehaviorBase = (
   strategyName: string,
-  want_addr: string,
-  reward_addr: string,
   days = 15,
-  bIncreaseBlock = false,
-  isPolygon = false,
-  bloctime = 5
 ) => {
-  let alice: SignerWithAddress, want: Contract, native: Contract;
-  let strategy: Contract, pickleJar: Contract, controller: Contract;
-  let governance: SignerWithAddress,
-    strategist: SignerWithAddress,
-    devfund: SignerWithAddress,
-    treasury: SignerWithAddress,
-    timelock: SignerWithAddress;
-  let preTestSnapshotID: any;
+  const shortName = strategyName.substring(strategyName.lastIndexOf(":") + 2);
+  describe(`${shortName} common behavior tests`, () => {
+    const initialSetupFixture = async () => {
+      const [governance, treasury, devfund] = await ethers.getSigners();
 
-  describe(`${strategyName} common behavior tests`, () => {
-    before("Setup contracts", async () => {
-      [alice, devfund, treasury] = await ethers.getSigners();
-      governance = alice;
-      strategist = devfund;
-      timelock = alice;
+      const alice = governance;
+      const strategist = devfund;
+      const timelock = alice;
 
-      want = await getContractAt("src/lib/erc20.sol:ERC20", want_addr);
-
-      [controller, strategy, pickleJar] = await setup(
+      const [controller, strategy, jar] = await setup(
         strategyName,
-        want,
         governance,
         strategist,
         timelock,
         devfund,
         treasury,
-        isPolygon
       );
 
-      const nativeAddr = await strategy.native();
-      native = await getContractAt("src/lib/erc20.sol:ERC20", nativeAddr);
-    });
+      const want = await getContractAt("src/lib/erc20.sol:ERC20", await strategy.want());
+      const token0 = await getContractAt("src/lib/erc20.sol:ERC20", await strategy.token0());
+      const token1 = await getContractAt("src/lib/erc20.sol:ERC20", await strategy.token1());
+      const native = await getContractAt("src/lib/erc20.sol:ERC20", await strategy.native());
+
+      // Get some want tokens into Alice wallet
+      await setBalance(alice.address, ethers.utils.parseEther("1.1"));
+      const wNativeDepositAbi = ["function deposit() payable", "function approve(address,uint256) returns(bool)"];
+      const wNativeDeposit = await ethers.getContractAt(wNativeDepositAbi, native.address);
+      await wNativeDeposit.connect(alice).deposit({ value: ethers.utils.parseEther("1") });
+      await getWantFor(alice, strategy);
+      const wantBalance:BigNumber = await want.balanceOf(alice.address);
+      expect(wantBalance.isZero()).to.be.eq(false, "Alice failed to get some want tokens!");
+
+      return { strategy, jar, controller, governance, treasury, timelock, devfund, strategist, alice, want, native, token0, token1 };
+    };
 
     it("Should set the timelock correctly", async () => {
+      const { strategy, timelock } = await loadFixture(initialSetupFixture);
       expect(await strategy.timelock()).to.be.eq(
         timelock.address,
         "timelock is incorrect"
@@ -64,11 +58,56 @@ export const doTestBehaviorBase = (
         "timelock is incorrect"
       );
     });
+    const getWantFor = async (signer: SignerWithAddress, strategy: Contract) => {
+      const routerAbi = [
+        "function addLiquidity(address tokenA, address tokenB, bool stable, uint256 amountADesired, uint256 amountBDesired, uint256 amountAMin, uint256 amountBMin, address to, uint256 deadline)",
+        // "function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, tuple(address from, address to, bool stable)[] routes, address to, uint256 deadline) returns (uint256[] amounts)",
+        {"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"amountOutMin","type":"uint256"},{"components":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"bool","name":"stable","type":"bool"}],"internalType":"struct Router.route[]","name":"routes","type":"tuple[]"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"deadline","type":"uint256"}],"name":"swapExactTokensForTokens","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"stateMutability":"nonpayable","type":"function"},
+      ];
+      const routerAddr = "0x9c12939390052919aF3155f41Bf4160Fd3666A6f";
+      const router = await ethers.getContractAt(routerAbi, routerAddr);
+      const token0 = await getContractAt("src/lib/erc20.sol:ERC20", await strategy.token0());
+      const token1 = await getContractAt("src/lib/erc20.sol:ERC20", await strategy.token1());
+      const native = await getContractAt("src/lib/erc20.sol:ERC20", await strategy.native());
+      const isStable = await strategy.isStablePool();
+
+      const nativeBal: BigNumber = await native.balanceOf(signer.address);
+      if (nativeBal.isZero()) throw "Signer have 0 native balance";
+
+      interface Route { from: string; to: string; stable: boolean; };
+      const token0Routes: Route[] = [];
+      const token1Routes: Route[] = [];
+      for (let i = 0; i < 5; i++) {
+        if (token0.address === native.address) break;
+        const route0: Route = await strategy.nativeToTokenRoutes(token0.address, i);
+        token0Routes.push(route0);
+        if (route0.to === token0.address) break;
+      }
+      for (let i = 0; i < 5; i++) {
+        if (token1.address === native.address) break;
+        const route1: Route = await strategy.nativeToTokenRoutes(token1.address, i);
+        token1Routes.push(route1);
+        if (route1.to === token1.address) break;
+      }
+
+      const deadline = Math.ceil(Date.now() / 1000) + 300;
+
+      await native.connect(signer).approve(router.address, ethers.constants.MaxUint256);
+      token0.address !== native.address && await router.connect(signer).swapExactTokensForTokens(nativeBal.div(2), 0, token0Routes, signer.address, deadline);
+      token1.address !== native.address && await router.connect(signer).swapExactTokensForTokens(nativeBal.div(2), 0, token1Routes, signer.address, deadline);
+
+      const token0Bal = await token0.balanceOf(signer.address);
+      const token1Bal = await token1.balanceOf(signer.address);
+      await token0.connect(signer).approve(router.address, ethers.constants.MaxUint256);
+      await token1.connect(signer).approve(router.address, ethers.constants.MaxUint256);
+      await router.connect(signer).addLiquidity(token0.address, token1.address, isStable, token0Bal, token1Bal, 0, 0, signer.address, deadline);
+    }
 
     it("Should withdraw correctly", async () => {
+      const { want, alice, jar: pickleJar, strategy, controller } = await loadFixture(initialSetupFixture);
       const _want: BigNumber = await want.balanceOf(alice.address);
-      await want.approve(pickleJar.address, _want);
-      await pickleJar.deposit(_want);
+      await want.connect(alice).approve(pickleJar.address, _want);
+      await pickleJar.connect(alice).deposit(_want);
       console.log(
         "Alice pTokenBalance after deposit: %s\n",
         (await pickleJar.balanceOf(alice.address)).toString()
@@ -76,9 +115,6 @@ export const doTestBehaviorBase = (
       await pickleJar.earn();
 
       await increaseTime(60 * 60 * 24 * days); //travel days into the future
-      if (bIncreaseBlock) {
-        await increaseBlock((60 * 60 * 24 * days) / bloctime); //roughly days
-      }
 
       console.log(
         "\nRatio before harvest: ",
@@ -127,9 +163,10 @@ export const doTestBehaviorBase = (
     });
 
     it("Should harvest correctly", async () => {
+      const { want, alice, jar: pickleJar, strategy, native, treasury, devfund } = await loadFixture(initialSetupFixture);
       const _want: BigNumber = await want.balanceOf(alice.address);
-      await want.approve(pickleJar.address, _want);
-      await pickleJar.deposit(_want);
+      await want.connect(alice).approve(pickleJar.address, _want);
+      await pickleJar.connect(alice).deposit(_want);
       console.log(
         "Alice pTokenBalance after deposit: %s\n",
         (await pickleJar.balanceOf(alice.address)).toString()
@@ -137,9 +174,7 @@ export const doTestBehaviorBase = (
       await pickleJar.earn();
 
       await increaseTime(60 * 60 * 24 * days); //travel days into the future
-      if (bIncreaseBlock) {
-        await increaseBlock((60 * 60 * 24 * days) / bloctime); //roughly days
-      }
+
       const pendingRewards: [string[], BigNumber[]] =
         await strategy.getHarvestable();
       const _before: BigNumber = await pickleJar.balance();
@@ -217,6 +252,7 @@ export const doTestBehaviorBase = (
     });
 
     it("Should perform multiple deposits and withdrawals correctly", async () => {
+      const { want, alice, jar: pickleJar, strategist } = await loadFixture(initialSetupFixture);
       const _wantHalved: BigNumber = (await want.balanceOf(alice.address)).div(
         2
       );
@@ -286,17 +322,18 @@ export const doTestBehaviorBase = (
     });
 
     it("should add and remove rewards correctly", async () => {
+      const { alice, strategy, native } = await loadFixture(initialSetupFixture);
       const routify = (from: string, to: string, isStable: boolean) => {
         return { from: from, to: to, stable: isStable };
       };
 
       // Addresses
-      const usdc = "0x7F5c764cBc14f9669B88837ca1490cCa17c31607";
-      const notRewardToken = usdc; // Any token address that is not a reward token
+      const notRewardToken = await strategy.want(); // Any token address that is not a reward token
+      const reward_addr = await strategy.velo();
 
       // A valid toNative route for a currently registered reward token (can be the same as the registered one)
-      // it should not add to activeRewardsTokens array!
-      const validToNativeRoute = [routify(reward_addr, usdc, false)];
+      // it should not add to activeRewardsTokens array, only replace the existing array element!
+      const validToNativeRoute = [routify(reward_addr, notRewardToken, false)];
 
       // Arbitrary new reward route
       const arbNewRoute = [routify(notRewardToken, native.address, false)];
@@ -331,14 +368,6 @@ export const doTestBehaviorBase = (
         rewardsAfterAdd.length - 1,
         "Deactivating reward failed"
       );
-    });
-
-    beforeEach(async () => {
-      preTestSnapshotID = await network.provider.send("evm_snapshot");
-    });
-
-    afterEach(async () => {
-      await network.provider.send("evm_revert", [preTestSnapshotID]);
     });
   });
 };
