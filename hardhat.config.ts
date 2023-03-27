@@ -3,8 +3,8 @@ import "@nomicfoundation/hardhat-toolbox";
 import "@nomiclabs/hardhat-vyper";
 import "hardhat-deploy";
 import "hardhat-contract-sizer";
-import { removeConsoleLog } from "hardhat-preprocessor";
-import { HardhatUserConfig } from "hardhat/config";
+import {removeConsoleLog} from "hardhat-preprocessor";
+import {HardhatUserConfig} from "hardhat/config";
 import * as dotenv from "dotenv";
 dotenv.config();
 
@@ -36,17 +36,16 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_POLYGON}`,
-        blockNumber: 39367600,
+        url: "https://evm2.kava.io",
       },
-      chainId: 137,
+      chainId: 2222,
 
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },
       hardfork: "london",
       gasPrice: "auto",
-      blockGasLimit: 30_000_000,
+      blockGasLimit: 300_000_000,
     },
     mainnet: {
       url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_MAINNET}`,
@@ -98,6 +97,11 @@ const config: HardhatUserConfig = {
       accounts: [process.env.PRIVATE_KEY ?? ""],
       chainId: 100,
     },
+    kava: {
+      url: "https://evm2.kava.io",
+      accounts: [process.env.PRIVATE_KEY ?? ""],
+      chainId: 2222,
+    },
   },
   contractSizer: {
     alphaSort: true,
@@ -115,7 +119,7 @@ const config: HardhatUserConfig = {
     },
   },
   paths: {
-    sources: "./src/strategies/polygon/uniswapv3",
+    sources: "./src",
     tests: "./src/tests/strategies",
     cache: "./cache",
     artifacts: "./artifacts",
@@ -132,16 +136,13 @@ const config: HardhatUserConfig = {
     gasPrice: 32,
   },
   preprocess: {
-    eachLine: removeConsoleLog(
-      (hre) =>
-        hre.network.name !== "hardhat" && hre.network.name !== "localhost"
-    ),
+    eachLine: removeConsoleLog((hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"),
   },
   mocha: {
     timeout: 20000000,
   },
   vyper: {
-    compilers: [{ version: "0.2.4" }, { version: "0.2.7" }],
+    compilers: [{version: "0.2.4"}, {version: "0.2.7"}],
   },
 };
 
