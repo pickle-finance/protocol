@@ -103,6 +103,11 @@ abstract contract StrategyBase {
 
     function getHarvestable() external view virtual returns (address[] memory, uint256[] memory);
 
+    /// @notice should be overridden if it needs to be used with callStatic
+    function getHarvestableStatic() external virtual returns (address[] memory, uint256[] memory) {
+        return this.getHarvestable();
+    }
+
     function getActiveRewardsTokens() external view returns (address[] memory) {
         return activeRewardsTokens;
     }
