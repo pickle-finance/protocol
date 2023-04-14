@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-
-pragma solidity ^0.6.12;
+pragma solidity >=0.6.12;
 
 interface IControllerV2 {
     function jars(address) external view returns (address);

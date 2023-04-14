@@ -64,4 +64,17 @@ interface ITridentRouter {
         external
         payable
         returns (uint256 amountOut);
+
+    function addLiquidity(
+        TokenInput[] calldata tokenInput,
+        address pool,
+        uint256 minLiquidity,
+        bytes calldata data
+    ) external payable returns (uint256 liquidity);
+}
+
+interface ITridentPair {
+    function token0() external view returns (address);
+
+    function token1() external view returns (address);
 }

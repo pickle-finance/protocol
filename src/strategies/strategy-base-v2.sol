@@ -2,9 +2,6 @@
 pragma solidity >=0.8.6;
 
 import "../lib/erc20.sol";
-
-import "../interfaces/jar.sol";
-import "../interfaces/uniswapv2.sol";
 import "../interfaces/controller.sol";
 
 // Strategy Contract Basics
@@ -14,55 +11,46 @@ abstract contract StrategyBase {
     using Address for address;
     using SafeMath for uint256;
 
-    // Perfomance fees - start with 20%
-    uint256 public performanceTreasuryFee = 2000;
+    // Perfomance fees
+    uint256 public performanceTreasuryFee = 0;
     uint256 public constant performanceTreasuryMax = 10000;
 
-    uint256 public performanceDevFee = 0;
-    uint256 public constant performanceDevMax = 10000;
-
-    // Withdrawal fee 0%
-    // - 0% to treasury
-    // - 0% to dev fund
+    // Withdrawal fee
     uint256 public withdrawalTreasuryFee = 0;
     uint256 public constant withdrawalTreasuryMax = 100000;
 
-    uint256 public withdrawalDevFundFee = 0;
-    uint256 public constant withdrawalDevFundMax = 100000;
-
     // Tokens
-    address public want;
-    address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address public constant native = weth;
+    address public immutable want;
+    address public immutable native;
+    address[] public activeRewardsTokens;
 
-    // User accounts
+    // Permissioned accounts
     address public governance;
     address public controller;
     address public strategist;
     address public timelock;
-
-    // Dex
-    address public constant uniV2Router = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-    address public constant univ3Router = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
-    address public constant sushiRouter = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
-
+    address public pendingTimelock;
     mapping(address => bool) public harvesters;
-    address[] public activeRewardsTokens;
 
     constructor(
         address _want,
+        address _native,
         address _governance,
         address _strategist,
         address _controller,
         address _timelock
     ) {
+        // Sanity checks
         require(_want != address(0));
+        require(_native != address(0));
         require(_governance != address(0));
         require(_strategist != address(0));
         require(_controller != address(0));
         require(_timelock != address(0));
 
+        // Constants assignments
         want = _want;
+        native = _native;
         governance = _governance;
         strategist = _strategist;
         controller = _controller;
@@ -71,8 +59,31 @@ abstract contract StrategyBase {
 
     // **** Modifiers **** //
 
-    modifier onlyBenevolent() {
-        require(harvesters[msg.sender] || msg.sender == governance || msg.sender == strategist);
+    modifier onlyHarvester() {
+        require(
+            harvesters[msg.sender] || msg.sender == strategist || msg.sender == governance || msg.sender == timelock,
+            "!harvester"
+        );
+        _;
+    }
+
+    modifier onlyStrategist() {
+        require(msg.sender == strategist || msg.sender == governance || msg.sender == timelock, "!strategist");
+        _;
+    }
+
+    modifier onlyGovernance() {
+        require(msg.sender == governance || msg.sender == timelock, "!governance");
+        _;
+    }
+
+    modifier onlyTimelock() {
+        require(msg.sender == timelock, "!timelock");
+        _;
+    }
+
+    modifier onlyController() {
+        require(msg.sender == controller, "!controller");
         _;
     }
 
@@ -90,7 +101,12 @@ abstract contract StrategyBase {
 
     function getName() external pure virtual returns (string memory);
 
-    function getHarvestable() external view virtual returns (uint256);
+    function getHarvestable() external view virtual returns (address[] memory, uint256[] memory);
+
+    /// @notice should be overridden if it needs to be used with callStatic
+    function getHarvestableStatic() external virtual returns (address[] memory, uint256[] memory) {
+        return this.getHarvestable();
+    }
 
     function getActiveRewardsTokens() external view returns (address[] memory) {
         return activeRewardsTokens;
@@ -98,109 +114,97 @@ abstract contract StrategyBase {
 
     // **** Setters **** //
 
-    function whitelistHarvesters(address[] calldata _harvesters) external {
-        require(msg.sender == governance || msg.sender == strategist || harvesters[msg.sender], "not authorized");
-
+    function whitelistHarvesters(address[] calldata _harvesters) external onlyHarvester {
         for (uint256 i = 0; i < _harvesters.length; i++) {
             harvesters[_harvesters[i]] = true;
         }
     }
 
-    function revokeHarvesters(address[] calldata _harvesters) external {
-        require(msg.sender == governance || msg.sender == strategist, "not authorized");
-
+    function revokeHarvesters(address[] calldata _harvesters) external onlyStrategist {
         for (uint256 i = 0; i < _harvesters.length; i++) {
             harvesters[_harvesters[i]] = false;
         }
     }
 
-    function setWithdrawalDevFundFee(uint256 _withdrawalDevFundFee) external {
-        require(msg.sender == timelock, "!timelock");
-        withdrawalDevFundFee = _withdrawalDevFundFee;
-    }
-
-    function setWithdrawalTreasuryFee(uint256 _withdrawalTreasuryFee) external {
-        require(msg.sender == timelock, "!timelock");
+    function setWithdrawalTreasuryFee(uint256 _withdrawalTreasuryFee) external onlyTimelock {
         withdrawalTreasuryFee = _withdrawalTreasuryFee;
     }
 
-    function setPerformanceDevFee(uint256 _performanceDevFee) external {
-        require(msg.sender == timelock, "!timelock");
-        performanceDevFee = _performanceDevFee;
-    }
-
-    function setPerformanceTreasuryFee(uint256 _performanceTreasuryFee) external {
-        require(msg.sender == timelock, "!timelock");
+    function setPerformanceTreasuryFee(uint256 _performanceTreasuryFee) external onlyTimelock {
         performanceTreasuryFee = _performanceTreasuryFee;
     }
 
-    function setStrategist(address _strategist) external {
-        require(msg.sender == governance, "!governance");
+    function setStrategist(address _strategist) external onlyGovernance {
         strategist = _strategist;
     }
 
-    function setGovernance(address _governance) external {
-        require(msg.sender == governance, "!governance");
+    function setGovernance(address _governance) external onlyGovernance {
         governance = _governance;
     }
 
-    function setTimelock(address _timelock) external {
-        require(msg.sender == timelock, "!timelock");
-        timelock = _timelock;
+    function setPendingTimelock(address _pendingTimelock) external onlyTimelock {
+        pendingTimelock = _pendingTimelock;
     }
 
-    function setController(address _controller) external {
-        require(msg.sender == timelock, "!timelock");
+    function acceptTimelock() external {
+        require(msg.sender == pendingTimelock, "!pendingTimelock");
+        timelock = pendingTimelock;
+        pendingTimelock = address(0);
+    }
+
+    function setController(address _controller) external onlyTimelock {
         controller = _controller;
     }
 
     // **** State mutations **** //
+
+    // Adds/updates a swap path from a token to native, normally used for adding/updating a reward path
+    function addToNativeRoute(bytes calldata _route) external onlyStrategist {
+        _addToNativeRoute(_route);
+    }
+
+    function addToTokenRoute(bytes calldata _route) external onlyStrategist {
+        _addToTokenRoute(_route);
+    }
+
+    function _addToTokenRoute(bytes memory _route) internal virtual;
+
+    function _addToNativeRoute(bytes memory _route) internal virtual;
+
+    function deactivateReward(address _reward) external onlyStrategist {
+        for (uint256 i = 0; i < activeRewardsTokens.length; i++) {
+            if (activeRewardsTokens[i] == _reward) {
+                activeRewardsTokens[i] = activeRewardsTokens[activeRewardsTokens.length - 1];
+                activeRewardsTokens.pop();
+            }
+        }
+    }
+
     function deposit() public virtual;
 
     // Controller only function for creating additional rewards from dust
-    function withdraw(IERC20 _asset) external returns (uint256 balance) {
-        require(msg.sender == controller, "!controller");
+    function withdraw(IERC20 _asset) external onlyController returns (uint256 balance) {
         require(want != address(_asset), "want");
         balance = _asset.balanceOf(address(this));
         _asset.safeTransfer(controller, balance);
     }
 
     // Withdraw partial funds, normally used with a jar withdrawal
-    function withdraw(uint256 _amount) external {
-        require(msg.sender == controller, "!controller");
+    function withdraw(uint256 _amount) external onlyController {
         uint256 _balance = IERC20(want).balanceOf(address(this));
         if (_balance < _amount) {
             _amount = _withdrawSome(_amount.sub(_balance));
             _amount = _amount.add(_balance);
         }
 
-        uint256 _feeDev = _amount.mul(withdrawalDevFundFee).div(withdrawalDevFundMax);
-        IERC20(want).safeTransfer(IController(controller).devfund(), _feeDev);
-
-        uint256 _feeTreasury = _amount.mul(withdrawalTreasuryFee).div(withdrawalTreasuryMax);
-        IERC20(want).safeTransfer(IController(controller).treasury(), _feeTreasury);
-
         address _jar = IController(controller).jars(address(want));
         require(_jar != address(0), "!jar"); // additional protection so we don't burn the funds
 
-        IERC20(want).safeTransfer(_jar, _amount.sub(_feeDev).sub(_feeTreasury));
-    }
-
-    // Withdraw funds, used to swap between strategies
-    function withdrawForSwap(uint256 _amount) external returns (uint256 balance) {
-        require(msg.sender == controller, "!controller");
-        _withdrawSome(_amount);
-
-        balance = IERC20(want).balanceOf(address(this));
-
-        address _jar = IController(controller).jars(address(want));
-        require(_jar != address(0), "!jar");
-        IERC20(want).safeTransfer(_jar, balance);
+        IERC20(want).safeTransfer(_jar, _amount);
     }
 
     // Withdraw all funds, normally used when migrating strategies
-    function withdrawAll() external returns (uint256 balance) {
-        require(msg.sender == controller, "!controller");
+    function withdrawAll() external onlyController returns (uint256 balance) {
         _withdrawAll();
 
         balance = IERC20(want).balanceOf(address(this));
@@ -220,8 +224,7 @@ abstract contract StrategyBase {
 
     // **** Emergency functions ****
 
-    function execute(address _target, bytes memory _data) public payable returns (bytes memory response) {
-        require(msg.sender == timelock, "!timelock");
+    function execute(address _target, bytes memory _data) public payable onlyTimelock returns (bytes memory response) {
         require(_target != address(0), "!target");
 
         // call contract in current context
@@ -240,20 +243,6 @@ abstract contract StrategyBase {
                 revert(add(response, 0x20), size)
             }
         }
-    }
-
-    function _swapDefaultWithPath(address[] memory path, uint256 _amount) internal {
-        require(path[1] != address(0));
-        UniswapRouterV2(uniV2Router).swapExactTokensForTokens(_amount, 0, path, address(this), block.timestamp.add(60));
-    }
-
-    function _swapWithPath(
-        address router,
-        address[] memory path,
-        uint256 _amount
-    ) internal {
-        require(path[1] != address(0));
-        UniswapRouterV2(router).swapExactTokensForTokens(_amount, 0, path, address(this), block.timestamp.add(60));
     }
 
     function _distributePerformanceFeesNative() internal {

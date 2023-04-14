@@ -20,7 +20,6 @@ const now = () => {
 /**
  * @notice setup the controller, strategy and picklejar
  * @param strategyName strategy name to be deployed
- * @param want want token to be set
  * @param governance governance signer addr
  * @param strategist strategy signer addr
  * @param timelock timelock signer addr
@@ -30,18 +29,14 @@ const now = () => {
  */
 export const setup = async (
   strategyName: string,
-  want: Contract,
   governance: SignerWithAddress,
   strategist: SignerWithAddress,
   timelock: SignerWithAddress,
   devfund: SignerWithAddress,
   treasury: SignerWithAddress,
-  isPolygon = false
 ) => {
   const controller = await deployContract(
-    isPolygon
-      ? "src/polygon/controller-v4.sol:ControllerV4"
-      : "src/controller-v4.sol:ControllerV4",
+    "src/controller-v4.sol:ControllerV4",
     governance.address,
     strategist.address,
     timelock.address,
@@ -59,18 +54,19 @@ export const setup = async (
   );
   console.log("✅ Strategy is deployed at ", strategy.address);
 
+  const wantAddr = await strategy.want();
   const pickleJar = await deployContract(
     "src/pickle-jar.sol:PickleJar",
-    want.address,
+    wantAddr,
     governance.address,
     timelock.address,
     controller.address
   );
   console.log("✅ PickleJar is deployed at ", pickleJar.address);
 
-  await controller.setJar(want.address, pickleJar.address);
-  await controller.approveStrategy(want.address, strategy.address);
-  await controller.setStrategy(want.address, strategy.address);
+  await controller.setJar(wantAddr, pickleJar.address);
+  await controller.approveStrategy(wantAddr, strategy.address);
+  await controller.setStrategy(wantAddr, strategy.address);
 
   return [controller, strategy, pickleJar];
 };
@@ -254,7 +250,7 @@ export const getLpToken = async (
 
 /**
  * @dev get want token from the whale using impersonating account feature
- * @param want want token instance
+ * @param want_addr want token instance
  * @param amount token amount
  * @param to receive address
  * @param whaleAddr whale address to send tokens
@@ -266,11 +262,8 @@ export const getWantFromWhale = async (
   whaleAddr: string
 ) => {
   const whale = await unlockAccount(whaleAddr);
-  console.log("here");
   const want = await getContractAt("src/lib/erc20.sol:ERC20", want_addr);
-  console.log("can't get?", whale._address);
   await want.connect(whale).transfer(to.address, amount);
-  console.log("here2");
   const _balance = await want.balanceOf(to.address);
   expect(_balance).to.be.gte(amount, "get want from the whale failed");
 };

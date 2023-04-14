@@ -4,6 +4,7 @@ pragma solidity >=0.8.6;
 import "./strategy-uwu-base.sol";
 
 contract StrategyUwuWeth is StrategyUwuBase {
+    address private constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     bytes path = "";
 
     constructor(

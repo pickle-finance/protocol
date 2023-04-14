@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.7;
+pragma solidity >=0.6.7;
 import "../lib/erc20.sol";
 // interface for Sushiswap MasterChef contract
 interface IMasterchefRewarder {

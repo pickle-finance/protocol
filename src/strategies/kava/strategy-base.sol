@@ -7,7 +7,7 @@ import "../../lib/safe-math.sol";
 import "../../interfaces/jar.sol";
 import "../../interfaces/masterchef.sol";
 import "../../interfaces/trident-router.sol";
-import "../../interfaces/master-bento.sol";
+import "../../interfaces/bentobox.sol";
 import "../../interfaces/controller.sol";
 
 // Strategy Contract Basics
@@ -63,7 +63,7 @@ abstract contract StrategyBase {
         require(_strategist != address(0));
         require(_controller != address(0));
         require(_timelock != address(0));
-        IMasterBento(bento).setMasterContractApproval(address(this), tridentRouter, true, 0, "", "");
+        IBentoBox(bento).setMasterContractApproval(address(this), tridentRouter, true, 0, "", "");
 
         want = _want;
         governance = _governance;

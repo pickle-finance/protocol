@@ -7,6 +7,7 @@ contract StrategyUwuFrax is StrategyUwuBase {
     // Token addresses
     address private constant frax = 0x853d955aCEf822Db058eb8505911ED77F175b99e;
     address private constant usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    address private constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
     bytes path = abi.encodePacked(weth, uint24(500), usdc, uint24(500), frax);
 
